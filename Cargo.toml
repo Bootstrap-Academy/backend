@@ -81,7 +81,7 @@ academy_templates_impl.path = "academy_templates/impl"
 academy_utils.path = "academy_utils"
 academy_utils_derive.path = "academy_utils_derive"
 
-anyhow = { version = "1.0.89", default-features = false, features = ["std"] }
+anyhow = { version = "1.0.90", default-features = false, features = ["std"] }
 argon2 = { version = "0.5.3", default-features = false, features = ["std", "password-hash"] }
 axum = { version = "0.7.7", default-features = false, features = ["http1", "http2", "tokio", "json", "query", "form", "original-uri", "matched-path"] }
 axum-extra = { version = "0.9.4", default-features = false, features = ["typed-header"] }

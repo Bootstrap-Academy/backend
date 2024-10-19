@@ -1,5 +1,6 @@
 use std::future::Future;
 
+pub mod coin;
 pub mod mfa;
 pub mod oauth2;
 pub mod session;

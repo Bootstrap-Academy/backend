@@ -3,6 +3,7 @@ use std::{
     sync::Arc,
 };
 
+use academy_core_coin_contracts::CoinFeatureService;
 use academy_core_config_contracts::ConfigFeatureService;
 use academy_core_contact_contracts::ContactFeatureService;
 use academy_core_health_contracts::HealthFeatureService;
@@ -36,7 +37,7 @@ mod models;
 mod routes;
 
 #[derive(Debug, Clone, Build)]
-pub struct RestServer<Health, Config, User, Session, Contact, Mfa, OAuth2, Internal> {
+pub struct RestServer<Health, Config, User, Session, Contact, Mfa, OAuth2, Coin, Internal> {
     _config: RestServerConfig,
     health: Health,
     config: Config,
@@ -45,6 +46,7 @@ pub struct RestServer<Health, Config, User, Session, Contact, Mfa, OAuth2, Inter
     contact: Contact,
     mfa: Mfa,
     oauth2: OAuth2,
+    coin: Coin,
     internal: Internal,
 }
 
@@ -60,8 +62,8 @@ pub struct RestServerRealIpConfig {
     pub set_from: IpAddr,
 }
 
-impl<Health, Config, User, Session, Contact, Mfa, OAuth2, Internal>
-    RestServer<Health, Config, User, Session, Contact, Mfa, OAuth2, Internal>
+impl<Health, Config, User, Session, Contact, Mfa, OAuth2, Coin, Internal>
+    RestServer<Health, Config, User, Session, Contact, Mfa, OAuth2, Coin, Internal>
 where
     Health: HealthFeatureService,
     Config: ConfigFeatureService,
@@ -70,6 +72,7 @@ where
     Contact: ContactFeatureService,
     Mfa: MfaFeatureService,
     OAuth2: OAuth2FeatureService,
+    Coin: CoinFeatureService,
     Internal: InternalService,
 {
     pub async fn serve(self) -> anyhow::Result<()> {
@@ -94,6 +97,7 @@ where
                 routes::session::TAG,
                 routes::mfa::TAG,
                 routes::oauth2::TAG,
+                routes::coin::TAG,
                 routes::internal::TAG,
             ]
             .into_iter()
@@ -157,6 +161,7 @@ where
             .merge(routes::contact::router(self.contact.into()))
             .merge(routes::mfa::router(self.mfa.into()))
             .merge(routes::oauth2::router(self.oauth2.into()))
+            .merge(routes::coin::router(self.coin.into()))
             .merge(routes::internal::router(self.internal.into()))
     }
 }

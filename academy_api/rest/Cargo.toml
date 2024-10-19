@@ -11,6 +11,7 @@ workspace = true
 
 [dependencies]
 academy_auth_contracts.workspace = true
+academy_core_coin_contracts.workspace = true
 academy_core_config_contracts.workspace = true
 academy_core_contact_contracts.workspace = true
 academy_core_health_contracts.workspace = true

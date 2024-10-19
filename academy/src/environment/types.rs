@@ -5,6 +5,7 @@ use academy_auth_impl::{
     refresh_token::AuthRefreshTokenServiceImpl, AuthServiceImpl,
 };
 use academy_cache_valkey::ValkeyCache;
+use academy_core_coin_impl::CoinFeatureServiceImpl;
 use academy_core_config_impl::ConfigFeatureServiceImpl;
 use academy_core_contact_impl::ContactFeatureServiceImpl;
 use academy_core_health_impl::HealthFeatureServiceImpl;
@@ -31,7 +32,7 @@ use academy_extern_impl::{
     recaptcha::RecaptchaApiServiceImpl, vat::VatApiServiceImpl,
 };
 use academy_persistence_postgres::{
-    mfa::PostgresMfaRepository, oauth2::PostgresOAuth2Repository,
+    coin::PostgresCoinRepository, mfa::PostgresMfaRepository, oauth2::PostgresOAuth2Repository,
     session::PostgresSessionRepository, user::PostgresUserRepository, PostgresDatabase,
 };
 use academy_shared_impl::{
@@ -50,6 +51,7 @@ pub type RestServer = academy_api_rest::RestServer<
     ContactFeature,
     MfaFeature,
     OAuth2Feature,
+    CoinFeature,
     Internal,
 >;
 
@@ -87,6 +89,7 @@ pub type SessionRepo = PostgresSessionRepository;
 pub type UserRepo = PostgresUserRepository;
 pub type MfaRepo = PostgresMfaRepository;
 pub type OAuth2Repo = PostgresOAuth2Repository;
+pub type CoinRepo = PostgresCoinRepository;
 
 // Auth
 pub type Auth =
@@ -161,5 +164,7 @@ pub type OAuth2Feature = OAuth2FeatureServiceImpl<
 pub type OAuth2Link = OAuth2LinkServiceImpl<Id, Time, OAuth2Repo>;
 pub type OAuth2Login = OAuth2LoginServiceImpl<OAuth2Api>;
 pub type OAuth2Registration = OAuth2RegistrationServiceImpl<Secret, Cache>;
+
+pub type CoinFeature = CoinFeatureServiceImpl<Database, Auth, UserRepo, CoinRepo>;
 
 pub type Internal = InternalServiceImpl<Database, AuthInternal, UserRepo>;

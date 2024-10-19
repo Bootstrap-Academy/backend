@@ -16,6 +16,7 @@ academy_auth_impl.workspace = true
 academy_cache_contracts.workspace = true
 academy_cache_valkey.workspace = true
 academy_config.workspace = true
+academy_core_coin_impl.workspace = true
 academy_core_config_impl.workspace = true
 academy_core_contact_impl.workspace = true
 academy_core_health_impl.workspace = true

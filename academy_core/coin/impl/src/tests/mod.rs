@@ -5,6 +5,7 @@ use academy_persistence_contracts::{
 
 use crate::CoinFeatureServiceImpl;
 
+mod add_coins;
 mod get_balance;
 
 type Sut = CoinFeatureServiceImpl<

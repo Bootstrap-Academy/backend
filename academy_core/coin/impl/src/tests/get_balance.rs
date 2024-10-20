@@ -17,37 +17,7 @@ use academy_utils::assert_matches;
 use crate::{tests::Sut, CoinFeatureServiceImpl};
 
 #[tokio::test]
-async fn ok_no_coins() {
-    // Arrange
-    let expected = Balance {
-        coins: 0,
-        withheld_coins: 0,
-    };
-
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
-
-    let db = MockDatabase::build(false);
-
-    let user_repo = MockUserRepository::new().with_exists(FOO.user.id, true);
-
-    let coin_repo = MockCoinRepository::new().with_get_balance(FOO.user.id, None);
-
-    let sut = CoinFeatureServiceImpl {
-        auth,
-        db,
-        user_repo,
-        coin_repo,
-    };
-
-    // Act
-    let result = sut.get_balance(&"token".into(), UserIdOrSelf::Slf).await;
-
-    // Assert
-    assert_eq!(result.unwrap(), expected);
-}
-
-#[tokio::test]
-async fn ok_coins() {
+async fn ok() {
     // Arrange
     let expected = Balance {
         coins: 42,
@@ -60,7 +30,7 @@ async fn ok_coins() {
 
     let user_repo = MockUserRepository::new().with_exists(FOO.user.id, true);
 
-    let coin_repo = MockCoinRepository::new().with_get_balance(FOO.user.id, Some(expected));
+    let coin_repo = MockCoinRepository::new().with_get_balance(FOO.user.id, expected);
 
     let sut = CoinFeatureServiceImpl {
         auth,
@@ -141,5 +111,5 @@ async fn user_not_found() {
     let result = sut.get_balance(&"token".into(), FOO.user.id.into()).await;
 
     // Assert
-    assert_matches!(result, Err(CoinGetBalanceError::NotFound));
+    assert_matches!(result, Err(CoinGetBalanceError::UserNotFound));
 }

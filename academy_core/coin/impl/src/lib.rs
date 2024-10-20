@@ -1,8 +1,16 @@
 use academy_auth_contracts::{AuthResultExt, AuthService};
-use academy_core_coin_contracts::{CoinFeatureService, CoinGetBalanceError};
+use academy_core_coin_contracts::{CoinAddCoinsError, CoinFeatureService, CoinGetBalanceError};
 use academy_di::Build;
-use academy_models::{auth::AccessToken, coin::Balance, user::UserIdOrSelf};
-use academy_persistence_contracts::{coin::CoinRepository, user::UserRepository, Database};
+use academy_models::{
+    auth::AccessToken,
+    coin::{Balance, TransactionDescription},
+    user::UserIdOrSelf,
+};
+use academy_persistence_contracts::{
+    coin::{CoinRepoAddCoinsError, CoinRepository},
+    user::UserRepository,
+    Database, Transaction,
+};
 use academy_utils::trace_instrument;
 
 #[cfg(test)]
@@ -37,14 +45,44 @@ where
         let mut txn = self.db.begin_transaction().await?;
 
         if !self.user_repo.exists(&mut txn, user_id).await? {
-            return Err(CoinGetBalanceError::NotFound);
+            return Err(CoinGetBalanceError::UserNotFound);
+        }
+
+        let balance = self.coin_repo.get_balance(&mut txn, user_id).await?;
+
+        Ok(balance)
+    }
+
+    #[trace_instrument(skip(self))]
+    async fn add_coins(
+        &self,
+        token: &AccessToken,
+        user_id: UserIdOrSelf,
+        coins: i64,
+        // TODO: save transactions
+        _description: Option<TransactionDescription>,
+        _include_in_credit_note: bool,
+    ) -> Result<Balance, CoinAddCoinsError> {
+        let auth = self.auth.authenticate(token).await.map_auth_err()?;
+        let user_id = user_id.unwrap_or(auth.user_id);
+        auth.ensure_admin().map_auth_err()?;
+
+        let mut txn = self.db.begin_transaction().await?;
+
+        if !self.user_repo.exists(&mut txn, user_id).await? {
+            return Err(CoinAddCoinsError::UserNotFound);
         }
 
         let balance = self
             .coin_repo
-            .get_balance(&mut txn, user_id)
-            .await?
-            .unwrap_or_default();
+            .add_coins(&mut txn, user_id, coins, false)
+            .await
+            .map_err(|err| match err {
+                CoinRepoAddCoinsError::NotEnoughCoins => CoinAddCoinsError::NotEnoughCoins,
+                CoinRepoAddCoinsError::Other(err) => err.into(),
+            })?;
+
+        txn.commit().await?;
 
         Ok(balance)
     }

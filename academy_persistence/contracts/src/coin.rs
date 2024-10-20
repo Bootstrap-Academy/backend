@@ -1,6 +1,7 @@
 use std::future::Future;
 
 use academy_models::{coin::Balance, user::UserId};
+use thiserror::Error;
 
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait CoinRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
@@ -9,20 +10,29 @@ pub trait CoinRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
         &self,
         txn: &mut Txn,
         user_id: UserId,
-    ) -> impl Future<Output = anyhow::Result<Option<Balance>>> + Send;
+    ) -> impl Future<Output = anyhow::Result<Balance>> + Send;
 
-    /// Update the Morphcoin balance of the given user.
-    fn save_balance(
+    /// Add Morphcoins to the balance of the given user.
+    fn add_coins(
         &self,
         txn: &mut Txn,
         user_id: UserId,
-        balance: Balance,
-    ) -> impl Future<Output = anyhow::Result<()>> + Send;
+        coins: i64,
+        withhold: bool,
+    ) -> impl Future<Output = Result<Balance, CoinRepoAddCoinsError>> + Send;
+}
+
+#[derive(Debug, Error)]
+pub enum CoinRepoAddCoinsError {
+    #[error("The user does not have enough coins.")]
+    NotEnoughCoins,
+    #[error(transparent)]
+    Other(#[from] anyhow::Error),
 }
 
 #[cfg(feature = "mock")]
 impl<Txn: Send + Sync + 'static> MockCoinRepository<Txn> {
-    pub fn with_get_balance(mut self, user_id: UserId, result: Option<Balance>) -> Self {
+    pub fn with_get_balance(mut self, user_id: UserId, result: Balance) -> Self {
         self.expect_get_balance()
             .once()
             .with(
@@ -33,15 +43,22 @@ impl<Txn: Send + Sync + 'static> MockCoinRepository<Txn> {
         self
     }
 
-    pub fn with_save_balance(mut self, user_id: UserId, balance: Balance) -> Self {
-        self.expect_save_balance()
+    pub fn with_add_coins(
+        mut self,
+        user_id: UserId,
+        coins: i64,
+        withhold: bool,
+        result: Result<Balance, CoinRepoAddCoinsError>,
+    ) -> Self {
+        self.expect_add_coins()
             .once()
             .with(
                 mockall::predicate::always(),
                 mockall::predicate::eq(user_id),
-                mockall::predicate::eq(balance),
+                mockall::predicate::eq(coins),
+                mockall::predicate::eq(withhold),
             )
-            .return_once(|_, _, _| Box::pin(std::future::ready(Ok(()))));
+            .return_once(move |_, _, _, _| Box::pin(std::future::ready(result)));
         self
     }
 }

@@ -1,5 +1,6 @@
 import email
 import email.header
+import os
 import time
 from email.message import Message
 from pathlib import Path
@@ -72,6 +73,16 @@ def create_account(name, email, password, client=None):
             "recaptcha_response": "success-1.0",
         },
     )
+    assert resp.status_code == 200
+    login = resp.json()
+    save_auth(login, client)
+    return login
+
+
+def create_admin_account(name, email, password, client=None):
+    client = client or c
+    os.system(f"academy admin user create --admin {name} {email} {password}")
+    resp = client.post("/auth/sessions", json={"name_or_email": name, "password": password})
     assert resp.status_code == 200
     login = resp.json()
     save_auth(login, client)

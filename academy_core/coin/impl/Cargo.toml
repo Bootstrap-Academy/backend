@@ -1,0 +1,25 @@
+[package]
+name = "academy_core_coin_impl"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+homepage.workspace = true
+repository.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+academy_auth_contracts.workspace = true
+academy_core_coin_contracts.workspace = true
+academy_di.workspace = true
+academy_models.workspace = true
+academy_persistence_contracts.workspace = true
+academy_utils.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+academy_auth_contracts = { workspace = true, features = ["mock"] }
+academy_demo.workspace = true
+academy_persistence_contracts = { workspace = true, features = ["mock"] }
+tokio.workspace = true

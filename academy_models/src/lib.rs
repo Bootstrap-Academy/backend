@@ -6,6 +6,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 pub mod auth;
+pub mod coin;
 pub mod contact;
 pub mod email_address;
 mod macros;

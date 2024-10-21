@@ -11,6 +11,7 @@ dependencies = [
  "academy_cache_contracts",
  "academy_cache_valkey",
  "academy_config",
+ "academy_core_coin_impl",
  "academy_core_config_impl",
  "academy_core_contact_impl",
  "academy_core_health_impl",
@@ -54,6 +55,7 @@ name = "academy_api_rest"
 version = "0.0.0"
 dependencies = [
  "academy_auth_contracts",
+ "academy_core_coin_contracts",
  "academy_core_config_contracts",
  "academy_core_contact_contracts",
  "academy_core_health_contracts",
@@ -146,6 +148,30 @@ dependencies = [
  "config",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "academy_core_coin_contracts"
+version = "0.0.0"
+dependencies = [
+ "academy_models",
+ "anyhow",
+ "thiserror",
+]
+
+[[package]]
+name = "academy_core_coin_impl"
+version = "0.0.0"
+dependencies = [
+ "academy_auth_contracts",
+ "academy_core_coin_contracts",
+ "academy_demo",
+ "academy_di",
+ "academy_models",
+ "academy_persistence_contracts",
+ "academy_utils",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]

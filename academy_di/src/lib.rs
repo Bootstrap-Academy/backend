@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 pub use academy_di_derive::Build;
 pub use typemap::TypeMap;
 
@@ -24,3 +26,19 @@ pub trait Provide: Provider {
 }
 
 impl<P: Provider> Provide for P {}
+
+impl<P, T> Build<P> for Arc<T>
+where
+    P: Provider,
+    T: Build<P>,
+{
+    fn build(provider: &mut P) -> Self {
+        if let Some(cached) = provider.cache().get().cloned() {
+            cached
+        } else {
+            let value = Arc::new(T::build(provider));
+            provider.cache().insert(Arc::clone(&value));
+            value
+        }
+    }
+}

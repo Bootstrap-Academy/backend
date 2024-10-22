@@ -257,6 +257,26 @@ rec {
       # File a bug if you depend on any for non-debug work!
       debug = internal.debugCrate { inherit packageId; };
     };
+    "academy_core_paypal_contracts" = rec {
+      packageId = "academy_core_paypal_contracts";
+      build = internal.buildRustCrateWithFeatures {
+        packageId = "academy_core_paypal_contracts";
+      };
+
+      # Debug support which might change between releases.
+      # File a bug if you depend on any for non-debug work!
+      debug = internal.debugCrate { inherit packageId; };
+    };
+    "academy_core_paypal_impl" = rec {
+      packageId = "academy_core_paypal_impl";
+      build = internal.buildRustCrateWithFeatures {
+        packageId = "academy_core_paypal_impl";
+      };
+
+      # Debug support which might change between releases.
+      # File a bug if you depend on any for non-debug work!
+      debug = internal.debugCrate { inherit packageId; };
+    };
     "academy_core_session_contracts" = rec {
       packageId = "academy_core_session_contracts";
       build = internal.buildRustCrateWithFeatures {
@@ -555,6 +575,10 @@ rec {
             packageId = "academy_core_oauth2_impl";
           }
           {
+            name = "academy_core_paypal_impl";
+            packageId = "academy_core_paypal_impl";
+          }
+          {
             name = "academy_core_session_impl";
             packageId = "academy_core_session_impl";
           }
@@ -759,6 +783,10 @@ rec {
           {
             name = "academy_core_oauth2_contracts";
             packageId = "academy_core_oauth2_contracts";
+          }
+          {
+            name = "academy_core_paypal_contracts";
+            packageId = "academy_core_paypal_contracts";
           }
           {
             name = "academy_core_session_contracts";
@@ -1814,6 +1842,129 @@ rec {
           {
             name = "academy_core_session_contracts";
             packageId = "academy_core_session_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_demo";
+            packageId = "academy_demo";
+          }
+          {
+            name = "academy_extern_contracts";
+            packageId = "academy_extern_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_persistence_contracts";
+            packageId = "academy_persistence_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_shared_contracts";
+            packageId = "academy_shared_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "tokio";
+            packageId = "tokio";
+            usesDefaultFeatures = false;
+            features = [ "rt-multi-thread" "macros" "sync" ];
+          }
+        ];
+
+      };
+      "academy_core_paypal_contracts" = rec {
+        crateName = "academy_core_paypal_contracts";
+        version = "0.0.0";
+        edition = "2021";
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/paypal/contracts; };
+        dependencies = [
+          {
+            name = "academy_models";
+            packageId = "academy_models";
+          }
+          {
+            name = "anyhow";
+            packageId = "anyhow";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "mockall";
+            packageId = "mockall";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "thiserror";
+            packageId = "thiserror 2.0.11";
+            usesDefaultFeatures = false;
+          }
+        ];
+        features = {
+          "mock" = [ "dep:mockall" ];
+        };
+        resolvedDefaultFeatures = [ "mock" ];
+      };
+      "academy_core_paypal_impl" = rec {
+        crateName = "academy_core_paypal_impl";
+        version = "0.0.0";
+        edition = "2021";
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/paypal/impl; };
+        dependencies = [
+          {
+            name = "academy_auth_contracts";
+            packageId = "academy_auth_contracts";
+          }
+          {
+            name = "academy_core_paypal_contracts";
+            packageId = "academy_core_paypal_contracts";
+          }
+          {
+            name = "academy_di";
+            packageId = "academy_di";
+          }
+          {
+            name = "academy_extern_contracts";
+            packageId = "academy_extern_contracts";
+          }
+          {
+            name = "academy_models";
+            packageId = "academy_models";
+          }
+          {
+            name = "academy_persistence_contracts";
+            packageId = "academy_persistence_contracts";
+          }
+          {
+            name = "academy_shared_contracts";
+            packageId = "academy_shared_contracts";
+          }
+          {
+            name = "academy_utils";
+            packageId = "academy_utils";
+          }
+          {
+            name = "anyhow";
+            packageId = "anyhow";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "tracing";
+            packageId = "tracing";
+            usesDefaultFeatures = false;
+            features = [ "attributes" ];
+          }
+        ];
+        devDependencies = [
+          {
+            name = "academy_auth_contracts";
+            packageId = "academy_auth_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_core_paypal_contracts";
+            packageId = "academy_core_paypal_contracts";
             features = [ "mock" ];
           }
           {

@@ -3,6 +3,7 @@ use std::future::Future;
 pub mod coin;
 pub mod mfa;
 pub mod oauth2;
+pub mod paypal;
 pub mod session;
 pub mod user;
 

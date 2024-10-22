@@ -23,6 +23,7 @@ academy_core_health_impl.workspace = true
 academy_core_internal_impl.workspace = true
 academy_core_mfa_impl.workspace = true
 academy_core_oauth2_impl.workspace = true
+academy_core_paypal_impl.workspace = true
 academy_core_session_impl.workspace = true
 academy_core_user_contracts.workspace = true
 academy_core_user_impl.workspace = true

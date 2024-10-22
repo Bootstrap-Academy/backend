@@ -10,6 +10,7 @@ use academy_core_health_contracts::HealthFeatureService;
 use academy_core_internal_contracts::InternalService;
 use academy_core_mfa_contracts::MfaFeatureService;
 use academy_core_oauth2_contracts::OAuth2FeatureService;
+use academy_core_paypal_contracts::PaypalFeatureService;
 use academy_core_session_contracts::SessionFeatureService;
 use academy_core_user_contracts::UserFeatureService;
 use academy_di::Build;
@@ -37,7 +38,7 @@ mod models;
 mod routes;
 
 #[derive(Debug, Clone, Build)]
-pub struct RestServer<Health, Config, User, Session, Contact, Mfa, OAuth2, Coin, Internal> {
+pub struct RestServer<Health, Config, User, Session, Contact, Mfa, OAuth2, Coin, Paypal, Internal> {
     _config: RestServerConfig,
     health: Health,
     config: Config,
@@ -47,6 +48,7 @@ pub struct RestServer<Health, Config, User, Session, Contact, Mfa, OAuth2, Coin,
     mfa: Mfa,
     oauth2: OAuth2,
     coin: Coin,
+    paypal: Paypal,
     internal: Internal,
 }
 
@@ -62,8 +64,8 @@ pub struct RestServerRealIpConfig {
     pub set_from: IpAddr,
 }
 
-impl<Health, Config, User, Session, Contact, Mfa, OAuth2, Coin, Internal>
-    RestServer<Health, Config, User, Session, Contact, Mfa, OAuth2, Coin, Internal>
+impl<Health, Config, User, Session, Contact, Mfa, OAuth2, Coin, Paypal, Internal>
+    RestServer<Health, Config, User, Session, Contact, Mfa, OAuth2, Coin, Paypal, Internal>
 where
     Health: HealthFeatureService,
     Config: ConfigFeatureService,
@@ -73,6 +75,7 @@ where
     Mfa: MfaFeatureService,
     OAuth2: OAuth2FeatureService,
     Coin: CoinFeatureService,
+    Paypal: PaypalFeatureService,
     Internal: InternalService,
 {
     pub async fn serve(self) -> anyhow::Result<()> {
@@ -98,6 +101,7 @@ where
                 routes::mfa::TAG,
                 routes::oauth2::TAG,
                 routes::coin::TAG,
+                routes::paypal::TAG,
                 routes::internal::TAG,
             ]
             .into_iter()
@@ -162,6 +166,7 @@ where
             .merge(routes::mfa::router(self.mfa.into()))
             .merge(routes::oauth2::router(self.oauth2.into()))
             .merge(routes::coin::router(self.coin.into()))
+            .merge(routes::paypal::router(self.paypal.into()))
             .merge(routes::internal::router(self.internal.into()))
     }
 }

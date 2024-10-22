@@ -18,6 +18,7 @@ academy_core_health_contracts.workspace = true
 academy_core_internal_contracts.workspace = true
 academy_core_mfa_contracts.workspace = true
 academy_core_oauth2_contracts.workspace = true
+academy_core_paypal_contracts.workspace = true
 academy_core_session_contracts.workspace = true
 academy_core_user_contracts.workspace = true
 academy_di.workspace = true

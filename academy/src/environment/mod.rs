@@ -6,12 +6,13 @@ use academy_config::Config;
 use academy_core_contact_impl::ContactFeatureConfig;
 use academy_core_health_impl::HealthFeatureConfig;
 use academy_core_oauth2_impl::OAuth2FeatureConfig;
+use academy_core_paypal_impl::PaypalFeatureConfig;
 use academy_core_session_impl::SessionFeatureConfig;
 use academy_core_user_impl::UserFeatureConfig;
 use academy_di::provider;
 use academy_extern_impl::{
-    internal::InternalApiServiceConfig, recaptcha::RecaptchaApiServiceConfig,
-    vat::VatApiServiceConfig,
+    internal::InternalApiServiceConfig, paypal::PaypalApiServiceConfig,
+    recaptcha::RecaptchaApiServiceConfig, vat::VatApiServiceConfig,
 };
 use academy_models::oauth2::OAuth2Provider;
 use academy_shared_impl::{
@@ -37,6 +38,7 @@ provider! {
             InternalApiServiceConfig,
             RecaptchaApiServiceConfig,
             VatApiServiceConfig,
+            PaypalApiServiceConfig,
 
             // Shared
             CaptchaServiceConfig,
@@ -52,6 +54,7 @@ provider! {
             HealthFeatureConfig,
             SessionFeatureConfig,
             UserFeatureConfig,
+            PaypalFeatureConfig,
         }
     }
 }
@@ -78,6 +81,7 @@ provider! {
         internal_api_service_config: InternalApiServiceConfig,
         recaptcha_api_service_config: RecaptchaApiServiceConfig,
         vat_api_service_config: VatApiServiceConfig,
+        paypal_api_service_config: PaypalApiServiceConfig,
 
         // Shared
         captcha_service_config: CaptchaServiceConfig,
@@ -93,6 +97,7 @@ provider! {
         health_feature_config: HealthFeatureConfig,
         session_feature_config: SessionFeatureConfig,
         user_feature_config: UserFeatureConfig,
+        paypal_feature_config: PaypalFeatureConfig,
     }
 }
 
@@ -123,6 +128,12 @@ impl ConfigProvider {
 
         let vat_api_service_config =
             VatApiServiceConfig::new(config.vat.validate_endpoint_override.clone());
+
+        let paypal_api_service_config = PaypalApiServiceConfig::new(
+            config.paypal.base_url_override.clone(),
+            config.paypal.client_id.clone(),
+            config.paypal.client_secret.clone(),
+        );
 
         // Shared
         let captcha_service_config = match config.recaptcha.as_ref() {
@@ -207,6 +218,10 @@ impl ConfigProvider {
             newsletter_subscription_verification_code_ttl: config.user.newsletter_code_ttl.into(),
         };
 
+        let paypal_feature_config = PaypalFeatureConfig {
+            purchase_range: config.coin.purchase_min..=config.coin.purchase_max,
+        };
+
         Ok(Self {
             _cache: Default::default(),
 
@@ -217,6 +232,7 @@ impl ConfigProvider {
             internal_api_service_config,
             recaptcha_api_service_config,
             vat_api_service_config,
+            paypal_api_service_config,
 
             // Shared
             jwt_service_config,
@@ -232,6 +248,7 @@ impl ConfigProvider {
             health_feature_config,
             session_feature_config,
             user_feature_config,
+            paypal_feature_config,
         })
     }
 }

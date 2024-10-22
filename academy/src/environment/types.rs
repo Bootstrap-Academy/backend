@@ -18,6 +18,7 @@ use academy_core_oauth2_impl::{
     link::OAuth2LinkServiceImpl, login::OAuth2LoginServiceImpl,
     registration::OAuth2RegistrationServiceImpl, OAuth2FeatureServiceImpl,
 };
+use academy_core_paypal_impl::{coin_order::PaypalCoinOrderServiceImpl, PaypalFeatureServiceImpl};
 use academy_core_session_impl::{
     failed_auth_count::SessionFailedAuthCountServiceImpl, session::SessionServiceImpl,
     SessionFeatureServiceImpl,
@@ -28,12 +29,13 @@ use academy_core_user_impl::{
 };
 use academy_email_impl::{template::TemplateEmailServiceImpl, EmailServiceImpl};
 use academy_extern_impl::{
-    internal::InternalApiServiceImpl, oauth2::OAuth2ApiServiceImpl,
+    internal::InternalApiServiceImpl, oauth2::OAuth2ApiServiceImpl, paypal::PaypalApiServiceImpl,
     recaptcha::RecaptchaApiServiceImpl, vat::VatApiServiceImpl,
 };
 use academy_persistence_postgres::{
     coin::PostgresCoinRepository, mfa::PostgresMfaRepository, oauth2::PostgresOAuth2Repository,
-    session::PostgresSessionRepository, user::PostgresUserRepository, PostgresDatabase,
+    paypal::PostgresPaypalRepository, session::PostgresSessionRepository,
+    user::PostgresUserRepository, PostgresDatabase,
 };
 use academy_shared_impl::{
     captcha::CaptchaServiceImpl, hash::HashServiceImpl, id::IdServiceImpl, jwt::JwtServiceImpl,
@@ -52,6 +54,7 @@ pub type RestServer = academy_api_rest::RestServer<
     MfaFeature,
     OAuth2Feature,
     CoinFeature,
+    PaypalFeature,
     Internal,
 >;
 
@@ -70,6 +73,7 @@ pub type RecaptchaApi = RecaptchaApiServiceImpl;
 pub type OAuth2Api = OAuth2ApiServiceImpl;
 pub type InternalApi = InternalApiServiceImpl<AuthInternal>;
 pub type VatApi = VatApiServiceImpl;
+pub type PaypalApi = PaypalApiServiceImpl;
 
 // Template
 pub type Template = TemplateServiceImpl;
@@ -90,6 +94,7 @@ pub type UserRepo = PostgresUserRepository;
 pub type MfaRepo = PostgresMfaRepository;
 pub type OAuth2Repo = PostgresOAuth2Repository;
 pub type CoinRepo = PostgresCoinRepository;
+pub type PaypalRepo = PostgresPaypalRepository;
 
 // Auth
 pub type Auth =
@@ -166,5 +171,9 @@ pub type OAuth2Login = OAuth2LoginServiceImpl<OAuth2Api>;
 pub type OAuth2Registration = OAuth2RegistrationServiceImpl<Secret, Cache>;
 
 pub type CoinFeature = CoinFeatureServiceImpl<Database, Auth, UserRepo, CoinRepo>;
+
+pub type PaypalFeature =
+    PaypalFeatureServiceImpl<Database, Auth, PaypalApi, UserRepo, PaypalRepo, PaypalCoinOrder>;
+pub type PaypalCoinOrder = PaypalCoinOrderServiceImpl<Time, PaypalRepo, CoinRepo>;
 
 pub type Internal = InternalServiceImpl<Database, AuthInternal, UserRepo>;

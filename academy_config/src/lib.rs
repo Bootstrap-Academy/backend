@@ -88,6 +88,8 @@ pub struct Config {
     pub contact: ContactConfig,
     pub recaptcha: Option<RecaptchaConfig>,
     pub vat: VatConfig,
+    pub paypal: PaypalConfig,
+    pub coin: CoinConfig,
     pub sentry: Option<SentryConfig>,
     pub oauth2: Option<OAuth2Config>,
 }
@@ -189,6 +191,19 @@ pub struct RecaptchaConfig {
 #[derive(Debug, Deserialize)]
 pub struct VatConfig {
     pub validate_endpoint_override: Option<Url>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct PaypalConfig {
+    pub base_url_override: Option<Url>,
+    pub client_id: String,
+    pub client_secret: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct CoinConfig {
+    pub purchase_min: u64,
+    pub purchase_max: u64,
 }
 
 #[derive(Debug, Deserialize)]

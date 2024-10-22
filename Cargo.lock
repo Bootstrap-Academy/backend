@@ -18,6 +18,7 @@ dependencies = [
  "academy_core_internal_impl",
  "academy_core_mfa_impl",
  "academy_core_oauth2_impl",
+ "academy_core_paypal_impl",
  "academy_core_session_impl",
  "academy_core_user_contracts",
  "academy_core_user_impl",
@@ -62,6 +63,7 @@ dependencies = [
  "academy_core_internal_contracts",
  "academy_core_mfa_contracts",
  "academy_core_oauth2_contracts",
+ "academy_core_paypal_contracts",
  "academy_core_session_contracts",
  "academy_core_user_contracts",
  "academy_di",
@@ -312,6 +314,34 @@ dependencies = [
  "academy_cache_contracts",
  "academy_core_oauth2_contracts",
  "academy_core_session_contracts",
+ "academy_demo",
+ "academy_di",
+ "academy_extern_contracts",
+ "academy_models",
+ "academy_persistence_contracts",
+ "academy_shared_contracts",
+ "academy_utils",
+ "anyhow",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "academy_core_paypal_contracts"
+version = "0.0.0"
+dependencies = [
+ "academy_models",
+ "anyhow",
+ "mockall",
+ "thiserror",
+]
+
+[[package]]
+name = "academy_core_paypal_impl"
+version = "0.0.0"
+dependencies = [
+ "academy_auth_contracts",
+ "academy_core_paypal_contracts",
  "academy_demo",
  "academy_di",
  "academy_extern_contracts",

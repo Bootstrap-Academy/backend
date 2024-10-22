@@ -56,6 +56,10 @@
     ${testing}/bin/academy-testing internal
   '';
 
+  processes.testing-paypal.exec = ''
+    ${testing}/bin/academy-testing paypal
+  '';
+
   env = {
     ACADEMY_DEVENV = "1";
 

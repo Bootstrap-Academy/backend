@@ -1,4 +1,5 @@
 use academy_auth_contracts::MockAuthService;
+use academy_core_coin_contracts::coin::MockCoinService;
 use academy_persistence_contracts::{
     coin::MockCoinRepository, user::MockUserRepository, MockDatabase, MockTransaction,
 };
@@ -13,4 +14,5 @@ type Sut = CoinFeatureServiceImpl<
     MockAuthService<MockTransaction>,
     MockUserRepository<MockTransaction>,
     MockCoinRepository<MockTransaction>,
+    MockCoinService<MockTransaction>,
 >;

@@ -1,5 +1,7 @@
 use academy_auth_contracts::{AuthResultExt, AuthService};
-use academy_core_coin_contracts::{CoinAddCoinsError, CoinFeatureService, CoinGetBalanceError};
+use academy_core_coin_contracts::{
+    coin::CoinService, CoinAddCoinsError, CoinFeatureService, CoinGetBalanceError,
+};
 use academy_di::Build;
 use academy_models::{
     auth::AccessToken,
@@ -7,30 +9,32 @@ use academy_models::{
     user::UserIdOrSelf,
 };
 use academy_persistence_contracts::{
-    coin::{CoinRepoAddCoinsError, CoinRepository},
-    user::UserRepository,
-    Database, Transaction,
+    coin::CoinRepository, user::UserRepository, Database, Transaction,
 };
 use academy_utils::trace_instrument;
+
+pub mod coin;
 
 #[cfg(test)]
 mod tests;
 
 #[derive(Debug, Clone, Default, Build)]
-pub struct CoinFeatureServiceImpl<Db, Auth, UserRepo, CoinRepo> {
+pub struct CoinFeatureServiceImpl<Db, Auth, UserRepo, CoinRepo, Coin> {
     db: Db,
     auth: Auth,
     user_repo: UserRepo,
     coin_repo: CoinRepo,
+    coin: Coin,
 }
 
-impl<Db, Auth, UserRepo, CoinRepo> CoinFeatureService
-    for CoinFeatureServiceImpl<Db, Auth, UserRepo, CoinRepo>
+impl<Db, Auth, UserRepo, CoinRepo, Coin> CoinFeatureService
+    for CoinFeatureServiceImpl<Db, Auth, UserRepo, CoinRepo, Coin>
 where
     Db: Database,
     Auth: AuthService<Db::Transaction>,
     UserRepo: UserRepository<Db::Transaction>,
     CoinRepo: CoinRepository<Db::Transaction>,
+    Coin: CoinService<Db::Transaction>,
 {
     #[trace_instrument(skip(self))]
     async fn get_balance(
@@ -59,9 +63,8 @@ where
         token: &AccessToken,
         user_id: UserIdOrSelf,
         coins: i64,
-        // TODO: save transactions
-        _description: Option<TransactionDescription>,
-        _include_in_credit_note: bool,
+        description: Option<TransactionDescription>,
+        include_in_credit_note: bool,
     ) -> Result<Balance, CoinAddCoinsError> {
         let auth = self.auth.authenticate(token).await.map_auth_err()?;
         let user_id = user_id.unwrap_or(auth.user_id);
@@ -73,17 +76,27 @@ where
             return Err(CoinAddCoinsError::UserNotFound);
         }
 
-        let balance = self
-            .coin_repo
-            .add_coins(&mut txn, user_id, coins, false)
+        let new_balance = self
+            .coin
+            .add_coins(
+                &mut txn,
+                user_id,
+                coins,
+                false,
+                description,
+                include_in_credit_note,
+            )
             .await
-            .map_err(|err| match err {
-                CoinRepoAddCoinsError::NotEnoughCoins => CoinAddCoinsError::NotEnoughCoins,
-                CoinRepoAddCoinsError::Other(err) => err.into(),
+            .map_err(|err| {
+                use academy_core_coin_contracts::coin::CoinAddCoinsError as E;
+                match err {
+                    E::NotEnoughCoins => CoinAddCoinsError::NotEnoughCoins,
+                    E::Other(err) => err.into(),
+                }
             })?;
 
         txn.commit().await?;
 
-        Ok(balance)
+        Ok(new_balance)
     }
 }

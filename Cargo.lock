@@ -166,6 +166,7 @@ version = "0.0.0"
 dependencies = [
  "academy_models",
  "anyhow",
+ "mockall",
  "thiserror 2.0.11",
 ]
 
@@ -264,6 +265,7 @@ name = "academy_core_internal_impl"
 version = "0.0.0"
 dependencies = [
  "academy_auth_contracts",
+ "academy_core_coin_contracts",
  "academy_core_internal_contracts",
  "academy_demo",
  "academy_di",

@@ -114,5 +114,5 @@ fn add_coins_docs(op: TransformOperation) -> TransformOperation {
 
 error_code! {
     /// The user does not have enough coins to perform this action.
-    NotEnoughCoinsError(PRECONDITION_FAILED, "Not enough coins");
+    pub NotEnoughCoinsError(PRECONDITION_FAILED, "Not enough coins");
 }

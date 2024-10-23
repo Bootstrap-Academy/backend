@@ -1211,12 +1211,21 @@ rec {
             features = [ "std" ];
           }
           {
+            name = "mockall";
+            packageId = "mockall";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+          {
             name = "thiserror";
             packageId = "thiserror 2.0.11";
             usesDefaultFeatures = false;
           }
         ];
-
+        features = {
+          "mock" = [ "dep:mockall" ];
+        };
+        resolvedDefaultFeatures = [ "mock" ];
       };
       "academy_core_coin_impl" = rec {
         crateName = "academy_core_coin_impl";
@@ -1546,6 +1555,10 @@ rec {
             packageId = "academy_auth_contracts";
           }
           {
+            name = "academy_core_coin_contracts";
+            packageId = "academy_core_coin_contracts";
+          }
+          {
             name = "academy_core_internal_contracts";
             packageId = "academy_core_internal_contracts";
           }
@@ -1589,6 +1602,11 @@ rec {
           }
         ];
         devDependencies = [
+          {
+            name = "academy_core_coin_contracts";
+            packageId = "academy_core_coin_contracts";
+            features = [ "mock" ];
+          }
           {
             name = "academy_core_internal_contracts";
             packageId = "academy_core_internal_contracts";

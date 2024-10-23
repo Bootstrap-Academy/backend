@@ -7,6 +7,8 @@ use academy_models::{
 };
 use thiserror::Error;
 
+pub mod coin;
+
 pub trait CoinFeatureService: Send + Sync + 'static {
     /// Return the Morphcoin balance of the given user.
     ///

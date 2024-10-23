@@ -26,17 +26,17 @@ print(resp.status_code, resp.json())
 assert resp.status_code == 200
 order_id = resp.json()
 
-assert c.get(f"http://127.0.0.1:8005/v2/checkout/orders/{order_id}").json() == {"status": "Created", "coins": 1337}
+assert c.get(f"http://127.0.0.1:8004/v2/checkout/orders/{order_id}").json() == {"status": "Created", "coins": 1337}
 
 # try to capture (not confirmed yet)
 resp = c.post(f"/shop/coins/paypal/orders/{order_id}/capture")
 assert resp.status_code == 400
 assert resp.json() == {"detail": "Could not capture order"}
 assert c.get(f"/shop/coins/me").json() == {"coins": 0, "withheld_coins": 0}
-assert c.get(f"http://127.0.0.1:8005/v2/checkout/orders/{order_id}").json() == {"status": "Created", "coins": 1337}
+assert c.get(f"http://127.0.0.1:8004/v2/checkout/orders/{order_id}").json() == {"status": "Created", "coins": 1337}
 
 # confirm order (client)
-assert c.post(f"http://127.0.0.1:8005/v2/checkout/orders/{order_id}/confirm-payment-source").json() == {
+assert c.post(f"http://127.0.0.1:8004/v2/checkout/orders/{order_id}/confirm-payment-source").json() == {
     "status": "Confirmed",
     "coins": 1337,
 }
@@ -46,11 +46,11 @@ resp = c.post(f"/shop/coins/paypal/orders/{order_id}/capture")
 assert resp.status_code == 200
 assert resp.json() == {"coins": 1337, "withheld_coins": 0}
 assert c.get(f"/shop/coins/me").json() == {"coins": 1337, "withheld_coins": 0}
-assert c.get(f"http://127.0.0.1:8005/v2/checkout/orders/{order_id}").json() == {"status": "Captured"}
+assert c.get(f"http://127.0.0.1:8004/v2/checkout/orders/{order_id}").json() == {"status": "Captured"}
 
 # try to capture again
 resp = c.post(f"/shop/coins/paypal/orders/{order_id}/capture")
 assert resp.status_code == 404
 assert resp.json() == {"detail": "Order not found"}
 assert c.get(f"/shop/coins/me").json() == {"coins": 1337, "withheld_coins": 0}
-assert c.get(f"http://127.0.0.1:8005/v2/checkout/orders/{order_id}").json() == {"status": "Captured"}
+assert c.get(f"http://127.0.0.1:8004/v2/checkout/orders/{order_id}").json() == {"status": "Captured"}

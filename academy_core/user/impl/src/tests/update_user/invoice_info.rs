@@ -6,9 +6,11 @@ use academy_demo::{
     session::BAR_1,
     user::{BAR, FOO},
 };
-use academy_extern_contracts::{internal::MockInternalApiService, vat::MockVatApiService};
+use academy_extern_contracts::vat::MockVatApiService;
 use academy_models::user::{UserComposite, UserIdOrSelf, UserInvoiceInfo};
-use academy_persistence_contracts::{user::MockUserRepository, MockDatabase};
+use academy_persistence_contracts::{
+    coin::MockCoinRepository, user::MockUserRepository, MockDatabase,
+};
 use academy_utils::{assert_matches, patch::Patch, Apply};
 
 use crate::{tests::Sut, UserFeatureServiceImpl};
@@ -94,7 +96,7 @@ async fn ok_release_coins() {
     let vat_api = MockVatApiService::new()
         .with_is_vat_id_valid(FOO.invoice_info.vat_id.clone().unwrap().into_inner(), true);
 
-    let internal_api = MockInternalApiService::new().with_release_coins(BAR.user.id);
+    let coin_repo = MockCoinRepository::new().with_release_coins(BAR.user.id);
 
     let sut = UserFeatureServiceImpl {
         auth,
@@ -102,7 +104,7 @@ async fn ok_release_coins() {
         user_repo,
         user_update,
         vat_api,
-        internal_api,
+        coin_repo,
         ..Sut::default()
     };
 

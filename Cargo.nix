@@ -2222,6 +2222,10 @@ rec {
             packageId = "academy_cache_contracts";
           }
           {
+            name = "academy_core_coin_contracts";
+            packageId = "academy_core_coin_contracts";
+          }
+          {
             name = "academy_core_oauth2_contracts";
             packageId = "academy_core_oauth2_contracts";
           }
@@ -2293,6 +2297,11 @@ rec {
           {
             name = "academy_cache_contracts";
             packageId = "academy_cache_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_core_coin_contracts";
+            packageId = "academy_core_coin_contracts";
             features = [ "mock" ];
           }
           {

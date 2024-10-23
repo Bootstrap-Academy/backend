@@ -53,7 +53,6 @@
           smtp_url = "smtp://127.0.0.1:25";
           from = "test@bootstrap.academy";
         };
-        internal.shop_url = "http://127.0.0.1:8004/shop/";
         health = {
           database_cache_ttl = "2s";
           cache_cache_ttl = "2s";
@@ -69,7 +68,7 @@
         };
         vat.validate_endpoint_override = "http://127.0.0.1:8003/validate/";
         paypal = {
-          base_url_override = "http://127.0.0.1:8005/";
+          base_url_override = "http://127.0.0.1:8004/";
           client_id = "test-client";
           client_secret = "test-secret";
         };
@@ -122,14 +121,6 @@
       before = ["academy-backend.service"];
       script = ''
         ${self.packages.${system}.testing.unwrapped}/bin/academy-testing vat
-      '';
-    };
-
-    systemd.services."academy-testing-internal" = {
-      wantedBy = ["academy-backend.service"];
-      before = ["academy-backend.service"];
-      script = ''
-        ${self.packages.${system}.testing.unwrapped}/bin/academy-testing internal
       '';
     };
 

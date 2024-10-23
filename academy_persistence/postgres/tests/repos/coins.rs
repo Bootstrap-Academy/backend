@@ -98,6 +98,26 @@ async fn remove_coins_not_enough_coins() {
     assert_matches!(result, Err(CoinRepoAddCoinsError::NotEnoughCoins));
 }
 
+#[tokio::test]
+async fn release_coins() {
+    let db = setup().await;
+    let mut txn = db.begin_transaction().await.unwrap();
+
+    let result = REPO.add_coins(&mut txn, FOO.user.id, 42, true).await;
+    assert_eq!(result.unwrap(), balance(0, 42));
+
+    REPO.release_coins(&mut txn, FOO.user.id).await.unwrap();
+    let result = REPO.get_balance(&mut txn, FOO.user.id).await;
+    assert_eq!(result.unwrap(), balance(42, 0));
+
+    let result = REPO.add_coins(&mut txn, FOO.user.id, 1337, true).await;
+    assert_eq!(result.unwrap(), balance(42, 1337));
+
+    REPO.release_coins(&mut txn, FOO.user.id).await.unwrap();
+    let result = REPO.get_balance(&mut txn, FOO.user.id).await;
+    assert_eq!(result.unwrap(), balance(1379, 0));
+}
+
 fn balance(coins: u64, withheld_coins: u64) -> Balance {
     Balance {
         coins,

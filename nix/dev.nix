@@ -61,10 +61,6 @@
     ${testing}/bin/academy-testing vat
   '';
 
-  processes.testing-internal.exec = ''
-    ${testing}/bin/academy-testing internal
-  '';
-
   processes.testing-paypal.exec = ''
     ${testing}/bin/academy-testing paypal
   '';

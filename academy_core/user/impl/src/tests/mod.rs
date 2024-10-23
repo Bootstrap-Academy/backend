@@ -7,8 +7,10 @@ use academy_core_user_contracts::{
     email_confirmation::MockUserEmailConfirmationService, update::MockUserUpdateService,
     user::MockUserService,
 };
-use academy_extern_contracts::{internal::MockInternalApiService, vat::MockVatApiService};
-use academy_persistence_contracts::{user::MockUserRepository, MockDatabase, MockTransaction};
+use academy_extern_contracts::vat::MockVatApiService;
+use academy_persistence_contracts::{
+    coin::MockCoinRepository, user::MockUserRepository, MockDatabase, MockTransaction,
+};
 use academy_shared_contracts::captcha::MockCaptchaService;
 
 use crate::{UserFeatureConfig, UserFeatureServiceImpl};
@@ -29,13 +31,13 @@ type Sut = UserFeatureServiceImpl<
     MockAuthService<MockTransaction>,
     MockCaptchaService,
     MockVatApiService,
-    MockInternalApiService,
     MockUserService<MockTransaction>,
     MockUserEmailConfirmationService<MockTransaction>,
     MockUserUpdateService<MockTransaction>,
     MockSessionService<MockTransaction>,
     MockOAuth2RegistrationService,
     MockUserRepository<MockTransaction>,
+    MockCoinRepository<MockTransaction>,
 >;
 
 impl Default for UserFeatureConfig {

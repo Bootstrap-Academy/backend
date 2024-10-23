@@ -1,3 +1,4 @@
+import os
 import re
 import subprocess
 import time
@@ -146,6 +147,12 @@ assert resp.json() == user
 assert c.get("/auth/users/me").json() == user
 
 ## invoice info
+status = os.system(
+    f"sudo -u postgres psql academy <<< \"insert into coins (user_id, coins, withheld_coins) values ('{user['id']}', 42, 1337);\""
+)
+assert status == 0
+assert c.get("/shop/coins/me").json() == {"coins": 42, "withheld_coins": 1337}
+
 resp = c.patch("/auth/users/me", json={"business": False, "country": "Germany"})
 assert resp.status_code == 200
 user = resp.json()
@@ -154,7 +161,7 @@ user["country"] = "Germany"
 user["can_buy_coins"] = True
 assert resp.json() == user
 assert c.get("/auth/users/me").json() == user
-assert c.get(f"http://127.0.0.1:8004/shop/_internal/coins/{user['id']}/withheld").json() == 0
+assert c.get("/shop/coins/me").json() == {"coins": 42, "withheld_coins": 1337}
 
 resp = c.patch("/auth/users/me", json={"business": True, "vat_id": "DE0192837465"})
 assert resp.status_code == 404
@@ -169,12 +176,12 @@ user["can_buy_coins"] = False
 assert resp.json() == user
 assert c.get("/auth/users/me").json() == user
 
-assert c.get(f"http://127.0.0.1:8004/shop/_internal/coins/{user['id']}/withheld").json() == 0
+assert c.get("/shop/coins/me").json() == {"coins": 42, "withheld_coins": 1337}
 resp = c.patch(
     "/auth/users/me", json={"first_name": "a", "last_name": "b", "street": "c", "zip_code": "d", "city": "e"}
 )
 assert resp.status_code == 200
-assert c.get(f"http://127.0.0.1:8004/shop/_internal/coins/{user['id']}/withheld").json() == 1
+assert c.get("/shop/coins/me").json() == {"coins": 1379, "withheld_coins": 0}
 user["first_name"] = "a"
 user["last_name"] = "b"
 user["street"] = "c"
@@ -185,14 +192,25 @@ user["can_receive_coins"] = True
 assert resp.json() == user
 assert c.get("/auth/users/me").json() == user
 
-assert c.get(f"http://127.0.0.1:8004/shop/_internal/coins/{user['id']}/withheld").json() == 1
+status = os.system(
+    f"sudo -u postgres psql academy <<< \"update coins set withheld_coins=7 where user_id='{user['id']}';\""
+)
+assert status == 0
+assert c.get("/shop/coins/me").json() == {"coins": 1379, "withheld_coins": 7}
+
 resp = c.patch("/auth/users/me", json={"business": False})
 assert resp.status_code == 200
-assert c.get(f"http://127.0.0.1:8004/shop/_internal/coins/{user['id']}/withheld").json() == 2
+assert c.get("/shop/coins/me").json() == {"coins": 1386, "withheld_coins": 0}
 user["business"] = False
 user["vat_id"] = None
 assert resp.json() == user
 assert c.get("/auth/users/me").json() == user
+
+status = os.system(
+    f"sudo -u postgres psql academy <<< \"update coins set withheld_coins=7 where user_id='{user['id']}';\""
+)
+assert status == 0
+assert c.get("/shop/coins/me").json() == {"coins": 1386, "withheld_coins": 7}
 
 resp = c.patch("/auth/users/me", json={"business": True})
 assert resp.status_code == 200
@@ -201,7 +219,7 @@ user["can_buy_coins"] = False
 user["can_receive_coins"] = False
 assert resp.json() == user
 assert c.get("/auth/users/me").json() == user
-assert c.get(f"http://127.0.0.1:8004/shop/_internal/coins/{user['id']}/withheld").json() == 2
+assert c.get("/shop/coins/me").json() == {"coins": 1386, "withheld_coins": 7}
 
 ## name
 start = time.time() - 1

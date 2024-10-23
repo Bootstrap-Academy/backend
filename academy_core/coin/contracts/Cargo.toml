@@ -9,7 +9,11 @@ repository.workspace = true
 [lints]
 workspace = true
 
+[features]
+mock = ["dep:mockall"]
+
 [dependencies]
 academy_models.workspace = true
 anyhow.workspace = true
+mockall = { workspace = true, optional = true }
 thiserror.workspace = true

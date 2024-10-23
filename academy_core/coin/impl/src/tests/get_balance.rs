@@ -37,6 +37,7 @@ async fn ok() {
         db,
         user_repo,
         coin_repo,
+        ..Sut::default()
     };
 
     // Act

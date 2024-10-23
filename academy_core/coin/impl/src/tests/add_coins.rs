@@ -1,5 +1,5 @@
 use academy_auth_contracts::MockAuthService;
-use academy_core_coin_contracts::{CoinAddCoinsError, CoinFeatureService};
+use academy_core_coin_contracts::{coin::MockCoinService, CoinAddCoinsError, CoinFeatureService};
 use academy_demo::{
     session::{ADMIN_1, FOO_1},
     user::{ADMIN, FOO},
@@ -8,17 +8,13 @@ use academy_models::{
     auth::{AuthError, AuthenticateError, AuthorizeError},
     coin::Balance,
 };
-use academy_persistence_contracts::{
-    coin::{CoinRepoAddCoinsError, MockCoinRepository},
-    user::MockUserRepository,
-    MockDatabase,
-};
+use academy_persistence_contracts::{user::MockUserRepository, MockDatabase};
 use academy_utils::assert_matches;
 
 use crate::{tests::Sut, CoinFeatureServiceImpl};
 
 #[tokio::test]
-async fn ok_add() {
+async fn ok() {
     // Arrange
     let expected = Balance {
         coins: 42,
@@ -32,46 +28,15 @@ async fn ok_add() {
 
     let user_repo = MockUserRepository::new().with_exists(FOO.user.id, true);
 
-    let coin_repo = MockCoinRepository::new().with_add_coins(FOO.user.id, 42, false, Ok(expected));
+    let coin =
+        MockCoinService::new().with_add_coins(FOO.user.id, -42, false, None, false, Ok(expected));
 
     let sut = CoinFeatureServiceImpl {
         auth,
         db,
         user_repo,
-        coin_repo,
-    };
-
-    // Act
-    let result = sut
-        .add_coins(&"token".into(), FOO.user.id.into(), 42, None, false)
-        .await;
-
-    // Assert
-    assert_eq!(result.unwrap(), expected);
-}
-
-#[tokio::test]
-async fn ok_remove() {
-    // Arrange
-    let expected = Balance {
-        coins: 7,
-        withheld_coins: 0,
-    };
-
-    let auth =
-        MockAuthService::new().with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())));
-
-    let db = MockDatabase::build(true);
-
-    let user_repo = MockUserRepository::new().with_exists(FOO.user.id, true);
-
-    let coin_repo = MockCoinRepository::new().with_add_coins(FOO.user.id, -42, false, Ok(expected));
-
-    let sut = CoinFeatureServiceImpl {
-        auth,
-        db,
-        user_repo,
-        coin_repo,
+        coin,
+        ..Sut::default()
     };
 
     // Act
@@ -167,18 +132,21 @@ async fn not_enough_coins() {
 
     let user_repo = MockUserRepository::new().with_exists(FOO.user.id, true);
 
-    let coin_repo = MockCoinRepository::new().with_add_coins(
+    let coin = MockCoinService::new().with_add_coins(
         FOO.user.id,
         -42,
         false,
-        Err(CoinRepoAddCoinsError::NotEnoughCoins),
+        None,
+        false,
+        Err(academy_core_coin_contracts::coin::CoinAddCoinsError::NotEnoughCoins),
     );
 
     let sut = CoinFeatureServiceImpl {
         auth,
         db,
         user_repo,
-        coin_repo,
+        coin,
+        ..Sut::default()
     };
 
     // Act

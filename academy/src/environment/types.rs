@@ -5,7 +5,7 @@ use academy_auth_impl::{
     refresh_token::AuthRefreshTokenServiceImpl, AuthServiceImpl,
 };
 use academy_cache_valkey::ValkeyCache;
-use academy_core_coin_impl::CoinFeatureServiceImpl;
+use academy_core_coin_impl::{coin::CoinServiceImpl, CoinFeatureServiceImpl};
 use academy_core_config_impl::ConfigFeatureServiceImpl;
 use academy_core_contact_impl::ContactFeatureServiceImpl;
 use academy_core_health_impl::HealthFeatureServiceImpl;
@@ -170,10 +170,11 @@ pub type OAuth2Link = OAuth2LinkServiceImpl<Id, Time, OAuth2Repo>;
 pub type OAuth2Login = OAuth2LoginServiceImpl<OAuth2Api>;
 pub type OAuth2Registration = OAuth2RegistrationServiceImpl<Secret, Cache>;
 
-pub type CoinFeature = CoinFeatureServiceImpl<Database, Auth, UserRepo, CoinRepo>;
+pub type CoinFeature = CoinFeatureServiceImpl<Database, Auth, UserRepo, CoinRepo, Coin>;
+pub type Coin = CoinServiceImpl<CoinRepo>;
 
 pub type PaypalFeature =
     PaypalFeatureServiceImpl<Database, Auth, PaypalApi, UserRepo, PaypalRepo, PaypalCoinOrder>;
 pub type PaypalCoinOrder = PaypalCoinOrderServiceImpl<Time, PaypalRepo, CoinRepo>;
 
-pub type Internal = InternalServiceImpl<Database, AuthInternal, UserRepo>;
+pub type Internal = InternalServiceImpl<Database, AuthInternal, UserRepo, Coin>;

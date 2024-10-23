@@ -1,14 +1,16 @@
 use academy_auth_contracts::internal::AuthInternalService;
+use academy_core_coin_contracts::coin::{CoinAddCoinsError, CoinService};
 use academy_core_internal_contracts::{
-    InternalGetUserByEmailError, InternalGetUserError, InternalService,
+    InternalAddCoinsError, InternalGetUserByEmailError, InternalGetUserError, InternalService,
 };
 use academy_di::Build;
 use academy_models::{
     auth::InternalToken,
+    coin::{Balance, TransactionDescription},
     email_address::EmailAddress,
     user::{UserComposite, UserId},
 };
-use academy_persistence_contracts::{user::UserRepository, Database};
+use academy_persistence_contracts::{user::UserRepository, Database, Transaction};
 use academy_utils::trace_instrument;
 use anyhow::Context;
 
@@ -16,17 +18,20 @@ use anyhow::Context;
 mod tests;
 
 #[derive(Debug, Clone, Build, Default)]
-pub struct InternalServiceImpl<Db, AuthInternal, UserRepo> {
+pub struct InternalServiceImpl<Db, AuthInternal, UserRepo, Coin> {
     db: Db,
     auth_internal: AuthInternal,
     user_repo: UserRepo,
+    coin: Coin,
 }
 
-impl<Db, AuthInternal, UserRepo> InternalService for InternalServiceImpl<Db, AuthInternal, UserRepo>
+impl<Db, AuthInternal, UserRepo, Coin> InternalService
+    for InternalServiceImpl<Db, AuthInternal, UserRepo, Coin>
 where
     Db: Database,
     AuthInternal: AuthInternalService,
     UserRepo: UserRepository<Db::Transaction>,
+    Coin: CoinService<Db::Transaction>,
 {
     #[trace_instrument(skip(self))]
     async fn get_user(
@@ -60,5 +65,47 @@ where
             .await
             .context("Failed to get user from database")?
             .ok_or(InternalGetUserByEmailError::NotFound)
+    }
+
+    #[trace_instrument(skip(self))]
+    async fn add_coins(
+        &self,
+        token: &InternalToken,
+        user_id: UserId,
+        coins: i64,
+        description: Option<TransactionDescription>,
+        include_in_credit_note: bool,
+    ) -> Result<Balance, InternalAddCoinsError> {
+        self.auth_internal.authenticate(token, "shop")?;
+
+        let mut txn = self.db.begin_transaction().await?;
+
+        let user_composite = self
+            .user_repo
+            .get_composite(&mut txn, user_id)
+            .await?
+            .ok_or(InternalAddCoinsError::UserNotFound)?;
+
+        let withhold = coins >= 0 && !user_composite.can_receive_coins();
+
+        let new_balance = self
+            .coin
+            .add_coins(
+                &mut txn,
+                user_id,
+                coins,
+                withhold,
+                description,
+                include_in_credit_note,
+            )
+            .await
+            .map_err(|err| match err {
+                CoinAddCoinsError::NotEnoughCoins => InternalAddCoinsError::NotEnoughCoins,
+                CoinAddCoinsError::Other(err) => err.into(),
+            })?;
+
+        txn.commit().await?;
+
+        Ok(new_balance)
     }
 }

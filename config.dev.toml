@@ -14,9 +14,6 @@ from = "Bootstrap Academy DEV <dev@bootstrap.academy>"
 [jwt]
 secret = "changeme"
 
-[internal]
-shop_url = "http://127.0.0.1:8004/shop/"
-
 [session]
 access_token_ttl = "1d"
 
@@ -31,6 +28,11 @@ secret = "test-secret"
 
 [vat]
 validate_endpoint_override = "http://127.0.0.1:8003/validate/"
+
+[paypal]
+base_url_override = "http://127.0.0.1:8004/"
+client_id = "test-client"
+client_secret = "test-secret"
 
 [oauth2.providers.test]
 enable = true

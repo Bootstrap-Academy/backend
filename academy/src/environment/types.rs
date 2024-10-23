@@ -5,6 +5,7 @@ use academy_auth_impl::{
     refresh_token::AuthRefreshTokenServiceImpl, AuthServiceImpl,
 };
 use academy_cache_valkey::ValkeyCache;
+use academy_core_coin_impl::{coin::CoinServiceImpl, CoinFeatureServiceImpl};
 use academy_core_config_impl::ConfigFeatureServiceImpl;
 use academy_core_contact_impl::ContactFeatureServiceImpl;
 use academy_core_health_impl::HealthFeatureServiceImpl;
@@ -17,6 +18,7 @@ use academy_core_oauth2_impl::{
     link::OAuth2LinkServiceImpl, login::OAuth2LoginServiceImpl,
     registration::OAuth2RegistrationServiceImpl, OAuth2FeatureServiceImpl,
 };
+use academy_core_paypal_impl::{coin_order::PaypalCoinOrderServiceImpl, PaypalFeatureServiceImpl};
 use academy_core_session_impl::{
     failed_auth_count::SessionFailedAuthCountServiceImpl, session::SessionServiceImpl,
     SessionFeatureServiceImpl,
@@ -27,12 +29,13 @@ use academy_core_user_impl::{
 };
 use academy_email_impl::{template::TemplateEmailServiceImpl, EmailServiceImpl};
 use academy_extern_impl::{
-    internal::InternalApiServiceImpl, oauth2::OAuth2ApiServiceImpl,
-    recaptcha::RecaptchaApiServiceImpl, vat::VatApiServiceImpl,
+    oauth2::OAuth2ApiServiceImpl, paypal::PaypalApiServiceImpl, recaptcha::RecaptchaApiServiceImpl,
+    vat::VatApiServiceImpl,
 };
 use academy_persistence_postgres::{
-    mfa::PostgresMfaRepository, oauth2::PostgresOAuth2Repository,
-    session::PostgresSessionRepository, user::PostgresUserRepository, PostgresDatabase,
+    coin::PostgresCoinRepository, mfa::PostgresMfaRepository, oauth2::PostgresOAuth2Repository,
+    paypal::PostgresPaypalRepository, session::PostgresSessionRepository,
+    user::PostgresUserRepository, PostgresDatabase,
 };
 use academy_shared_impl::{
     captcha::CaptchaServiceImpl, hash::HashServiceImpl, id::IdServiceImpl, jwt::JwtServiceImpl,
@@ -50,6 +53,8 @@ pub type RestServer = academy_api_rest::RestServer<
     ContactFeature,
     MfaFeature,
     OAuth2Feature,
+    CoinFeature,
+    PaypalFeature,
     Internal,
 >;
 
@@ -66,8 +71,8 @@ pub type TemplateEmail = TemplateEmailServiceImpl<Email, Template>;
 // Extern
 pub type RecaptchaApi = RecaptchaApiServiceImpl;
 pub type OAuth2Api = OAuth2ApiServiceImpl;
-pub type InternalApi = InternalApiServiceImpl<AuthInternal>;
 pub type VatApi = VatApiServiceImpl;
+pub type PaypalApi = PaypalApiServiceImpl;
 
 // Template
 pub type Template = TemplateServiceImpl;
@@ -87,6 +92,8 @@ pub type SessionRepo = PostgresSessionRepository;
 pub type UserRepo = PostgresUserRepository;
 pub type MfaRepo = PostgresMfaRepository;
 pub type OAuth2Repo = PostgresOAuth2Repository;
+pub type CoinRepo = PostgresCoinRepository;
+pub type PaypalRepo = PostgresPaypalRepository;
 
 // Auth
 pub type Auth =
@@ -105,13 +112,13 @@ pub type UserFeature = UserFeatureServiceImpl<
     Auth,
     Captcha,
     VatApi,
-    InternalApi,
     User,
     UserEmailConfirmation,
     UserUpdate,
     Session,
     OAuth2Registration,
     UserRepo,
+    CoinRepo,
 >;
 pub type User = UserServiceImpl<Id, Time, Password, UserRepo, OAuth2Link>;
 pub type UserEmailConfirmation =
@@ -162,4 +169,11 @@ pub type OAuth2Link = OAuth2LinkServiceImpl<Id, Time, OAuth2Repo>;
 pub type OAuth2Login = OAuth2LoginServiceImpl<OAuth2Api>;
 pub type OAuth2Registration = OAuth2RegistrationServiceImpl<Secret, Cache>;
 
-pub type Internal = InternalServiceImpl<Database, AuthInternal, UserRepo>;
+pub type CoinFeature = CoinFeatureServiceImpl<Database, Auth, UserRepo, CoinRepo, Coin>;
+pub type Coin = CoinServiceImpl<CoinRepo>;
+
+pub type PaypalFeature =
+    PaypalFeatureServiceImpl<Database, Auth, PaypalApi, UserRepo, PaypalRepo, PaypalCoinOrder>;
+pub type PaypalCoinOrder = PaypalCoinOrderServiceImpl<Time, PaypalRepo, CoinRepo>;
+
+pub type Internal = InternalServiceImpl<Database, AuthInternal, UserRepo, Coin>;

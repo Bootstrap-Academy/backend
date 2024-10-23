@@ -6,12 +6,14 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 pub mod auth;
+pub mod coin;
 pub mod contact;
 pub mod email_address;
 mod macros;
 pub mod mfa;
 pub mod oauth2;
 pub mod pagination;
+pub mod paypal;
 pub mod session;
 pub mod url;
 pub mod user;

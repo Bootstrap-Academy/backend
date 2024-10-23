@@ -123,3 +123,10 @@ jobs:
           cargo test -p academy_extern_impl --no-fail-fast --all-features --test vat
         env:
           ACADEMY_CONFIG: ${{ github.workspace }}/config.dev.toml
+      - name: test paypal
+        run: |
+          cargo run --bin academy-testing -- paypal &
+          while ! curl -s http://127.0.0.1:8004; do sleep .1; done
+          cargo test -p academy_extern_impl --no-fail-fast --all-features --test paypal
+        env:
+          ACADEMY_CONFIG: ${{ github.workspace }}/config.dev.toml

@@ -1,6 +1,6 @@
 use std::net::IpAddr;
 
-use academy_testing::{internal, oauth2, recaptcha, vat};
+use academy_testing::{oauth2, paypal, recaptcha, vat};
 use clap::{CommandFactory, Parser, Subcommand};
 use clap_complete::Shell;
 use url::Url;
@@ -28,7 +28,12 @@ async fn main() -> anyhow::Result<()> {
             redirect_url,
         } => oauth2::start_server(host, port, client_id, client_secret, redirect_url).await?,
         Command::Vat { host, port } => vat::start_server(host, port).await?,
-        Command::Internal { host, port } => internal::start_server(host, port).await?,
+        Command::Paypal {
+            host,
+            port,
+            client_id,
+            client_secret,
+        } => paypal::start_server(host, port, client_id, client_secret).await?,
         Command::Completion { shell } => {
             clap_complete::generate(
                 shell,
@@ -81,12 +86,16 @@ enum Command {
         #[arg(long, default_value = "8003")]
         port: u16,
     },
-    /// Start the internal api testing server
-    Internal {
+    /// Start the paypal testing server
+    Paypal {
         #[arg(long, default_value = "127.0.0.1")]
         host: IpAddr,
         #[arg(long, default_value = "8004")]
         port: u16,
+        #[arg(long, default_value = "test-client")]
+        client_id: String,
+        #[arg(long, default_value = "test-secret")]
+        client_secret: String,
     },
     /// Generate shell completions
     Completion {

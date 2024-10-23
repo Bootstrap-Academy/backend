@@ -27,7 +27,6 @@ max_lifetime = "30m"
 
 [internal]
 jwt_ttl = "10s"
-# shop_url = ""
 
 [health]
 database_cache_ttl = "10s"
@@ -64,6 +63,15 @@ min_score = 0.5
 
 [vat]
 # validate_endpoint_override = ""
+
+[paypal]
+# base_url_override = ""
+# client_id = ""
+# client_secret = ""
+
+[coin]
+purchase_min = 500
+purchase_max = 1000000
 
 # [sentry]
 # enable = true

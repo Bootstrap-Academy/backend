@@ -48,7 +48,6 @@
           smtp_url = "smtp://127.0.0.1:25";
           from = "test@bootstrap.academy";
         };
-        internal.shop_url = "http://127.0.0.1:8004/shop/";
         health = {
           database_cache_ttl = "2s";
           cache_cache_ttl = "2s";
@@ -63,6 +62,11 @@
           min_score = 0.5;
         };
         vat.validate_endpoint_override = "http://127.0.0.1:8003/validate/";
+        paypal = {
+          base_url_override = "http://127.0.0.1:8004/";
+          client_id = "test-client";
+          client_secret = "test-secret";
+        };
         oauth2 = {
           enable = true;
           providers = let
@@ -115,11 +119,11 @@
       '';
     };
 
-    systemd.services."academy-testing-internal" = {
+    systemd.services."academy-testing-paypal" = {
       wantedBy = ["academy-backend.service"];
       before = ["academy-backend.service"];
       script = ''
-        ${self.packages.${system}.testing.unwrapped}/bin/academy-testing internal
+        ${self.packages.${system}.testing.unwrapped}/bin/academy-testing paypal
       '';
     };
 

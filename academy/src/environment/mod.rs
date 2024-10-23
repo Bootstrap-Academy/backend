@@ -11,8 +11,7 @@ use academy_core_session_impl::SessionFeatureConfig;
 use academy_core_user_impl::UserFeatureConfig;
 use academy_di::provider;
 use academy_extern_impl::{
-    internal::InternalApiServiceConfig, paypal::PaypalApiServiceConfig,
-    recaptcha::RecaptchaApiServiceConfig, vat::VatApiServiceConfig,
+    paypal::PaypalApiServiceConfig, recaptcha::RecaptchaApiServiceConfig, vat::VatApiServiceConfig,
 };
 use academy_models::oauth2::OAuth2Provider;
 use academy_shared_impl::{
@@ -35,7 +34,6 @@ provider! {
             RestServerConfig,
 
             // Extern
-            InternalApiServiceConfig,
             RecaptchaApiServiceConfig,
             VatApiServiceConfig,
             PaypalApiServiceConfig,
@@ -78,7 +76,6 @@ provider! {
         rest_server_config: RestServerConfig,
 
         // Extern
-        internal_api_service_config: InternalApiServiceConfig,
         recaptcha_api_service_config: RecaptchaApiServiceConfig,
         vat_api_service_config: VatApiServiceConfig,
         paypal_api_service_config: PaypalApiServiceConfig,
@@ -115,10 +112,6 @@ impl ConfigProvider {
         };
 
         // Extern
-        let internal_api_service_config = InternalApiServiceConfig {
-            shop_url: config.internal.shop_url.clone(),
-        };
-
         let recaptcha_api_service_config = RecaptchaApiServiceConfig::new(
             config
                 .recaptcha
@@ -229,7 +222,6 @@ impl ConfigProvider {
             rest_server_config,
 
             // Extern
-            internal_api_service_config,
             recaptcha_api_service_config,
             vat_api_service_config,
             paypal_api_service_config,

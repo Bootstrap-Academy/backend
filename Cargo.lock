@@ -406,6 +406,7 @@ version = "0.0.0"
 dependencies = [
  "academy_auth_contracts",
  "academy_cache_contracts",
+ "academy_core_coin_contracts",
  "academy_core_oauth2_contracts",
  "academy_core_session_contracts",
  "academy_core_user_contracts",

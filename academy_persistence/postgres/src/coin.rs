@@ -69,6 +69,22 @@ impl CoinRepository<PostgresTransaction> for PostgresCoinRepository {
             withheld_coins: withheld_coins as _,
         })
     }
+
+    #[trace_instrument(skip(self, txn))]
+    async fn release_coins(
+        &self,
+        txn: &mut PostgresTransaction,
+        user_id: UserId,
+    ) -> anyhow::Result<()> {
+        txn.txn()
+            .execute(
+                "update coins set coins=coins+withheld_coins, withheld_coins=0 where user_id=$1",
+                &[&*user_id],
+            )
+            .await
+            .map(|_| ())
+            .map_err(Into::into)
+    }
 }
 
 fn decode_balance(row: &Row, cnt: &mut ColumnCounter) -> anyhow::Result<Balance> {

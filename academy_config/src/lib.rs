@@ -140,7 +140,6 @@ pub struct JwtConfig {
 #[derive(Debug, Deserialize)]
 pub struct InternalConfig {
     pub jwt_ttl: Duration,
-    pub shop_url: Url,
 }
 
 #[derive(Debug, Deserialize)]

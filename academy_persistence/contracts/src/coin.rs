@@ -20,6 +20,13 @@ pub trait CoinRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
         coins: i64,
         withhold: bool,
     ) -> impl Future<Output = Result<Balance, CoinRepoAddCoinsError>> + Send;
+
+    /// Release withheld coins.
+    fn release_coins(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
+    ) -> impl Future<Output = anyhow::Result<()>> + Send;
 }
 
 #[derive(Debug, Error)]
@@ -59,6 +66,17 @@ impl<Txn: Send + Sync + 'static> MockCoinRepository<Txn> {
                 mockall::predicate::eq(withhold),
             )
             .return_once(move |_, _, _, _| Box::pin(std::future::ready(result)));
+        self
+    }
+
+    pub fn with_release_coins(mut self, user_id: UserId) -> Self {
+        self.expect_release_coins()
+            .once()
+            .with(
+                mockall::predicate::always(),
+                mockall::predicate::eq(user_id),
+            )
+            .return_once(|_, _| Box::pin(std::future::ready(Ok(()))));
         self
     }
 }

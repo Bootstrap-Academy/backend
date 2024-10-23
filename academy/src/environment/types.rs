@@ -29,8 +29,8 @@ use academy_core_user_impl::{
 };
 use academy_email_impl::{template::TemplateEmailServiceImpl, EmailServiceImpl};
 use academy_extern_impl::{
-    internal::InternalApiServiceImpl, oauth2::OAuth2ApiServiceImpl, paypal::PaypalApiServiceImpl,
-    recaptcha::RecaptchaApiServiceImpl, vat::VatApiServiceImpl,
+    oauth2::OAuth2ApiServiceImpl, paypal::PaypalApiServiceImpl, recaptcha::RecaptchaApiServiceImpl,
+    vat::VatApiServiceImpl,
 };
 use academy_persistence_postgres::{
     coin::PostgresCoinRepository, mfa::PostgresMfaRepository, oauth2::PostgresOAuth2Repository,
@@ -71,7 +71,6 @@ pub type TemplateEmail = TemplateEmailServiceImpl<Email, Template>;
 // Extern
 pub type RecaptchaApi = RecaptchaApiServiceImpl;
 pub type OAuth2Api = OAuth2ApiServiceImpl;
-pub type InternalApi = InternalApiServiceImpl<AuthInternal>;
 pub type VatApi = VatApiServiceImpl;
 pub type PaypalApi = PaypalApiServiceImpl;
 
@@ -113,13 +112,13 @@ pub type UserFeature = UserFeatureServiceImpl<
     Auth,
     Captcha,
     VatApi,
-    InternalApi,
     User,
     UserEmailConfirmation,
     UserUpdate,
     Session,
     OAuth2Registration,
     UserRepo,
+    CoinRepo,
 >;
 pub type User = UserServiceImpl<Id, Time, Password, UserRepo, OAuth2Link>;
 pub type UserEmailConfirmation =

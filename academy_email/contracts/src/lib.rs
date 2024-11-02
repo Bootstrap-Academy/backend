@@ -20,12 +20,25 @@ pub struct Email {
     pub body: String,
     pub content_type: ContentType,
     pub reply_to: Option<EmailAddressWithName>,
+    pub attachments: Vec<EmailAttachment>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EmailAttachment {
+    pub filename: String,
+    pub content_type: AttachmentContentType,
+    pub content: Vec<u8>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ContentType {
     Text,
     Html,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AttachmentContentType {
+    Pdf,
 }
 
 #[cfg(feature = "mock")]

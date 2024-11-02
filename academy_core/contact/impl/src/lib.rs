@@ -60,6 +60,7 @@ where
                     .email
                     .with_name(message.author.name.into_inner()),
             ),
+            attachments: Vec::new(),
         };
 
         trace!("send email");
@@ -181,6 +182,7 @@ mod tests {
                     .parse()
                     .unwrap(),
             ),
+            attachments: Vec::new(),
         }
     }
 }

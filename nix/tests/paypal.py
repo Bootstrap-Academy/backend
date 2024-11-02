@@ -1,4 +1,9 @@
-from utils import c, create_verified_account
+import hashlib
+from io import BytesIO
+from typing import cast
+
+from pypdf import PdfReader
+from utils import c, create_verified_account, decode_mail_header, decode_mail_part, fetch_mail, get_mail_parts
 
 login = create_verified_account("a", "a@a", "a")
 
@@ -22,7 +27,6 @@ assert resp.json()["can_buy_coins"] is True
 
 ## success
 resp = c.post("/shop/coins/paypal/orders", json={"coins": 1337})
-print(resp.status_code, resp.json())
 assert resp.status_code == 200
 order_id = resp.json()
 
@@ -54,3 +58,32 @@ assert resp.status_code == 404
 assert resp.json() == {"detail": "Order not found"}
 assert c.get(f"/shop/coins/me").json() == {"coins": 1337, "withheld_coins": 0}
 assert c.get(f"http://127.0.0.1:8004/v2/checkout/orders/{order_id}").json() == {"status": "Captured"}
+
+# invoice email
+mail = fetch_mail()
+assert mail["X-Original-To"] == "a@a"
+assert decode_mail_header(mail["Subject"]) == "Kaufbestätigung - Bootstrap Academy"
+payload, invoice, terms, revocation_policy = get_mail_parts(mail)
+content = decode_mail_part(payload).decode()
+assert "Du hast erfolgreich 1337 MorphCoins gekauft! Das entspricht 13.37€ inklusive 19% MwSt. von 2.13€." in content
+
+assert invoice["Content-Disposition"] == 'attachment; filename="rechnung.pdf"'
+assert invoice["Content-Type"] == "application/pdf"
+pdf = PdfReader(BytesIO(decode_mail_part(invoice)))
+assert pdf.metadata and pdf.metadata.title == "Rechnung"
+assert len(pdf.pages) == 1
+invoice_text = pdf.pages[0].extract_text()
+assert "Nettobetrag 11.24 EUR" in invoice_text
+assert "zzgl. 19% MwSt. 2.13 EUR" in invoice_text
+assert "Gesamtbetrag 13.37 EUR" in invoice_text
+
+assert terms["Content-Disposition"] == 'attachment;\n filename*0="allgemeine_geschaeftsbedingungen.pdf"'
+assert terms["Content-Type"] == "application/pdf"
+hash = hashlib.sha256(decode_mail_part(terms)).hexdigest()
+assert hash == "7a8568f6ee99b914463265a8e42bb9736f719aca832cee63019ab9ced284dcf8"
+
+print(repr(revocation_policy["Content-Disposition"]))
+assert revocation_policy["Content-Disposition"] == 'attachment; filename="widerrufsbelehrung.pdf"'
+assert revocation_policy["Content-Type"] == "application/pdf"
+hash = hashlib.sha256(decode_mail_part(revocation_policy)).hexdigest()
+assert hash == "046c90a8d66a67acbb6e5154b83a3b61ef3b17ec0f4a91bea189b1c5d1076d74"

@@ -23,7 +23,7 @@
       lcov
       smtp4dev
       oath-toolkit
-      (python3.withPackages (p: with p; [httpx pyotp]))
+      (python3.withPackages (p: with p; [httpx pyotp pypdf]))
     ])
     ++ (lib.optional (!pkgs.cargo-llvm-cov.meta.broken) pkgs.cargo-llvm-cov)
     ++ (lib.optionals (pkgs.stdenv.hostPlatform.isDarwin) (with pkgs.darwin.apple_sdk.frameworks; [
@@ -81,7 +81,20 @@
 
     PYTHONPATH = "${config.devenv.root}/nix/tests";
 
-    ACADEMY_CONFIG = "${config.devenv.root}/config.dev.toml";
+    ACADEMY_CONFIG = let
+      chrome = pkgs.ungoogled-chromium;
+
+      renderConfig = (pkgs.formats.toml {}).generate "config.default.toml" {
+        render.chrome_bin = lib.getExe chrome;
+      };
+
+      configs =
+        lib.optional (lib.meta.availableOn {inherit (pkgs) system;} chrome) renderConfig
+        ++ [
+          "${config.devenv.root}/config.dev.toml"
+        ];
+    in
+      builtins.concatStringsSep ":" configs;
   };
 
   process.manager.implementation = "hivemind";

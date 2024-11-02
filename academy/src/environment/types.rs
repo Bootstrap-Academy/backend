@@ -37,6 +37,7 @@ use academy_persistence_postgres::{
     paypal::PostgresPaypalRepository, session::PostgresSessionRepository,
     user::PostgresUserRepository, PostgresDatabase,
 };
+use academy_render_impl::pdf::RenderPdfServiceImpl;
 use academy_shared_impl::{
     captcha::CaptchaServiceImpl, hash::HashServiceImpl, id::IdServiceImpl, jwt::JwtServiceImpl,
     password::PasswordServiceImpl, secret::SecretServiceImpl, time::TimeServiceImpl,
@@ -76,6 +77,9 @@ pub type PaypalApi = PaypalApiServiceImpl;
 
 // Template
 pub type Template = TemplateServiceImpl;
+
+// Render
+pub type RenderPdf = RenderPdfServiceImpl;
 
 // Shared
 pub type Captcha = CaptchaServiceImpl<RecaptchaApi>;
@@ -172,8 +176,18 @@ pub type OAuth2Registration = OAuth2RegistrationServiceImpl<Secret, Cache>;
 pub type CoinFeature = CoinFeatureServiceImpl<Database, Auth, UserRepo, CoinRepo, Coin>;
 pub type Coin = CoinServiceImpl<CoinRepo>;
 
-pub type PaypalFeature =
-    PaypalFeatureServiceImpl<Database, Auth, PaypalApi, UserRepo, PaypalRepo, PaypalCoinOrder>;
+pub type PaypalFeature = PaypalFeatureServiceImpl<
+    Database,
+    Auth,
+    Time,
+    PaypalApi,
+    UserRepo,
+    PaypalRepo,
+    PaypalCoinOrder,
+    Template,
+    TemplateEmail,
+    RenderPdf,
+>;
 pub type PaypalCoinOrder = PaypalCoinOrderServiceImpl<Time, PaypalRepo, CoinRepo>;
 
 pub type Internal = InternalServiceImpl<Database, AuthInternal, UserRepo, Coin>;

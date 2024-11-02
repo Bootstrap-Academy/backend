@@ -14,6 +14,8 @@ in {
       default = self.packages.${pkgs.system}.default;
     };
 
+    chromePackage = lib.mkPackageOption pkgs "ungoogled-chromium" {};
+
     localDatabase = lib.mkOption {
       type = lib.types.bool;
       default = true;
@@ -132,8 +134,11 @@ in {
       };
       users.groups.academy = {};
 
-      services.academy.backend.settings.database.url = lib.mkIf cfg.localDatabase "host=/run/postgresql user=academy";
-      services.academy.backend.settings.cache.url = lib.mkIf cfg.localCache "redis+unix://${config.services.redis.servers.academy.unixSocket}";
+      services.academy.backend.settings = {
+        database.url = lib.mkIf cfg.localDatabase "host=/run/postgresql user=academy";
+        cache.url = lib.mkIf cfg.localCache "redis+unix://${config.services.redis.servers.academy.unixSocket}";
+        render.chrome_bin = lib.mkDefault (lib.getExe cfg.chromePackage);
+      };
 
       environment.systemPackages = [wrapper];
     };

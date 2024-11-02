@@ -1,5 +1,5 @@
 [package]
-name = "academy_templates_impl"
+name = "academy_render_impl"
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
@@ -10,11 +10,10 @@ repository.workspace = true
 workspace = true
 
 [dependencies]
-academy_assets.workspace = true
 academy_di.workspace = true
-academy_templates_contracts.workspace = true
+academy_render_contracts.workspace = true
 academy_utils.workspace = true
 anyhow.workspace = true
-serde.workspace = true
-tera = { version = "1.20.0", default-features = false, features = ["builtins"] }
+tempfile = { version = "3.13.0", default-features = false }
+tokio.workspace = true
 tracing.workspace = true

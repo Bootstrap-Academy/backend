@@ -6,6 +6,7 @@ use academy_demo::{
     session::{BAR_1, FOO_1},
     user::{BAR, FOO},
 };
+use academy_email_contracts::template::MockTemplateEmailService;
 use academy_extern_contracts::paypal::MockPaypalApiService;
 use academy_models::{
     auth::{AuthError, AuthenticateError, AuthorizeError},
@@ -15,7 +16,14 @@ use academy_models::{
 use academy_persistence_contracts::{
     paypal::MockPaypalRepository, user::MockUserRepository, MockDatabase,
 };
+use academy_render_contracts::pdf::MockRenderPdfService;
+use academy_shared_contracts::time::MockTimeService;
+use academy_templates_contracts::{
+    InvoiceItem, InvoiceTemplate, MockTemplateService, PurchaseConfirmationTemplate, LOGO_BASE64,
+};
 use academy_utils::{assert_matches, Apply};
+use rust_decimal::Decimal;
+use rust_decimal_macros::dec;
 
 use crate::{tests::Sut, PaypalFeatureServiceImpl};
 
@@ -36,9 +44,13 @@ async fn ok() {
         withheld_coins: 7,
     };
 
+    let timestamp = Default::default();
+
     let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
 
     let db = MockDatabase::build(true);
+
+    let time = MockTimeService::new().with_now(timestamp);
 
     let paypal_repo =
         MockPaypalRepository::new().with_get_coin_order(order.id.clone(), Some(order.clone()));
@@ -49,13 +61,61 @@ async fn ok() {
 
     let paypal_coin_order = MockPaypalCoinOrderService::new().with_capture(order.clone(), expected);
 
+    let template = MockTemplateService::new().with_render(
+        InvoiceTemplate {
+            logo_base64: &LOGO_BASE64,
+            title: "Rechnung",
+            customer_details: FOO
+                .invoice_info
+                .clone()
+                .into_details(Some(FOO.profile.display_name.clone().into_inner())),
+            timestamp,
+            invoice_number: "R0000042".into(),
+            items: vec![InvoiceItem {
+                description: "MorphCoins".into(),
+                net_unit: dec!(0.01) / dec!(1.19),
+                count: order.coins,
+                net_total: dec!(0.01) / dec!(1.19) * Decimal::from(order.coins),
+            }],
+            vat_percent: dec!(19),
+            net_total: dec!(0.01) / dec!(1.19) * Decimal::from(order.coins),
+            vat_total: dec!(0.01) / dec!(1.19) * Decimal::from(order.coins) * dec!(0.19),
+            gross_total: dec!(0.01) * Decimal::from(order.coins),
+        },
+        "invoice-template-html".into(),
+    );
+
+    let pdf = vec![1, 2, 3, 4, 5];
+    let render_pdf =
+        MockRenderPdfService::new().with_render("invoice-template-html".into(), pdf.clone());
+
+    let template_email = MockTemplateEmailService::new().with_send_purchase_confirmation_email(
+        FOO.user
+            .email
+            .clone()
+            .unwrap()
+            .with_name(FOO.profile.display_name.clone().into_inner()),
+        PurchaseConfirmationTemplate {
+            coins: order.coins,
+            vat_percent: dec!(19),
+            vat_total: dec!(0.01) / dec!(1.19) * Decimal::from(order.coins) * dec!(0.19),
+            gross_total: dec!(0.01) * Decimal::from(order.coins),
+        },
+        pdf,
+        true,
+    );
+
     let sut = PaypalFeatureServiceImpl {
         auth,
         db,
+        time,
         paypal_repo,
         user_repo,
         paypal_api,
         paypal_coin_order,
+        template,
+        render_pdf,
+        template_email,
         ..Sut::default()
     };
 

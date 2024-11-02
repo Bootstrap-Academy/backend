@@ -1,7 +1,7 @@
 use std::{
     collections::HashMap,
     net::{IpAddr, SocketAddr},
-    path::Path,
+    path::{Path, PathBuf},
 };
 
 use academy_assets::CONFIG_TOML;
@@ -10,6 +10,7 @@ use anyhow::Context;
 use config::{File, FileFormat};
 use duration::Duration;
 use regex::bytes::RegexSet;
+use rust_decimal::Decimal;
 use serde::{Deserialize, Deserializer};
 
 pub mod duration;
@@ -91,6 +92,8 @@ pub struct Config {
     pub vat: VatConfig,
     pub paypal: PaypalConfig,
     pub coin: CoinConfig,
+    pub render: RenderConfig,
+    pub finance: FinanceConfig,
     pub sentry: Option<SentryConfig>,
     pub oauth2: Option<OAuth2Config>,
 }
@@ -214,6 +217,16 @@ pub struct PaypalConfig {
 pub struct CoinConfig {
     pub purchase_min: u64,
     pub purchase_max: u64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct RenderConfig {
+    pub chrome_bin: PathBuf,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct FinanceConfig {
+    pub vat_percent: Decimal,
 }
 
 #[derive(Debug, Deserialize)]

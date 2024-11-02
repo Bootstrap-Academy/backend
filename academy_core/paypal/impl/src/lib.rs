@@ -6,6 +6,7 @@ use academy_core_paypal_contracts::{
     PaypalFeatureService,
 };
 use academy_di::Build;
+use academy_email_contracts::template::TemplateEmailService;
 use academy_extern_contracts::paypal::{
     PaypalApiService, PaypalCaptureOrderError, PaypalCreateOrderError,
 };
@@ -13,8 +14,15 @@ use academy_models::{auth::AccessToken, coin::Balance, paypal::PaypalOrderId};
 use academy_persistence_contracts::{
     paypal::PaypalRepository, user::UserRepository, Database, Transaction,
 };
+use academy_render_contracts::pdf::RenderPdfService;
+use academy_shared_contracts::time::TimeService;
+use academy_templates_contracts::{
+    InvoiceItem, InvoiceTemplate, PurchaseConfirmationTemplate, TemplateService, LOGO_BASE64,
+};
 use academy_utils::trace_instrument;
-use anyhow::anyhow;
+use anyhow::{anyhow, Context};
+use rust_decimal::Decimal;
+use rust_decimal_macros::dec;
 
 pub mod coin_order;
 
@@ -23,30 +31,72 @@ mod tests;
 
 #[derive(Debug, Clone, Build)]
 #[cfg_attr(test, derive(Default))]
-pub struct PaypalFeatureServiceImpl<Db, Auth, PaypalApi, UserRepo, PaypalRepo, PaypalCoinOrder> {
+pub struct PaypalFeatureServiceImpl<
+    Db,
+    Auth,
+    Time,
+    PaypalApi,
+    UserRepo,
+    PaypalRepo,
+    PaypalCoinOrder,
+    Template,
+    TemplateEmail,
+    RenderPdf,
+> {
     db: Db,
     auth: Auth,
+    time: Time,
     paypal_api: PaypalApi,
     user_repo: UserRepo,
     paypal_repo: PaypalRepo,
     paypal_coin_order: PaypalCoinOrder,
+    template_email: TemplateEmail,
+    template: Template,
+    render_pdf: RenderPdf,
     config: PaypalFeatureConfig,
 }
 
 #[derive(Debug, Clone)]
 pub struct PaypalFeatureConfig {
     pub purchase_range: RangeInclusive<u64>,
+    pub vat_percent: Decimal,
 }
 
-impl<Db, Auth, PaypalApi, UserRepo, PaypalRepo, PaypalCoinOrder> PaypalFeatureService
-    for PaypalFeatureServiceImpl<Db, Auth, PaypalApi, UserRepo, PaypalRepo, PaypalCoinOrder>
+impl<
+        Db,
+        Auth,
+        Time,
+        PaypalApi,
+        UserRepo,
+        PaypalRepo,
+        PaypalCoinOrder,
+        Template,
+        TemplateEmail,
+        RenderPdf,
+    > PaypalFeatureService
+    for PaypalFeatureServiceImpl<
+        Db,
+        Auth,
+        Time,
+        PaypalApi,
+        UserRepo,
+        PaypalRepo,
+        PaypalCoinOrder,
+        Template,
+        TemplateEmail,
+        RenderPdf,
+    >
 where
     Db: Database,
     Auth: AuthService<Db::Transaction>,
+    Time: TimeService,
     PaypalApi: PaypalApiService,
     UserRepo: UserRepository<Db::Transaction>,
     PaypalRepo: PaypalRepository<Db::Transaction>,
     PaypalCoinOrder: PaypalCoinOrderService<Db::Transaction>,
+    Template: TemplateService,
+    TemplateEmail: TemplateEmailService,
+    RenderPdf: RenderPdfService,
 {
     #[trace_instrument(skip(self))]
     fn get_client_id(&self) -> &str {
@@ -135,7 +185,62 @@ where
                 PaypalCaptureOrderError::Other(err) => err.into(),
             })?;
 
+        let invoice_number = order.invoice_number;
+        let coins = order.coins;
+        let timestamp = self.time.now();
         let new_balance = self.paypal_coin_order.capture(&mut txn, order).await?;
+
+        if let Some(email) = user_composite.user.email {
+            let invoice_number = format!("R{invoice_number:07}");
+            let vat_factor = self.config.vat_percent / dec!(100);
+            let net_unit = dec!(0.01) / (dec!(1) + vat_factor);
+            let net_total = net_unit * Decimal::from(coins);
+            let vat_total = net_total * vat_factor;
+            let gross_total = dec!(0.01) * Decimal::from(coins);
+            debug_assert_eq!(gross_total, (net_total + vat_total).round_dp(4));
+
+            let invoice_html = self
+                .template
+                .render(&InvoiceTemplate {
+                    logo_base64: &LOGO_BASE64,
+                    title: "Rechnung",
+                    customer_details: user_composite.invoice_info.into_details(Some(
+                        user_composite.profile.display_name.clone().into_inner(),
+                    )),
+                    timestamp,
+                    invoice_number,
+                    items: vec![InvoiceItem {
+                        description: "MorphCoins".into(),
+                        net_unit,
+                        count: coins,
+                        net_total,
+                    }],
+                    vat_percent: self.config.vat_percent,
+                    net_total,
+                    vat_total,
+                    gross_total,
+                })
+                .context("Failed to render invoice template")?;
+            let invoice_pdf = self
+                .render_pdf
+                .render(&invoice_html)
+                .await
+                .context("Failed to render invoice pdf")?;
+
+            self.template_email
+                .send_purchase_confirmation_email(
+                    email.with_name(user_composite.profile.display_name.into_inner()),
+                    &PurchaseConfirmationTemplate {
+                        coins,
+                        vat_percent: self.config.vat_percent,
+                        vat_total,
+                        gross_total,
+                    },
+                    invoice_pdf,
+                )
+                .await
+                .context("Failed to send purchse confirmation email")?;
+        }
 
         txn.commit().await?;
 

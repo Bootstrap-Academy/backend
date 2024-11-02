@@ -46,7 +46,8 @@ impl TemplateService for TemplateServiceImpl {
 #[cfg(test)]
 mod tests {
     use academy_templates_contracts::{
-        ResetPasswordTemplate, SubscribeNewsletterTemplate, VerifyEmailTemplate,
+        InvoiceTemplate, PurchaseConfirmationTemplate, ResetPasswordTemplate,
+        SubscribeNewsletterTemplate, VerifyEmailTemplate,
     };
 
     use super::*;
@@ -72,6 +73,32 @@ mod tests {
         test_template(SubscribeNewsletterTemplate {
             code: "code".into(),
             url: "https://bootstrap.academy/".into(),
+        });
+    }
+
+    #[test]
+    fn purchase_confirmation() {
+        test_template(PurchaseConfirmationTemplate {
+            coins: 4207,
+            vat_percent: 19.into(),
+            vat_total: 7.into(),
+            gross_total: 49.into(),
+        });
+    }
+
+    #[test]
+    fn invoice() {
+        test_template(InvoiceTemplate {
+            logo_base64: "",
+            title: "Rechnung",
+            customer_details: ["foo", "bar", "baz"].into_iter().map(Into::into).collect(),
+            timestamp: Default::default(),
+            invoice_number: "R1234".into(),
+            items: vec![],
+            vat_percent: 19.into(),
+            net_total: 42.into(),
+            vat_total: 7.into(),
+            gross_total: 49.into(),
         });
     }
 

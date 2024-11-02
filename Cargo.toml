@@ -15,6 +15,7 @@ members = [
   "academy_extern/*",
   "academy_models",
   "academy_persistence/*",
+  "academy_render/*",
   "academy_shared/*",
   "academy_templates/contracts",
   "academy_templates/impl",
@@ -80,6 +81,8 @@ academy_extern_impl.path = "academy_extern/impl"
 academy_models.path = "academy_models"
 academy_persistence_contracts.path = "academy_persistence/contracts"
 academy_persistence_postgres.path = "academy_persistence/postgres"
+academy_render_contracts.path = "academy_render/contracts"
+academy_render_impl.path = "academy_render/impl"
 academy_shared_contracts.path = "academy_shared/contracts"
 academy_shared_impl.path = "academy_shared/impl"
 academy_templates_contracts.path = "academy_templates/contracts"
@@ -110,13 +113,15 @@ quote = { version = "1.0.38", default-features = false, features = ["proc-macro"
 rand = { version = "0.8.5", default-features = false, features = ["std", "std_rng"] }
 regex = { version = "1.11.1", default-features = false }
 reqwest = { version = "0.12.12", default-features = false, features = ["http2", "rustls-tls", "json"] }
+rust_decimal = { version = "1.36.0", default-features = false, features = ["std", "serde-str"] }
+rust_decimal_macros = { version = "1.36.0", default-features = false }
 schemars = { version = "0.8.21", default-features = false, features = ["derive", "preserve_order", "uuid1", "url"] }
 serde = { version = "1.0.217", default-features = false, features = ["derive", "std"] }
 serde_json = { version = "1.0.135", default-features = false, features = ["std"] }
 sha2 = { version = "0.10.8", default-features = false }
 syn = { version = "2.0.96", default-features = false, features = ["parsing", "proc-macro", "derive", "printing"] }
 thiserror = { version = "2.0.11", default-features = false }
-tokio = { version = "1.43.0", default-features = false, features = ["rt-multi-thread", "macros", "sync"] }
+tokio = { version = "1.43.0", default-features = false, features = ["rt-multi-thread", "macros", "sync", "fs", "process"] }
 tracing = { version = "0.1.41", default-features = false, features = ["attributes"] }
 tracing-subscriber = { version = "0.3.19", default-features = false, features = ["ansi", "fmt", "env-filter"] }
 url = { version = "2.5.3", default-features = false, features = ["serde"] }

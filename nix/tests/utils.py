@@ -25,8 +25,16 @@ def decode_mail_header(header):
     return str(email.header.make_header(email.header.decode_header(header)))
 
 
+def get_mail_parts(mail: Message) -> list[Message]:
+    return cast(list[Message], mail.get_payload())
+
+
+def decode_mail_part(mail: Message) -> bytes:
+    return cast(bytes, mail.get_payload(decode=True))
+
+
 def decode_mail_payload(mail: Message):
-    return cast(bytes, mail.get_payload(decode=True)).decode()
+    return decode_mail_part(get_mail_parts(mail)[0]).decode()
 
 
 def refresh_session(refresh_token=None, client=None):

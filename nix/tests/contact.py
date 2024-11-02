@@ -1,6 +1,4 @@
-from typing import cast
-
-from utils import c, fetch_mail
+from utils import c, decode_mail_payload, fetch_mail
 
 msg = {
     "name": "Some User",
@@ -16,8 +14,8 @@ assert resp.json() is True
 mail = fetch_mail()
 assert mail["X-Original-To"] == "contact@academy"
 assert mail["Subject"] == "[Contact Form] Something Important"
-content = cast(bytes, mail.get_payload(decode=True)).decode()
-assert content == "Message from Some User (some.user@example.com):\n\nThis is a really important message.\n"
+content = decode_mail_payload(mail)
+assert content == "Message from Some User (some.user@example.com):\n\nThis is a really important message."
 
 for resp in ["success-0.3", "failure"]:
     resp = c.post("/auth/contact", json={**msg, "recaptcha_response": resp})

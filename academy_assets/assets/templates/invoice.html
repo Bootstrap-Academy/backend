@@ -1,0 +1,182 @@
+<html>
+  <head>
+    <title>{{ title }}</title>
+    <style>
+      body {
+        width: 210mm;
+      }
+
+      .content {
+        padding: 5%;
+        font-family: Helvetica;
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+      }
+
+      .row {
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .right {
+        justify-content: right;
+      }
+
+      .logo {
+        width: 250px;
+      }
+
+      .title {
+        font-size: 40;
+        margin: 0;
+      }
+
+      .academy-details {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        align-items: end;
+      }
+
+      .academy-details a {
+        color: unset;
+        text-decoration: none;
+      }
+
+      .customer-details {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .details {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .details > .row {
+        gap: 24px;
+      }
+
+      .table {
+        display: grid;
+        grid-template-columns: 3fr 1fr 1fr 1fr;
+      }
+
+      .table-row {
+        grid-column: 1 / 5;
+        display: grid;
+        grid-template-columns: subgrid;
+        padding: 4px;
+      }
+
+      .table-row > * {
+        padding: 0 4px;
+      }
+
+      .table-header {
+        background: #0b5156;
+        color: white;
+      }
+
+      .table-row:not(.table-header):nth-child(odd) {
+        background: #dddddd;
+      }
+
+      .table-row:not(.table-header):nth-child(even) {
+        background: #ffffff;
+      }
+
+      .table-right {
+        justify-self: right;
+      }
+
+      .summary {
+        width: 40%;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="content">
+      <div class="row right">
+        <img class="logo" src="data:image/png;base64,{{ logo_base64 }}" />
+      </div>
+
+      <div class="row">
+        <p class="title">{{ title }}</p>
+        <div class="academy-details">
+          <div><b>bootstrap academy GmbH</b></div>
+          <div>Wittelsbacherplatz 1</div>
+          <div>80333 München</div>
+          <div><a href="tel:+4989248862510">+49 89 24 88 62 51 0</a></div>
+          <div>
+            <a href="mailto:hallo@bootstrap.academy">hallo@bootstrap.academy</a>
+          </div>
+          <div>USt.-IdNr.: DE354823768</div>
+          <div>Handelsregister: HRB 275681</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="customer-details">
+          {% for line in customer_details -%}
+            <div>{{ line }}</div>
+          {%- endfor %}
+        </div>
+
+        <div class="details">
+          <div class="row">
+            <b>Datum</b>
+            <div>{{ timestamp | date(format="%d.%m.%Y") }}</div>
+          </div>
+          <div class="row">
+            <b>Rechnungs-Nr.</b>
+            <div>{{ invoice_number }}</div>
+          </div>
+          <div class="row">
+            <b>Gesamtbetrag</b>
+            <div>{{ gross_total }} EUR</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="table">
+        <div class="table-row table-header">
+          <div>Bezeichnung</div>
+          <div class="table-right">Einzelpreis</div>
+          <div class="table-right">Menge</div>
+          <div class="table-right">Gesamtpreis</div>
+        </div>
+
+        {% for item in items -%}
+          <div class="table-row">
+            <div>{{ item.description }}</div>
+            <div class="table-right">{{ item.net_unit }} EUR</div>
+            <div class="table-right">{{ item.count }}</div>
+            <div class="table-right">{{ item.net_total }} EUR</div>
+          </div>
+        {%- endfor %}
+      </div>
+
+      <div class="row right">
+        <div class="details summary">
+          <div class="row">
+            <b>Nettobetrag</b>
+            <div>{{ net_total }} EUR</div>
+          </div>
+          <div class="row">
+            <b>zzgl. {{ vat_percent }}% MwSt.</b>
+            <div>{{ vat_total }} EUR</div>
+          </div>
+          <div class="row">
+            <b>Gesamtbetrag</b>
+            <div>{{ gross_total }} EUR</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

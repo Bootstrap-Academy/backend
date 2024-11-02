@@ -32,6 +32,7 @@ async fn test(config: Config, recipient: EmailAddressWithName) -> anyhow::Result
             body: "Email deliverability seems to be working!".into(),
             content_type: ContentType::Text,
             reply_to: None,
+            attachments: Vec::new(),
         })
         .await
         .and_then(|r| {

@@ -14,6 +14,7 @@ use academy_extern_impl::{
     paypal::PaypalApiServiceConfig, recaptcha::RecaptchaApiServiceConfig, vat::VatApiServiceConfig,
 };
 use academy_models::oauth2::OAuth2Provider;
+use academy_render_impl::pdf::RenderPdfServiceConfig;
 use academy_shared_impl::{
     captcha::{CaptchaServiceConfig, RecaptchaCaptchaServiceConfig},
     jwt::JwtServiceConfig,
@@ -37,6 +38,9 @@ provider! {
             RecaptchaApiServiceConfig,
             VatApiServiceConfig,
             PaypalApiServiceConfig,
+
+            // Render
+            RenderPdfServiceConfig,
 
             // Shared
             CaptchaServiceConfig,
@@ -79,6 +83,9 @@ provider! {
         recaptcha_api_service_config: RecaptchaApiServiceConfig,
         vat_api_service_config: VatApiServiceConfig,
         paypal_api_service_config: PaypalApiServiceConfig,
+
+        // Render
+        render_pdf_service_config: RenderPdfServiceConfig,
 
         // Shared
         captcha_service_config: CaptchaServiceConfig,
@@ -128,6 +135,11 @@ impl ConfigProvider {
             config.paypal.client_id.clone(),
             config.paypal.client_secret.clone(),
         );
+
+        // Render
+        let render_pdf_service_config = RenderPdfServiceConfig {
+            chrome_bin: config.render.chrome_bin.clone().into(),
+        };
 
         // Shared
         let captcha_service_config = match config.recaptcha.as_ref() {
@@ -214,6 +226,7 @@ impl ConfigProvider {
 
         let paypal_feature_config = PaypalFeatureConfig {
             purchase_range: config.coin.purchase_min..=config.coin.purchase_max,
+            vat_percent: config.finance.vat_percent,
         };
 
         Ok(Self {
@@ -226,6 +239,9 @@ impl ConfigProvider {
             recaptcha_api_service_config,
             vat_api_service_config,
             paypal_api_service_config,
+
+            // Render
+            render_pdf_service_config,
 
             // Shared
             jwt_service_config,

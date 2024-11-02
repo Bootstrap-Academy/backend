@@ -110,6 +110,37 @@ impl UserComposite {
     }
 }
 
+impl UserInvoiceInfo {
+    pub fn into_details(self, name_fallback: Option<String>) -> Vec<String> {
+        let name = match (self.first_name, self.last_name) {
+            (Some(first_name), Some(last_name)) => Some(format!("{} {}", *first_name, *last_name)),
+            _ => name_fallback,
+        };
+
+        let city = match (self.zip_code, self.city) {
+            (Some(zip_code), Some(city)) => Some(format!("{} {}", *zip_code, *city)),
+            _ => None,
+        };
+
+        let vat_id = self
+            .business
+            .is_some_and(|x| x)
+            .then(|| Some(format!("USt.-IdNr.: {}", *self.vat_id?)))
+            .flatten();
+
+        [
+            name,
+            self.street.map(UserStreet::into_inner),
+            city,
+            self.country.map(UserCountry::into_inner),
+            vat_id,
+        ]
+        .into_iter()
+        .flatten()
+        .collect()
+    }
+}
+
 nutype_string!(UserName(validate(regex = USER_NAME_REGEX)));
 nutype_string!(UserDisplayName(validate(
     len_char_min = 1,

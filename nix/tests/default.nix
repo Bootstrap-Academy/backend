@@ -154,7 +154,7 @@
 
       nodes.machine = {pkgs, ...}: {
         imports = [defaultModule];
-        environment.systemPackages = [(pkgs.python3.withPackages (p: with p; [httpx pyotp]))];
+        environment.systemPackages = [(pkgs.python3.withPackages (p: with p; [httpx pyotp pypdf]))];
       };
 
       testScript = ''

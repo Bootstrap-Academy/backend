@@ -3303,9 +3303,9 @@ rec {
       };
       "anstream" = rec {
         crateName = "anstream";
-        version = "0.6.17";
+        version = "0.6.18";
         edition = "2021";
-        sha256 = "0f0k3g8hl8k8cd8f3rq6yj04415jhd3k3kz1mwnki1jx1wzyb893";
+        sha256 = "16sjk4x3ns2c3ya1x28a44kh6p47c7vhk27251i015hik1lm7k4a";
         dependencies = [
           {
             name = "anstyle";
@@ -4303,9 +4303,9 @@ rec {
       };
       "cc" = rec {
         crateName = "cc";
-        version = "1.1.34";
+        version = "1.1.36";
         edition = "2018";
-        sha256 = "1j9dh96lpkksmfvjfiqa5nrlswm5l6lj54m5jf7i0iik8l6lgfb7";
+        sha256 = "0w2xr5hhgaj1mv6jlhslx9fxiqprkz04w6dnl7qgda2jjh763vms";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -6044,18 +6044,17 @@ rec {
         };
         resolvedDefaultFeatures = [ "ahash" "allocator-api2" "default" "inline-more" ];
       };
-      "hashbrown 0.15.0" = rec {
+      "hashbrown 0.15.1" = rec {
         crateName = "hashbrown";
-        version = "0.15.0";
+        version = "0.15.1";
         edition = "2021";
-        sha256 = "1yx4xq091s7i6mw6bn77k8cp4jrpcac149xr32rg8szqsj27y20y";
+        sha256 = "1czsvasi3azv2079fcvbhvpisa16w6fi1mfk8zm2c5wbyqdgr6rs";
         authors = [
           "Amanieu d'Antras <amanieu@gmail.com>"
         ];
         features = {
           "alloc" = [ "dep:alloc" ];
           "allocator-api2" = [ "dep:allocator-api2" ];
-          "borsh" = [ "dep:borsh" ];
           "compiler_builtins" = [ "dep:compiler_builtins" ];
           "core" = [ "dep:core" ];
           "default" = [ "default-hasher" "inline-more" "allocator-api2" "equivalent" "raw-entry" ];
@@ -7496,7 +7495,7 @@ rec {
           }
           {
             name = "hashbrown";
-            packageId = "hashbrown 0.15.0";
+            packageId = "hashbrown 0.15.1";
             usesDefaultFeatures = false;
           }
           {
@@ -9573,9 +9572,9 @@ rec {
       };
       "quinn-udp" = rec {
         crateName = "quinn-udp";
-        version = "0.5.6";
+        version = "0.5.7";
         edition = "2021";
-        sha256 = "100pqx0rnscnm1l45s71hj618bx1ghcihdr47hii5zygx8bf0ip3";
+        sha256 = "1nj3yb1zw4bnw2m4phh8ajd3q16nrk56lan8r8aknw87d1n64nkx";
         libName = "quinn_udp";
         dependencies = [
           {

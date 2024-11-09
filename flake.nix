@@ -64,11 +64,11 @@
 
     formatter = eachDefaultSystem (system: (importNixpkgs system).alejandra);
 
-    checks = builtins.mapAttrs (system: packages: builtins.removeAttrs packages ["tests" "devenv-up"]) self.packages;
+    checks = builtins.mapAttrs (system: packages: builtins.removeAttrs packages (["devenv-up"] ++ (lib.optional (system != "x86_64-linux") "tests"))) self.packages;
   };
 
   nixConfig = {
-    extra-substituters = "https://academy-backend.cachix.org";
-    extra-trusted-public-keys = "academy-backend.cachix.org-1:MxmjN6hjaiGdi42M6evdALWj5hHOyUAQTEgKvm+J0Ow=";
+    extra-substituters = "https://cache.bootstrap.academy";
+    extra-trusted-public-keys = "cache.bootstrap.academy-1:unYr62tCwkIIohOUTXowIvzdqOl+0DlJNfYjEOZxdFE=";
   };
 }

@@ -1,4 +1,4 @@
-use std::ops::RangeInclusive;
+use std::{ops::RangeInclusive, path::Path, sync::Arc};
 
 use academy_auth_contracts::{AuthResultExt, AuthService};
 use academy_core_paypal_contracts::{
@@ -15,7 +15,7 @@ use academy_persistence_contracts::{
     paypal::PaypalRepository, user::UserRepository, Database, Transaction,
 };
 use academy_render_contracts::pdf::RenderPdfService;
-use academy_shared_contracts::time::TimeService;
+use academy_shared_contracts::{fs::FsService, time::TimeService};
 use academy_templates_contracts::{
     InvoiceItem, InvoiceTemplate, PurchaseConfirmationTemplate, TemplateService, LOGO_BASE64,
 };
@@ -42,6 +42,7 @@ pub struct PaypalFeatureServiceImpl<
     Template,
     TemplateEmail,
     RenderPdf,
+    Fs,
 > {
     db: Db,
     auth: Auth,
@@ -53,6 +54,7 @@ pub struct PaypalFeatureServiceImpl<
     template_email: TemplateEmail,
     template: Template,
     render_pdf: RenderPdf,
+    fs: Fs,
     config: PaypalFeatureConfig,
 }
 
@@ -60,6 +62,7 @@ pub struct PaypalFeatureServiceImpl<
 pub struct PaypalFeatureConfig {
     pub purchase_range: RangeInclusive<u64>,
     pub vat_percent: Decimal,
+    pub invoices_archive: Arc<Path>,
 }
 
 impl<
@@ -73,6 +76,7 @@ impl<
         Template,
         TemplateEmail,
         RenderPdf,
+        Fs,
     > PaypalFeatureService
     for PaypalFeatureServiceImpl<
         Db,
@@ -85,6 +89,7 @@ impl<
         Template,
         TemplateEmail,
         RenderPdf,
+        Fs,
     >
 where
     Db: Database,
@@ -97,6 +102,7 @@ where
     Template: TemplateService,
     TemplateEmail: TemplateEmailService,
     RenderPdf: RenderPdfService,
+    Fs: FsService,
 {
     #[trace_instrument(skip(self))]
     fn get_client_id(&self) -> &str {
@@ -199,6 +205,11 @@ where
             let gross_total = dec!(0.01) * Decimal::from(coins);
             debug_assert_eq!(gross_total, (net_total + vat_total).round_dp(4));
 
+            let archive_path = self
+                .config
+                .invoices_archive
+                .join(format!("{invoice_number}.pdf"));
+
             let invoice_html = self
                 .template
                 .render(&InvoiceTemplate {
@@ -226,6 +237,7 @@ where
                 .render(&invoice_html)
                 .await
                 .context("Failed to render invoice pdf")?;
+            self.fs.store_file(&archive_path, &invoice_pdf).await?;
 
             self.template_email
                 .send_purchase_confirmation_email(

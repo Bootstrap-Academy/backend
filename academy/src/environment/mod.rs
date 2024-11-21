@@ -227,6 +227,7 @@ impl ConfigProvider {
         let paypal_feature_config = PaypalFeatureConfig {
             purchase_range: config.coin.purchase_min..=config.coin.purchase_max,
             vat_percent: config.finance.vat_percent,
+            invoices_archive: config.finance.invoices_archive.clone().into(),
         };
 
         Ok(Self {

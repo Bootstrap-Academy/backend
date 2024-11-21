@@ -1,6 +1,6 @@
 [http]
 address = "127.0.0.1:8000"
-allowed_origins = [".*"] # RegexSet
+allowed_origins = [".*"]
 
 [database]
 url = "postgres://academy@127.0.0.1:5432/academy" # https://docs.rs/tokio-postgres/latest/tokio_postgres/config/struct.Config.html
@@ -37,6 +37,9 @@ client_secret = "test-secret"
 
 [render]
 chrome_bin = "/usr/bin/chromium"
+
+[finance]
+invoices_archive = ".invoices"
 
 [oauth2.providers.test]
 enable = true

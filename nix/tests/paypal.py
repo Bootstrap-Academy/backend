@@ -1,6 +1,5 @@
 import hashlib
 from io import BytesIO
-from typing import cast
 
 from pypdf import PdfReader
 from utils import c, create_verified_account, decode_mail_header, decode_mail_part, fetch_mail, get_mail_parts
@@ -69,13 +68,15 @@ assert "Du hast erfolgreich 1337 MorphCoins gekauft! Das entspricht 13.37€ ink
 
 assert invoice["Content-Disposition"] == 'attachment; filename="rechnung.pdf"'
 assert invoice["Content-Type"] == "application/pdf"
-pdf = PdfReader(BytesIO(decode_mail_part(invoice)))
+invoice_pdf = decode_mail_part(invoice)
+pdf = PdfReader(BytesIO(invoice_pdf))
 assert pdf.metadata and pdf.metadata.title == "Rechnung"
 assert len(pdf.pages) == 1
 invoice_text = pdf.pages[0].extract_text()
 assert "Nettobetrag 11.24 EUR" in invoice_text
 assert "zzgl. 19% MwSt. 2.13 EUR" in invoice_text
 assert "Gesamtbetrag 13.37 EUR" in invoice_text
+assert "Rechnungs-Nr. R0000001" in invoice_text
 
 assert terms["Content-Disposition"] == 'attachment;\n filename*0="allgemeine_geschaeftsbedingungen.pdf"'
 assert terms["Content-Type"] == "application/pdf"
@@ -87,3 +88,5 @@ assert revocation_policy["Content-Disposition"] == 'attachment; filename="widerr
 assert revocation_policy["Content-Type"] == "application/pdf"
 hash = hashlib.sha256(decode_mail_part(revocation_policy)).hexdigest()
 assert hash == "046c90a8d66a67acbb6e5154b83a3b61ef3b17ec0f4a91bea189b1c5d1076d74"
+
+assert open("/var/lib/academy/invoices/R0000001.pdf", "rb").read() == invoice_pdf

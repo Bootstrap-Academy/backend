@@ -75,6 +75,7 @@ in {
           serviceConfig = {
             User = "academy";
             Group = "academy";
+            StateDirectory = "academy";
           };
 
           environment = {
@@ -138,6 +139,7 @@ in {
         database.url = lib.mkIf cfg.localDatabase "host=/run/postgresql user=academy";
         cache.url = lib.mkIf cfg.localCache "redis+unix://${config.services.redis.servers.academy.unixSocket}";
         render.chrome_bin = lib.mkDefault (lib.getExe cfg.chromePackage);
+        finance.invoices_archive = lib.mkDefault "/var/lib/academy/invoices";
       };
 
       environment.systemPackages = [wrapper];

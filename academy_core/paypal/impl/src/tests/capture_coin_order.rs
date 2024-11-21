@@ -17,7 +17,7 @@ use academy_persistence_contracts::{
     paypal::MockPaypalRepository, user::MockUserRepository, MockDatabase,
 };
 use academy_render_contracts::pdf::MockRenderPdfService;
-use academy_shared_contracts::time::MockTimeService;
+use academy_shared_contracts::{fs::MockFsService, time::MockTimeService};
 use academy_templates_contracts::{
     InvoiceItem, InvoiceTemplate, MockTemplateService, PurchaseConfirmationTemplate, LOGO_BASE64,
 };
@@ -101,9 +101,11 @@ async fn ok() {
             vat_total: dec!(0.01) / dec!(1.19) * Decimal::from(order.coins) * dec!(0.19),
             gross_total: dec!(0.01) * Decimal::from(order.coins),
         },
-        pdf,
+        pdf.clone(),
         true,
     );
+
+    let fs = MockFsService::new().with_store_file("/invoices/R0000042.pdf".into(), pdf);
 
     let sut = PaypalFeatureServiceImpl {
         auth,
@@ -116,6 +118,7 @@ async fn ok() {
         template,
         render_pdf,
         template_email,
+        fs,
         ..Sut::default()
     };
 

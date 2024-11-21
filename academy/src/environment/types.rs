@@ -39,9 +39,9 @@ use academy_persistence_postgres::{
 };
 use academy_render_impl::pdf::RenderPdfServiceImpl;
 use academy_shared_impl::{
-    captcha::CaptchaServiceImpl, hash::HashServiceImpl, id::IdServiceImpl, jwt::JwtServiceImpl,
-    password::PasswordServiceImpl, secret::SecretServiceImpl, time::TimeServiceImpl,
-    totp::TotpServiceImpl,
+    captcha::CaptchaServiceImpl, fs::FsServiceImpl, hash::HashServiceImpl, id::IdServiceImpl,
+    jwt::JwtServiceImpl, password::PasswordServiceImpl, secret::SecretServiceImpl,
+    time::TimeServiceImpl, totp::TotpServiceImpl,
 };
 use academy_templates_impl::TemplateServiceImpl;
 
@@ -83,6 +83,7 @@ pub type RenderPdf = RenderPdfServiceImpl;
 
 // Shared
 pub type Captcha = CaptchaServiceImpl<RecaptchaApi>;
+pub type Fs = FsServiceImpl;
 pub type Hash = HashServiceImpl;
 pub type Id = IdServiceImpl;
 pub type Jwt = JwtServiceImpl<Time>;
@@ -187,6 +188,7 @@ pub type PaypalFeature = PaypalFeatureServiceImpl<
     Template,
     TemplateEmail,
     RenderPdf,
+    Fs,
 >;
 pub type PaypalCoinOrder = PaypalCoinOrderServiceImpl<Time, PaypalRepo, CoinRepo>;
 

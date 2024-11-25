@@ -4851,9 +4851,9 @@ rec {
       };
       "cpufeatures" = rec {
         crateName = "cpufeatures";
-        version = "0.2.15";
+        version = "0.2.16";
         edition = "2018";
-        sha256 = "1rlmdy4y2ql544ghc55vagl0cr38ifas1894szvbzc71call39qc";
+        sha256 = "1hy466fkhxjbb16i7na95wz8yr14d0kd578pwzj5lbkz14jh5f0n";
         authors = [
           "RustCrypto Developers"
         ];
@@ -6056,11 +6056,11 @@ rec {
         };
         resolvedDefaultFeatures = [ "ahash" "allocator-api2" "default" "inline-more" ];
       };
-      "hashbrown 0.15.1" = rec {
+      "hashbrown 0.15.2" = rec {
         crateName = "hashbrown";
-        version = "0.15.1";
+        version = "0.15.2";
         edition = "2021";
-        sha256 = "1czsvasi3azv2079fcvbhvpisa16w6fi1mfk8zm2c5wbyqdgr6rs";
+        sha256 = "12dj0yfn59p3kh3679ac0w1fagvzf4z2zp87a13gbbqbzw0185dz";
         authors = [
           "Amanieu d'Antras <amanieu@gmail.com>"
         ];
@@ -6719,7 +6719,7 @@ rec {
           }
           {
             name = "rustls";
-            packageId = "rustls 0.23.17";
+            packageId = "rustls 0.23.18";
             usesDefaultFeatures = false;
           }
           {
@@ -6742,7 +6742,7 @@ rec {
           }
           {
             name = "webpki-roots";
-            packageId = "webpki-roots 0.26.6";
+            packageId = "webpki-roots 0.26.7";
             optional = true;
           }
         ];
@@ -6755,7 +6755,7 @@ rec {
           }
           {
             name = "rustls";
-            packageId = "rustls 0.23.17";
+            packageId = "rustls 0.23.18";
             usesDefaultFeatures = false;
             features = [ "tls12" ];
           }
@@ -7507,7 +7507,7 @@ rec {
           }
           {
             name = "hashbrown";
-            packageId = "hashbrown 0.15.1";
+            packageId = "hashbrown 0.15.2";
             usesDefaultFeatures = false;
           }
           {
@@ -7839,7 +7839,7 @@ rec {
           }
           {
             name = "rustls";
-            packageId = "rustls 0.23.17";
+            packageId = "rustls 0.23.18";
             optional = true;
             usesDefaultFeatures = false;
             features = [ "ring" "logging" "std" "tls12" ];
@@ -7893,7 +7893,7 @@ rec {
           }
           {
             name = "webpki-roots";
-            packageId = "webpki-roots 0.26.6";
+            packageId = "webpki-roots 0.26.7";
             optional = true;
           }
         ];
@@ -7955,9 +7955,9 @@ rec {
       };
       "litemap" = rec {
         crateName = "litemap";
-        version = "0.7.3";
+        version = "0.7.4";
         edition = "2021";
-        sha256 = "0157lf44c3s2piqiwpppnynzzpv1rxyddl2z9l089hpwsjwb0g34";
+        sha256 = "012ili3vppd4952sh6y3qwcd0jkd0bq2qpr9h7cppc8sj11k7saf";
         authors = [
           "The ICU4X Project Developers"
         ];
@@ -9142,9 +9142,9 @@ rec {
       };
       "portable-atomic" = rec {
         crateName = "portable-atomic";
-        version = "1.9.0";
+        version = "1.10.0";
         edition = "2018";
-        sha256 = "1cmd87qj90panwsi350djb8lsxdryqkkxmimjcz7a1nsysini76c";
+        sha256 = "1rjfim62djiakf5rcq3r526hac0d1dd9hwa1jmiin7q7ad2c4398";
         libName = "portable_atomic";
         features = {
           "critical-section" = [ "dep:critical-section" ];
@@ -9514,7 +9514,7 @@ rec {
           }
           {
             name = "rustls";
-            packageId = "rustls 0.23.17";
+            packageId = "rustls 0.23.18";
             optional = true;
             usesDefaultFeatures = false;
             features = [ "std" ];
@@ -9607,7 +9607,7 @@ rec {
           }
           {
             name = "rustls";
-            packageId = "rustls 0.23.17";
+            packageId = "rustls 0.23.18";
             optional = true;
             usesDefaultFeatures = false;
             features = [ "std" ];
@@ -10555,7 +10555,7 @@ rec {
           }
           {
             name = "rustls";
-            packageId = "rustls 0.23.17";
+            packageId = "rustls 0.23.18";
             optional = true;
             usesDefaultFeatures = false;
             target = { target, features }: (!("wasm32" == target."arch" or null));
@@ -10638,7 +10638,7 @@ rec {
           }
           {
             name = "webpki-roots";
-            packageId = "webpki-roots 0.26.6";
+            packageId = "webpki-roots 0.26.7";
             optional = true;
             target = { target, features }: (!("wasm32" == target."arch" or null));
           }
@@ -10671,7 +10671,7 @@ rec {
           }
           {
             name = "rustls";
-            packageId = "rustls 0.23.17";
+            packageId = "rustls 0.23.18";
             usesDefaultFeatures = false;
             target = {target, features}: (!("wasm32" == target."arch" or null));
             features = [ "ring" ];
@@ -10999,11 +10999,11 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" "log" "logging" "ring" "tls12" ];
       };
-      "rustls 0.23.17" = rec {
+      "rustls 0.23.18" = rec {
         crateName = "rustls";
-        version = "0.23.17";
+        version = "0.23.18";
         edition = "2021";
-        sha256 = "07lg2b56s3gp3acd8a6yaqbpji8vv3xmv3ay8vaacjy525ap86kz";
+        sha256 = "0zxbcq0qy3kmp0m42mmf930h5bhr3hh3ivamrrd6ag94gvac374w";
         dependencies = [
           {
             name = "log";
@@ -11458,7 +11458,7 @@ rec {
           }
           {
             name = "webpki-roots";
-            packageId = "webpki-roots 0.26.6";
+            packageId = "webpki-roots 0.26.7";
             optional = true;
           }
         ];
@@ -13181,7 +13181,7 @@ rec {
         dependencies = [
           {
             name = "rustls";
-            packageId = "rustls 0.23.17";
+            packageId = "rustls 0.23.18";
             usesDefaultFeatures = false;
             features = [ "std" ];
           }
@@ -14139,7 +14139,7 @@ rec {
           }
           {
             name = "rustls";
-            packageId = "rustls 0.23.17";
+            packageId = "rustls 0.23.18";
             optional = true;
             usesDefaultFeatures = false;
             features = [ "ring" "logging" "std" "tls12" ];
@@ -14155,14 +14155,14 @@ rec {
           }
           {
             name = "webpki-roots";
-            packageId = "webpki-roots 0.26.6";
+            packageId = "webpki-roots 0.26.7";
             optional = true;
           }
         ];
         devDependencies = [
           {
             name = "rustls";
-            packageId = "rustls 0.23.17";
+            packageId = "rustls 0.23.18";
             usesDefaultFeatures = false;
             features = [ "std" "ring" ];
           }
@@ -14186,9 +14186,9 @@ rec {
       };
       "url" = rec {
         crateName = "url";
-        version = "2.5.3";
+        version = "2.5.4";
         edition = "2018";
-        sha256 = "1nis27cv09039nds9n83di92a23q5rqvl40zvkzh0ifijqdpy5cd";
+        sha256 = "0q6sgznyy2n4l5lm16zahkisvc9nip9aa5q1pps7656xra3bdy1j";
         authors = [
           "The rust-url developers"
         ];
@@ -15105,11 +15105,11 @@ rec {
         libName = "webpki_roots";
 
       };
-      "webpki-roots 0.26.6" = rec {
+      "webpki-roots 0.26.7" = rec {
         crateName = "webpki-roots";
-        version = "0.26.6";
+        version = "0.26.7";
         edition = "2018";
-        sha256 = "0n5985cgqrzm2a1si6rii5jrp3z7y3cfizgy9lfqywbpy6znf744";
+        sha256 = "0zpykqqk4jnrx55jc8wcysnprhfdcwh35dsiwhm2fybydgqjyr2x";
         libName = "webpki_roots";
         dependencies = [
           {
@@ -17130,9 +17130,9 @@ rec {
       };
       "yoke" = rec {
         crateName = "yoke";
-        version = "0.7.4";
+        version = "0.7.5";
         edition = "2021";
-        sha256 = "198c4jkh6i3hxijia7mfa4cpnxg1iqym9bz364697c3rn0a16nvc";
+        sha256 = "0h3znzrdmll0a7sglzf9ji0p5iqml11wrj1dypaf6ad6kbpnl3hj";
         authors = [
           "Manish Goregaokar <manishsmail@gmail.com>"
         ];
@@ -17179,9 +17179,9 @@ rec {
       };
       "yoke-derive" = rec {
         crateName = "yoke-derive";
-        version = "0.7.4";
+        version = "0.7.5";
         edition = "2021";
-        sha256 = "15cvhkci2mchfffx3fmva84fpmp34dsmnbzibwfnzjqq3ds33k18";
+        sha256 = "0m4i4a7gy826bfvnqa9wy6sp90qf0as3wps3wb0smjaamn68g013";
         procMacro = true;
         libName = "yoke_derive";
         authors = [
@@ -17278,9 +17278,9 @@ rec {
       };
       "zerofrom" = rec {
         crateName = "zerofrom";
-        version = "0.1.4";
+        version = "0.1.5";
         edition = "2021";
-        sha256 = "0mdbjd7vmbix2ynxbrbrrli47a5yrpfx05hi99wf1l4pwwf13v4i";
+        sha256 = "0bnd8vjcllzrvr3wvn8x14k2hkrpyy1fm3crkn2y3plmr44fxwyg";
         authors = [
           "Manish Goregaokar <manishsmail@gmail.com>"
         ];
@@ -17300,9 +17300,9 @@ rec {
       };
       "zerofrom-derive" = rec {
         crateName = "zerofrom-derive";
-        version = "0.1.4";
+        version = "0.1.5";
         edition = "2021";
-        sha256 = "19b31rrs2ry1lrq5mpdqjzgg65va51fgvwghxnf6da3ycfiv99qf";
+        sha256 = "022q55phhb44qbrcfbc48k0b741fl8gnazw3hpmmndbx5ycfspjr";
         procMacro = true;
         libName = "zerofrom_derive";
         authors = [

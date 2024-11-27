@@ -651,6 +651,10 @@ rec {
             packageId = "academy_extern_impl";
           }
           {
+            name = "academy_finance_contracts";
+            packageId = "academy_finance_contracts";
+          }
+          {
             name = "academy_finance_impl";
             packageId = "academy_finance_impl";
           }
@@ -727,6 +731,12 @@ rec {
             name = "clap_complete";
             packageId = "clap_complete";
             usesDefaultFeatures = false;
+          }
+          {
+            name = "futures";
+            packageId = "futures";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
           }
           {
             name = "hex";
@@ -3014,6 +3024,12 @@ rec {
             features = [ "serde" "clock" ];
           }
           {
+            name = "futures";
+            packageId = "futures";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
             name = "mockall";
             packageId = "mockall";
             optional = true;
@@ -3074,6 +3090,12 @@ rec {
             packageId = "chrono";
             usesDefaultFeatures = false;
             features = [ "serde" "clock" ];
+          }
+          {
+            name = "futures";
+            packageId = "futures";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
           }
           {
             name = "ouroboros";

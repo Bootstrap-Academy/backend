@@ -3,9 +3,9 @@ use std::{fmt::Debug, sync::Arc};
 use academy_assets::templates;
 use academy_di::Build;
 use academy_templates_contracts::{Template, TemplateService, TEMPLATES};
-use academy_utils::trace_instrument;
 use anyhow::Context;
 use tera::Tera;
+use tracing::instrument;
 
 #[derive(Debug, Clone, Build)]
 pub struct TemplateServiceImpl {
@@ -31,7 +31,7 @@ impl Default for State {
 }
 
 impl TemplateService for TemplateServiceImpl {
-    #[trace_instrument(skip(self))]
+    #[instrument(skip(self))]
     fn render<T: Template>(&self, template: &T) -> anyhow::Result<String> {
         let context = tera::Context::from_serialize(template)
             .with_context(|| format!("Failed to build tera context for template {}", T::NAME))?;

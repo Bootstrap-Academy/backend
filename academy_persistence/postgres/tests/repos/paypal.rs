@@ -2,6 +2,7 @@ use academy_demo::user::FOO;
 use academy_models::paypal::PaypalCoinOrder;
 use academy_persistence_contracts::{paypal::PaypalRepository, Database, Transaction};
 use academy_persistence_postgres::paypal::PostgresPaypalRepository;
+use futures::StreamExt;
 
 use crate::common::setup;
 
@@ -25,6 +26,7 @@ async fn get_create_capture() {
         REPO.get_coin_order(&mut txn, &order.id).await.unwrap(),
         None
     );
+    assert_eq!(REPO.count_coin_orders(&mut txn).await.unwrap(), 0);
 
     REPO.create_coin_order(&mut txn, &order).await.unwrap();
     txn.commit().await.unwrap();
@@ -52,6 +54,12 @@ async fn get_create_capture() {
             .unwrap(),
         order
     );
+
+    assert_eq!(REPO.count_coin_orders(&mut txn).await.unwrap(), 1);
+    let mut stream = std::pin::pin!(REPO.stream_coin_orders(&mut txn));
+    let result = stream.next().await.unwrap().unwrap();
+    assert_eq!(result, order);
+    assert!(stream.next().await.is_none());
 }
 
 #[tokio::test]

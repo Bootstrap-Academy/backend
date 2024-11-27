@@ -16,5 +16,6 @@ mock = ["dep:mockall"]
 academy_models.workspace = true
 anyhow.workspace = true
 chrono.workspace = true
+futures.workspace = true
 mockall = { workspace = true, optional = true }
 thiserror.workspace = true

@@ -1,8 +1,11 @@
+use std::sync::LazyLock;
+
 use academy_di::Build;
 use academy_models::paypal::{PaypalCoinOrder, PaypalOrderId};
 use academy_persistence_contracts::paypal::PaypalRepository;
 use bb8_postgres::tokio_postgres::Row;
 use chrono::{DateTime, Utc};
+use futures::{Stream, StreamExt, TryFutureExt};
 use uuid::Uuid;
 
 use crate::{arg_indices, columns, ColumnCounter, PostgresTransaction};
@@ -37,6 +40,30 @@ impl PaypalRepository<PostgresTransaction> for PostgresPaypalRepository {
             .await
             .map(|_| ())
             .map_err(Into::into)
+    }
+
+    async fn count_coin_orders(&self, txn: &mut PostgresTransaction) -> anyhow::Result<u64> {
+        txn.txn()
+            .query_one("select count(*) from paypal_coin_orders", &[])
+            .await
+            .map(|row| row.get::<_, i64>(0) as _)
+            .map_err(Into::into)
+    }
+
+    fn stream_coin_orders(
+        &self,
+        txn: &mut PostgresTransaction,
+    ) -> impl Stream<Item = anyhow::Result<PaypalCoinOrder>> {
+        static STMT: LazyLock<String> = LazyLock::new(|| {
+            format!("select {PAYPAL_COIN_ORDER_COLS} from paypal_coin_orders pco")
+        });
+        txn.txn()
+            .query_raw(&*STMT, std::iter::empty::<&str>())
+            .try_flatten_stream()
+            .map(|row| {
+                row.map_err(anyhow::Error::from)
+                    .and_then(|row| decode_paypal_coin_order(&row, &mut Default::default()))
+            })
     }
 
     async fn get_coin_order(

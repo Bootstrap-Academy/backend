@@ -2,9 +2,9 @@ use std::{path::PathBuf, process::Stdio, sync::Arc};
 
 use academy_di::Build;
 use academy_render_contracts::pdf::RenderPdfService;
-use academy_utils::trace_instrument;
 use anyhow::{anyhow, Context};
 use tempfile::tempdir;
+use tracing::instrument;
 
 #[derive(Debug, Clone, Build)]
 pub struct RenderPdfServiceImpl {
@@ -17,7 +17,7 @@ pub struct RenderPdfServiceConfig {
 }
 
 impl RenderPdfService for RenderPdfServiceImpl {
-    #[trace_instrument(skip(self))]
+    #[instrument(skip(self, html))]
     async fn render(&self, html: &str) -> anyhow::Result<Vec<u8>> {
         let dir = tempdir().context("Failed to create tempdir")?;
         let index_path = dir.path().join("index.html");

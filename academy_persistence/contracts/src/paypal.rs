@@ -2,6 +2,7 @@ use std::future::Future;
 
 use academy_models::paypal::{PaypalCoinOrder, PaypalOrderId};
 use chrono::{DateTime, Utc};
+use futures::Stream;
 
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait PaypalRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
@@ -11,6 +12,15 @@ pub trait PaypalRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
         txn: &mut Txn,
         order: &PaypalCoinOrder,
     ) -> impl Future<Output = anyhow::Result<()>> + Send;
+
+    /// Return the number of coin orders.
+    fn count_coin_orders(&self, txn: &mut Txn) -> impl Future<Output = anyhow::Result<u64>> + Send;
+
+    /// Return a stream of all coin orders.
+    fn stream_coin_orders(
+        &self,
+        txn: &mut Txn,
+    ) -> impl Stream<Item = anyhow::Result<PaypalCoinOrder>>;
 
     /// Return the coin order with the given id.
     fn get_coin_order(

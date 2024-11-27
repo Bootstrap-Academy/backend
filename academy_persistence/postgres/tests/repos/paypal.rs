@@ -57,36 +57,13 @@ async fn get_create_capture() {
 #[tokio::test]
 async fn get_next_invoice_number() {
     let db = setup().await;
-    let mut txn = db.begin_transaction().await.unwrap();
 
+    let mut txn = db.begin_transaction().await.unwrap();
     assert_eq!(REPO.get_next_invoice_number(&mut txn).await.unwrap(), 1);
-
-    let order = |num| PaypalCoinOrder {
-        id: format!("asdf1234-{num}").try_into().unwrap(),
-        user_id: FOO.user.id,
-        created_at: FOO.user.created_at,
-        captured_at: None,
-        coins: 1337,
-        invoice_number: num,
-    };
-
-    REPO.create_coin_order(&mut txn, &order(42)).await.unwrap();
     txn.commit().await.unwrap();
 
     let mut txn = db.begin_transaction().await.unwrap();
-    assert_eq!(REPO.get_next_invoice_number(&mut txn).await.unwrap(), 43);
-
-    REPO.create_coin_order(&mut txn, &order(1337))
-        .await
-        .unwrap();
-    txn.commit().await.unwrap();
-
-    let mut txn = db.begin_transaction().await.unwrap();
-    assert_eq!(REPO.get_next_invoice_number(&mut txn).await.unwrap(), 1338);
-
-    REPO.create_coin_order(&mut txn, &order(100)).await.unwrap();
-    txn.commit().await.unwrap();
-
-    let mut txn = db.begin_transaction().await.unwrap();
-    assert_eq!(REPO.get_next_invoice_number(&mut txn).await.unwrap(), 1338);
+    assert_eq!(REPO.get_next_invoice_number(&mut txn).await.unwrap(), 2);
+    assert_eq!(REPO.get_next_invoice_number(&mut txn).await.unwrap(), 3);
+    assert_eq!(REPO.get_next_invoice_number(&mut txn).await.unwrap(), 4);
 }

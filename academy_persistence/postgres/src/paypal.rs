@@ -96,10 +96,7 @@ impl PaypalRepository<PostgresTransaction> for PostgresPaypalRepository {
 
     async fn get_next_invoice_number(&self, txn: &mut PostgresTransaction) -> anyhow::Result<u64> {
         txn.txn()
-            .query_one(
-                "select coalesce(max(invoice_number), 0) + 1 from paypal_coin_orders",
-                &[],
-            )
+            .query_one("select nextval('invoice_number')", &[])
             .await
             .map_err(Into::into)
             .and_then(|row| row.get::<_, i64>(0).try_into().map_err(Into::into))

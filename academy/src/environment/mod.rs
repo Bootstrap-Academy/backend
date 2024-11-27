@@ -13,6 +13,7 @@ use academy_di::provider;
 use academy_extern_impl::{
     paypal::PaypalApiServiceConfig, recaptcha::RecaptchaApiServiceConfig, vat::VatApiServiceConfig,
 };
+use academy_finance_impl::FinanceServiceConfig;
 use academy_models::oauth2::OAuth2Provider;
 use academy_render_impl::pdf::RenderPdfServiceConfig;
 use academy_shared_impl::{
@@ -38,6 +39,9 @@ provider! {
             RecaptchaApiServiceConfig,
             VatApiServiceConfig,
             PaypalApiServiceConfig,
+
+            // Finance,
+            FinanceServiceConfig,
 
             // Render
             RenderPdfServiceConfig,
@@ -83,6 +87,9 @@ provider! {
         recaptcha_api_service_config: RecaptchaApiServiceConfig,
         vat_api_service_config: VatApiServiceConfig,
         paypal_api_service_config: PaypalApiServiceConfig,
+
+        // Finance,
+        finance_service_config: FinanceServiceConfig,
 
         // Render
         render_pdf_service_config: RenderPdfServiceConfig,
@@ -135,6 +142,12 @@ impl ConfigProvider {
             config.paypal.client_id.clone(),
             config.paypal.client_secret.clone(),
         );
+
+        // Finance
+        let finance_service_config = FinanceServiceConfig {
+            vat_percent: config.finance.vat_percent,
+            invoices_archive: config.finance.invoices_archive.clone().into(),
+        };
 
         // Render
         let render_pdf_service_config = RenderPdfServiceConfig {
@@ -226,8 +239,6 @@ impl ConfigProvider {
 
         let paypal_feature_config = PaypalFeatureConfig {
             purchase_range: config.coin.purchase_min..=config.coin.purchase_max,
-            vat_percent: config.finance.vat_percent,
-            invoices_archive: config.finance.invoices_archive.clone().into(),
         };
 
         Ok(Self {
@@ -240,6 +251,9 @@ impl ConfigProvider {
             recaptcha_api_service_config,
             vat_api_service_config,
             paypal_api_service_config,
+
+            // Finance
+            finance_service_config,
 
             // Render
             render_pdf_service_config,

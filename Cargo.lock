@@ -27,6 +27,7 @@ dependencies = [
  "academy_email_contracts",
  "academy_email_impl",
  "academy_extern_impl",
+ "academy_finance_impl",
  "academy_models",
  "academy_persistence_contracts",
  "academy_persistence_postgres",
@@ -359,9 +360,9 @@ dependencies = [
  "academy_di",
  "academy_email_contracts",
  "academy_extern_contracts",
+ "academy_finance_contracts",
  "academy_models",
  "academy_persistence_contracts",
- "academy_render_contracts",
  "academy_shared_contracts",
  "academy_templates_contracts",
  "academy_utils",
@@ -531,6 +532,33 @@ dependencies = [
  "serde_json",
  "tokio",
  "tracing",
+]
+
+[[package]]
+name = "academy_finance_contracts"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "mockall",
+ "rust_decimal",
+]
+
+[[package]]
+name = "academy_finance_impl"
+version = "0.0.0"
+dependencies = [
+ "academy_demo",
+ "academy_di",
+ "academy_finance_contracts",
+ "academy_models",
+ "academy_persistence_contracts",
+ "academy_render_contracts",
+ "academy_shared_contracts",
+ "academy_templates_contracts",
+ "anyhow",
+ "rust_decimal",
+ "rust_decimal_macros",
+ "tokio",
 ]
 
 [[package]]

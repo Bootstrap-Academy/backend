@@ -32,6 +32,7 @@ use academy_extern_impl::{
     oauth2::OAuth2ApiServiceImpl, paypal::PaypalApiServiceImpl, recaptcha::RecaptchaApiServiceImpl,
     vat::VatApiServiceImpl,
 };
+use academy_finance_impl::{coin::FinanceCoinServiceImpl, FinanceServiceImpl};
 use academy_persistence_postgres::{
     coin::PostgresCoinRepository, mfa::PostgresMfaRepository, oauth2::PostgresOAuth2Repository,
     paypal::PostgresPaypalRepository, session::PostgresSessionRepository,
@@ -74,6 +75,10 @@ pub type RecaptchaApi = RecaptchaApiServiceImpl;
 pub type OAuth2Api = OAuth2ApiServiceImpl;
 pub type VatApi = VatApiServiceImpl;
 pub type PaypalApi = PaypalApiServiceImpl;
+
+// Finance
+pub type Finance = FinanceServiceImpl<Fs, Template, RenderPdf, PaypalRepo, UserRepo, FinanceCoin>;
+pub type FinanceCoin = FinanceCoinServiceImpl;
 
 // Template
 pub type Template = TemplateServiceImpl;
@@ -180,15 +185,13 @@ pub type Coin = CoinServiceImpl<CoinRepo>;
 pub type PaypalFeature = PaypalFeatureServiceImpl<
     Database,
     Auth,
-    Time,
     PaypalApi,
     UserRepo,
     PaypalRepo,
     PaypalCoinOrder,
-    Template,
     TemplateEmail,
-    RenderPdf,
-    Fs,
+    Finance,
+    FinanceCoin,
 >;
 pub type PaypalCoinOrder = PaypalCoinOrderServiceImpl<Time, PaypalRepo, CoinRepo>;
 

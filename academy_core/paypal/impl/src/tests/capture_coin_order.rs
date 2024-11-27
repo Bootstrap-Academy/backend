@@ -8,6 +8,10 @@ use academy_demo::{
 };
 use academy_email_contracts::template::MockTemplateEmailService;
 use academy_extern_contracts::paypal::MockPaypalApiService;
+use academy_finance_contracts::{
+    coin::{CoinPrices, MockFinanceCoinService},
+    MockFinanceService,
+};
 use academy_models::{
     auth::{AuthError, AuthenticateError, AuthorizeError},
     coin::Balance,
@@ -16,13 +20,8 @@ use academy_models::{
 use academy_persistence_contracts::{
     paypal::MockPaypalRepository, user::MockUserRepository, MockDatabase,
 };
-use academy_render_contracts::pdf::MockRenderPdfService;
-use academy_shared_contracts::{fs::MockFsService, time::MockTimeService};
-use academy_templates_contracts::{
-    InvoiceItem, InvoiceTemplate, MockTemplateService, PurchaseConfirmationTemplate, LOGO_BASE64,
-};
+use academy_templates_contracts::PurchaseConfirmationTemplate;
 use academy_utils::{assert_matches, Apply};
-use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 
 use crate::{tests::Sut, PaypalFeatureServiceImpl};
@@ -44,13 +43,9 @@ async fn ok() {
         withheld_coins: 7,
     };
 
-    let timestamp = Default::default();
-
     let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
 
     let db = MockDatabase::build(true);
-
-    let time = MockTimeService::new().with_now(timestamp);
 
     let paypal_repo =
         MockPaypalRepository::new().with_get_coin_order(order.id.clone(), Some(order.clone()));
@@ -61,33 +56,18 @@ async fn ok() {
 
     let paypal_coin_order = MockPaypalCoinOrderService::new().with_capture(order.clone(), expected);
 
-    let template = MockTemplateService::new().with_render(
-        InvoiceTemplate {
-            logo_base64: &LOGO_BASE64,
-            title: "Rechnung",
-            customer_details: FOO
-                .invoice_info
-                .clone()
-                .into_details(Some(FOO.profile.display_name.clone().into_inner())),
-            timestamp,
-            invoice_number: "R0000042".into(),
-            items: vec![InvoiceItem {
-                description: "MorphCoins".into(),
-                net_unit: dec!(0.01) / dec!(1.19),
-                count: order.coins,
-                net_total: dec!(0.01) / dec!(1.19) * Decimal::from(order.coins),
-            }],
-            vat_percent: dec!(19),
-            net_total: dec!(0.01) / dec!(1.19) * Decimal::from(order.coins),
-            vat_total: dec!(0.01) / dec!(1.19) * Decimal::from(order.coins) * dec!(0.19),
-            gross_total: dec!(0.01) * Decimal::from(order.coins),
-        },
-        "invoice-template-html".into(),
-    );
-
     let pdf = vec![1, 2, 3, 4, 5];
-    let render_pdf =
-        MockRenderPdfService::new().with_render("invoice-template-html".into(), pdf.clone());
+
+    let prices = CoinPrices {
+        net_unit: 1.into(),
+        net_total: 2.into(),
+        vat_total: 3.into(),
+        gross_total: 4.into(),
+    };
+    let finance_coin = MockFinanceCoinService::new().with_get_price(1337, prices);
+    let finance = MockFinanceService::new()
+        .with_vat_percent(19.into())
+        .with_get_invoice_pdf(42, Some(pdf.clone()));
 
     let template_email = MockTemplateEmailService::new().with_send_purchase_confirmation_email(
         FOO.user
@@ -98,27 +78,23 @@ async fn ok() {
         PurchaseConfirmationTemplate {
             coins: order.coins,
             vat_percent: dec!(19),
-            vat_total: dec!(0.01) / dec!(1.19) * Decimal::from(order.coins) * dec!(0.19),
-            gross_total: dec!(0.01) * Decimal::from(order.coins),
+            vat_total: prices.vat_total,
+            gross_total: prices.gross_total,
         },
         pdf.clone(),
         true,
     );
 
-    let fs = MockFsService::new().with_store_file("/invoices/R0000042.pdf".into(), pdf);
-
     let sut = PaypalFeatureServiceImpl {
         auth,
         db,
-        time,
         paypal_repo,
         user_repo,
         paypal_api,
         paypal_coin_order,
-        template,
-        render_pdf,
         template_email,
-        fs,
+        finance,
+        finance_coin,
         ..Sut::default()
     };
 

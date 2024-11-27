@@ -4,5 +4,5 @@ create table paypal_coin_orders (
     created_at timestamp with time zone not null,
     captured_at timestamp with time zone,
     coins bigint not null check (coins >= 0),
-    invoice_number bigint not null check (invoice_number >= 1)
+    invoice_number bigint unique not null check (invoice_number >= 1)
 );

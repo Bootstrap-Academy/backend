@@ -1,4 +1,4 @@
-use std::{ops::RangeInclusive, path::Path, sync::Arc};
+use std::ops::RangeInclusive;
 
 use academy_auth_contracts::{AuthResultExt, AuthService};
 use academy_core_paypal_contracts::{
@@ -10,19 +10,17 @@ use academy_email_contracts::template::TemplateEmailService;
 use academy_extern_contracts::paypal::{
     PaypalApiService, PaypalCaptureOrderError, PaypalCreateOrderError,
 };
+use academy_finance_contracts::{
+    coin::{CoinPrices, FinanceCoinService},
+    FinanceService,
+};
 use academy_models::{auth::AccessToken, coin::Balance, paypal::PaypalOrderId};
 use academy_persistence_contracts::{
     paypal::PaypalRepository, user::UserRepository, Database, Transaction,
 };
-use academy_render_contracts::pdf::RenderPdfService;
-use academy_shared_contracts::{fs::FsService, time::TimeService};
-use academy_templates_contracts::{
-    InvoiceItem, InvoiceTemplate, PurchaseConfirmationTemplate, TemplateService, LOGO_BASE64,
-};
+use academy_templates_contracts::PurchaseConfirmationTemplate;
 use academy_utils::trace_instrument;
 use anyhow::{anyhow, Context};
-use rust_decimal::Decimal;
-use rust_decimal_macros::dec;
 
 pub mod coin_order;
 
@@ -34,75 +32,63 @@ mod tests;
 pub struct PaypalFeatureServiceImpl<
     Db,
     Auth,
-    Time,
     PaypalApi,
     UserRepo,
     PaypalRepo,
     PaypalCoinOrder,
-    Template,
     TemplateEmail,
-    RenderPdf,
-    Fs,
+    Finance,
+    FinanceCoin,
 > {
     db: Db,
     auth: Auth,
-    time: Time,
     paypal_api: PaypalApi,
     user_repo: UserRepo,
     paypal_repo: PaypalRepo,
     paypal_coin_order: PaypalCoinOrder,
     template_email: TemplateEmail,
-    template: Template,
-    render_pdf: RenderPdf,
-    fs: Fs,
+    finance: Finance,
+    finance_coin: FinanceCoin,
     config: PaypalFeatureConfig,
 }
 
 #[derive(Debug, Clone)]
 pub struct PaypalFeatureConfig {
     pub purchase_range: RangeInclusive<u64>,
-    pub vat_percent: Decimal,
-    pub invoices_archive: Arc<Path>,
 }
 
 impl<
         Db,
         Auth,
-        Time,
         PaypalApi,
         UserRepo,
         PaypalRepo,
         PaypalCoinOrder,
-        Template,
         TemplateEmail,
-        RenderPdf,
-        Fs,
+        Finance,
+        FinanceCoin,
     > PaypalFeatureService
     for PaypalFeatureServiceImpl<
         Db,
         Auth,
-        Time,
         PaypalApi,
         UserRepo,
         PaypalRepo,
         PaypalCoinOrder,
-        Template,
         TemplateEmail,
-        RenderPdf,
-        Fs,
+        Finance,
+        FinanceCoin,
     >
 where
     Db: Database,
     Auth: AuthService<Db::Transaction>,
-    Time: TimeService,
     PaypalApi: PaypalApiService,
     UserRepo: UserRepository<Db::Transaction>,
     PaypalRepo: PaypalRepository<Db::Transaction>,
     PaypalCoinOrder: PaypalCoinOrderService<Db::Transaction>,
-    Template: TemplateService,
     TemplateEmail: TemplateEmailService,
-    RenderPdf: RenderPdfService,
-    Fs: FsService,
+    Finance: FinanceService<Db::Transaction>,
+    FinanceCoin: FinanceCoinService,
 {
     #[trace_instrument(skip(self))]
     fn get_client_id(&self) -> &str {
@@ -193,58 +179,31 @@ where
 
         let invoice_number = order.invoice_number;
         let coins = order.coins;
-        let timestamp = self.time.now();
         let new_balance = self.paypal_coin_order.capture(&mut txn, order).await?;
 
         if let Some(email) = user_composite.user.email {
-            let invoice_number = format!("R{invoice_number:07}");
-            let vat_factor = self.config.vat_percent / dec!(100);
-            let net_unit = dec!(0.01) / (dec!(1) + vat_factor);
-            let net_total = net_unit * Decimal::from(coins);
-            let vat_total = net_total * vat_factor;
-            let gross_total = dec!(0.01) * Decimal::from(coins);
-            debug_assert_eq!(gross_total, (net_total + vat_total).round_dp(4));
+            let Some(invoice_pdf) = self
+                .finance
+                .get_invoice_pdf(&mut txn, invoice_number)
+                .await?
+            else {
+                return Err(
+                    anyhow!("Failed to get invoice of order that has just been captured.").into(),
+                );
+            };
 
-            let archive_path = self
-                .config
-                .invoices_archive
-                .join(format!("{invoice_number}.pdf"));
-
-            let invoice_html = self
-                .template
-                .render(&InvoiceTemplate {
-                    logo_base64: &LOGO_BASE64,
-                    title: "Rechnung",
-                    customer_details: user_composite.invoice_info.into_details(Some(
-                        user_composite.profile.display_name.clone().into_inner(),
-                    )),
-                    timestamp,
-                    invoice_number,
-                    items: vec![InvoiceItem {
-                        description: "MorphCoins".into(),
-                        net_unit,
-                        count: coins,
-                        net_total,
-                    }],
-                    vat_percent: self.config.vat_percent,
-                    net_total,
-                    vat_total,
-                    gross_total,
-                })
-                .context("Failed to render invoice template")?;
-            let invoice_pdf = self
-                .render_pdf
-                .render(&invoice_html)
-                .await
-                .context("Failed to render invoice pdf")?;
-            self.fs.store_file(&archive_path, &invoice_pdf).await?;
+            let CoinPrices {
+                vat_total,
+                gross_total,
+                ..
+            } = self.finance_coin.get_price(coins);
 
             self.template_email
                 .send_purchase_confirmation_email(
                     email.with_name(user_composite.profile.display_name.into_inner()),
                     &PurchaseConfirmationTemplate {
                         coins,
-                        vat_percent: self.config.vat_percent,
+                        vat_percent: self.finance.vat_percent(),
                         vat_total,
                         gross_total,
                     },

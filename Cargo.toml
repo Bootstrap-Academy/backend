@@ -13,12 +13,12 @@ members = [
   "academy_di_derive",
   "academy_email/*",
   "academy_extern/*",
+  "academy_finance/*",
   "academy_models",
   "academy_persistence/*",
   "academy_render/*",
   "academy_shared/*",
-  "academy_templates/contracts",
-  "academy_templates/impl",
+  "academy_templates/*",
   "academy_testing",
   "academy_utils",
   "academy_utils_derive",
@@ -78,6 +78,8 @@ academy_email_contracts.path = "academy_email/contracts"
 academy_email_impl.path = "academy_email/impl"
 academy_extern_contracts.path = "academy_extern/contracts"
 academy_extern_impl.path = "academy_extern/impl"
+academy_finance_contracts.path = "academy_finance/contracts"
+academy_finance_impl.path = "academy_finance/impl"
 academy_models.path = "academy_models"
 academy_persistence_contracts.path = "academy_persistence/contracts"
 academy_persistence_postgres.path = "academy_persistence/postgres"

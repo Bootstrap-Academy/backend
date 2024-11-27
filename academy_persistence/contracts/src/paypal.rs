@@ -19,6 +19,13 @@ pub trait PaypalRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
         order_id: &PaypalOrderId,
     ) -> impl Future<Output = anyhow::Result<Option<PaypalCoinOrder>>> + Send;
 
+    /// Return the coin order with the given invoice number.
+    fn get_coin_order_by_invoice_number(
+        &self,
+        txn: &mut Txn,
+        invoice_number: u64,
+    ) -> impl Future<Output = anyhow::Result<Option<PaypalCoinOrder>>> + Send;
+
     /// Capture the coin order with the given id.
     fn capture_coin_order(
         &self,
@@ -54,6 +61,21 @@ impl<Txn: Send + Sync + 'static> MockPaypalRepository<Txn> {
             .with(
                 mockall::predicate::always(),
                 mockall::predicate::eq(order_id),
+            )
+            .return_once(|_, _| Box::pin(std::future::ready(Ok(result))));
+        self
+    }
+
+    pub fn with_get_coin_order_by_invoice_number(
+        mut self,
+        invoice_number: u64,
+        result: Option<PaypalCoinOrder>,
+    ) -> Self {
+        self.expect_get_coin_order_by_invoice_number()
+            .once()
+            .with(
+                mockall::predicate::always(),
+                mockall::predicate::eq(invoice_number),
             )
             .return_once(|_, _| Box::pin(std::future::ready(Ok(result))));
         self

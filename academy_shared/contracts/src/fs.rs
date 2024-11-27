@@ -9,6 +9,12 @@ pub trait FsService: Send + Sync + 'static {
         path: &Path,
         content: &[u8],
     ) -> impl Future<Output = anyhow::Result<()>> + Send;
+
+    /// Return the content of the file at `path` if the file exists.
+    fn read_file(
+        &self,
+        path: &Path,
+    ) -> impl Future<Output = anyhow::Result<Option<Vec<u8>>>> + Send;
 }
 
 #[cfg(feature = "mock")]
@@ -21,6 +27,14 @@ impl MockFsService {
                 mockall::predicate::eq(content),
             )
             .return_once(|_, _| Box::pin(std::future::ready(Ok(()))));
+        self
+    }
+
+    pub fn with_read_file(mut self, path: std::path::PathBuf, result: Option<Vec<u8>>) -> Self {
+        self.expect_read_file()
+            .once()
+            .with(mockall::predicate::eq(path))
+            .return_once(|_| Box::pin(std::future::ready(Ok(result))));
         self
     }
 }

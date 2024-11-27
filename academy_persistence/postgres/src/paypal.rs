@@ -57,6 +57,27 @@ impl PaypalRepository<PostgresTransaction> for PostgresPaypalRepository {
             })
     }
 
+    async fn get_coin_order_by_invoice_number(
+        &self,
+        txn: &mut PostgresTransaction,
+        invoice_number: u64,
+    ) -> anyhow::Result<Option<PaypalCoinOrder>> {
+        txn.txn()
+            .query_opt(
+                &format!(
+                    "select {PAYPAL_COIN_ORDER_COLS} from paypal_coin_orders pco where \
+                     invoice_number=$1"
+                ),
+                &[&(invoice_number as i64)],
+            )
+            .await
+            .map_err(Into::into)
+            .and_then(|row| {
+                row.map(|row| decode_paypal_coin_order(&row, &mut Default::default()))
+                    .transpose()
+            })
+    }
+
     async fn capture_coin_order(
         &self,
         txn: &mut PostgresTransaction,

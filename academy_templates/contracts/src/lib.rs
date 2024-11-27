@@ -100,7 +100,6 @@ pub struct PurchaseConfirmationTemplate {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct InvoiceTemplate {
-    pub logo_base64: &'static str,
     pub title: &'static str,
     pub customer_details: Vec<String>,
     pub timestamp: DateTime<Utc>,
@@ -113,6 +112,8 @@ pub struct InvoiceTemplate {
     pub vat_total: Decimal,
     #[serde(serialize_with = "rounded_2")]
     pub gross_total: Decimal,
+    #[serde(flatten)]
+    pub _static: InvoiceTemplateStatic,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -129,4 +130,24 @@ pub struct InvoiceItem {
     pub count: u64,
     #[serde(serialize_with = "rounded_2")]
     pub net_total: Decimal,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct InvoiceTemplateStatic;
+
+impl Serialize for InvoiceTemplateStatic {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        #[derive(Serialize)]
+        struct Static {
+            logo_base64: &'static str,
+        }
+
+        Static {
+            logo_base64: &LOGO_BASE64,
+        }
+        .serialize(serializer)
+    }
 }

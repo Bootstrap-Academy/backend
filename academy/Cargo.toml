@@ -32,6 +32,7 @@ academy_di.workspace = true
 academy_email_contracts.workspace = true
 academy_email_impl.workspace = true
 academy_extern_impl.workspace = true
+academy_finance_impl.workspace = true
 academy_models.workspace = true
 academy_persistence_contracts.workspace = true
 academy_persistence_postgres.workspace = true

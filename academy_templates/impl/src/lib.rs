@@ -89,7 +89,6 @@ mod tests {
     #[test]
     fn invoice() {
         test_template(InvoiceTemplate {
-            logo_base64: "",
             title: "Rechnung",
             customer_details: ["foo", "bar", "baz"].into_iter().map(Into::into).collect(),
             timestamp: Default::default(),
@@ -99,6 +98,7 @@ mod tests {
             net_total: 42.into(),
             vat_total: 7.into(),
             gross_total: 49.into(),
+            _static: Default::default(),
         });
     }
 

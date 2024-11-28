@@ -5225,9 +5225,9 @@ rec {
       };
       "email-encoding" = rec {
         crateName = "email-encoding";
-        version = "0.3.0";
+        version = "0.3.1";
         edition = "2021";
-        sha256 = "0zriz9qgqd0s522sjrmhwngldiyknlp66fghj50f5rzdv8yd7lb0";
+        sha256 = "1k4xkmdm8j8vdaq9c3nx6qx14jzjdgab5yb5n9v48cdbpd5qjgga";
         libName = "email_encoding";
         dependencies = [
           {
@@ -6719,7 +6719,7 @@ rec {
           }
           {
             name = "rustls";
-            packageId = "rustls 0.23.18";
+            packageId = "rustls 0.23.19";
             usesDefaultFeatures = false;
           }
           {
@@ -6755,7 +6755,7 @@ rec {
           }
           {
             name = "rustls";
-            packageId = "rustls 0.23.18";
+            packageId = "rustls 0.23.19";
             usesDefaultFeatures = false;
             features = [ "tls12" ];
           }
@@ -7622,9 +7622,9 @@ rec {
       };
       "itoa" = rec {
         crateName = "itoa";
-        version = "1.0.13";
+        version = "1.0.14";
         edition = "2018";
-        sha256 = "1wjf22cawbrf26zjnflhg9aqjpf9gccgyc6djaj70i1zgblm81jl";
+        sha256 = "0x26kr9m062mafaxgcf2p6h2x7cmixm0zw95aipzn2hr3d5jlnnp";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -7839,7 +7839,7 @@ rec {
           }
           {
             name = "rustls";
-            packageId = "rustls 0.23.18";
+            packageId = "rustls 0.23.19";
             optional = true;
             usesDefaultFeatures = false;
             features = [ "ring" "logging" "std" "tls12" ];
@@ -7939,9 +7939,9 @@ rec {
       };
       "libc" = rec {
         crateName = "libc";
-        version = "0.2.164";
+        version = "0.2.166";
         edition = "2015";
-        sha256 = "0gy1yzvc6x760r9zfkhl1f7p91zz559nxspvwfrajpf7p03gwfs3";
+        sha256 = "0dnyxi6n3h72cq79grmvc2vcmh13v1y4x1k1s0dk7cf0pc4c3k62";
         authors = [
           "The Rust Project Developers"
         ];
@@ -8917,9 +8917,9 @@ rec {
       };
       "pathdiff" = rec {
         crateName = "pathdiff";
-        version = "0.2.2";
+        version = "0.2.3";
         edition = "2018";
-        sha256 = "0qg33zcjlb90mfjyxnbxzcnr8gk1zkkw8x60s24vdd9s2phmq76n";
+        sha256 = "1lrqp4ip05df8dzldq6gb2c1sq2gs54gly8lcnv3rhav1qhwx56z";
         authors = [
           "Manish Goregaokar <manishsmail@gmail.com>"
         ];
@@ -9514,7 +9514,7 @@ rec {
           }
           {
             name = "rustls";
-            packageId = "rustls 0.23.18";
+            packageId = "rustls 0.23.19";
             optional = true;
             usesDefaultFeatures = false;
             features = [ "std" ];
@@ -9607,7 +9607,7 @@ rec {
           }
           {
             name = "rustls";
-            packageId = "rustls 0.23.18";
+            packageId = "rustls 0.23.19";
             optional = true;
             usesDefaultFeatures = false;
             features = [ "std" ];
@@ -10555,7 +10555,7 @@ rec {
           }
           {
             name = "rustls";
-            packageId = "rustls 0.23.18";
+            packageId = "rustls 0.23.19";
             optional = true;
             usesDefaultFeatures = false;
             target = { target, features }: (!("wasm32" == target."arch" or null));
@@ -10671,7 +10671,7 @@ rec {
           }
           {
             name = "rustls";
-            packageId = "rustls 0.23.18";
+            packageId = "rustls 0.23.19";
             usesDefaultFeatures = false;
             target = {target, features}: (!("wasm32" == target."arch" or null));
             features = [ "ring" ];
@@ -10999,11 +10999,11 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" "log" "logging" "ring" "tls12" ];
       };
-      "rustls 0.23.18" = rec {
+      "rustls 0.23.19" = rec {
         crateName = "rustls";
-        version = "0.23.18";
+        version = "0.23.19";
         edition = "2021";
-        sha256 = "0zxbcq0qy3kmp0m42mmf930h5bhr3hh3ivamrrd6ag94gvac374w";
+        sha256 = "1lgqjf1vh09kghyj34a4svn1max18pmhka6bwbxb61mv61240jwk";
         dependencies = [
           {
             name = "log";
@@ -13181,7 +13181,7 @@ rec {
         dependencies = [
           {
             name = "rustls";
-            packageId = "rustls 0.23.18";
+            packageId = "rustls 0.23.19";
             usesDefaultFeatures = false;
             features = [ "std" ];
           }
@@ -14139,7 +14139,7 @@ rec {
           }
           {
             name = "rustls";
-            packageId = "rustls 0.23.18";
+            packageId = "rustls 0.23.19";
             optional = true;
             usesDefaultFeatures = false;
             features = [ "ring" "logging" "std" "tls12" ];
@@ -14162,7 +14162,7 @@ rec {
         devDependencies = [
           {
             name = "rustls";
-            packageId = "rustls 0.23.18";
+            packageId = "rustls 0.23.19";
             usesDefaultFeatures = false;
             features = [ "std" "ring" ];
           }

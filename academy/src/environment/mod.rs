@@ -4,6 +4,7 @@ use academy_api_rest::{RestServerConfig, RestServerRealIpConfig};
 use academy_auth_impl::AuthServiceConfig;
 use academy_config::Config;
 use academy_core_contact_impl::ContactFeatureConfig;
+use academy_core_finance_impl::FinanceServiceConfig;
 use academy_core_health_impl::HealthFeatureConfig;
 use academy_core_oauth2_impl::OAuth2FeatureConfig;
 use academy_core_paypal_impl::PaypalFeatureConfig;
@@ -13,7 +14,6 @@ use academy_di::provider;
 use academy_extern_impl::{
     paypal::PaypalApiServiceConfig, recaptcha::RecaptchaApiServiceConfig, vat::VatApiServiceConfig,
 };
-use academy_finance_impl::FinanceServiceConfig;
 use academy_models::oauth2::OAuth2Provider;
 use academy_render_impl::pdf::RenderPdfServiceConfig;
 use academy_shared_impl::{
@@ -40,9 +40,6 @@ provider! {
             VatApiServiceConfig,
             PaypalApiServiceConfig,
 
-            // Finance,
-            FinanceServiceConfig,
-
             // Render
             RenderPdfServiceConfig,
 
@@ -61,6 +58,7 @@ provider! {
             SessionFeatureConfig,
             UserFeatureConfig,
             PaypalFeatureConfig,
+            FinanceServiceConfig,
         }
     }
 }
@@ -88,9 +86,6 @@ provider! {
         vat_api_service_config: VatApiServiceConfig,
         paypal_api_service_config: PaypalApiServiceConfig,
 
-        // Finance,
-        finance_service_config: FinanceServiceConfig,
-
         // Render
         render_pdf_service_config: RenderPdfServiceConfig,
 
@@ -109,6 +104,7 @@ provider! {
         session_feature_config: SessionFeatureConfig,
         user_feature_config: UserFeatureConfig,
         paypal_feature_config: PaypalFeatureConfig,
+        finance_service_config: FinanceServiceConfig,
     }
 }
 
@@ -142,12 +138,6 @@ impl ConfigProvider {
             config.paypal.client_id.clone(),
             config.paypal.client_secret.clone(),
         );
-
-        // Finance
-        let finance_service_config = FinanceServiceConfig {
-            vat_percent: config.finance.vat_percent,
-            invoices_archive: config.finance.invoices_archive.clone().into(),
-        };
 
         // Render
         let render_pdf_service_config = RenderPdfServiceConfig {
@@ -241,6 +231,12 @@ impl ConfigProvider {
             purchase_range: config.coin.purchase_min..=config.coin.purchase_max,
         };
 
+        let finance_service_config = FinanceServiceConfig {
+            vat_percent: config.finance.vat_percent,
+            invoices_archive: config.finance.invoices_archive.clone().into(),
+            download_token_ttl: config.jwt.download_token_ttl.into(),
+        };
+
         Ok(Self {
             _cache: Default::default(),
 
@@ -251,9 +247,6 @@ impl ConfigProvider {
             recaptcha_api_service_config,
             vat_api_service_config,
             paypal_api_service_config,
-
-            // Finance
-            finance_service_config,
 
             // Render
             render_pdf_service_config,
@@ -273,6 +266,7 @@ impl ConfigProvider {
             session_feature_config,
             user_feature_config,
             paypal_feature_config,
+            finance_service_config,
         })
     }
 }

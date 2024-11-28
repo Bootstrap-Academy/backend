@@ -1,6 +1,10 @@
 use std::ops::RangeInclusive;
 
 use academy_auth_contracts::{AuthResultExt, AuthService};
+use academy_core_finance_contracts::{
+    coin::{CoinPrices, FinanceCoinService},
+    invoice::FinanceInvoiceService,
+};
 use academy_core_paypal_contracts::{
     coin_order::PaypalCoinOrderService, PaypalCaptureCoinOrderError, PaypalCreateCoinOrderError,
     PaypalFeatureService,
@@ -9,10 +13,6 @@ use academy_di::Build;
 use academy_email_contracts::template::TemplateEmailService;
 use academy_extern_contracts::paypal::{
     PaypalApiService, PaypalCaptureOrderError, PaypalCreateOrderError,
-};
-use academy_finance_contracts::{
-    coin::{CoinPrices, FinanceCoinService},
-    FinanceService,
 };
 use academy_models::{auth::AccessToken, coin::Balance, paypal::PaypalOrderId};
 use academy_persistence_contracts::{
@@ -37,7 +37,7 @@ pub struct PaypalFeatureServiceImpl<
     PaypalRepo,
     PaypalCoinOrder,
     TemplateEmail,
-    Finance,
+    FinanceInvoice,
     FinanceCoin,
 > {
     db: Db,
@@ -47,7 +47,7 @@ pub struct PaypalFeatureServiceImpl<
     paypal_repo: PaypalRepo,
     paypal_coin_order: PaypalCoinOrder,
     template_email: TemplateEmail,
-    finance: Finance,
+    finance_invoice: FinanceInvoice,
     finance_coin: FinanceCoin,
     config: PaypalFeatureConfig,
 }
@@ -65,7 +65,7 @@ impl<
         PaypalRepo,
         PaypalCoinOrder,
         TemplateEmail,
-        Finance,
+        FinanceInvoice,
         FinanceCoin,
     > PaypalFeatureService
     for PaypalFeatureServiceImpl<
@@ -76,7 +76,7 @@ impl<
         PaypalRepo,
         PaypalCoinOrder,
         TemplateEmail,
-        Finance,
+        FinanceInvoice,
         FinanceCoin,
     >
 where
@@ -87,7 +87,7 @@ where
     PaypalRepo: PaypalRepository<Db::Transaction>,
     PaypalCoinOrder: PaypalCoinOrderService<Db::Transaction>,
     TemplateEmail: TemplateEmailService,
-    Finance: FinanceService<Db::Transaction>,
+    FinanceInvoice: FinanceInvoiceService<Db::Transaction>,
     FinanceCoin: FinanceCoinService,
 {
     #[trace_instrument(skip(self))]
@@ -183,8 +183,8 @@ where
 
         if let Some(email) = user_composite.user.email {
             let Some(invoice_pdf) = self
-                .finance
-                .get_invoice_pdf(&mut txn, invoice_number)
+                .finance_invoice
+                .get_invoice_pdf(&mut txn, Some(auth.user_id), invoice_number)
                 .await?
             else {
                 return Err(
@@ -203,7 +203,7 @@ where
                     email.with_name(user_composite.profile.display_name.into_inner()),
                     &PurchaseConfirmationTemplate {
                         coins,
-                        vat_percent: self.finance.vat_percent(),
+                        vat_percent: self.finance_coin.vat_percent(),
                         vat_total,
                         gross_total,
                     },

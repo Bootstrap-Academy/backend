@@ -13,7 +13,6 @@ members = [
   "academy_di_derive",
   "academy_email/*",
   "academy_extern/*",
-  "academy_finance/*",
   "academy_models",
   "academy_persistence/*",
   "academy_render/*",
@@ -57,6 +56,8 @@ academy_core_config_contracts.path = "academy_core/config/contracts"
 academy_core_config_impl.path = "academy_core/config/impl"
 academy_core_contact_contracts.path = "academy_core/contact/contracts"
 academy_core_contact_impl.path = "academy_core/contact/impl"
+academy_core_finance_contracts.path = "academy_core/finance/contracts"
+academy_core_finance_impl.path = "academy_core/finance/impl"
 academy_core_health_contracts.path = "academy_core/health/contracts"
 academy_core_health_impl.path = "academy_core/health/impl"
 academy_core_internal_contracts.path = "academy_core/internal/contracts"
@@ -78,8 +79,6 @@ academy_email_contracts.path = "academy_email/contracts"
 academy_email_impl.path = "academy_email/impl"
 academy_extern_contracts.path = "academy_extern/contracts"
 academy_extern_impl.path = "academy_extern/impl"
-academy_finance_contracts.path = "academy_finance/contracts"
-academy_finance_impl.path = "academy_finance/impl"
 academy_models.path = "academy_models"
 academy_persistence_contracts.path = "academy_persistence/contracts"
 academy_persistence_postgres.path = "academy_persistence/postgres"
@@ -105,6 +104,7 @@ darling = { version = "0.20.10", default-features = false, features = ["suggesti
 futures = { version = "0.3.31", default-features = false, features = ["std"] }
 hex = { version = "0.4.3", default-features = false, features = ["std"] }
 lettre = { version = "0.11.11", default-features = false, features = ["builder", "hostname", "pool", "rustls-tls", "serde", "smtp-transport", "tokio1", "tokio1-rustls-tls", "tracing"] }
+mime = { version = "0.3.17", default-features = false }
 mockall = { version = "0.13.1", default-features = false }
 nutype = { version = "0.5.1", default-features = false, features = ["std", "regex", "serde", "schemars08"] }
 oauth2 = { version = "4.4.2", default-features = false, features = ["reqwest", "rustls-tls"] }
@@ -121,7 +121,7 @@ schemars = { version = "0.8.21", default-features = false, features = ["derive",
 serde = { version = "1.0.217", default-features = false, features = ["derive", "std"] }
 serde_json = { version = "1.0.135", default-features = false, features = ["std"] }
 sha2 = { version = "0.10.8", default-features = false }
-syn = { version = "2.0.96", default-features = false, features = ["parsing", "proc-macro", "derive", "printing"] }
+syn = { version = "2.0.96", default-features = false, features = ["parsing", "proc-macro", "derive", "printing", "full"] }
 thiserror = { version = "2.0.11", default-features = false }
 tokio = { version = "1.43.0", default-features = false, features = ["rt-multi-thread", "macros", "sync", "fs", "process"] }
 tracing = { version = "0.1.41", default-features = false, features = ["attributes"] }

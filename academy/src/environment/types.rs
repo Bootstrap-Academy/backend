@@ -8,6 +8,9 @@ use academy_cache_valkey::ValkeyCache;
 use academy_core_coin_impl::{coin::CoinServiceImpl, CoinFeatureServiceImpl};
 use academy_core_config_impl::ConfigFeatureServiceImpl;
 use academy_core_contact_impl::ContactFeatureServiceImpl;
+use academy_core_finance_impl::{
+    coin::FinanceCoinServiceImpl, invoice::FinanceInvoiceServiceImpl, FinanceFeatureServiceImpl,
+};
 use academy_core_health_impl::HealthFeatureServiceImpl;
 use academy_core_internal_impl::InternalServiceImpl;
 use academy_core_mfa_impl::{
@@ -32,7 +35,6 @@ use academy_extern_impl::{
     oauth2::OAuth2ApiServiceImpl, paypal::PaypalApiServiceImpl, recaptcha::RecaptchaApiServiceImpl,
     vat::VatApiServiceImpl,
 };
-use academy_finance_impl::{coin::FinanceCoinServiceImpl, FinanceServiceImpl};
 use academy_persistence_postgres::{
     coin::PostgresCoinRepository, mfa::PostgresMfaRepository, oauth2::PostgresOAuth2Repository,
     paypal::PostgresPaypalRepository, session::PostgresSessionRepository,
@@ -57,6 +59,7 @@ pub type RestServer = academy_api_rest::RestServer<
     OAuth2Feature,
     CoinFeature,
     PaypalFeature,
+    FinanceFeature,
     Internal,
 >;
 
@@ -75,10 +78,6 @@ pub type RecaptchaApi = RecaptchaApiServiceImpl;
 pub type OAuth2Api = OAuth2ApiServiceImpl;
 pub type VatApi = VatApiServiceImpl;
 pub type PaypalApi = PaypalApiServiceImpl;
-
-// Finance
-pub type Finance = FinanceServiceImpl<Fs, Template, RenderPdf, PaypalRepo, UserRepo, FinanceCoin>;
-pub type FinanceCoin = FinanceCoinServiceImpl;
 
 // Template
 pub type Template = TemplateServiceImpl;
@@ -190,9 +189,14 @@ pub type PaypalFeature = PaypalFeatureServiceImpl<
     PaypalRepo,
     PaypalCoinOrder,
     TemplateEmail,
-    Finance,
+    FinanceInvoice,
     FinanceCoin,
 >;
 pub type PaypalCoinOrder = PaypalCoinOrderServiceImpl<Time, PaypalRepo, CoinRepo>;
+
+pub type FinanceFeature = FinanceFeatureServiceImpl<Database, Auth, Jwt, FinanceInvoice>;
+pub type FinanceInvoice =
+    FinanceInvoiceServiceImpl<Fs, Template, RenderPdf, PaypalRepo, UserRepo, FinanceCoin>;
+pub type FinanceCoin = FinanceCoinServiceImpl;
 
 pub type Internal = InternalServiceImpl<Database, AuthInternal, UserRepo, Coin>;

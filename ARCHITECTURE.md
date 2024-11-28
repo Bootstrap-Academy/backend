@@ -46,7 +46,7 @@ In addition, both [Swagger UI](https://swagger.io/tools/swagger-ui/) and [Redoc]
 Clients are mostly authenticated using JWTs:
 
 - Normal users logging in with their account credentials receive an access token (JWT) and a refresh token (random opaque secret) and use the access token to authenticate all subsequent requests. When the access token expires (or is invalidated) the client uses the refresh token to request a new access/refresh token pair which replaces the current one.
-- Services (esp. the old Python/Rust microservices) authenticate each request by issuing a very short lived JWT which includes the target audience (the recipient of the request).
+- Services (esp. the old Python/Rust microservices) authenticate each request by issuing a very short-lived JWT which includes the target audience (the recipient of the request).
 
 #### Tracing
 Each incoming request is assigned a unique request id (Base64 encoded UUIDv7).

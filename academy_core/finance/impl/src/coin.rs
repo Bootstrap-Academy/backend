@@ -1,5 +1,6 @@
+use academy_core_finance_contracts::coin::{CoinPrices, FinanceCoinService};
 use academy_di::Build;
-use academy_finance_contracts::coin::{CoinPrices, FinanceCoinService};
+use academy_utils::trace_instrument;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 
@@ -11,6 +12,12 @@ pub struct FinanceCoinServiceImpl {
 }
 
 impl FinanceCoinService for FinanceCoinServiceImpl {
+    #[trace_instrument(skip(self))]
+    fn vat_percent(&self) -> Decimal {
+        self.config.vat_percent
+    }
+
+    #[trace_instrument(skip(self))]
     fn get_price(&self, coins: u64) -> CoinPrices {
         let vat_factor = self.config.vat_percent / dec!(100);
 

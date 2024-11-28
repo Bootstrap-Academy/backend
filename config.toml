@@ -25,6 +25,7 @@ max_lifetime = "30m"
 
 [jwt]
 # secret = ""
+download_token_ttl = "10m"
 
 [internal]
 jwt_ttl = "10s"

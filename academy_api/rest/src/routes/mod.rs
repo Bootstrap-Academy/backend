@@ -1,6 +1,7 @@
 pub mod coin;
 pub mod config;
 pub mod contact;
+pub mod finance;
 pub mod health;
 pub mod internal;
 pub mod mfa;

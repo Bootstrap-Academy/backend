@@ -14,6 +14,8 @@ dependencies = [
  "academy_core_coin_impl",
  "academy_core_config_impl",
  "academy_core_contact_impl",
+ "academy_core_finance_contracts",
+ "academy_core_finance_impl",
  "academy_core_health_impl",
  "academy_core_internal_impl",
  "academy_core_mfa_impl",
@@ -27,8 +29,6 @@ dependencies = [
  "academy_email_contracts",
  "academy_email_impl",
  "academy_extern_impl",
- "academy_finance_contracts",
- "academy_finance_impl",
  "academy_models",
  "academy_persistence_contracts",
  "academy_persistence_postgres",
@@ -65,6 +65,7 @@ dependencies = [
  "academy_core_coin_contracts",
  "academy_core_config_contracts",
  "academy_core_contact_contracts",
+ "academy_core_finance_contracts",
  "academy_core_health_contracts",
  "academy_core_internal_contracts",
  "academy_core_mfa_contracts",
@@ -81,6 +82,7 @@ dependencies = [
  "axum-extra",
  "base64 0.22.1",
  "futures",
+ "mime",
  "regex",
  "schemars",
  "serde",
@@ -236,6 +238,39 @@ dependencies = [
 ]
 
 [[package]]
+name = "academy_core_finance_contracts"
+version = "0.0.0"
+dependencies = [
+ "academy_models",
+ "anyhow",
+ "mockall",
+ "rust_decimal",
+ "thiserror 2.0.11",
+]
+
+[[package]]
+name = "academy_core_finance_impl"
+version = "0.0.0"
+dependencies = [
+ "academy_auth_contracts",
+ "academy_core_finance_contracts",
+ "academy_demo",
+ "academy_di",
+ "academy_models",
+ "academy_persistence_contracts",
+ "academy_render_contracts",
+ "academy_shared_contracts",
+ "academy_templates_contracts",
+ "academy_utils",
+ "anyhow",
+ "rust_decimal",
+ "rust_decimal_macros",
+ "serde",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "academy_core_health_contracts"
 version = "0.0.0"
 
@@ -357,12 +392,12 @@ name = "academy_core_paypal_impl"
 version = "0.0.0"
 dependencies = [
  "academy_auth_contracts",
+ "academy_core_finance_contracts",
  "academy_core_paypal_contracts",
  "academy_demo",
  "academy_di",
  "academy_email_contracts",
  "academy_extern_contracts",
- "academy_finance_contracts",
  "academy_models",
  "academy_persistence_contracts",
  "academy_shared_contracts",
@@ -537,33 +572,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "academy_finance_contracts"
-version = "0.0.0"
-dependencies = [
- "anyhow",
- "mockall",
- "rust_decimal",
-]
-
-[[package]]
-name = "academy_finance_impl"
-version = "0.0.0"
-dependencies = [
- "academy_demo",
- "academy_di",
- "academy_finance_contracts",
- "academy_models",
- "academy_persistence_contracts",
- "academy_render_contracts",
- "academy_shared_contracts",
- "academy_templates_contracts",
- "anyhow",
- "rust_decimal",
- "rust_decimal_macros",
- "tokio",
-]
-
-[[package]]
 name = "academy_models"
 version = "0.0.0"
 dependencies = [
@@ -682,6 +690,7 @@ name = "academy_templates_contracts"
 version = "0.0.0"
 dependencies = [
  "academy_assets",
+ "academy_utils",
  "anyhow",
  "base64 0.22.1",
  "chrono",

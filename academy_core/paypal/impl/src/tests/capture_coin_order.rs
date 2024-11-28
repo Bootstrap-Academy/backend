@@ -1,4 +1,8 @@
 use academy_auth_contracts::MockAuthService;
+use academy_core_finance_contracts::{
+    coin::{CoinPrices, MockFinanceCoinService},
+    invoice::MockFinanceInvoiceService,
+};
 use academy_core_paypal_contracts::{
     coin_order::MockPaypalCoinOrderService, PaypalCaptureCoinOrderError, PaypalFeatureService,
 };
@@ -8,10 +12,6 @@ use academy_demo::{
 };
 use academy_email_contracts::template::MockTemplateEmailService;
 use academy_extern_contracts::paypal::MockPaypalApiService;
-use academy_finance_contracts::{
-    coin::{CoinPrices, MockFinanceCoinService},
-    MockFinanceService,
-};
 use academy_models::{
     auth::{AuthError, AuthenticateError, AuthorizeError},
     coin::Balance,
@@ -64,10 +64,14 @@ async fn ok() {
         vat_total: 3.into(),
         gross_total: 4.into(),
     };
-    let finance_coin = MockFinanceCoinService::new().with_get_price(1337, prices);
-    let finance = MockFinanceService::new()
-        .with_vat_percent(19.into())
-        .with_get_invoice_pdf(42, Some(pdf.clone()));
+    let finance_coin = MockFinanceCoinService::new()
+        .with_get_price(1337, prices)
+        .with_vat_percent(19.into());
+    let finance_invoice = MockFinanceInvoiceService::new().with_get_invoice_pdf(
+        Some(FOO.user.id),
+        42,
+        Some(pdf.clone()),
+    );
 
     let template_email = MockTemplateEmailService::new().with_send_purchase_confirmation_email(
         FOO.user
@@ -93,7 +97,7 @@ async fn ok() {
         paypal_api,
         paypal_coin_order,
         template_email,
-        finance,
+        finance_invoice,
         finance_coin,
         ..Sut::default()
     };

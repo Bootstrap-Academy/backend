@@ -57,7 +57,7 @@ error_code! {
     InternalServerError(INTERNAL_SERVER_ERROR, "Internal server error");
 
     /// The authentication token is invalid or has expired.
-    InvalidTokenError(UNAUTHORIZED, "Invalid token");
+    pub InvalidTokenError(UNAUTHORIZED, "Invalid token");
     /// The authenticated user is not allowed to perform this action.
     pub PermissionDeniedError(FORBIDDEN, "Permission denied");
     /// The authenticated user has not verified their email address.

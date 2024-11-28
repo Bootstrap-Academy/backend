@@ -2,6 +2,10 @@ use rust_decimal::Decimal;
 
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait FinanceCoinService: Send + Sync + 'static {
+    /// Return the configured vat percentage.
+    fn vat_percent(&self) -> Decimal;
+
+    /// Calculate the prices to purchase the given number of morphcoins.
     fn get_price(&self, coins: u64) -> CoinPrices;
 }
 
@@ -15,6 +19,14 @@ pub struct CoinPrices {
 
 #[cfg(feature = "mock")]
 impl MockFinanceCoinService {
+    pub fn with_vat_percent(mut self, result: Decimal) -> Self {
+        self.expect_vat_percent()
+            .once()
+            .with()
+            .return_once(move || result);
+        self
+    }
+
     pub fn with_get_price(mut self, coins: u64, result: CoinPrices) -> Self {
         self.expect_get_price()
             .once()

@@ -1,8 +1,10 @@
 use academy_auth_contracts::MockAuthService;
+use academy_core_finance_contracts::{
+    coin::MockFinanceCoinService, invoice::MockFinanceInvoiceService,
+};
 use academy_core_paypal_contracts::coin_order::MockPaypalCoinOrderService;
 use academy_email_contracts::template::MockTemplateEmailService;
 use academy_extern_contracts::paypal::MockPaypalApiService;
-use academy_finance_contracts::{coin::MockFinanceCoinService, MockFinanceService};
 use academy_persistence_contracts::{
     paypal::MockPaypalRepository, user::MockUserRepository, MockDatabase, MockTransaction,
 };
@@ -20,7 +22,7 @@ type Sut = PaypalFeatureServiceImpl<
     MockPaypalRepository<MockTransaction>,
     MockPaypalCoinOrderService<MockTransaction>,
     MockTemplateEmailService,
-    MockFinanceService<MockTransaction>,
+    MockFinanceInvoiceService<MockTransaction>,
     MockFinanceCoinService,
 >;
 

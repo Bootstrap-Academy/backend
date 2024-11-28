@@ -149,6 +149,7 @@ pub struct EmailConfig {
 #[derive(Debug, Deserialize)]
 pub struct JwtConfig {
     pub secret: String,
+    pub download_token_ttl: Duration,
 }
 
 #[derive(Debug, Deserialize)]

@@ -1,6 +1,6 @@
 use academy_config::Config;
+use academy_core_finance_contracts::invoice::FinanceInvoiceService;
 use academy_di::Provide;
-use academy_finance_contracts::FinanceService;
 use academy_persistence_contracts::{paypal::PaypalRepository, Database};
 use clap::Subcommand;
 use futures::TryStreamExt;
@@ -36,7 +36,7 @@ async fn generate(config: Config) -> anyhow::Result<()> {
     let db: types::Database = provider.provide();
     let mut txn = db.begin_transaction().await?;
 
-    let finance_service: types::Finance = provider.provide();
+    let finance_invoice_service: types::FinanceInvoice = provider.provide();
     let paypal_repo: types::PaypalRepo = provider.provide();
 
     let cnt = paypal_repo.count_coin_orders(&mut txn).await?;
@@ -44,8 +44,8 @@ async fn generate(config: Config) -> anyhow::Result<()> {
     let mut stream = std::pin::pin!(paypal_repo.stream_coin_orders(&mut txn));
     let mut txn = db.begin_transaction().await?;
     while let Some(coin_order) = stream.try_next().await? {
-        finance_service
-            .get_invoice_pdf(&mut txn, coin_order.invoice_number)
+        finance_invoice_service
+            .get_invoice_pdf(&mut txn, None, coin_order.invoice_number)
             .await?;
         bar.inc(1);
     }

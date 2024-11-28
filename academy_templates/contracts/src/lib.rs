@@ -1,6 +1,7 @@
 use std::{fmt::Debug, sync::LazyLock};
 
 use academy_assets::templates;
+use academy_utils::static_value;
 use base64::{prelude::BASE64_STANDARD, Engine};
 use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
@@ -132,22 +133,9 @@ pub struct InvoiceItem {
     pub net_total: Decimal,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
-pub struct InvoiceTemplateStatic;
-
-impl Serialize for InvoiceTemplateStatic {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        #[derive(Serialize)]
-        struct Static {
-            logo_base64: &'static str,
-        }
-
-        Static {
-            logo_base64: &LOGO_BASE64,
-        }
-        .serialize(serializer)
-    }
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize)]
+pub struct InvoiceTemplateStatic {
+    logo_base64: LogoBase64,
 }
+
+static_value!(LogoBase64(LOGO_BASE64.as_str()));

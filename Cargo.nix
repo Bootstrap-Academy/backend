@@ -177,6 +177,26 @@ rec {
       # File a bug if you depend on any for non-debug work!
       debug = internal.debugCrate { inherit packageId; };
     };
+    "academy_core_finance_contracts" = rec {
+      packageId = "academy_core_finance_contracts";
+      build = internal.buildRustCrateWithFeatures {
+        packageId = "academy_core_finance_contracts";
+      };
+
+      # Debug support which might change between releases.
+      # File a bug if you depend on any for non-debug work!
+      debug = internal.debugCrate { inherit packageId; };
+    };
+    "academy_core_finance_impl" = rec {
+      packageId = "academy_core_finance_impl";
+      build = internal.buildRustCrateWithFeatures {
+        packageId = "academy_core_finance_impl";
+      };
+
+      # Debug support which might change between releases.
+      # File a bug if you depend on any for non-debug work!
+      debug = internal.debugCrate { inherit packageId; };
+    };
     "academy_core_health_contracts" = rec {
       packageId = "academy_core_health_contracts";
       build = internal.buildRustCrateWithFeatures {
@@ -387,26 +407,6 @@ rec {
       # File a bug if you depend on any for non-debug work!
       debug = internal.debugCrate { inherit packageId; };
     };
-    "academy_finance_contracts" = rec {
-      packageId = "academy_finance_contracts";
-      build = internal.buildRustCrateWithFeatures {
-        packageId = "academy_finance_contracts";
-      };
-
-      # Debug support which might change between releases.
-      # File a bug if you depend on any for non-debug work!
-      debug = internal.debugCrate { inherit packageId; };
-    };
-    "academy_finance_impl" = rec {
-      packageId = "academy_finance_impl";
-      build = internal.buildRustCrateWithFeatures {
-        packageId = "academy_finance_impl";
-      };
-
-      # Debug support which might change between releases.
-      # File a bug if you depend on any for non-debug work!
-      debug = internal.debugCrate { inherit packageId; };
-    };
     "academy_models" = rec {
       packageId = "academy_models";
       build = internal.buildRustCrateWithFeatures {
@@ -599,6 +599,14 @@ rec {
             packageId = "academy_core_contact_impl";
           }
           {
+            name = "academy_core_finance_contracts";
+            packageId = "academy_core_finance_contracts";
+          }
+          {
+            name = "academy_core_finance_impl";
+            packageId = "academy_core_finance_impl";
+          }
+          {
             name = "academy_core_health_impl";
             packageId = "academy_core_health_impl";
           }
@@ -649,14 +657,6 @@ rec {
           {
             name = "academy_extern_impl";
             packageId = "academy_extern_impl";
-          }
-          {
-            name = "academy_finance_contracts";
-            packageId = "academy_finance_contracts";
-          }
-          {
-            name = "academy_finance_impl";
-            packageId = "academy_finance_impl";
           }
           {
             name = "academy_models";
@@ -831,6 +831,10 @@ rec {
             packageId = "academy_core_contact_contracts";
           }
           {
+            name = "academy_core_finance_contracts";
+            packageId = "academy_core_finance_contracts";
+          }
+          {
             name = "academy_core_health_contracts";
             packageId = "academy_core_health_contracts";
           }
@@ -904,6 +908,11 @@ rec {
             packageId = "futures";
             usesDefaultFeatures = false;
             features = [ "std" ];
+          }
+          {
+            name = "mime";
+            packageId = "mime";
+            usesDefaultFeatures = false;
           }
           {
             name = "regex";
@@ -1513,6 +1522,156 @@ rec {
         ];
 
       };
+      "academy_core_finance_contracts" = rec {
+        crateName = "academy_core_finance_contracts";
+        version = "0.0.0";
+        edition = "2021";
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/finance/contracts; };
+        dependencies = [
+          {
+            name = "academy_models";
+            packageId = "academy_models";
+          }
+          {
+            name = "anyhow";
+            packageId = "anyhow";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "mockall";
+            packageId = "mockall";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "rust_decimal";
+            packageId = "rust_decimal";
+            usesDefaultFeatures = false;
+            features = [ "std" "serde-str" ];
+          }
+          {
+            name = "thiserror";
+            packageId = "thiserror 2.0.11";
+            usesDefaultFeatures = false;
+          }
+        ];
+        features = {
+          "mock" = [ "dep:mockall" ];
+        };
+        resolvedDefaultFeatures = [ "mock" ];
+      };
+      "academy_core_finance_impl" = rec {
+        crateName = "academy_core_finance_impl";
+        version = "0.0.0";
+        edition = "2021";
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/finance/impl; };
+        dependencies = [
+          {
+            name = "academy_auth_contracts";
+            packageId = "academy_auth_contracts";
+          }
+          {
+            name = "academy_core_finance_contracts";
+            packageId = "academy_core_finance_contracts";
+          }
+          {
+            name = "academy_di";
+            packageId = "academy_di";
+          }
+          {
+            name = "academy_models";
+            packageId = "academy_models";
+          }
+          {
+            name = "academy_persistence_contracts";
+            packageId = "academy_persistence_contracts";
+          }
+          {
+            name = "academy_render_contracts";
+            packageId = "academy_render_contracts";
+          }
+          {
+            name = "academy_shared_contracts";
+            packageId = "academy_shared_contracts";
+          }
+          {
+            name = "academy_templates_contracts";
+            packageId = "academy_templates_contracts";
+          }
+          {
+            name = "academy_utils";
+            packageId = "academy_utils";
+          }
+          {
+            name = "anyhow";
+            packageId = "anyhow";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "rust_decimal";
+            packageId = "rust_decimal";
+            usesDefaultFeatures = false;
+            features = [ "std" "serde-str" ];
+          }
+          {
+            name = "rust_decimal_macros";
+            packageId = "rust_decimal_macros";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "serde";
+            packageId = "serde";
+            usesDefaultFeatures = false;
+            features = [ "derive" "std" ];
+          }
+          {
+            name = "tracing";
+            packageId = "tracing";
+            usesDefaultFeatures = false;
+            features = [ "attributes" ];
+          }
+        ];
+        devDependencies = [
+          {
+            name = "academy_core_finance_contracts";
+            packageId = "academy_core_finance_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_demo";
+            packageId = "academy_demo";
+          }
+          {
+            name = "academy_persistence_contracts";
+            packageId = "academy_persistence_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_render_contracts";
+            packageId = "academy_render_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_shared_contracts";
+            packageId = "academy_shared_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_templates_contracts";
+            packageId = "academy_templates_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "tokio";
+            packageId = "tokio";
+            usesDefaultFeatures = false;
+            features = [ "rt-multi-thread" "macros" "sync" "fs" "process" ];
+          }
+        ];
+
+      };
       "academy_core_health_contracts" = rec {
         crateName = "academy_core_health_contracts";
         version = "0.0.0";
@@ -2002,6 +2161,10 @@ rec {
             packageId = "academy_auth_contracts";
           }
           {
+            name = "academy_core_finance_contracts";
+            packageId = "academy_core_finance_contracts";
+          }
+          {
             name = "academy_core_paypal_contracts";
             packageId = "academy_core_paypal_contracts";
           }
@@ -2016,10 +2179,6 @@ rec {
           {
             name = "academy_extern_contracts";
             packageId = "academy_extern_contracts";
-          }
-          {
-            name = "academy_finance_contracts";
-            packageId = "academy_finance_contracts";
           }
           {
             name = "academy_models";
@@ -2072,6 +2231,11 @@ rec {
             features = [ "mock" ];
           }
           {
+            name = "academy_core_finance_contracts";
+            packageId = "academy_core_finance_contracts";
+            features = [ "mock" ];
+          }
+          {
             name = "academy_core_paypal_contracts";
             packageId = "academy_core_paypal_contracts";
             features = [ "mock" ];
@@ -2088,11 +2252,6 @@ rec {
           {
             name = "academy_extern_contracts";
             packageId = "academy_extern_contracts";
-            features = [ "mock" ];
-          }
-          {
-            name = "academy_finance_contracts";
-            packageId = "academy_finance_contracts";
             features = [ "mock" ];
           }
           {
@@ -2552,7 +2711,7 @@ rec {
             name = "syn";
             packageId = "syn 2.0.96";
             usesDefaultFeatures = false;
-            features = [ "parsing" "proc-macro" "derive" "printing" ];
+            features = [ "parsing" "proc-macro" "derive" "printing" "full" ];
           }
         ];
 
@@ -2785,127 +2944,6 @@ rec {
           {
             name = "academy_utils";
             packageId = "academy_utils";
-          }
-          {
-            name = "tokio";
-            packageId = "tokio";
-            usesDefaultFeatures = false;
-            features = [ "rt-multi-thread" "macros" "sync" "fs" "process" ];
-          }
-        ];
-
-      };
-      "academy_finance_contracts" = rec {
-        crateName = "academy_finance_contracts";
-        version = "0.0.0";
-        edition = "2021";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_finance/contracts; };
-        dependencies = [
-          {
-            name = "anyhow";
-            packageId = "anyhow";
-            usesDefaultFeatures = false;
-            features = [ "std" ];
-          }
-          {
-            name = "mockall";
-            packageId = "mockall";
-            optional = true;
-            usesDefaultFeatures = false;
-          }
-          {
-            name = "rust_decimal";
-            packageId = "rust_decimal";
-            usesDefaultFeatures = false;
-            features = [ "std" "serde-str" ];
-          }
-        ];
-        features = {
-          "mock" = [ "dep:mockall" ];
-        };
-        resolvedDefaultFeatures = [ "mock" ];
-      };
-      "academy_finance_impl" = rec {
-        crateName = "academy_finance_impl";
-        version = "0.0.0";
-        edition = "2021";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_finance/impl; };
-        dependencies = [
-          {
-            name = "academy_di";
-            packageId = "academy_di";
-          }
-          {
-            name = "academy_finance_contracts";
-            packageId = "academy_finance_contracts";
-          }
-          {
-            name = "academy_persistence_contracts";
-            packageId = "academy_persistence_contracts";
-          }
-          {
-            name = "academy_render_contracts";
-            packageId = "academy_render_contracts";
-          }
-          {
-            name = "academy_shared_contracts";
-            packageId = "academy_shared_contracts";
-          }
-          {
-            name = "academy_templates_contracts";
-            packageId = "academy_templates_contracts";
-          }
-          {
-            name = "anyhow";
-            packageId = "anyhow";
-            usesDefaultFeatures = false;
-            features = [ "std" ];
-          }
-          {
-            name = "rust_decimal";
-            packageId = "rust_decimal";
-            usesDefaultFeatures = false;
-            features = [ "std" "serde-str" ];
-          }
-          {
-            name = "rust_decimal_macros";
-            packageId = "rust_decimal_macros";
-            usesDefaultFeatures = false;
-          }
-        ];
-        devDependencies = [
-          {
-            name = "academy_demo";
-            packageId = "academy_demo";
-          }
-          {
-            name = "academy_finance_contracts";
-            packageId = "academy_finance_contracts";
-            features = [ "mock" ];
-          }
-          {
-            name = "academy_models";
-            packageId = "academy_models";
-          }
-          {
-            name = "academy_persistence_contracts";
-            packageId = "academy_persistence_contracts";
-            features = [ "mock" ];
-          }
-          {
-            name = "academy_render_contracts";
-            packageId = "academy_render_contracts";
-            features = [ "mock" ];
-          }
-          {
-            name = "academy_shared_contracts";
-            packageId = "academy_shared_contracts";
-            features = [ "mock" ];
-          }
-          {
-            name = "academy_templates_contracts";
-            packageId = "academy_templates_contracts";
-            features = [ "mock" ];
           }
           {
             name = "tokio";
@@ -3414,6 +3452,10 @@ rec {
             packageId = "academy_assets";
           }
           {
+            name = "academy_utils";
+            packageId = "academy_utils";
+          }
+          {
             name = "anyhow";
             packageId = "anyhow";
             usesDefaultFeatures = false;
@@ -3651,7 +3693,7 @@ rec {
             name = "syn";
             packageId = "syn 2.0.96";
             usesDefaultFeatures = false;
-            features = [ "parsing" "proc-macro" "derive" "printing" ];
+            features = [ "parsing" "proc-macro" "derive" "printing" "full" ];
           }
         ];
 

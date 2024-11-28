@@ -34,7 +34,7 @@ fn sign(config: &Config, data: &str, ttl: Duration) -> anyhow::Result<()> {
 
     let data = serde_json::from_str::<serde_json::Value>(data)
         .context("Failed to parse the payload as json")?;
-    let jwt = jwt_service.sign::<_, String>(data, ttl)?;
+    let jwt = jwt_service.sign(data, ttl)?;
     println!("{jwt}");
 
     Ok(())

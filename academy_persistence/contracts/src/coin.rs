@@ -1,6 +1,10 @@
-use std::future::Future;
+use std::{future::Future, ops::Range};
 
-use academy_models::{coin::Balance, user::UserId};
+use academy_models::{
+    coin::{Balance, Transaction},
+    user::UserId,
+};
+use chrono::{DateTime, Utc};
 use thiserror::Error;
 
 #[cfg_attr(feature = "mock", mockall::automock)]
@@ -26,6 +30,21 @@ pub trait CoinRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
         &self,
         txn: &mut Txn,
         user_id: UserId,
+    ) -> impl Future<Output = anyhow::Result<()>> + Send;
+
+    /// Return all transactions of the given user in the given datetime range.
+    fn get_transactions(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
+        datetime_range: Range<DateTime<Utc>>,
+    ) -> impl Future<Output = anyhow::Result<Vec<Transaction>>> + Send;
+
+    /// Create a new transaction.
+    fn create_transaction(
+        &self,
+        txn: &mut Txn,
+        transaction: &Transaction,
     ) -> impl Future<Output = anyhow::Result<()>> + Send;
 }
 
@@ -75,6 +94,34 @@ impl<Txn: Send + Sync + 'static> MockCoinRepository<Txn> {
             .with(
                 mockall::predicate::always(),
                 mockall::predicate::eq(user_id),
+            )
+            .return_once(|_, _| Box::pin(std::future::ready(Ok(()))));
+        self
+    }
+
+    pub fn with_get_transactions(
+        mut self,
+        user_id: UserId,
+        datetime_range: Range<DateTime<Utc>>,
+        result: Vec<Transaction>,
+    ) -> Self {
+        self.expect_get_transactions()
+            .once()
+            .with(
+                mockall::predicate::always(),
+                mockall::predicate::eq(user_id),
+                mockall::predicate::eq(datetime_range),
+            )
+            .return_once(|_, _, _| Box::pin(std::future::ready(Ok(result))));
+        self
+    }
+
+    pub fn with_create_transaction(mut self, transaction: Transaction) -> Self {
+        self.expect_create_transaction()
+            .once()
+            .with(
+                mockall::predicate::always(),
+                mockall::predicate::eq(transaction),
             )
             .return_once(|_, _| Box::pin(std::future::ready(Ok(()))));
         self

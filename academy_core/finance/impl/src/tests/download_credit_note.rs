@@ -23,9 +23,10 @@ async fn ok() {
 
     let db = MockDatabase::build(false);
 
-    let finance_invoice = MockFinanceInvoiceService::new().with_get_invoice_pdf(
-        Some(FOO.user.id),
-        42,
+    let finance_invoice = MockFinanceInvoiceService::new().with_get_credit_note(
+        FOO.user.id,
+        2024,
+        3,
         Some(expected.clone()),
     );
 
@@ -37,7 +38,7 @@ async fn ok() {
     };
 
     // Act
-    let result = sut.download_invoice("the-jwt", 42).await;
+    let result = sut.download_credit_note("the-jwt", 2024, 3).await;
 
     // Assert
     assert_eq!(result.unwrap(), expected);
@@ -55,7 +56,7 @@ async fn invalid_token() {
     };
 
     // Act
-    let result = sut.download_invoice("the-jwt", 42).await;
+    let result = sut.download_credit_note("the-jwt", 2024, 3).await;
 
     // Assert
     assert_matches!(result, Err(FinanceDownloadError::InvalidToken));
@@ -75,7 +76,7 @@ async fn not_found() {
     let db = MockDatabase::build(false);
 
     let finance_invoice =
-        MockFinanceInvoiceService::new().with_get_invoice_pdf(Some(FOO.user.id), 42, None);
+        MockFinanceInvoiceService::new().with_get_credit_note(FOO.user.id, 2024, 3, None);
 
     let sut = FinanceFeatureServiceImpl {
         jwt,
@@ -85,7 +86,7 @@ async fn not_found() {
     };
 
     // Act
-    let result = sut.download_invoice("the-jwt", 42).await;
+    let result = sut.download_credit_note("the-jwt", 2024, 3).await;
 
     // Assert
     assert_matches!(result, Err(FinanceDownloadError::NotFound));

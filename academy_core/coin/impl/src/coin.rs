@@ -1,20 +1,25 @@
 use academy_core_coin_contracts::coin::{CoinAddCoinsError, CoinService};
 use academy_di::Build;
 use academy_models::{
-    coin::{Balance, TransactionDescription},
+    coin::{Balance, Transaction, TransactionDescription},
     user::UserId,
 };
 use academy_persistence_contracts::coin::{CoinRepoAddCoinsError, CoinRepository};
+use academy_shared_contracts::{id::IdService, time::TimeService};
 use academy_utils::trace_instrument;
 
-#[derive(Debug, Clone, Build)]
-pub struct CoinServiceImpl<CoinRepo> {
+#[derive(Debug, Clone, Build, Default)]
+pub struct CoinServiceImpl<Id, Time, CoinRepo> {
+    id: Id,
+    time: Time,
     coin_repo: CoinRepo,
 }
 
-impl<Txn, CoinRepo> CoinService<Txn> for CoinServiceImpl<CoinRepo>
+impl<Txn, Id, Time, CoinRepo> CoinService<Txn> for CoinServiceImpl<Id, Time, CoinRepo>
 where
     Txn: Send + Sync + 'static,
+    Id: IdService,
+    Time: TimeService,
     CoinRepo: CoinRepository<Txn>,
 {
     #[trace_instrument(skip(self, txn))]
@@ -24,27 +29,43 @@ where
         user_id: UserId,
         coins: i64,
         withhold: bool,
-        // TODO: save transactions
-        _description: Option<TransactionDescription>,
-        _include_in_credit_note: bool,
+        description: Option<TransactionDescription>,
+        include_in_credit_note: bool,
     ) -> Result<Balance, CoinAddCoinsError> {
-        self.coin_repo
+        let new_balance = self
+            .coin_repo
             .add_coins(txn, user_id, coins, withhold)
             .await
             .map_err(|err| match err {
                 CoinRepoAddCoinsError::NotEnoughCoins => CoinAddCoinsError::NotEnoughCoins,
                 CoinRepoAddCoinsError::Other(err) => err.into(),
-            })
+            })?;
+
+        let transaction = Transaction {
+            id: self.id.generate(),
+            user_id,
+            coins,
+            description,
+            created_at: self.time.now(),
+            include_in_credit_note,
+        };
+        self.coin_repo.create_transaction(txn, &transaction).await?;
+
+        Ok(new_balance)
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use academy_demo::user::FOO;
+    use academy_demo::{user::FOO, UUID1};
+    use academy_models::coin::TransactionId;
     use academy_persistence_contracts::coin::MockCoinRepository;
+    use academy_shared_contracts::{id::MockIdService, time::MockTimeService};
     use academy_utils::assert_matches;
 
     use super::*;
+
+    type Sut = CoinServiceImpl<MockIdService, MockTimeService, MockCoinRepository<()>>;
 
     #[tokio::test]
     async fn add_coins_ok() {
@@ -56,10 +77,26 @@ mod tests {
 
         let description = TransactionDescription::try_new("test123").unwrap();
 
-        let coin_repo =
-            MockCoinRepository::new().with_add_coins(FOO.user.id, -1337, false, Ok(expected));
+        let id = MockIdService::new().with_generate(TransactionId::from(UUID1));
 
-        let sut = CoinServiceImpl { coin_repo };
+        let time = MockTimeService::new().with_now(FOO.user.last_login.unwrap());
+
+        let coin_repo = MockCoinRepository::new()
+            .with_add_coins(FOO.user.id, -1337, false, Ok(expected))
+            .with_create_transaction(Transaction {
+                id: UUID1.into(),
+                user_id: FOO.user.id,
+                coins: -1337,
+                description: Some(description.clone()),
+                created_at: FOO.user.last_login.unwrap(),
+                include_in_credit_note: true,
+            });
+
+        let sut = CoinServiceImpl {
+            id,
+            time,
+            coin_repo,
+        };
 
         // Act
         let result = sut
@@ -82,7 +119,10 @@ mod tests {
             Err(CoinRepoAddCoinsError::NotEnoughCoins),
         );
 
-        let sut = CoinServiceImpl { coin_repo };
+        let sut = CoinServiceImpl {
+            coin_repo,
+            ..Sut::default()
+        };
 
         // Act
         let result = sut

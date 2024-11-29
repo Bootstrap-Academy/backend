@@ -1331,6 +1331,10 @@ rec {
             packageId = "academy_persistence_contracts";
           }
           {
+            name = "academy_shared_contracts";
+            packageId = "academy_shared_contracts";
+          }
+          {
             name = "academy_utils";
             packageId = "academy_utils";
           }
@@ -1354,6 +1358,11 @@ rec {
           {
             name = "academy_persistence_contracts";
             packageId = "academy_persistence_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_shared_contracts";
+            packageId = "academy_shared_contracts";
             features = [ "mock" ];
           }
           {
@@ -1608,6 +1617,12 @@ rec {
             packageId = "anyhow";
             usesDefaultFeatures = false;
             features = [ "std" ];
+          }
+          {
+            name = "chrono";
+            packageId = "chrono";
+            usesDefaultFeatures = false;
+            features = [ "serde" "clock" ];
           }
           {
             name = "rust_decimal";
@@ -2161,6 +2176,10 @@ rec {
             packageId = "academy_auth_contracts";
           }
           {
+            name = "academy_core_coin_contracts";
+            packageId = "academy_core_coin_contracts";
+          }
+          {
             name = "academy_core_finance_contracts";
             packageId = "academy_core_finance_contracts";
           }
@@ -2228,6 +2247,11 @@ rec {
           {
             name = "academy_auth_contracts";
             packageId = "academy_auth_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_core_coin_contracts";
+            packageId = "academy_core_coin_contracts";
             features = [ "mock" ];
           }
           {

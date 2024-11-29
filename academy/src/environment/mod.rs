@@ -234,6 +234,7 @@ impl ConfigProvider {
         let finance_service_config = FinanceServiceConfig {
             vat_percent: config.finance.vat_percent,
             invoices_archive: config.finance.invoices_archive.clone().into(),
+            credit_notes_archive: config.finance.credit_notes_archive.clone().into(),
             download_token_ttl: config.jwt.download_token_ttl.into(),
         };
 

@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use academy_core_finance_contracts::{
-    FinanceDownloadInvoiceError, FinanceFeatureService, FinanceGetDownloadTokenError,
+    FinanceDownloadError, FinanceFeatureService, FinanceGetDownloadTokenError,
 };
 use aide::{
     axum::{routing, ApiRouter},
@@ -40,6 +40,10 @@ pub fn router(service: Arc<impl FinanceFeatureService>) -> ApiRouter<()> {
             "/finance/invoices/{token}/{invoice_number}/invoice.pdf",
             routing::get_with(download_invoice, download_invoice_docs),
         )
+        .api_route(
+            "/finance/credit_notes/{token}/{year}/{month}/credit_note.pdf",
+            routing::get_with(download_credit_note, download_credit_note_docs),
+        )
         .with_state(service)
         .with_path_items(|op| op.tag(TAG))
 }
@@ -77,9 +81,9 @@ async fn download_invoice(
 ) -> Response {
     match service.download_invoice(&token, invoice_number).await {
         Ok(pdf) => (TypedHeader(ContentType::from(APPLICATION_PDF)), pdf).into_response(),
-        Err(FinanceDownloadInvoiceError::InvalidToken) => InvalidTokenError.into_response(),
-        Err(FinanceDownloadInvoiceError::NotFound) => InvoiceNotFoundError.into_response(),
-        Err(FinanceDownloadInvoiceError::Other(err)) => internal_server_error(err),
+        Err(FinanceDownloadError::InvalidToken) => InvalidTokenError.into_response(),
+        Err(FinanceDownloadError::NotFound) => InvoiceNotFoundError.into_response(),
+        Err(FinanceDownloadError::Other(err)) => internal_server_error(err),
     }
 }
 
@@ -90,7 +94,35 @@ fn download_invoice_docs(op: TransformOperation) -> TransformOperation {
         .with(internal_server_error_docs)
 }
 
+#[derive(Deserialize, JsonSchema)]
+struct DownloadCreditNotePath {
+    token: String,
+    year: i32,
+    month: u32,
+}
+
+async fn download_credit_note(
+    service: State<Arc<impl FinanceFeatureService>>,
+    Path(DownloadCreditNotePath { token, year, month }): Path<DownloadCreditNotePath>,
+) -> Response {
+    match service.download_credit_note(&token, year, month).await {
+        Ok(pdf) => (TypedHeader(ContentType::from(APPLICATION_PDF)), pdf).into_response(),
+        Err(FinanceDownloadError::InvalidToken) => InvalidTokenError.into_response(),
+        Err(FinanceDownloadError::NotFound) => CreditNoteNotYetAvailableError.into_response(),
+        Err(FinanceDownloadError::Other(err)) => internal_server_error(err),
+    }
+}
+
+fn download_credit_note_docs(op: TransformOperation) -> TransformOperation {
+    op.summary("Download a credit note")
+        .add_error::<InvalidTokenError>()
+        .add_error::<CreditNoteNotYetAvailableError>()
+        .with(internal_server_error_docs)
+}
+
 error_code! {
     /// The invoice does not exist.
     InvoiceNotFoundError(NOT_FOUND, "Invoice not found");
+    /// The credit note is not available yet.
+    CreditNoteNotYetAvailableError(NOT_FOUND, "Credit note not yet available");
 }

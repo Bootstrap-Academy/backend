@@ -465,3 +465,18 @@ async fn password() {
     let result = REPO.get_password_hash(&mut txn, FOO.user.id).await.unwrap();
     assert_eq!(result, None);
 }
+
+#[tokio::test]
+async fn user_numbers() {
+    let db = setup().await;
+    let mut txn = db.begin_transaction().await.unwrap();
+
+    assert_eq!(REPO.get_number(&mut txn, FOO.user.id).await.unwrap(), 1);
+    assert_eq!(REPO.get_number(&mut txn, FOO.user.id).await.unwrap(), 1);
+
+    assert_eq!(REPO.get_number(&mut txn, BAR.user.id).await.unwrap(), 2);
+
+    assert_eq!(REPO.get_number(&mut txn, FOO.user.id).await.unwrap(), 1);
+
+    assert_eq!(REPO.get_number(&mut txn, BAR.user.id).await.unwrap(), 2);
+}

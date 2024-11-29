@@ -480,6 +480,35 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
             .map(|n| n != 0)
             .map_err(Into::into)
     }
+
+    async fn get_number(
+        &self,
+        txn: &mut PostgresTransaction,
+        user_id: UserId,
+    ) -> anyhow::Result<u64> {
+        if let Some(number) = txn
+            .txn()
+            .query_opt(
+                "select number from user_numbers where user_id=$1",
+                &[&*user_id],
+            )
+            .await
+            .map(|row| row.map(|row| row.get::<_, i64>(0) as _))?
+        {
+            return Ok(number);
+        }
+
+        txn.txn()
+            .query_one(
+                "insert into user_numbers as un (user_id, number) values ($1, \
+                 nextval('user_number')) on conflict (user_id) do update set number=un.number \
+                 returning number",
+                &[&*user_id],
+            )
+            .await
+            .map(|row| row.get::<_, i64>(0) as _)
+            .map_err(Into::into)
+    }
 }
 
 fn make_filter<'a>(

@@ -20,6 +20,7 @@ academy_shared_contracts.workspace = true
 academy_templates_contracts.workspace = true
 academy_utils.workspace = true
 anyhow.workspace = true
+chrono.workspace = true
 rust_decimal.workspace = true
 rust_decimal_macros.workspace = true
 serde.workspace = true

@@ -81,6 +81,7 @@ purchase_max = 1000000
 [finance]
 vat_percent = 19
 # invoices_archive = ""
+# credit_notes_archive = ""
 
 # [sentry]
 # enable = true

@@ -8,6 +8,7 @@ use rust_decimal_macros::dec;
 
 use crate::{FinanceFeatureServiceImpl, FinanceServiceConfig};
 
+mod download_credit_note;
 mod download_invoice;
 mod get_download_token;
 
@@ -23,6 +24,7 @@ impl Default for FinanceServiceConfig {
         Self {
             vat_percent: dec!(19),
             invoices_archive: Path::new("/invoices").into(),
+            credit_notes_archive: Path::new("/credit_notes").into(),
             download_token_ttl: Duration::from_secs(600),
         }
     }

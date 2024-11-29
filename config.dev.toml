@@ -40,6 +40,7 @@ chrome_bin = "/usr/bin/chromium"
 
 [finance]
 invoices_archive = ".invoices"
+credit_notes_archive = ".credit_notes"
 
 [oauth2.providers.test]
 enable = true

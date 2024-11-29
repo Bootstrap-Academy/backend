@@ -2,7 +2,7 @@ use std::{path::Path, sync::Arc, time::Duration};
 
 use academy_auth_contracts::{AuthResultExt, AuthService};
 use academy_core_finance_contracts::{
-    invoice::FinanceInvoiceService, FinanceDownloadInvoiceError, FinanceFeatureService,
+    invoice::FinanceInvoiceService, FinanceDownloadError, FinanceFeatureService,
     FinanceGetDownloadTokenError,
 };
 use academy_di::Build;
@@ -34,6 +34,7 @@ pub struct FinanceFeatureServiceImpl<Db, Auth, Jwt, FinanceInvoice> {
 pub struct FinanceServiceConfig {
     pub vat_percent: Decimal,
     pub invoices_archive: Arc<Path>,
+    pub credit_notes_archive: Arc<Path>,
     pub download_token_ttl: Duration,
 }
 
@@ -66,11 +67,11 @@ where
         &self,
         token: &str,
         invoice_number: u64,
-    ) -> Result<Vec<u8>, FinanceDownloadInvoiceError> {
+    ) -> Result<Vec<u8>, FinanceDownloadError> {
         let DownloadToken { sub: user_id, .. } =
             self.jwt.verify(token).map_err(|err| match err {
                 VerifyJwtError::Expired(_) | VerifyJwtError::Invalid => {
-                    FinanceDownloadInvoiceError::InvalidToken
+                    FinanceDownloadError::InvalidToken
                 }
             })?;
 
@@ -79,7 +80,29 @@ where
         self.finance_invoice
             .get_invoice_pdf(&mut txn, Some(user_id), invoice_number)
             .await?
-            .ok_or(FinanceDownloadInvoiceError::NotFound)
+            .ok_or(FinanceDownloadError::NotFound)
+    }
+
+    #[instrument(skip(self))]
+    async fn download_credit_note(
+        &self,
+        token: &str,
+        year: i32,
+        month: u32,
+    ) -> Result<Vec<u8>, FinanceDownloadError> {
+        let DownloadToken { sub: user_id, .. } =
+            self.jwt.verify(token).map_err(|err| match err {
+                VerifyJwtError::Expired(_) | VerifyJwtError::Invalid => {
+                    FinanceDownloadError::InvalidToken
+                }
+            })?;
+
+        let mut txn = self.db.begin_transaction().await?;
+
+        self.finance_invoice
+            .get_credit_note(&mut txn, user_id, year, month)
+            .await?
+            .ok_or(FinanceDownloadError::NotFound)
     }
 }
 

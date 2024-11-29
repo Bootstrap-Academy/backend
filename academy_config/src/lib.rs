@@ -229,6 +229,7 @@ pub struct RenderConfig {
 pub struct FinanceConfig {
     pub vat_percent: Decimal,
     pub invoices_archive: PathBuf,
+    pub credit_notes_archive: PathBuf,
 }
 
 #[derive(Debug, Deserialize)]

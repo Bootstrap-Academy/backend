@@ -1,10 +1,19 @@
+use std::ops::Range;
+
 use academy_di::Build;
-use academy_models::{coin::Balance, user::UserId};
+use academy_models::{
+    coin::{Balance, Transaction},
+    user::UserId,
+};
 use academy_persistence_contracts::coin::{CoinRepoAddCoinsError, CoinRepository};
 use academy_utils::trace_instrument;
 use bb8_postgres::tokio_postgres::{self, Row};
+use chrono::{DateTime, Utc};
+use uuid::Uuid;
 
-use crate::{ColumnCounter, PostgresTransaction};
+use crate::{arg_indices, columns, ColumnCounter, PostgresTransaction};
+
+columns!(transaction as "t": "id", "user_id", "created_at", "coins", "description", "include_in_credit_note");
 
 #[derive(Debug, Clone, Build)]
 pub struct PostgresCoinRepository;
@@ -85,6 +94,54 @@ impl CoinRepository<PostgresTransaction> for PostgresCoinRepository {
             .map(|_| ())
             .map_err(Into::into)
     }
+
+    async fn get_transactions(
+        &self,
+        txn: &mut PostgresTransaction,
+        user_id: UserId,
+        datetime_range: Range<DateTime<Utc>>,
+    ) -> anyhow::Result<Vec<Transaction>> {
+        txn.txn()
+            .query(
+                &format!(
+                    "select {TRANSACTION_COLS} from transactions t where user_id=$1 and $2 <= \
+                     created_at and created_at < $3 order by created_at asc"
+                ),
+                &[&*user_id, &datetime_range.start, &datetime_range.end],
+            )
+            .await
+            .map_err(Into::into)
+            .and_then(|rows| {
+                rows.into_iter()
+                    .map(|row| decode_transaction(&row, &mut Default::default()))
+                    .collect()
+            })
+    }
+
+    async fn create_transaction(
+        &self,
+        txn: &mut PostgresTransaction,
+        transaction: &Transaction,
+    ) -> anyhow::Result<()> {
+        txn.txn()
+            .execute(
+                &format!(
+                    "insert into transactions ({TRANSACTION_COL_NAMES}) values ({})",
+                    arg_indices(1..=TRANSACTION_CNT)
+                ),
+                &[
+                    &*transaction.id,
+                    &*transaction.user_id,
+                    &transaction.created_at,
+                    &transaction.coins,
+                    &transaction.description.as_deref(),
+                    &transaction.include_in_credit_note,
+                ],
+            )
+            .await
+            .map(|_| ())
+            .map_err(Into::into)
+    }
 }
 
 fn decode_balance(row: &Row, cnt: &mut ColumnCounter) -> anyhow::Result<Balance> {
@@ -104,4 +161,18 @@ fn map_add_coins_error(err: tokio_postgres::Error) -> CoinRepoAddCoinsError {
         }
         _ => CoinRepoAddCoinsError::Other(err.into()),
     }
+}
+
+fn decode_transaction(row: &Row, cnt: &mut ColumnCounter) -> anyhow::Result<Transaction> {
+    Ok(Transaction {
+        id: row.get::<_, Uuid>(cnt.idx()).into(),
+        user_id: row.get::<_, Uuid>(cnt.idx()).into(),
+        created_at: row.get(cnt.idx()),
+        coins: row.get(cnt.idx()),
+        description: row
+            .get::<_, Option<String>>(cnt.idx())
+            .map(TryInto::try_into)
+            .transpose()?,
+        include_in_credit_note: row.get(cnt.idx()),
+    })
 }

@@ -1,3 +1,4 @@
+use academy_core_coin_contracts::coin::CoinService;
 use academy_core_paypal_contracts::coin_order::PaypalCoinOrderService;
 use academy_di::Build;
 use academy_models::{
@@ -5,24 +6,24 @@ use academy_models::{
     paypal::{PaypalCoinOrder, PaypalOrderId},
     user::UserId,
 };
-use academy_persistence_contracts::{coin::CoinRepository, paypal::PaypalRepository};
+use academy_persistence_contracts::paypal::PaypalRepository;
 use academy_shared_contracts::time::TimeService;
 use academy_utils::trace_instrument;
 
 #[derive(Debug, Clone, Build, Default)]
-pub struct PaypalCoinOrderServiceImpl<Time, PaypalRepo, CoinRepo> {
+pub struct PaypalCoinOrderServiceImpl<Time, PaypalRepo, Coin> {
     time: Time,
     paypal_repo: PaypalRepo,
-    coin_repo: CoinRepo,
+    coin: Coin,
 }
 
-impl<Txn, Time, PaypalRepo, CoinRepo> PaypalCoinOrderService<Txn>
-    for PaypalCoinOrderServiceImpl<Time, PaypalRepo, CoinRepo>
+impl<Txn, Time, PaypalRepo, Coin> PaypalCoinOrderService<Txn>
+    for PaypalCoinOrderServiceImpl<Time, PaypalRepo, Coin>
 where
     Txn: Send + Sync + 'static,
     Time: TimeService,
     PaypalRepo: PaypalRepository<Txn>,
-    CoinRepo: CoinRepository<Txn>,
+    Coin: CoinService<Txn>,
 {
     #[trace_instrument(skip(self, txn))]
     async fn create(
@@ -58,8 +59,15 @@ where
             .await?;
 
         let new_balance = self
-            .coin_repo
-            .add_coins(txn, order.user_id, order.coins.try_into()?, false)
+            .coin
+            .add_coins(
+                txn,
+                order.user_id,
+                order.coins.try_into()?,
+                false,
+                Some("PayPal".try_into()?),
+                false,
+            )
             .await?;
 
         Ok(new_balance)
@@ -70,17 +78,15 @@ where
 mod tests {
     use std::time::Duration;
 
+    use academy_core_coin_contracts::coin::MockCoinService;
     use academy_demo::user::FOO;
-    use academy_persistence_contracts::{coin::MockCoinRepository, paypal::MockPaypalRepository};
+    use academy_persistence_contracts::paypal::MockPaypalRepository;
     use academy_shared_contracts::time::MockTimeService;
 
     use super::*;
 
-    type Sut = PaypalCoinOrderServiceImpl<
-        MockTimeService,
-        MockPaypalRepository<()>,
-        MockCoinRepository<()>,
-    >;
+    type Sut =
+        PaypalCoinOrderServiceImpl<MockTimeService, MockPaypalRepository<()>, MockCoinService<()>>;
 
     #[tokio::test]
     async fn create() {
@@ -143,9 +149,11 @@ mod tests {
         let paypal_repo =
             MockPaypalRepository::new().with_capture_coin_order(order.id.clone(), now);
 
-        let coin_repo = MockCoinRepository::new().with_add_coins(
+        let coin = MockCoinService::new().with_add_coins(
             order.user_id,
             order.coins as _,
+            false,
+            Some("PayPal".try_into().unwrap()),
             false,
             Ok(expected),
         );
@@ -153,7 +161,7 @@ mod tests {
         let sut = PaypalCoinOrderServiceImpl {
             time,
             paypal_repo,
-            coin_repo,
+            coin,
         };
 
         // Act

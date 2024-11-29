@@ -140,6 +140,7 @@ in {
         cache.url = lib.mkIf cfg.localCache "redis+unix://${config.services.redis.servers.academy.unixSocket}";
         render.chrome_bin = lib.mkDefault (lib.getExe cfg.chromePackage);
         finance.invoices_archive = lib.mkDefault "/var/lib/academy/invoices";
+        finance.credit_notes_archive = lib.mkDefault "/var/lib/academy/credit_notes";
       };
 
       environment.systemPackages = [wrapper];

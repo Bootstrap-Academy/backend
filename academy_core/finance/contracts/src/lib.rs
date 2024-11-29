@@ -20,7 +20,15 @@ pub trait FinanceFeatureService: Send + Sync + 'static {
         &self,
         token: &str,
         invoice_number: u64,
-    ) -> impl Future<Output = Result<Vec<u8>, FinanceDownloadInvoiceError>> + Send;
+    ) -> impl Future<Output = Result<Vec<u8>, FinanceDownloadError>> + Send;
+
+    /// Download the given credit note pdf.
+    fn download_credit_note(
+        &self,
+        token: &str,
+        year: i32,
+        month: u32,
+    ) -> impl Future<Output = Result<Vec<u8>, FinanceDownloadError>> + Send;
 }
 
 #[derive(Debug, Error)]
@@ -32,7 +40,7 @@ pub enum FinanceGetDownloadTokenError {
 }
 
 #[derive(Debug, Error)]
-pub enum FinanceDownloadInvoiceError {
+pub enum FinanceDownloadError {
     #[error("The download token is invalid or has expired.")]
     InvalidToken,
     #[error("The invoice does not exist.")]

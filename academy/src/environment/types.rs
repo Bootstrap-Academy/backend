@@ -179,7 +179,7 @@ pub type OAuth2Login = OAuth2LoginServiceImpl<OAuth2Api>;
 pub type OAuth2Registration = OAuth2RegistrationServiceImpl<Secret, Cache>;
 
 pub type CoinFeature = CoinFeatureServiceImpl<Database, Auth, UserRepo, CoinRepo, Coin>;
-pub type Coin = CoinServiceImpl<CoinRepo>;
+pub type Coin = CoinServiceImpl<Id, Time, CoinRepo>;
 
 pub type PaypalFeature = PaypalFeatureServiceImpl<
     Database,
@@ -192,11 +192,19 @@ pub type PaypalFeature = PaypalFeatureServiceImpl<
     FinanceInvoice,
     FinanceCoin,
 >;
-pub type PaypalCoinOrder = PaypalCoinOrderServiceImpl<Time, PaypalRepo, CoinRepo>;
+pub type PaypalCoinOrder = PaypalCoinOrderServiceImpl<Time, PaypalRepo, Coin>;
 
 pub type FinanceFeature = FinanceFeatureServiceImpl<Database, Auth, Jwt, FinanceInvoice>;
-pub type FinanceInvoice =
-    FinanceInvoiceServiceImpl<Fs, Template, RenderPdf, PaypalRepo, UserRepo, FinanceCoin>;
+pub type FinanceInvoice = FinanceInvoiceServiceImpl<
+    Time,
+    Fs,
+    Template,
+    RenderPdf,
+    PaypalRepo,
+    UserRepo,
+    CoinRepo,
+    FinanceCoin,
+>;
 pub type FinanceCoin = FinanceCoinServiceImpl;
 
 pub type Internal = InternalServiceImpl<Database, AuthInternal, UserRepo, Coin>;

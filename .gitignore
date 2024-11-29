@@ -7,3 +7,4 @@ repl-result-*
 .devenv
 .lcov*
 .invoices
+.credit_notes

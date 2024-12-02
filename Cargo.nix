@@ -3186,7 +3186,7 @@ rec {
           }
           {
             name = "indexmap";
-            packageId = "indexmap 2.6.0";
+            packageId = "indexmap 2.7.0";
             features = [ "serde" ];
           }
           {
@@ -3270,9 +3270,9 @@ rec {
       };
       "allocator-api2" = rec {
         crateName = "allocator-api2";
-        version = "0.2.20";
+        version = "0.2.21";
         edition = "2018";
-        sha256 = "1n9ryymwk9k7a5fqvbc7kfy6xn03q9drsq5w22g8n8pjfwf2v1j5";
+        sha256 = "08zrzs022xwndihvzdn78yqarv2b9696y67i6h78nla3ww87jgb8";
         libName = "allocator_api2";
         authors = [
           "Zakarum <zaq.dev@icloud.com>"
@@ -4300,9 +4300,9 @@ rec {
       };
       "bytes" = rec {
         crateName = "bytes";
-        version = "1.8.0";
+        version = "1.9.0";
         edition = "2018";
-        sha256 = "1nnhpb7jlpj393qnjr1n9n6sgpl3w5ymrwl3pnjmrriam861bh4s";
+        sha256 = "16ykzx24v1x4f42v2lxyvlczqhdfji3v7r4ghwckpwijzvb1hn9j";
         authors = [
           "Carl Lerche <me@carllerche.com>"
           "Sean McArthur <sean@seanmonstar.com>"
@@ -4315,9 +4315,9 @@ rec {
       };
       "cc" = rec {
         crateName = "cc";
-        version = "1.2.1";
+        version = "1.2.2";
         edition = "2018";
-        sha256 = "0izavwg0w3ahhp8jhajy97adv53r6ggv11g6czyz6pjx43rfk7gx";
+        sha256 = "1p7b7sxdr2hh8l9ha4cjyf1cmkigdjy4qcycriqgbjh35gk96kgk";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -5889,7 +5889,7 @@ rec {
           }
           {
             name = "indexmap";
-            packageId = "indexmap 2.6.0";
+            packageId = "indexmap 2.7.0";
             features = [ "std" ];
           }
           {
@@ -5961,7 +5961,7 @@ rec {
           }
           {
             name = "indexmap";
-            packageId = "indexmap 2.6.0";
+            packageId = "indexmap 2.7.0";
             features = [ "std" ];
           }
           {
@@ -6156,23 +6156,6 @@ rec {
         edition = "2021";
         sha256 = "1sjmpsdl8czyh9ywl3qcsfsq9a307dg4ni2vnlwgnzzqhc4y0113";
 
-      };
-      "hermit-abi" = rec {
-        crateName = "hermit-abi";
-        version = "0.3.9";
-        edition = "2021";
-        sha256 = "092hxjbjnq5fmz66grd9plxd0sh6ssg5fhgwwwqbrzgzkjwdycfj";
-        libName = "hermit_abi";
-        authors = [
-          "Stefan Lankes"
-        ];
-        features = {
-          "alloc" = [ "dep:alloc" ];
-          "compiler_builtins" = [ "dep:compiler_builtins" ];
-          "core" = [ "dep:core" ];
-          "rustc-dep-of-std" = [ "core" "alloc" "compiler_builtins/rustc-dep-of-std" ];
-        };
-        resolvedDefaultFeatures = [ "default" ];
       };
       "hex" = rec {
         crateName = "hex";
@@ -7494,11 +7477,11 @@ rec {
         };
         resolvedDefaultFeatures = [ "serde" "serde-1" ];
       };
-      "indexmap 2.6.0" = rec {
+      "indexmap 2.7.0" = rec {
         crateName = "indexmap";
-        version = "2.6.0";
+        version = "2.7.0";
         edition = "2021";
-        sha256 = "1nmrwn8lbs19gkvhxaawffzbvrpyrb5y3drcrr645x957kz0fybh";
+        sha256 = "07s7jmdymvd0rm4yswp0j3napx57hkjm9gs9n55lvs2g78vj5y32";
         dependencies = [
           {
             name = "equivalent";
@@ -7634,20 +7617,30 @@ rec {
       };
       "js-sys" = rec {
         crateName = "js-sys";
-        version = "0.3.72";
+        version = "0.3.74";
         edition = "2021";
-        sha256 = "1a8r61hbgw5kmscgj3g5pzg2ywlnswvljy0l592v0xdxlayz323a";
+        sha256 = "01g78cvwc5fgsk2p4hnpgd6ggzs1qmh7s3cgg1prbvgnywwf0rd8";
         libName = "js_sys";
         authors = [
           "The wasm-bindgen Developers"
         ];
         dependencies = [
           {
+            name = "once_cell";
+            packageId = "once_cell";
+            usesDefaultFeatures = false;
+          }
+          {
             name = "wasm-bindgen";
             packageId = "wasm-bindgen";
+            usesDefaultFeatures = false;
           }
         ];
-
+        features = {
+          "default" = [ "std" ];
+          "std" = [ "wasm-bindgen/std" ];
+        };
+        resolvedDefaultFeatures = [ "default" "std" ];
       };
       "jwt" = rec {
         crateName = "jwt";
@@ -7939,9 +7932,9 @@ rec {
       };
       "libc" = rec {
         crateName = "libc";
-        version = "0.2.166";
-        edition = "2015";
-        sha256 = "0dnyxi6n3h72cq79grmvc2vcmh13v1y4x1k1s0dk7cf0pc4c3k62";
+        version = "0.2.167";
+        edition = "2021";
+        sha256 = "1z06pa4y2x2arwm7si12xsaf1cj46l9pazzrvwbsh5a320p5imh9";
         authors = [
           "The Rust Project Developers"
         ];
@@ -7955,9 +7948,9 @@ rec {
       };
       "litemap" = rec {
         crateName = "litemap";
-        version = "0.7.4";
+        version = "0.7.3";
         edition = "2021";
-        sha256 = "012ili3vppd4952sh6y3qwcd0jkd0bq2qpr9h7cppc8sj11k7saf";
+        sha256 = "0157lf44c3s2piqiwpppnynzzpv1rxyddl2z9l089hpwsjwb0g34";
         authors = [
           "The ICU4X Project Developers"
         ];
@@ -7969,7 +7962,7 @@ rec {
           "testing" = [ "alloc" ];
           "yoke" = [ "dep:yoke" ];
         };
-        resolvedDefaultFeatures = [ "alloc" ];
+        resolvedDefaultFeatures = [ "alloc" "default" ];
       };
       "lock_api" = rec {
         crateName = "lock_api";
@@ -8156,9 +8149,9 @@ rec {
       };
       "mio" = rec {
         crateName = "mio";
-        version = "1.0.2";
+        version = "1.0.3";
         edition = "2021";
-        sha256 = "1v1cnnn44awxbcfm4zlavwgkvbyg7gp5zzjm8mqf1apkrwflvq40";
+        sha256 = "1gah0h4ia3avxbwym0b6bi6lr6rpysmj9zvw6zis5yq0z0xq91i8";
         authors = [
           "Carl Lerche <me@carllerche.com>"
           "Thomas de Zeeuw <thomasdezeeuw@gmail.com>"
@@ -8166,9 +8159,8 @@ rec {
         ];
         dependencies = [
           {
-            name = "hermit-abi";
-            packageId = "hermit-abi";
-            rename = "libc";
+            name = "libc";
+            packageId = "libc";
             target = { target, features }: ("hermit" == target."os" or null);
           }
           {
@@ -8695,9 +8687,9 @@ rec {
       };
       "os_info" = rec {
         crateName = "os_info";
-        version = "3.8.2";
+        version = "3.9.0";
         edition = "2018";
-        sha256 = "14hhnnln768z7zhdpc2rhqpmlmcg9y05w27cw6ppr36kdpxcg6df";
+        sha256 = "1kkracbdi8x1yaa2dymhv05rqz14rl1lal2dnh0bpvc3icfp3jp5";
         authors = [
           "Jan Schulte <hello@unexpected-co.de>"
           "Stanislav Tkach <stanislav.tkach@gmail.com>"
@@ -10876,9 +10868,9 @@ rec {
       };
       "rustc-hash" = rec {
         crateName = "rustc-hash";
-        version = "2.0.0";
+        version = "2.1.0";
         edition = "2021";
-        sha256 = "0lni0lf846bzrf3jvci6jaf4142n1mdqxvcpczk5ch9pfgyk8c2q";
+        sha256 = "15yln6fmqlbg0k35r748h8g9xsd637ri23xihq81jb03ncwq1yy7";
         libName = "rustc_hash";
         authors = [
           "The Rust Project Developers"
@@ -11186,7 +11178,7 @@ rec {
           }
           {
             name = "indexmap";
-            packageId = "indexmap 2.6.0";
+            packageId = "indexmap 2.7.0";
             rename = "indexmap2";
             optional = true;
             features = [ "serde" ];
@@ -12184,9 +12176,9 @@ rec {
       };
       "socket2" = rec {
         crateName = "socket2";
-        version = "0.5.7";
+        version = "0.5.8";
         edition = "2021";
-        sha256 = "070r941wbq76xpy039an4pyiy3rfj7mp7pvibf1rcri9njq5wc6f";
+        sha256 = "1s7vjmb5gzp3iaqi94rh9r63k9cj00kjgbfn7gn60kmnk6fjcw69";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
           "Thomas de Zeeuw <thomasdezeeuw@gmail.com>"
@@ -13292,7 +13284,7 @@ rec {
         dependencies = [
           {
             name = "indexmap";
-            packageId = "indexmap 2.6.0";
+            packageId = "indexmap 2.7.0";
             features = [ "std" ];
           }
           {
@@ -14062,9 +14054,9 @@ rec {
       };
       "ureq" = rec {
         crateName = "ureq";
-        version = "2.10.1";
+        version = "2.11.0";
         edition = "2018";
-        sha256 = "0jkgjllj1flrsv55q0bhbn7kmb03bxsm8iq5yxrk7gi5g2swckxp";
+        sha256 = "0ywy0a9m6p6mv0qb9ssk77zzcgvxjrvfwhg2br9l7yp1xybny3mk";
         authors = [
           "Martin Algesten <martin@algesten.se>"
           "Jacob Hoffman-Andrews <ureq@hoffman-andrews.com>"
@@ -14073,6 +14065,10 @@ rec {
           {
             name = "base64";
             packageId = "base64 0.22.1";
+          }
+          {
+            name = "litemap";
+            packageId = "litemap";
           }
           {
             name = "log";
@@ -14102,6 +14098,14 @@ rec {
             name = "webpki-roots";
             packageId = "webpki-roots 0.26.7";
             optional = true;
+          }
+          {
+            name = "yoke";
+            packageId = "yoke";
+          }
+          {
+            name = "zerofrom";
+            packageId = "zerofrom";
           }
         ];
         devDependencies = [
@@ -14354,9 +14358,9 @@ rec {
       };
       "wasm-bindgen" = rec {
         crateName = "wasm-bindgen";
-        version = "0.2.95";
+        version = "0.2.97";
         edition = "2021";
-        sha256 = "0bpbvmxhil380gpv53smaypl8wc7sy7rq8apxfw349pn78v1x38j";
+        sha256 = "0p1dxkfcx2avdjkh3cj9lipfnr73q438fyqasw4w2qr892s66pni";
         libName = "wasm_bindgen";
         authors = [
           "The wasm-bindgen Developers"
@@ -14369,10 +14373,26 @@ rec {
           {
             name = "once_cell";
             packageId = "once_cell";
+            usesDefaultFeatures = false;
           }
           {
             name = "wasm-bindgen-macro";
             packageId = "wasm-bindgen-macro";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "wasm-bindgen-macro";
+            packageId = "wasm-bindgen-macro";
+            usesDefaultFeatures = false;
+            target = { target, features }: (("wasm32" == target."arch" or null) && (("unknown" == target."os" or null) || ("none" == target."os" or null)) && (builtins.elem "atomics" targetFeatures));
+            features = [ "atomics" ];
+          }
+          {
+            name = "wasm-bindgen-macro";
+            packageId = "wasm-bindgen-macro";
+            usesDefaultFeatures = false;
+            target = { target, features }: (("wasm32" == target."arch" or null) && (("unknown" == target."os" or null) || ("none" == target."os" or null)) && (target."wasm_bindgen_unstable_test_coverage" or false));
+            features = [ "coverage" ];
           }
         ];
         features = {
@@ -14382,6 +14402,7 @@ rec {
           "serde-serialize" = [ "serde" "serde_json" "std" ];
           "serde_json" = [ "dep:serde_json" ];
           "spans" = [ "wasm-bindgen-macro/spans" ];
+          "std" = [ "wasm-bindgen-macro/std" "once_cell/std" ];
           "strict-macro" = [ "wasm-bindgen-macro/strict-macro" ];
           "xxx_debug_only_print_generated_code" = [ "wasm-bindgen-macro/xxx_debug_only_print_generated_code" ];
         };
@@ -14389,9 +14410,9 @@ rec {
       };
       "wasm-bindgen-backend" = rec {
         crateName = "wasm-bindgen-backend";
-        version = "0.2.95";
+        version = "0.2.97";
         edition = "2021";
-        sha256 = "0n53wgy78bgzgjwk0z69zbspzhv8p2a4zh69s4fzvpqdrb9x8vfb";
+        sha256 = "1kcqk7ph20fc7k9hprkd28zrb3p4cfy24ygnsgfidjmawc9fydld";
         libName = "wasm_bindgen_backend";
         authors = [
           "The wasm-bindgen Developers"
@@ -14428,15 +14449,16 @@ rec {
           }
         ];
         features = {
+          "default" = [ "std" ];
           "extra-traits" = [ "syn/extra-traits" ];
         };
-        resolvedDefaultFeatures = [ "spans" ];
+        resolvedDefaultFeatures = [ "atomics" "coverage" "spans" "std" ];
       };
       "wasm-bindgen-futures" = rec {
         crateName = "wasm-bindgen-futures";
-        version = "0.4.45";
+        version = "0.4.47";
         edition = "2021";
-        sha256 = "0fznn43frhq72ci41lgybahv6assvfmqfgnvfiimhwbshbwc8znc";
+        sha256 = "0gc3n04cl40nykcj74j1balnd2mhv33l0f9jxqvkfaaz1vsziylx";
         libName = "wasm_bindgen_futures";
         authors = [
           "The wasm-bindgen Developers"
@@ -14449,28 +14471,39 @@ rec {
           {
             name = "js-sys";
             packageId = "js-sys";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "once_cell";
+            packageId = "once_cell";
+            usesDefaultFeatures = false;
           }
           {
             name = "wasm-bindgen";
             packageId = "wasm-bindgen";
+            usesDefaultFeatures = false;
           }
           {
             name = "web-sys";
             packageId = "web-sys";
+            usesDefaultFeatures = false;
             target = { target, features }: (builtins.elem "atomics" targetFeatures);
             features = [ "MessageEvent" "Worker" ];
           }
         ];
         features = {
+          "default" = [ "std" ];
           "futures-core" = [ "dep:futures-core" ];
           "futures-core-03-stream" = [ "futures-core" ];
+          "std" = [ "wasm-bindgen/std" "js-sys/std" "web-sys/std" "once_cell/std" ];
         };
+        resolvedDefaultFeatures = [ "default" "std" ];
       };
       "wasm-bindgen-macro" = rec {
         crateName = "wasm-bindgen-macro";
-        version = "0.2.95";
+        version = "0.2.97";
         edition = "2021";
-        sha256 = "0mic8b2vab1a91m6x3hjxkwz23094bq1cwhnszarsnlggyz894z7";
+        sha256 = "0l804si7h527lfzr103bg5wxaa769fa6rmp7dnry9ls2igh40m3h";
         procMacro = true;
         libName = "wasm_bindgen_macro";
         authors = [
@@ -14484,19 +14517,24 @@ rec {
           {
             name = "wasm-bindgen-macro-support";
             packageId = "wasm-bindgen-macro-support";
+            usesDefaultFeatures = false;
           }
         ];
         features = {
+          "atomics" = [ "wasm-bindgen-macro-support/atomics" ];
+          "coverage" = [ "wasm-bindgen-macro-support/coverage" ];
+          "default" = [ "std" ];
           "spans" = [ "wasm-bindgen-macro-support/spans" ];
+          "std" = [ "wasm-bindgen-macro-support/std" ];
           "strict-macro" = [ "wasm-bindgen-macro-support/strict-macro" ];
         };
-        resolvedDefaultFeatures = [ "spans" ];
+        resolvedDefaultFeatures = [ "atomics" "coverage" "spans" "std" ];
       };
       "wasm-bindgen-macro-support" = rec {
         crateName = "wasm-bindgen-macro-support";
-        version = "0.2.95";
+        version = "0.2.97";
         edition = "2021";
-        sha256 = "0s7g6glb85lyx2pj83shbmg4d50mvqhb2c2qk2j28yigaxbspii6";
+        sha256 = "079z3gv3cyqcmaw164i6kgf1iyiw4b65a0hgrpp4svz4frdaxjcq";
         libName = "wasm_bindgen_macro_support";
         authors = [
           "The wasm-bindgen Developers"
@@ -14518,6 +14556,7 @@ rec {
           {
             name = "wasm-bindgen-backend";
             packageId = "wasm-bindgen-backend";
+            usesDefaultFeatures = false;
           }
           {
             name = "wasm-bindgen-shared";
@@ -14525,17 +14564,21 @@ rec {
           }
         ];
         features = {
+          "atomics" = [ "wasm-bindgen-backend/atomics" ];
+          "coverage" = [ "wasm-bindgen-backend/coverage" ];
+          "default" = [ "std" ];
           "extra-traits" = [ "syn/extra-traits" ];
           "spans" = [ "wasm-bindgen-backend/spans" ];
+          "std" = [ "wasm-bindgen-backend/std" ];
         };
-        resolvedDefaultFeatures = [ "spans" ];
+        resolvedDefaultFeatures = [ "atomics" "coverage" "spans" "std" ];
       };
       "wasm-bindgen-shared" = rec {
         crateName = "wasm-bindgen-shared";
-        version = "0.2.95";
+        version = "0.2.97";
         edition = "2021";
         links = "wasm_bindgen";
-        sha256 = "1386q7mvv5ky003hcc6yyxpid3y1m7fy0l920i3z3ab60vqhkz35";
+        sha256 = "0jbddll4qzf7wnvfj19kp1v6naajzbv8wcr1arkvs4dsqnlrvsbf";
         libName = "wasm_bindgen_shared";
         authors = [
           "The wasm-bindgen Developers"
@@ -14544,9 +14587,9 @@ rec {
       };
       "web-sys" = rec {
         crateName = "web-sys";
-        version = "0.3.72";
+        version = "0.3.74";
         edition = "2021";
-        sha256 = "04k19hilj9r8sx6q20fz853149gfpmf83yk2zvq0s14c2288nj7n";
+        sha256 = "0g462gsxlv6sim9wlra35my2ma2g0f4in16dsydfbrqg7z1w72x9";
         libName = "web_sys";
         authors = [
           "The wasm-bindgen Developers"
@@ -14555,10 +14598,12 @@ rec {
           {
             name = "js-sys";
             packageId = "js-sys";
+            usesDefaultFeatures = false;
           }
           {
             name = "wasm-bindgen";
             packageId = "wasm-bindgen";
+            usesDefaultFeatures = false;
           }
         ];
         features = {
@@ -14763,6 +14808,7 @@ rec {
           "KeyboardEvent" = [ "Event" "UiEvent" ];
           "KeyframeEffect" = [ "AnimationEffect" ];
           "LocalMediaStream" = [ "EventTarget" "MediaStream" ];
+          "MathMlElement" = [ "Element" "EventTarget" "Node" ];
           "MediaDevices" = [ "EventTarget" ];
           "MediaElementAudioSourceNode" = [ "AudioNode" "EventTarget" ];
           "MediaEncryptedEvent" = [ "Event" ];
@@ -15016,8 +15062,10 @@ rec {
           "XrSystem" = [ "EventTarget" ];
           "XrViewerPose" = [ "XrPose" ];
           "XrWebGlLayer" = [ "EventTarget" "XrLayer" ];
+          "default" = [ "std" ];
+          "std" = [ "wasm-bindgen/std" "js-sys/std" ];
         };
-        resolvedDefaultFeatures = [ "AbortController" "AbortSignal" "Blob" "BlobPropertyBag" "Document" "Event" "EventTarget" "File" "FormData" "Headers" "Location" "MessageEvent" "Navigator" "Node" "ReadableStream" "Request" "RequestCredentials" "RequestInit" "RequestMode" "Response" "ServiceWorkerGlobalScope" "Window" "Worker" "WorkerGlobalScope" ];
+        resolvedDefaultFeatures = [ "AbortController" "AbortSignal" "Blob" "BlobPropertyBag" "Document" "Event" "EventTarget" "File" "FormData" "Headers" "Location" "MessageEvent" "Navigator" "Node" "ReadableStream" "Request" "RequestCredentials" "RequestInit" "RequestMode" "Response" "ServiceWorkerGlobalScope" "Window" "Worker" "WorkerGlobalScope" "default" "std" ];
       };
       "web-time" = rec {
         crateName = "web-time";
@@ -17075,9 +17123,9 @@ rec {
       };
       "yoke" = rec {
         crateName = "yoke";
-        version = "0.7.5";
+        version = "0.7.4";
         edition = "2021";
-        sha256 = "0h3znzrdmll0a7sglzf9ji0p5iqml11wrj1dypaf6ad6kbpnl3hj";
+        sha256 = "198c4jkh6i3hxijia7mfa4cpnxg1iqym9bz364697c3rn0a16nvc";
         authors = [
           "Manish Goregaokar <manishsmail@gmail.com>"
         ];
@@ -17223,9 +17271,9 @@ rec {
       };
       "zerofrom" = rec {
         crateName = "zerofrom";
-        version = "0.1.5";
+        version = "0.1.4";
         edition = "2021";
-        sha256 = "0bnd8vjcllzrvr3wvn8x14k2hkrpyy1fm3crkn2y3plmr44fxwyg";
+        sha256 = "0mdbjd7vmbix2ynxbrbrrli47a5yrpfx05hi99wf1l4pwwf13v4i";
         authors = [
           "Manish Goregaokar <manishsmail@gmail.com>"
         ];
@@ -17241,7 +17289,7 @@ rec {
           "default" = [ "alloc" ];
           "derive" = [ "dep:zerofrom-derive" ];
         };
-        resolvedDefaultFeatures = [ "alloc" "derive" ];
+        resolvedDefaultFeatures = [ "alloc" "default" "derive" ];
       };
       "zerofrom-derive" = rec {
         crateName = "zerofrom-derive";

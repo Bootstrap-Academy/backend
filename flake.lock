@@ -224,22 +224,6 @@
         "type": "github"
       }
     },
-    "nixpkgs-cargo-llvm-cov": {
-      "locked": {
-        "lastModified": 1731427348,
-        "narHash": "sha256-0XvfXRlLTzTkp1uPnZ/7alhZpA7glxwSIvYZPyZKAqw=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "fc6278d271c7e23367c9525356e354179b467d3f",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "ref": "pull/353741/head",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "nixpkgs_2": {
       "locked": {
         "lastModified": 1717432640,
@@ -292,8 +276,7 @@
       "inputs": {
         "devenv": "devenv",
         "fenix": "fenix",
-        "nixpkgs": "nixpkgs_4",
-        "nixpkgs-cargo-llvm-cov": "nixpkgs-cargo-llvm-cov"
+        "nixpkgs": "nixpkgs_4"
       }
     },
     "rust-analyzer-src": {

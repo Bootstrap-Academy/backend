@@ -4457,10 +4457,10 @@ rec {
       };
       "clap" = rec {
         crateName = "clap";
-        version = "4.5.21";
+        version = "4.5.22";
         edition = "2021";
         crateBin = [];
-        sha256 = "0kv0n5jbpfpl9xyags5lpyq5cccbx6g36s98lpgi8xbwbag4nfzv";
+        sha256 = "0axx6llpms56g2z4p0dj5rivy43jak1608rjpr5rhk3w6cs1wdv9";
         dependencies = [
           {
             name = "clap_builder";
@@ -4498,9 +4498,9 @@ rec {
       };
       "clap_builder" = rec {
         crateName = "clap_builder";
-        version = "4.5.21";
+        version = "4.5.22";
         edition = "2021";
-        sha256 = "1v10zx5v43yk7f4wwr0wxxlr1mx0k8c70lxa6aymwyyccym9aymi";
+        sha256 = "1qdxrfghc4lcc3v5qqmlvzd9ins55cfqijm86qr5464q16sc293f";
         dependencies = [
           {
             name = "anstream";

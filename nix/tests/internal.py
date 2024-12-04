@@ -1,15 +1,8 @@
 import subprocess
 
-from utils import c
+from utils import c, make_internal_client
 
 assert subprocess.getstatusoutput("academy migrate demo --force")[0] == 0
-
-
-def prepare(aud: str):
-    status, jwt = subprocess.getstatusoutput(f'academy jwt sign \'{{"aud":"{aud}"}}\'')
-    assert status == 0
-    jwt = jwt.strip()
-    c.headers["Authorization"] = jwt
 
 
 FOO = {
@@ -47,7 +40,7 @@ resp = c.get("/auth/_internal/users/a8d95e0f-71ae-4c49-995e-695b7c93848c")
 assert resp.status_code == 401
 assert resp.json() == {"detail": "Invalid token"}
 
-prepare("auth")
+c = make_internal_client("auth")
 
 ## get user by id
 resp = c.get("/auth/_internal/users/a8d95e0f-71ae-4c49-995e-695b7c93848c")
@@ -68,7 +61,7 @@ assert resp.status_code == 404
 assert resp.json() == {"detail": "User not found"}
 
 # shop
-prepare("shop")
+c = make_internal_client("shop")
 
 ## add coins
 resp = c.post(f"/shop/_internal/coins/{FOO['id']}", json={"coins": 1337, "description": "test", "credit_note": True})

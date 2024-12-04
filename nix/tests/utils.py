@@ -1,6 +1,7 @@
 import email
 import email.header
 import os
+import subprocess
 import time
 from email.message import Message
 from pathlib import Path
@@ -67,6 +68,19 @@ def discard_auth(client=None):
 
 def make_client():
     return httpx.Client(base_url="http://127.0.0.1:8000", timeout=httpx.Timeout(60))
+
+
+def make_internal_client(aud):
+    client = make_client()
+
+    def auth(req):
+        status, jwt = subprocess.getstatusoutput(f'academy jwt sign \'{{"aud":"{aud}"}}\'')
+        assert status == 0
+        req.headers["Authorization"] = jwt.strip()
+        return req
+
+    client.auth = auth
+    return client
 
 
 def create_account(name, email, password, client=None):

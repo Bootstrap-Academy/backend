@@ -587,6 +587,10 @@ rec {
             packageId = "academy_config";
           }
           {
+            name = "academy_core_coin_contracts";
+            packageId = "academy_core_coin_contracts";
+          }
+          {
             name = "academy_core_coin_impl";
             packageId = "academy_core_coin_impl";
           }

@@ -3181,7 +3181,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http 1.1.0";
+            packageId = "http 1.2.0";
             optional = true;
           }
           {
@@ -3581,7 +3581,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http 1.1.0";
+            packageId = "http 1.2.0";
           }
           {
             name = "http-body";
@@ -3750,7 +3750,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http 1.1.0";
+            packageId = "http 1.2.0";
           }
           {
             name = "http-body";
@@ -3844,7 +3844,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http 1.1.0";
+            packageId = "http 1.2.0";
           }
           {
             name = "http-body";
@@ -5957,7 +5957,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http 1.1.0";
+            packageId = "http 1.2.0";
           }
           {
             name = "indexmap";
@@ -6101,7 +6101,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http 1.1.0";
+            packageId = "http 1.2.0";
           }
           {
             name = "httpdate";
@@ -6131,7 +6131,7 @@ rec {
         dependencies = [
           {
             name = "http";
-            packageId = "http 1.1.0";
+            packageId = "http 1.2.0";
           }
         ];
 
@@ -6255,11 +6255,11 @@ rec {
         ];
 
       };
-      "http 1.1.0" = rec {
+      "http 1.2.0" = rec {
         crateName = "http";
-        version = "1.1.0";
+        version = "1.2.0";
         edition = "2018";
-        sha256 = "0n426lmcxas6h75c2cp25m933pswlrfjz10v91vc62vib2sdvf91";
+        sha256 = "1skglzdf98j5nzxlii540n11is0w4l80mi5sm3xrj716asps4v7i";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
           "Carl Lerche <me@carllerche.com>"
@@ -6329,7 +6329,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http 1.1.0";
+            packageId = "http 1.2.0";
           }
         ];
 
@@ -6357,7 +6357,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http 1.1.0";
+            packageId = "http 1.2.0";
           }
           {
             name = "http-body";
@@ -6531,7 +6531,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http 1.1.0";
+            packageId = "http 1.2.0";
           }
           {
             name = "http-body";
@@ -6687,7 +6687,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http 1.1.0";
+            packageId = "http 1.2.0";
           }
           {
             name = "hyper";
@@ -6792,7 +6792,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http 1.1.0";
+            packageId = "http 1.2.0";
           }
           {
             name = "http-body";
@@ -7582,11 +7582,32 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" ];
       };
-      "itertools" = rec {
+      "itertools 0.12.1" = rec {
         crateName = "itertools";
         version = "0.12.1";
         edition = "2018";
         sha256 = "0s95jbb3ndj1lvfxyq5wanc0fm0r6hg6q4ngb92qlfdxvci10ads";
+        authors = [
+          "bluss"
+        ];
+        dependencies = [
+          {
+            name = "either";
+            packageId = "either";
+            usesDefaultFeatures = false;
+          }
+        ];
+        features = {
+          "default" = [ "use_std" ];
+          "use_std" = [ "use_alloc" "either/use_std" ];
+        };
+        resolvedDefaultFeatures = [ "default" "use_alloc" "use_std" ];
+      };
+      "itertools 0.13.0" = rec {
+        crateName = "itertools";
+        version = "0.13.0";
+        edition = "2018";
+        sha256 = "11hiy3qzl643zcigknclh446qb9zlg4dpdzfkjaa9q9fqpgyfgj1";
         authors = [
           "bluss"
         ];
@@ -7948,9 +7969,9 @@ rec {
       };
       "litemap" = rec {
         crateName = "litemap";
-        version = "0.7.3";
+        version = "0.7.4";
         edition = "2021";
-        sha256 = "0157lf44c3s2piqiwpppnynzzpv1rxyddl2z9l089hpwsjwb0g34";
+        sha256 = "012ili3vppd4952sh6y3qwcd0jkd0bq2qpr9h7cppc8sj11k7saf";
         authors = [
           "The ICU4X Project Developers"
         ];
@@ -7962,7 +7983,7 @@ rec {
           "testing" = [ "alloc" ];
           "yoke" = [ "dep:yoke" ];
         };
-        resolvedDefaultFeatures = [ "alloc" "default" ];
+        resolvedDefaultFeatures = [ "alloc" ];
       };
       "lock_api" = rec {
         crateName = "lock_api";
@@ -8287,7 +8308,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http 1.1.0";
+            packageId = "http 1.2.0";
           }
           {
             name = "httparse";
@@ -8761,7 +8782,7 @@ rec {
           }
           {
             name = "itertools";
-            packageId = "itertools";
+            packageId = "itertools 0.12.1";
           }
           {
             name = "proc-macro2";
@@ -9833,9 +9854,9 @@ rec {
       };
       "redis" = rec {
         crateName = "redis";
-        version = "0.27.5";
+        version = "0.27.6";
         edition = "2021";
-        sha256 = "1daj8fknv582kyycwppxy3gf3jidswa4ccv4cnw53kljlqbwzk41";
+        sha256 = "1g3mx0g34bj8smklhyw7ygxrpmpa074k6j59i729rj4h82dgkn09";
         dependencies = [
           {
             name = "arc-swap";
@@ -9862,6 +9883,10 @@ rec {
             packageId = "futures-util";
             optional = true;
             usesDefaultFeatures = false;
+          }
+          {
+            name = "itertools";
+            packageId = "itertools 0.13.0";
           }
           {
             name = "itoa";
@@ -9917,11 +9942,12 @@ rec {
           "async-std-rustls-comp" = [ "async-std-comp" "futures-rustls" "tls-rustls" ];
           "async-std-tls-comp" = [ "async-std-native-tls-comp" ];
           "async-trait" = [ "dep:async-trait" ];
+          "backon" = [ "dep:backon" ];
           "bigdecimal" = [ "dep:bigdecimal" ];
           "bytes" = [ "dep:bytes" ];
           "cluster" = [ "crc16" "rand" ];
           "cluster-async" = [ "cluster" "futures" "futures-util" "log" ];
-          "connection-manager" = [ "futures" "aio" "tokio-retry2" ];
+          "connection-manager" = [ "futures" "aio" "backon" ];
           "crc16" = [ "dep:crc16" ];
           "default" = [ "acl" "streams" "geospatial" "script" "keep-alive" ];
           "futures" = [ "dep:futures" ];
@@ -9955,7 +9981,6 @@ rec {
           "tokio-comp" = [ "aio" "tokio/net" ];
           "tokio-native-tls" = [ "dep:tokio-native-tls" ];
           "tokio-native-tls-comp" = [ "tokio-comp" "tls-native-tls" "tokio-native-tls" ];
-          "tokio-retry2" = [ "dep:tokio-retry2" ];
           "tokio-rustls" = [ "dep:tokio-rustls" ];
           "tokio-rustls-comp" = [ "tokio-comp" "tls-rustls" "tokio-rustls" ];
           "tokio-util" = [ "dep:tokio-util" ];
@@ -10470,7 +10495,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http 1.1.0";
+            packageId = "http 1.2.0";
           }
           {
             name = "http-body";
@@ -12654,9 +12679,9 @@ rec {
       };
       "time" = rec {
         crateName = "time";
-        version = "0.3.36";
+        version = "0.3.37";
         edition = "2021";
-        sha256 = "11g8hdpahgrf1wwl2rpsg5nxq3aj7ri6xr672v4qcij6cgjqizax";
+        sha256 = "08bvydyc14plkwhchzia5bcdbmm0mk5fzilsdpjx06w6hf48drrm";
         authors = [
           "Jacob Pratt <open-source@jhpratt.dev>"
           "Time contributors"
@@ -12746,9 +12771,9 @@ rec {
       };
       "time-macros" = rec {
         crateName = "time-macros";
-        version = "0.2.18";
+        version = "0.2.19";
         edition = "2021";
-        sha256 = "1kqwxvfh2jkpg38fy673d6danh1bhcmmbsmffww3mphgail2l99z";
+        sha256 = "1pl558z26pp342l5y91n6dxb60xwhar975wk6jc4npiygq0ycd18";
         procMacro = true;
         libName = "time_macros";
         authors = [
@@ -13152,9 +13177,9 @@ rec {
       };
       "tokio-util" = rec {
         crateName = "tokio-util";
-        version = "0.7.12";
+        version = "0.7.13";
         edition = "2021";
-        sha256 = "0spc0g4irbnf2flgag22gfii87avqzibwfm0si0d1g0k9ijw7rv1";
+        sha256 = "0y0h10a52c7hrldmr3410bp7j3fadq0jn9nf7awddgd2an6smz6p";
         libName = "tokio_util";
         authors = [
           "Tokio Contributors <team@tokio.rs>"
@@ -13469,7 +13494,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http 1.1.0";
+            packageId = "http 1.2.0";
           }
           {
             name = "http-body";
@@ -14054,9 +14079,9 @@ rec {
       };
       "ureq" = rec {
         crateName = "ureq";
-        version = "2.11.0";
+        version = "2.12.1";
         edition = "2018";
-        sha256 = "0ywy0a9m6p6mv0qb9ssk77zzcgvxjrvfwhg2br9l7yp1xybny3mk";
+        sha256 = "07f0qdn6459k4rmdnkivkz0y7j28vxh5c8q8sr0gcxgdfxiadl82";
         authors = [
           "Martin Algesten <martin@algesten.se>"
           "Jacob Hoffman-Andrews <ureq@hoffman-andrews.com>"
@@ -14065,10 +14090,6 @@ rec {
           {
             name = "base64";
             packageId = "base64 0.22.1";
-          }
-          {
-            name = "litemap";
-            packageId = "litemap";
           }
           {
             name = "log";
@@ -14098,14 +14119,6 @@ rec {
             name = "webpki-roots";
             packageId = "webpki-roots 0.26.7";
             optional = true;
-          }
-          {
-            name = "yoke";
-            packageId = "yoke";
-          }
-          {
-            name = "zerofrom";
-            packageId = "zerofrom";
           }
         ];
         devDependencies = [
@@ -17123,9 +17136,9 @@ rec {
       };
       "yoke" = rec {
         crateName = "yoke";
-        version = "0.7.4";
+        version = "0.7.5";
         edition = "2021";
-        sha256 = "198c4jkh6i3hxijia7mfa4cpnxg1iqym9bz364697c3rn0a16nvc";
+        sha256 = "0h3znzrdmll0a7sglzf9ji0p5iqml11wrj1dypaf6ad6kbpnl3hj";
         authors = [
           "Manish Goregaokar <manishsmail@gmail.com>"
         ];
@@ -17271,9 +17284,9 @@ rec {
       };
       "zerofrom" = rec {
         crateName = "zerofrom";
-        version = "0.1.4";
+        version = "0.1.5";
         edition = "2021";
-        sha256 = "0mdbjd7vmbix2ynxbrbrrli47a5yrpfx05hi99wf1l4pwwf13v4i";
+        sha256 = "0bnd8vjcllzrvr3wvn8x14k2hkrpyy1fm3crkn2y3plmr44fxwyg";
         authors = [
           "Manish Goregaokar <manishsmail@gmail.com>"
         ];
@@ -17289,7 +17302,7 @@ rec {
           "default" = [ "alloc" ];
           "derive" = [ "dep:zerofrom-derive" ];
         };
-        resolvedDefaultFeatures = [ "alloc" "default" "derive" ];
+        resolvedDefaultFeatures = [ "alloc" "derive" ];
       };
       "zerofrom-derive" = rec {
         crateName = "zerofrom-derive";

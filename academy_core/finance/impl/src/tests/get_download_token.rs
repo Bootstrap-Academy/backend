@@ -5,12 +5,12 @@ use academy_models::auth::{AuthError, AuthenticateError};
 use academy_shared_contracts::jwt::MockJwtService;
 use academy_utils::assert_matches;
 
-use crate::{tests::Sut, DownloadToken, FinanceFeatureServiceImpl, FinanceServiceConfig};
+use crate::{tests::Sut, DownloadToken, FinanceFeatureConfig, FinanceFeatureServiceImpl};
 
 #[tokio::test]
 async fn ok() {
     // Arrange
-    let config = FinanceServiceConfig::default();
+    let config = FinanceFeatureConfig::default();
 
     let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
 

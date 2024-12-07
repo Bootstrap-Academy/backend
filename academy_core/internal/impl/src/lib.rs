@@ -1,13 +1,16 @@
 use academy_auth_contracts::internal::AuthInternalService;
 use academy_core_coin_contracts::coin::{CoinAddCoinsError, CoinService};
+use academy_core_heart_contracts::heart::{HeartAddError, HeartService};
 use academy_core_internal_contracts::{
-    InternalAddCoinsError, InternalGetUserByEmailError, InternalGetUserError, InternalService,
+    InternalAddCoinsError, InternalAddHeartsError, InternalGetHeartsError,
+    InternalGetUserByEmailError, InternalGetUserError, InternalService,
 };
 use academy_di::Build;
 use academy_models::{
     auth::InternalToken,
     coin::{Balance, TransactionDescription},
     email_address::EmailAddress,
+    heart::Hearts,
     user::{UserComposite, UserId},
 };
 use academy_persistence_contracts::{user::UserRepository, Database, Transaction};
@@ -18,20 +21,22 @@ use anyhow::Context;
 mod tests;
 
 #[derive(Debug, Clone, Build, Default)]
-pub struct InternalServiceImpl<Db, AuthInternal, UserRepo, Coin> {
+pub struct InternalServiceImpl<Db, AuthInternal, UserRepo, Coin, Heart> {
     db: Db,
     auth_internal: AuthInternal,
     user_repo: UserRepo,
     coin: Coin,
+    heart: Heart,
 }
 
-impl<Db, AuthInternal, UserRepo, Coin> InternalService
-    for InternalServiceImpl<Db, AuthInternal, UserRepo, Coin>
+impl<Db, AuthInternal, UserRepo, Coin, Heart> InternalService
+    for InternalServiceImpl<Db, AuthInternal, UserRepo, Coin, Heart>
 where
     Db: Database,
     AuthInternal: AuthInternalService,
     UserRepo: UserRepository<Db::Transaction>,
     Coin: CoinService<Db::Transaction>,
+    Heart: HeartService<Db::Transaction>,
 {
     #[trace_instrument(skip(self))]
     async fn get_user(
@@ -107,5 +112,51 @@ where
         txn.commit().await?;
 
         Ok(new_balance)
+    }
+
+    #[trace_instrument(skip(self))]
+    async fn get_hearts(
+        &self,
+        token: &InternalToken,
+        user_id: UserId,
+    ) -> Result<Hearts, InternalGetHeartsError> {
+        self.auth_internal.authenticate(token, "shop")?;
+
+        let mut txn = self.db.begin_transaction().await?;
+
+        if !self.user_repo.exists(&mut txn, user_id).await? {
+            return Err(InternalGetHeartsError::UserNotFound);
+        }
+
+        self.heart.get(&mut txn, user_id).await.map_err(Into::into)
+    }
+
+    #[trace_instrument(skip(self))]
+    async fn add_hearts(
+        &self,
+        token: &InternalToken,
+        user_id: UserId,
+        hearts: i64,
+    ) -> Result<Hearts, InternalAddHeartsError> {
+        self.auth_internal.authenticate(token, "shop")?;
+
+        let mut txn = self.db.begin_transaction().await?;
+
+        if !self.user_repo.exists(&mut txn, user_id).await? {
+            return Err(InternalAddHeartsError::UserNotFound);
+        }
+
+        let result = self
+            .heart
+            .add(&mut txn, user_id, hearts)
+            .await
+            .map_err(|err| match err {
+                HeartAddError::NotEnoughHearts => InternalAddHeartsError::NotEnoughHearts,
+                HeartAddError::Other(err) => err.into(),
+            })?;
+
+        txn.commit().await?;
+
+        Ok(result)
     }
 }

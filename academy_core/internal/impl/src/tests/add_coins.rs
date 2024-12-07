@@ -51,6 +51,7 @@ async fn ok() {
             db,
             user_repo,
             coin,
+            ..Sut::default()
         };
 
         // Act
@@ -141,6 +142,7 @@ async fn not_enough_coins() {
         db,
         user_repo,
         coin,
+        ..Sut::default()
     };
 
     // Act

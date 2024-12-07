@@ -23,6 +23,7 @@ academy_core_contact_impl.workspace = true
 academy_core_finance_contracts.workspace = true
 academy_core_finance_impl.workspace = true
 academy_core_health_impl.workspace = true
+academy_core_heart_impl.workspace = true
 academy_core_internal_impl.workspace = true
 academy_core_mfa_impl.workspace = true
 academy_core_oauth2_impl.workspace = true

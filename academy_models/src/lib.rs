@@ -9,6 +9,7 @@ pub mod auth;
 pub mod coin;
 pub mod contact;
 pub mod email_address;
+pub mod heart;
 mod macros;
 pub mod mfa;
 pub mod oauth2;

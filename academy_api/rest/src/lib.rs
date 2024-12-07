@@ -8,6 +8,7 @@ use academy_core_config_contracts::ConfigFeatureService;
 use academy_core_contact_contracts::ContactFeatureService;
 use academy_core_finance_contracts::FinanceFeatureService;
 use academy_core_health_contracts::HealthFeatureService;
+use academy_core_heart_contracts::HeartFeatureService;
 use academy_core_internal_contracts::InternalService;
 use academy_core_mfa_contracts::MfaFeatureService;
 use academy_core_oauth2_contracts::OAuth2FeatureService;
@@ -53,6 +54,7 @@ pub struct RestServer<
     Coin,
     Paypal,
     Finance,
+    Heart,
     Internal,
 > {
     _config: RestServerConfig,
@@ -66,6 +68,7 @@ pub struct RestServer<
     coin: Coin,
     paypal: Paypal,
     finance: Finance,
+    heart: Heart,
     internal: Internal,
 }
 
@@ -82,8 +85,34 @@ pub struct RestServerRealIpConfig {
     pub set_from: IpAddr,
 }
 
-impl<Health, Config, User, Session, Contact, Mfa, OAuth2, Coin, Paypal, Finance, Internal>
-    RestServer<Health, Config, User, Session, Contact, Mfa, OAuth2, Coin, Paypal, Finance, Internal>
+impl<
+        Health,
+        Config,
+        User,
+        Session,
+        Contact,
+        Mfa,
+        OAuth2,
+        Coin,
+        Paypal,
+        Finance,
+        Heart,
+        Internal,
+    >
+    RestServer<
+        Health,
+        Config,
+        User,
+        Session,
+        Contact,
+        Mfa,
+        OAuth2,
+        Coin,
+        Paypal,
+        Finance,
+        Heart,
+        Internal,
+    >
 where
     Health: HealthFeatureService,
     Config: ConfigFeatureService,
@@ -95,6 +124,7 @@ where
     Coin: CoinFeatureService,
     Paypal: PaypalFeatureService,
     Finance: FinanceFeatureService,
+    Heart: HeartFeatureService,
     Internal: InternalService,
 {
     pub async fn serve(self) -> anyhow::Result<()> {
@@ -124,6 +154,7 @@ where
                 routes::coin::TAG,
                 routes::paypal::TAG,
                 routes::finance::TAG,
+                routes::heart::TAG,
                 routes::internal::TAG,
             ]
             .into_iter()
@@ -199,6 +230,7 @@ where
             .merge(routes::coin::router(self.coin.into()))
             .merge(routes::paypal::router(self.paypal.into()))
             .merge(routes::finance::router(self.finance.into()))
+            .merge(routes::heart::router(self.heart.into()))
             .merge(routes::internal::router(self.internal.into()))
     }
 }

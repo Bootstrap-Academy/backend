@@ -12,6 +12,7 @@ use academy_core_finance_impl::{
     coin::FinanceCoinServiceImpl, invoice::FinanceInvoiceServiceImpl, FinanceFeatureServiceImpl,
 };
 use academy_core_health_impl::HealthFeatureServiceImpl;
+use academy_core_heart_impl::{heart::HeartServiceImpl, HeartFeatureServiceImpl};
 use academy_core_internal_impl::InternalServiceImpl;
 use academy_core_mfa_impl::{
     authenticate::MfaAuthenticateServiceImpl, disable::MfaDisableServiceImpl,
@@ -36,9 +37,9 @@ use academy_extern_impl::{
     vat::VatApiServiceImpl,
 };
 use academy_persistence_postgres::{
-    coin::PostgresCoinRepository, mfa::PostgresMfaRepository, oauth2::PostgresOAuth2Repository,
-    paypal::PostgresPaypalRepository, session::PostgresSessionRepository,
-    user::PostgresUserRepository, PostgresDatabase,
+    coin::PostgresCoinRepository, heart::PostgresHeartRepository, mfa::PostgresMfaRepository,
+    oauth2::PostgresOAuth2Repository, paypal::PostgresPaypalRepository,
+    session::PostgresSessionRepository, user::PostgresUserRepository, PostgresDatabase,
 };
 use academy_render_impl::pdf::RenderPdfServiceImpl;
 use academy_shared_impl::{
@@ -60,6 +61,7 @@ pub type RestServer = academy_api_rest::RestServer<
     CoinFeature,
     PaypalFeature,
     FinanceFeature,
+    HeartFeature,
     Internal,
 >;
 
@@ -103,6 +105,7 @@ pub type MfaRepo = PostgresMfaRepository;
 pub type OAuth2Repo = PostgresOAuth2Repository;
 pub type CoinRepo = PostgresCoinRepository;
 pub type PaypalRepo = PostgresPaypalRepository;
+pub type HeartRepo = PostgresHeartRepository;
 
 // Auth
 pub type Auth =
@@ -207,4 +210,7 @@ pub type FinanceInvoice = FinanceInvoiceServiceImpl<
 >;
 pub type FinanceCoin = FinanceCoinServiceImpl;
 
-pub type Internal = InternalServiceImpl<Database, AuthInternal, UserRepo, Coin>;
+pub type HeartFeature = HeartFeatureServiceImpl<Database, Auth, UserRepo, Heart, Coin>;
+pub type Heart = HeartServiceImpl<Time, HeartRepo>;
+
+pub type Internal = InternalServiceImpl<Database, AuthInternal, UserRepo, Coin, Heart>;

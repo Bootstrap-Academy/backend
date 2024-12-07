@@ -7,6 +7,7 @@ use std::{
 use academy_assets::CONFIG_TOML;
 use academy_models::{email_address::EmailAddressWithName, mfa::TotpSecretLength, url::Url};
 use anyhow::Context;
+use chrono::NaiveTime;
 use config::{File, FileFormat};
 use duration::Duration;
 use regex::bytes::RegexSet;
@@ -92,6 +93,7 @@ pub struct Config {
     pub vat: VatConfig,
     pub paypal: PaypalConfig,
     pub coin: CoinConfig,
+    pub heart: HeartConfig,
     pub render: RenderConfig,
     pub finance: FinanceConfig,
     pub sentry: Option<SentryConfig>,
@@ -218,6 +220,13 @@ pub struct PaypalConfig {
 pub struct CoinConfig {
     pub purchase_min: u64,
     pub purchase_max: u64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct HeartConfig {
+    pub max: u64,
+    pub refill_price: u64,
+    pub auto_refill_time: NaiveTime,
 }
 
 #[derive(Debug, Deserialize)]

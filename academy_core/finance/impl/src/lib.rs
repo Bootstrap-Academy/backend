@@ -27,11 +27,11 @@ pub struct FinanceFeatureServiceImpl<Db, Auth, Jwt, FinanceInvoice> {
     auth: Auth,
     jwt: Jwt,
     finance_invoice: FinanceInvoice,
-    config: FinanceServiceConfig,
+    config: FinanceFeatureConfig,
 }
 
 #[derive(Debug, Clone)]
-pub struct FinanceServiceConfig {
+pub struct FinanceFeatureConfig {
     pub vat_percent: Decimal,
     pub invoices_archive: Arc<Path>,
     pub credit_notes_archive: Arc<Path>,

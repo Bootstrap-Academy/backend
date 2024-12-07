@@ -14,7 +14,7 @@ use anyhow::Context;
 use chrono::{NaiveDate, NaiveTime, TimeZone, Utc};
 use tracing::instrument;
 
-use crate::FinanceServiceConfig;
+use crate::FinanceFeatureConfig;
 
 #[derive(Debug, Clone, Build)]
 #[cfg_attr(test, derive(Default))]
@@ -36,7 +36,7 @@ pub struct FinanceInvoiceServiceImpl<
     user_repo: UserRepo,
     coin_repo: CoinRepo,
     finance_coin: FinanceCoin,
-    config: FinanceServiceConfig,
+    config: FinanceFeatureConfig,
 }
 
 impl<Txn, Time, Fs, Template, RenderPdf, PaypalRepo, UserRepo, CoinRepo, FinanceCoin>

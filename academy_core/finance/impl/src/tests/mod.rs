@@ -6,7 +6,7 @@ use academy_persistence_contracts::{MockDatabase, MockTransaction};
 use academy_shared_contracts::jwt::MockJwtService;
 use rust_decimal_macros::dec;
 
-use crate::{FinanceFeatureServiceImpl, FinanceServiceConfig};
+use crate::{FinanceFeatureConfig, FinanceFeatureServiceImpl};
 
 mod download_credit_note;
 mod download_invoice;
@@ -19,7 +19,7 @@ type Sut = FinanceFeatureServiceImpl<
     MockFinanceInvoiceService<MockTransaction>,
 >;
 
-impl Default for FinanceServiceConfig {
+impl Default for FinanceFeatureConfig {
     fn default() -> Self {
         Self {
             vat_percent: dec!(19),

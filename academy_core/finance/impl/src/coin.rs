@@ -4,11 +4,11 @@ use academy_utils::trace_instrument;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 
-use crate::FinanceServiceConfig;
+use crate::FinanceFeatureConfig;
 
 #[derive(Debug, Clone, Build)]
 pub struct FinanceCoinServiceImpl {
-    config: FinanceServiceConfig,
+    config: FinanceFeatureConfig,
 }
 
 impl FinanceCoinService for FinanceCoinServiceImpl {

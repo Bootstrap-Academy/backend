@@ -18,6 +18,7 @@ dependencies = [
  "academy_core_finance_contracts",
  "academy_core_finance_impl",
  "academy_core_health_impl",
+ "academy_core_heart_impl",
  "academy_core_internal_impl",
  "academy_core_mfa_impl",
  "academy_core_oauth2_impl",
@@ -68,6 +69,7 @@ dependencies = [
  "academy_core_contact_contracts",
  "academy_core_finance_contracts",
  "academy_core_health_contracts",
+ "academy_core_heart_contracts",
  "academy_core_internal_contracts",
  "academy_core_mfa_contracts",
  "academy_core_oauth2_contracts",
@@ -162,6 +164,7 @@ dependencies = [
  "academy_assets",
  "academy_models",
  "anyhow",
+ "chrono",
  "config",
  "regex",
  "rust_decimal",
@@ -294,6 +297,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "academy_core_heart_contracts"
+version = "0.0.0"
+dependencies = [
+ "academy_models",
+ "anyhow",
+ "mockall",
+ "thiserror 2.0.11",
+]
+
+[[package]]
+name = "academy_core_heart_impl"
+version = "0.0.0"
+dependencies = [
+ "academy_auth_contracts",
+ "academy_core_coin_contracts",
+ "academy_core_heart_contracts",
+ "academy_demo",
+ "academy_di",
+ "academy_models",
+ "academy_persistence_contracts",
+ "academy_shared_contracts",
+ "academy_utils",
+ "anyhow",
+ "chrono",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "academy_core_internal_contracts"
 version = "0.0.0"
 dependencies = [
@@ -310,6 +342,7 @@ version = "0.0.0"
 dependencies = [
  "academy_auth_contracts",
  "academy_core_coin_contracts",
+ "academy_core_heart_contracts",
  "academy_core_internal_contracts",
  "academy_demo",
  "academy_di",

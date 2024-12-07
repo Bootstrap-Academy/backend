@@ -75,6 +75,11 @@ min_score = 0.5
 purchase_min = 500
 purchase_max = 1000000
 
+[heart]
+max = 6
+refill_price = 50
+auto_refill_time = "00:00" # UTC
+
 [render]
 # chrome_bin = ""
 

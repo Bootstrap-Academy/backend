@@ -4,8 +4,9 @@ use academy_api_rest::{RestServerConfig, RestServerRealIpConfig};
 use academy_auth_impl::AuthServiceConfig;
 use academy_config::Config;
 use academy_core_contact_impl::ContactFeatureConfig;
-use academy_core_finance_impl::FinanceServiceConfig;
+use academy_core_finance_impl::FinanceFeatureConfig;
 use academy_core_health_impl::HealthFeatureConfig;
+use academy_core_heart_impl::HeartFeatureConfig;
 use academy_core_oauth2_impl::OAuth2FeatureConfig;
 use academy_core_paypal_impl::PaypalFeatureConfig;
 use academy_core_session_impl::SessionFeatureConfig;
@@ -58,7 +59,8 @@ provider! {
             SessionFeatureConfig,
             UserFeatureConfig,
             PaypalFeatureConfig,
-            FinanceServiceConfig,
+            FinanceFeatureConfig,
+            HeartFeatureConfig,
         }
     }
 }
@@ -104,7 +106,8 @@ provider! {
         session_feature_config: SessionFeatureConfig,
         user_feature_config: UserFeatureConfig,
         paypal_feature_config: PaypalFeatureConfig,
-        finance_service_config: FinanceServiceConfig,
+        finance_feature_config: FinanceFeatureConfig,
+        heart_feature_config: HeartFeatureConfig,
     }
 }
 
@@ -231,11 +234,17 @@ impl ConfigProvider {
             purchase_range: config.coin.purchase_min..=config.coin.purchase_max,
         };
 
-        let finance_service_config = FinanceServiceConfig {
+        let finance_feature_config = FinanceFeatureConfig {
             vat_percent: config.finance.vat_percent,
             invoices_archive: config.finance.invoices_archive.clone().into(),
             credit_notes_archive: config.finance.credit_notes_archive.clone().into(),
             download_token_ttl: config.jwt.download_token_ttl.into(),
+        };
+
+        let heart_feature_config = HeartFeatureConfig {
+            hearts_max: config.heart.max,
+            hearts_refill_price: config.heart.refill_price,
+            auto_refill_time: config.heart.auto_refill_time,
         };
 
         Ok(Self {
@@ -267,7 +276,8 @@ impl ConfigProvider {
             session_feature_config,
             user_feature_config,
             paypal_feature_config,
-            finance_service_config,
+            finance_feature_config,
+            heart_feature_config,
         })
     }
 }

@@ -4056,14 +4056,10 @@ rec {
       };
       "bb8" = rec {
         crateName = "bb8";
-        version = "0.8.6";
+        version = "0.9.0";
         edition = "2021";
-        sha256 = "1f6d9akrx7pmxcnk82whnqy9jbndzx21i55b8d5w99ahwpxap6nq";
+        sha256 = "1ralsazlyyj7gsmqc73p6kpqz76g4al6np2p8693sx123a78nb91";
         dependencies = [
-          {
-            name = "async-trait";
-            packageId = "async-trait";
-          }
           {
             name = "futures-util";
             packageId = "futures-util";
@@ -4096,15 +4092,11 @@ rec {
       };
       "bb8-postgres" = rec {
         crateName = "bb8-postgres";
-        version = "0.8.1";
-        edition = "2018";
-        sha256 = "1006qqrcafvyrm4adghy2wc6amlc9fi66izfqjsqj25k5v285b2n";
+        version = "0.9.0";
+        edition = "2021";
+        sha256 = "175a6r01q0mjcpsnsr92viq1l9vk91j7dyiascl8vy6hgiaycw75";
         libName = "bb8_postgres";
         dependencies = [
-          {
-            name = "async-trait";
-            packageId = "async-trait";
-          }
           {
             name = "bb8";
             packageId = "bb8";
@@ -4141,15 +4133,11 @@ rec {
       };
       "bb8-redis" = rec {
         crateName = "bb8-redis";
-        version = "0.17.0";
+        version = "0.18.0";
         edition = "2021";
-        sha256 = "1k05dhb12g4dxibw3gf4cjhm9wa6cv3aa16z9y9pvs8am8nz508p";
+        sha256 = "0anz8scv3lqk5bawv84gcgnz1nbw5z0whnfn1vymf1sj74val5l4";
         libName = "bb8_redis";
         dependencies = [
-          {
-            name = "async-trait";
-            packageId = "async-trait";
-          }
           {
             name = "bb8";
             packageId = "bb8";

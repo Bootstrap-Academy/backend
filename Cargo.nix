@@ -4231,9 +4231,9 @@ rec {
       };
       "bstr" = rec {
         crateName = "bstr";
-        version = "1.11.0";
+        version = "1.11.1";
         edition = "2021";
-        sha256 = "08my0pjgnqxc17fw061inxnpkjw05bp2w6wl9gpch3nzgksg2s0s";
+        sha256 = "1j32ghvgwvc40bc6g38ximk52dv1xfknkzfmdwpgjnrsd1yk0skq";
         authors = [
           "Andrew Gallant <jamslam@gmail.com>"
         ];
@@ -6690,7 +6690,7 @@ rec {
           }
           {
             name = "rustls";
-            packageId = "rustls 0.23.19";
+            packageId = "rustls 0.23.20";
             usesDefaultFeatures = false;
           }
           {
@@ -6726,7 +6726,7 @@ rec {
           }
           {
             name = "rustls";
-            packageId = "rustls 0.23.19";
+            packageId = "rustls 0.23.20";
             usesDefaultFeatures = false;
             features = [ "tls12" ];
           }
@@ -7841,7 +7841,7 @@ rec {
           }
           {
             name = "rustls";
-            packageId = "rustls 0.23.19";
+            packageId = "rustls 0.23.20";
             optional = true;
             usesDefaultFeatures = false;
             features = [ "ring" "logging" "std" "tls12" ];
@@ -7941,9 +7941,9 @@ rec {
       };
       "libc" = rec {
         crateName = "libc";
-        version = "0.2.167";
+        version = "0.2.168";
         edition = "2021";
-        sha256 = "1z06pa4y2x2arwm7si12xsaf1cj46l9pazzrvwbsh5a320p5imh9";
+        sha256 = "0vab4inpw0dz78nii02hsxp1skqn06xzh64psw8wl1h63scb5bjs";
         authors = [
           "The Rust Project Developers"
         ];
@@ -9515,7 +9515,7 @@ rec {
           }
           {
             name = "rustls";
-            packageId = "rustls 0.23.19";
+            packageId = "rustls 0.23.20";
             optional = true;
             usesDefaultFeatures = false;
             features = [ "std" ];
@@ -9608,7 +9608,7 @@ rec {
           }
           {
             name = "rustls";
-            packageId = "rustls 0.23.19";
+            packageId = "rustls 0.23.20";
             optional = true;
             usesDefaultFeatures = false;
             features = [ "std" ];
@@ -9662,9 +9662,9 @@ rec {
       };
       "quinn-udp" = rec {
         crateName = "quinn-udp";
-        version = "0.5.7";
+        version = "0.5.8";
         edition = "2021";
-        sha256 = "1nj3yb1zw4bnw2m4phh8ajd3q16nrk56lan8r8aknw87d1n64nkx";
+        sha256 = "09xmwrxikc69ilsmghxls3s0gq295hli366k1na2ggv8zwg4pkaj";
         libName = "quinn_udp";
         dependencies = [
           {
@@ -9691,7 +9691,7 @@ rec {
             name = "windows-sys";
             packageId = "windows-sys 0.59.0";
             target = { target, features }: (target."windows" or false);
-            features = [ "Win32_Foundation" "Win32_System_IO" "Win32_Networking_WinSock" ];
+            features = [ "Win32_Foundation" "Win32_System_IO" "Win32_Networking_WinSock" "Win32_System_SystemInformation" "Win32_System_Threading" ];
           }
         ];
         buildDependencies = [
@@ -9979,9 +9979,9 @@ rec {
       };
       "redox_syscall" = rec {
         crateName = "redox_syscall";
-        version = "0.5.7";
+        version = "0.5.8";
         edition = "2021";
-        sha256 = "07vpgfr6a04k0x19zqr1xdlqm6fncik3zydbdi3f5g3l5k7zwvcv";
+        sha256 = "0d48ylyd6gsamynyp257p6n2zl4dw2fhnn5z9y3nhgpri6rn5a03";
         libName = "syscall";
         authors = [
           "Jeremy Soller <jackpot51@gmail.com>"
@@ -10560,7 +10560,7 @@ rec {
           }
           {
             name = "rustls";
-            packageId = "rustls 0.23.19";
+            packageId = "rustls 0.23.20";
             optional = true;
             usesDefaultFeatures = false;
             target = { target, features }: (!("wasm32" == target."arch" or null));
@@ -10676,7 +10676,7 @@ rec {
           }
           {
             name = "rustls";
-            packageId = "rustls 0.23.19";
+            packageId = "rustls 0.23.20";
             usesDefaultFeatures = false;
             target = {target, features}: (!("wasm32" == target."arch" or null));
             features = [ "ring" ];
@@ -10948,11 +10948,11 @@ rec {
         };
         resolvedDefaultFeatures = [ "dangerous_configuration" "default" "log" "logging" "tls12" ];
       };
-      "rustls 0.23.19" = rec {
+      "rustls 0.23.20" = rec {
         crateName = "rustls";
-        version = "0.23.19";
+        version = "0.23.20";
         edition = "2021";
-        sha256 = "1lgqjf1vh09kghyj34a4svn1max18pmhka6bwbxb61mv61240jwk";
+        sha256 = "06rvj13ia4hx0kba454vcm3p4f2jz907rrabi76k5lyba3rc6rah";
         dependencies = [
           {
             name = "log";
@@ -11355,7 +11355,7 @@ rec {
           }
           {
             name = "rustls";
-            packageId = "rustls 0.23.19";
+            packageId = "rustls 0.23.20";
             optional = true;
             usesDefaultFeatures = false;
           }
@@ -13131,7 +13131,7 @@ rec {
         dependencies = [
           {
             name = "rustls";
-            packageId = "rustls 0.23.19";
+            packageId = "rustls 0.23.20";
             usesDefaultFeatures = false;
             features = [ "std" ];
           }
@@ -13369,9 +13369,9 @@ rec {
       };
       "tower" = rec {
         crateName = "tower";
-        version = "0.5.1";
+        version = "0.5.2";
         edition = "2018";
-        sha256 = "0kvbp97bhb4sk24vhihcz74ngn0i4ygxqikmxndgng3w926r6wr8";
+        sha256 = "1ybmd59nm4abl9bsvy6rx31m4zvzp5rja2slzpn712y9b68ssffh";
         authors = [
           "Tower Maintainers <team@tower-rs.com>"
         ];
@@ -13395,7 +13395,7 @@ rec {
           }
           {
             name = "sync_wrapper";
-            packageId = "sync_wrapper 0.1.2";
+            packageId = "sync_wrapper 1.0.2";
             optional = true;
           }
           {
@@ -14084,7 +14084,7 @@ rec {
           }
           {
             name = "rustls";
-            packageId = "rustls 0.23.19";
+            packageId = "rustls 0.23.20";
             optional = true;
             usesDefaultFeatures = false;
             features = [ "ring" "logging" "std" "tls12" ];
@@ -14107,7 +14107,7 @@ rec {
         devDependencies = [
           {
             name = "rustls";
-            packageId = "rustls 0.23.19";
+            packageId = "rustls 0.23.20";
             usesDefaultFeatures = false;
             features = [ "std" "ring" ];
           }

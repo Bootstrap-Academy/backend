@@ -4303,9 +4303,9 @@ rec {
       };
       "cc" = rec {
         crateName = "cc";
-        version = "1.2.3";
+        version = "1.2.4";
         edition = "2018";
-        sha256 = "0bcga5xf5fgvddfamsjhg89hlydzbdk1fwvcym5kkxfggdj5gxi7";
+        sha256 = "1bqw7559dq0by6dq5k38rijz5p0wr5sa94s2gb180n0ndfmbnmwi";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -4871,9 +4871,9 @@ rec {
       };
       "crossbeam-deque" = rec {
         crateName = "crossbeam-deque";
-        version = "0.8.5";
+        version = "0.8.6";
         edition = "2021";
-        sha256 = "03bp38ljx4wj6vvy4fbhx41q8f585zyqix6pncz1mkz93z08qgv1";
+        sha256 = "0l9f1saqp1gn5qy0rxvkmz4m6n7fc0b3dbm6q1r5pmgpnyvi3lcx";
         libName = "crossbeam_deque";
         dependencies = [
           {
@@ -4917,9 +4917,9 @@ rec {
       };
       "crossbeam-utils" = rec {
         crateName = "crossbeam-utils";
-        version = "0.8.20";
+        version = "0.8.21";
         edition = "2021";
-        sha256 = "100fksq5mm1n7zj242cclkw6yf7a4a8ix3lvpfkhxvdhbda9kv12";
+        sha256 = "0a3aa2bmc8q35fb67432w16wvi54sfmb69rk9h5bhd18vw0c99fh";
         libName = "crossbeam_utils";
         features = {
           "default" = [ "std" ];
@@ -11051,9 +11051,9 @@ rec {
       };
       "rustls-pki-types" = rec {
         crateName = "rustls-pki-types";
-        version = "1.10.0";
+        version = "1.10.1";
         edition = "2021";
-        sha256 = "0jv78c32pgf1i0bn7rzf4xdr9qh5wsvigp6akc1yhzls7hdj1w8n";
+        sha256 = "0dqb3d0cbld1yrp084wyzgw6yk3qzzic8l5pbs1b6bcjzzk4ggyj";
         libName = "rustls_pki_types";
         dependencies = [
           {
@@ -11320,9 +11320,9 @@ rec {
       };
       "semver" = rec {
         crateName = "semver";
-        version = "1.0.23";
+        version = "1.0.24";
         edition = "2018";
-        sha256 = "12wqpxfflclbq4dv8sa6gchdh92ahhwn4ci1ls22wlby3h57wsb1";
+        sha256 = "1fmvjjkd3f64y5fqr1nakkq371mnwzv09fbz5mbmdxril63ypdiw";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];

@@ -4677,14 +4677,10 @@ rec {
       };
       "config" = rec {
         crateName = "config";
-        version = "0.14.1";
+        version = "0.15.0";
         edition = "2018";
-        sha256 = "1pyzr665pq6xcq3f6j1670v5xxk465n2bbkzn9hzycradlcqymv8";
+        sha256 = "0fyhni02wjbxw2w312yjb0bcdbx4vp2hs7psssxipgzr6d95fd57";
         dependencies = [
-          {
-            name = "nom";
-            packageId = "nom";
-          }
           {
             name = "pathdiff";
             packageId = "pathdiff";
@@ -4697,6 +4693,10 @@ rec {
             name = "toml";
             packageId = "toml";
             optional = true;
+          }
+          {
+            name = "winnow";
+            packageId = "winnow";
           }
         ];
         features = {

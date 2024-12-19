@@ -3593,7 +3593,7 @@ rec {
           }
           {
             name = "hyper";
-            packageId = "hyper 1.5.1";
+            packageId = "hyper 1.5.2";
             optional = true;
           }
           {
@@ -4722,9 +4722,9 @@ rec {
       };
       "console" = rec {
         crateName = "console";
-        version = "0.15.8";
+        version = "0.15.10";
         edition = "2018";
-        sha256 = "1sz4nl9nz8pkmapqni6py7jxzi7nzqjxzb3ya4kxvmkb0zy867qf";
+        sha256 = "06q4ag46machxp5w381x1v9l2g7d801q6sawvxcpidarh36nwg7a";
         authors = [
           "Armin Ronacher <armin.ronacher@active-4.com>"
         ];
@@ -4735,21 +4735,21 @@ rec {
             target = { target, features }: (target."windows" or false);
           }
           {
-            name = "lazy_static";
-            packageId = "lazy_static";
-          }
-          {
             name = "libc";
             packageId = "libc";
           }
           {
+            name = "once_cell";
+            packageId = "once_cell";
+          }
+          {
             name = "unicode-width";
-            packageId = "unicode-width 0.1.14";
+            packageId = "unicode-width";
             optional = true;
           }
           {
             name = "windows-sys";
-            packageId = "windows-sys 0.52.0";
+            packageId = "windows-sys 0.59.0";
             target = { target, features }: (target."windows" or false);
             features = [ "Win32_Foundation" "Win32_System_Console" "Win32_Storage_FileSystem" "Win32_UI_Input_KeyboardAndMouse" ];
           }
@@ -5246,15 +5246,14 @@ rec {
       };
       "encode_unicode" = rec {
         crateName = "encode_unicode";
-        version = "0.3.6";
-        edition = "2015";
-        sha256 = "07w3vzrhxh9lpjgsg2y5bwzfar2aq35mdznvcp3zjl0ssj7d4mx3";
+        version = "1.0.0";
+        edition = "2021";
+        sha256 = "1h5j7j7byi289by63s3w4a8b3g6l5ccdrws7a67nn07vdxj77ail";
         authors = [
           "Torbjørn Birch Moltu <t.b.moltu@lyse.net>"
         ];
         features = {
           "ascii" = [ "dep:ascii" ];
-          "clippy" = [ "dep:clippy" ];
           "default" = [ "std" ];
         };
         resolvedDefaultFeatures = [ "default" "std" ];
@@ -6381,11 +6380,11 @@ rec {
         ];
 
       };
-      "hyper 0.14.31" = rec {
+      "hyper 0.14.32" = rec {
         crateName = "hyper";
-        version = "0.14.31";
+        version = "0.14.32";
         edition = "2018";
-        sha256 = "11bf6mqcpzi0x2758p7q9zk3m877avzpbiw8nx8v2dd3iwp3024c";
+        sha256 = "1rvcb0smz8q1i0y6p7rwxr02x5sclfg2hhxf3g0774zczn0cgps1";
         authors = [
           "Sean McArthur <sean@seanmonstar.com>"
         ];
@@ -6488,11 +6487,11 @@ rec {
         };
         resolvedDefaultFeatures = [ "client" "h2" "http1" "http2" "runtime" "socket2" "tcp" ];
       };
-      "hyper 1.5.1" = rec {
+      "hyper 1.5.2" = rec {
         crateName = "hyper";
-        version = "1.5.1";
+        version = "1.5.2";
         edition = "2021";
-        sha256 = "07s87id0566m2p5dc5q6nqmxz5r8drqd81b7w4q44djgxwkqi0cp";
+        sha256 = "1q7akfb443yrjzkmnnbp2vs8zi15hgbk466rr4y144v4ppabhvr5";
         authors = [
           "Sean McArthur <sean@seanmonstar.com>"
         ];
@@ -6575,6 +6574,10 @@ rec {
             features = [ "alloc" "sink" ];
           }
           {
+            name = "pin-project-lite";
+            packageId = "pin-project-lite";
+          }
+          {
             name = "tokio";
             packageId = "tokio";
             features = [ "fs" "macros" "net" "io-std" "io-util" "rt" "rt-multi-thread" "sync" "time" "test-util" ];
@@ -6609,7 +6612,7 @@ rec {
           }
           {
             name = "hyper";
-            packageId = "hyper 0.14.31";
+            packageId = "hyper 0.14.32";
             usesDefaultFeatures = false;
             features = [ "client" ];
           }
@@ -6631,7 +6634,7 @@ rec {
         devDependencies = [
           {
             name = "hyper";
-            packageId = "hyper 0.14.31";
+            packageId = "hyper 0.14.32";
             features = [ "full" ];
           }
           {
@@ -6661,11 +6664,11 @@ rec {
           "webpki-tokio" = [ "tokio-runtime" "webpki-roots" ];
         };
       };
-      "hyper-rustls 0.27.3" = rec {
+      "hyper-rustls 0.27.4" = rec {
         crateName = "hyper-rustls";
-        version = "0.27.3";
+        version = "0.27.4";
         edition = "2021";
-        sha256 = "0cxkph8hsmbz693a8ih2ciy7h0xbac844rpm981y6c0iqfsxpbq8";
+        sha256 = "0ry73hvh1wdlghq5wywdl5arxgnfcfqmcx2ca97w8vl2qr44m27n";
         libName = "hyper_rustls";
         dependencies = [
           {
@@ -6679,7 +6682,7 @@ rec {
           }
           {
             name = "hyper";
-            packageId = "hyper 1.5.1";
+            packageId = "hyper 1.5.2";
             usesDefaultFeatures = false;
           }
           {
@@ -6788,7 +6791,7 @@ rec {
           }
           {
             name = "hyper";
-            packageId = "hyper 1.5.1";
+            packageId = "hyper 1.5.2";
           }
           {
             name = "pin-project-lite";
@@ -6826,7 +6829,7 @@ rec {
           }
           {
             name = "hyper";
-            packageId = "hyper 1.5.1";
+            packageId = "hyper 1.5.2";
             features = [ "full" ];
           }
           {
@@ -7521,7 +7524,7 @@ rec {
           }
           {
             name = "unicode-width";
-            packageId = "unicode-width 0.2.0";
+            packageId = "unicode-width";
             optional = true;
           }
           {
@@ -8132,9 +8135,9 @@ rec {
       };
       "miniz_oxide" = rec {
         crateName = "miniz_oxide";
-        version = "0.8.0";
+        version = "0.8.2";
         edition = "2021";
-        sha256 = "1wadxkg6a6z4lr7kskapj5d8pxlx7cp1ifw4daqnkzqjxych5n72";
+        sha256 = "1543asrvhla92sby4z6m9ilkg2cmmq8ja6bj84k1vp6f48qfiysg";
         authors = [
           "Frommi <daniil.liferenko@gmail.com>"
           "oyvindln <oyvindln@users.noreply.github.com>"
@@ -9662,9 +9665,9 @@ rec {
       };
       "quinn-udp" = rec {
         crateName = "quinn-udp";
-        version = "0.5.8";
+        version = "0.5.9";
         edition = "2021";
-        sha256 = "09xmwrxikc69ilsmghxls3s0gq295hli366k1na2ggv8zwg4pkaj";
+        sha256 = "016rir0w5q6brwd33id2nvqi67xpl3k55ms4srqkmfml2xi2hh0w";
         libName = "quinn_udp";
         dependencies = [
           {
@@ -9691,7 +9694,7 @@ rec {
             name = "windows-sys";
             packageId = "windows-sys 0.59.0";
             target = { target, features }: (target."windows" or false);
-            features = [ "Win32_Foundation" "Win32_System_IO" "Win32_Networking_WinSock" "Win32_System_SystemInformation" "Win32_System_Threading" ];
+            features = [ "Win32_Foundation" "Win32_System_IO" "Win32_Networking_WinSock" ];
           }
         ];
         buildDependencies = [
@@ -10223,7 +10226,7 @@ rec {
           }
           {
             name = "hyper";
-            packageId = "hyper 0.14.31";
+            packageId = "hyper 0.14.32";
             usesDefaultFeatures = false;
             target = { target, features }: (!("wasm32" == target."arch" or null));
             features = [ "tcp" "http1" "http2" "client" "runtime" ];
@@ -10369,7 +10372,7 @@ rec {
           }
           {
             name = "hyper";
-            packageId = "hyper 0.14.31";
+            packageId = "hyper 0.14.32";
             usesDefaultFeatures = false;
             target = {target, features}: (!("wasm32" == target."arch" or null));
             features = [ "tcp" "stream" "http1" "http2" "client" "server" "runtime" ];
@@ -10497,13 +10500,13 @@ rec {
           }
           {
             name = "hyper";
-            packageId = "hyper 1.5.1";
+            packageId = "hyper 1.5.2";
             target = { target, features }: (!("wasm32" == target."arch" or null));
             features = [ "http1" "client" ];
           }
           {
             name = "hyper-rustls";
-            packageId = "hyper-rustls 0.27.3";
+            packageId = "hyper-rustls 0.27.4";
             optional = true;
             usesDefaultFeatures = false;
             target = { target, features }: (!("wasm32" == target."arch" or null));
@@ -10663,7 +10666,7 @@ rec {
           }
           {
             name = "hyper";
-            packageId = "hyper 1.5.1";
+            packageId = "hyper 1.5.2";
             usesDefaultFeatures = false;
             target = {target, features}: (!("wasm32" == target."arch" or null));
             features = [ "http1" "http2" "client" "server" ];
@@ -13933,9 +13936,9 @@ rec {
       };
       "unicode-bidi" = rec {
         crateName = "unicode-bidi";
-        version = "0.3.17";
+        version = "0.3.18";
         edition = "2018";
-        sha256 = "14vqdsnrm3y5anj6h5zz5s32w88crraycblb88d9k23k9ns7vcas";
+        sha256 = "1xcxwbsqa24b8vfchhzyyzgj0l6bn51ib5v8j6krha0m77dva72w";
         libName = "unicode_bidi";
         authors = [
           "The Servo Project Developers"
@@ -14012,26 +14015,7 @@ rec {
         features = {
         };
       };
-      "unicode-width 0.1.14" = rec {
-        crateName = "unicode-width";
-        version = "0.1.14";
-        edition = "2021";
-        sha256 = "1bzn2zv0gp8xxbxbhifw778a7fc93pa6a1kj24jgg9msj07f7mkx";
-        libName = "unicode_width";
-        authors = [
-          "kwantam <kwantam@gmail.com>"
-          "Manish Goregaokar <manishsmail@gmail.com>"
-        ];
-        features = {
-          "compiler_builtins" = [ "dep:compiler_builtins" ];
-          "core" = [ "dep:core" ];
-          "default" = [ "cjk" ];
-          "rustc-dep-of-std" = [ "std" "core" "compiler_builtins" ];
-          "std" = [ "dep:std" ];
-        };
-        resolvedDefaultFeatures = [ "cjk" "default" ];
-      };
-      "unicode-width 0.2.0" = rec {
+      "unicode-width" = rec {
         crateName = "unicode-width";
         version = "0.2.0";
         edition = "2021";
@@ -16495,7 +16479,7 @@ rec {
           "Win32_Web" = [ "Win32" ];
           "Win32_Web_InternetExplorer" = [ "Win32_Web" ];
         };
-        resolvedDefaultFeatures = [ "Wdk" "Wdk_Foundation" "Wdk_Storage" "Wdk_Storage_FileSystem" "Wdk_System" "Wdk_System_IO" "Win32" "Win32_Foundation" "Win32_Networking" "Win32_Networking_WinSock" "Win32_Security" "Win32_Storage" "Win32_Storage_FileSystem" "Win32_System" "Win32_System_Console" "Win32_System_IO" "Win32_System_LibraryLoader" "Win32_System_Pipes" "Win32_System_Registry" "Win32_System_SystemInformation" "Win32_System_SystemServices" "Win32_System_Threading" "Win32_System_WindowsProgramming" "Win32_UI" "Win32_UI_Input" "Win32_UI_Input_KeyboardAndMouse" "Win32_UI_WindowsAndMessaging" "default" ];
+        resolvedDefaultFeatures = [ "Wdk" "Wdk_Foundation" "Wdk_Storage" "Wdk_Storage_FileSystem" "Wdk_System" "Wdk_System_IO" "Win32" "Win32_Foundation" "Win32_Networking" "Win32_Networking_WinSock" "Win32_Security" "Win32_Storage" "Win32_Storage_FileSystem" "Win32_System" "Win32_System_IO" "Win32_System_LibraryLoader" "Win32_System_Pipes" "Win32_System_Registry" "Win32_System_SystemInformation" "Win32_System_SystemServices" "Win32_System_Threading" "Win32_System_WindowsProgramming" "Win32_UI" "Win32_UI_WindowsAndMessaging" "default" ];
       };
       "windows-sys 0.59.0" = rec {
         crateName = "windows-sys";
@@ -16754,7 +16738,7 @@ rec {
           "Win32_Web" = [ "Win32" ];
           "Win32_Web_InternetExplorer" = [ "Win32_Web" ];
         };
-        resolvedDefaultFeatures = [ "Win32" "Win32_Foundation" "Win32_Networking" "Win32_Networking_WinSock" "Win32_Storage" "Win32_Storage_FileSystem" "Win32_System" "Win32_System_Console" "Win32_System_IO" "Win32_System_Memory" "Win32_System_SystemInformation" "Win32_System_Threading" "default" ];
+        resolvedDefaultFeatures = [ "Win32" "Win32_Foundation" "Win32_Networking" "Win32_Networking_WinSock" "Win32_Storage" "Win32_Storage_FileSystem" "Win32_System" "Win32_System_Console" "Win32_System_IO" "Win32_System_Memory" "Win32_System_SystemInformation" "Win32_System_Threading" "Win32_UI" "Win32_UI_Input" "Win32_UI_Input_KeyboardAndMouse" "default" ];
       };
       "windows-targets 0.48.5" = rec {
         crateName = "windows-targets";

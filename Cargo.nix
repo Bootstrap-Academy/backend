@@ -8496,9 +8496,9 @@ rec {
       };
       "nutype" = rec {
         crateName = "nutype";
-        version = "0.5.0";
+        version = "0.5.1";
         edition = "2021";
-        sha256 = "0r1wbwrnr8rg2brl7mky0swbwj3mxq17h30prfqgzkfnw9c96y6q";
+        sha256 = "1dpdm3xpnr3z19j7shkzqdx8fzy7yh14cfx5pnkg9d8m0gfaj7hg";
         authors = [
           "Serhii Potapov <blake131313@gmail.com>"
         ];
@@ -8521,9 +8521,9 @@ rec {
       };
       "nutype_macros" = rec {
         crateName = "nutype_macros";
-        version = "0.5.0";
+        version = "0.5.1";
         edition = "2021";
-        sha256 = "0swis0l9h6gv65sq6k5dz3f625ia4fdfh3wia8ss01hzp8if58wk";
+        sha256 = "1lj40awssj2ajxrzdyjfpkv7kr7bygip8w43cim5v4ib8wbsxsr3";
         procMacro = true;
         authors = [
           "Serhii Potapov <blake131313@gmail.com>"
@@ -8558,6 +8558,12 @@ rec {
           {
             name = "urlencoding";
             packageId = "urlencoding";
+          }
+        ];
+        buildDependencies = [
+          {
+            name = "rustc_version";
+            packageId = "rustc_version";
           }
         ];
         features = {

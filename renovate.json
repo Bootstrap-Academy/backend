@@ -12,7 +12,6 @@
     {
       "matchUpdateTypes": ["minor", "patch"],
       "matchManagers": ["cargo"],
-      "groupName": "rust minor/patch",
       "automerge": true
     }
   ],

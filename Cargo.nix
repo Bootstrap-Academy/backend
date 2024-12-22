@@ -3152,9 +3152,9 @@ rec {
       };
       "aide" = rec {
         crateName = "aide";
-        version = "0.13.4";
+        version = "0.13.5";
         edition = "2021";
-        sha256 = "1vf83k4zyiq24f0qd64b9w8bx1kh3zyb9ndz35ffqh8ylabkn3kv";
+        sha256 = "029kabkpwzxh8474n9g6x4qxhlnngm36y0kaffyv9pa5i2bx4y2n";
         authors = [
           "tamasfe"
         ];
@@ -3239,6 +3239,7 @@ rec {
           "axum-extra-cookie" = [ "axum" "axum-extra" "axum-extra/cookie" ];
           "axum-extra-cookie-private" = [ "axum" "axum-extra" "axum-extra/cookie-private" ];
           "axum-extra-form" = [ "axum" "axum-extra" "axum-extra/form" ];
+          "axum-extra-json-deserializer" = [ "axum" "axum-extra" "axum-extra/json-deserializer" ];
           "axum-extra-query" = [ "axum" "axum-extra" "axum-extra/query" ];
           "axum-headers" = [ "axum-extra/typed-header" ];
           "axum-multipart" = [ "axum/multipart" ];

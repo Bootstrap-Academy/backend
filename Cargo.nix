@@ -3152,9 +3152,9 @@ rec {
       };
       "aide" = rec {
         crateName = "aide";
-        version = "0.13.4";
+        version = "0.13.5";
         edition = "2021";
-        sha256 = "1vf83k4zyiq24f0qd64b9w8bx1kh3zyb9ndz35ffqh8ylabkn3kv";
+        sha256 = "029kabkpwzxh8474n9g6x4qxhlnngm36y0kaffyv9pa5i2bx4y2n";
         authors = [
           "tamasfe"
         ];
@@ -3239,6 +3239,7 @@ rec {
           "axum-extra-cookie" = [ "axum" "axum-extra" "axum-extra/cookie" ];
           "axum-extra-cookie-private" = [ "axum" "axum-extra" "axum-extra/cookie-private" ];
           "axum-extra-form" = [ "axum" "axum-extra" "axum-extra/form" ];
+          "axum-extra-json-deserializer" = [ "axum" "axum-extra" "axum-extra/json-deserializer" ];
           "axum-extra-query" = [ "axum" "axum-extra" "axum-extra/query" ];
           "axum-headers" = [ "axum-extra/typed-header" ];
           "axum-multipart" = [ "axum/multipart" ];
@@ -4677,9 +4678,9 @@ rec {
       };
       "config" = rec {
         crateName = "config";
-        version = "0.15.2";
+        version = "0.15.4";
         edition = "2018";
-        sha256 = "1s6dyv82x3n75xyhpq521zwx4rqyvdhwcnzljq93hdl2cbcag9l7";
+        sha256 = "1cwcm0ngsps86p5wklw5wb2cin4zsfd2pv6kadyi0n5c4k9gi11x";
         dependencies = [
           {
             name = "pathdiff";
@@ -4693,6 +4694,8 @@ rec {
             name = "toml";
             packageId = "toml";
             optional = true;
+            usesDefaultFeatures = false;
+            features = [ "parse" ];
           }
           {
             name = "winnow";
@@ -13267,7 +13270,7 @@ rec {
           "parse" = [ "dep:toml_edit" "toml_edit?/parse" ];
           "preserve_order" = [ "indexmap" ];
         };
-        resolvedDefaultFeatures = [ "default" "display" "parse" ];
+        resolvedDefaultFeatures = [ "parse" ];
       };
       "toml_datetime" = rec {
         crateName = "toml_datetime";
@@ -13331,7 +13334,7 @@ rec {
           "perf" = [ "dep:kstring" ];
           "serde" = [ "dep:serde" "toml_datetime/serde" "dep:serde_spanned" ];
         };
-        resolvedDefaultFeatures = [ "display" "parse" "serde" ];
+        resolvedDefaultFeatures = [ "parse" "serde" ];
       };
       "totp-rs" = rec {
         crateName = "totp-rs";

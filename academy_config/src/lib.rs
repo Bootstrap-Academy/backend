@@ -235,4 +235,30 @@ mod tests {
     fn load_dev_config() {
         super::load_dev_config().unwrap();
     }
+
+    #[test]
+    fn load_minimal_config() {
+        super::load_paths(
+            &[] as &[&str],
+            &[
+                "http.address = \"0.0.0.0:8000\"",
+                "database.url = \"\"",
+                "cache.url = \"\"",
+                "email.smtp_url = \"\"",
+                "email.from = \"Test <test@example.com>\"",
+                "jwt.secret = \"\"",
+                "internal.shop_url = \"http://127.0.0.1:8002\"",
+                "contact.email = \"test@example.com\"",
+                "recaptcha.sitekey = \"\"",
+                "recaptcha.secret = \"\"",
+                "oauth2.providers.github.client_id = \"\"",
+                "oauth2.providers.github.client_secret = \"\"",
+                "oauth2.providers.discord.client_id = \"\"",
+                "oauth2.providers.discord.client_secret = \"\"",
+                "oauth2.providers.google.client_id = \"\"",
+                "oauth2.providers.google.client_secret = \"\"",
+            ],
+        )
+        .unwrap();
+    }
 }

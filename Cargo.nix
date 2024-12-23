@@ -4678,9 +4678,9 @@ rec {
       };
       "config" = rec {
         crateName = "config";
-        version = "0.15.2";
+        version = "0.15.4";
         edition = "2018";
-        sha256 = "1s6dyv82x3n75xyhpq521zwx4rqyvdhwcnzljq93hdl2cbcag9l7";
+        sha256 = "1cwcm0ngsps86p5wklw5wb2cin4zsfd2pv6kadyi0n5c4k9gi11x";
         dependencies = [
           {
             name = "pathdiff";
@@ -4694,6 +4694,8 @@ rec {
             name = "toml";
             packageId = "toml";
             optional = true;
+            usesDefaultFeatures = false;
+            features = [ "parse" ];
           }
           {
             name = "winnow";
@@ -13270,7 +13272,7 @@ rec {
           "parse" = [ "dep:toml_edit" "toml_edit?/parse" ];
           "preserve_order" = [ "indexmap" ];
         };
-        resolvedDefaultFeatures = [ "default" "display" "parse" ];
+        resolvedDefaultFeatures = [ "parse" ];
       };
       "toml_datetime" = rec {
         crateName = "toml_datetime";
@@ -13334,7 +13336,7 @@ rec {
           "perf" = [ "dep:kstring" ];
           "serde" = [ "dep:serde" "toml_datetime/serde" "dep:serde_spanned" ];
         };
-        resolvedDefaultFeatures = [ "display" "parse" "serde" ];
+        resolvedDefaultFeatures = [ "parse" "serde" ];
       };
       "totp-rs" = rec {
         crateName = "totp-rs";

@@ -427,7 +427,7 @@ dependencies = [
  "academy_utils",
  "anyhow",
  "lettre",
- "reqwest 0.12.9",
+ "reqwest 0.12.10",
  "serde",
  "tokio",
  "tracing",
@@ -458,7 +458,7 @@ dependencies = [
  "anyhow",
  "oauth2",
  "regex",
- "reqwest 0.12.9",
+ "reqwest 0.12.10",
  "serde",
  "serde_json",
  "tokio",
@@ -2944,9 +2944,9 @@ dependencies = [
 
 [[package]]
 name = "reqwest"
-version = "0.12.9"
+version = "0.12.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a77c62af46e79de0a562e1a9849205ffcb7fc1238876e9bd743357570e04046f"
+checksum = "3d3536321cfc54baa8cf3e273d5e1f63f889067829c4b410fcdbac8ca7b80994"
 dependencies = [
  "base64 0.22.1",
  "bytes",
@@ -2977,6 +2977,7 @@ dependencies = [
  "sync_wrapper 1.0.2",
  "tokio",
  "tokio-rustls 0.26.1",
+ "tower",
  "tower-service",
  "url",
  "wasm-bindgen",
@@ -3197,7 +3198,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "016958f51b96861dead7c1e02290f138411d05e94fad175c8636a835dee6e51e"
 dependencies = [
  "httpdate",
- "reqwest 0.12.9",
+ "reqwest 0.12.10",
  "rustls 0.23.20",
  "sentry-anyhow",
  "sentry-backtrace",

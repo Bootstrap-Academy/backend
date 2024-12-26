@@ -2244,7 +2244,7 @@ rec {
           }
           {
             name = "reqwest";
-            packageId = "reqwest 0.12.9";
+            packageId = "reqwest 0.12.10";
             usesDefaultFeatures = false;
             features = [ "http2" "rustls-tls" "json" ];
           }
@@ -2353,7 +2353,7 @@ rec {
           }
           {
             name = "reqwest";
-            packageId = "reqwest 0.12.9";
+            packageId = "reqwest 0.12.10";
             usesDefaultFeatures = false;
             features = [ "http2" "rustls-tls" "json" ];
           }
@@ -10452,11 +10452,11 @@ rec {
         };
         resolvedDefaultFeatures = [ "__rustls" "__tls" "blocking" "hyper-rustls" "rustls" "rustls-tls" "rustls-tls-webpki-roots" "tokio-rustls" "webpki-roots" ];
       };
-      "reqwest 0.12.9" = rec {
+      "reqwest 0.12.10" = rec {
         crateName = "reqwest";
-        version = "0.12.9";
+        version = "0.12.10";
         edition = "2021";
-        sha256 = "0vq40h75fmrkfjyyjxl84g0pzjzz0n989ag1cajy17g78spn4z57";
+        sha256 = "1509p2kqrb6vzh8b9i19g038ky333xg3s9ryrylblm7w3hr3cd9x";
         authors = [
           "Sean McArthur <sean@seanmonstar.com>"
         ];
@@ -10628,6 +10628,12 @@ rec {
             features = [ "tls12" ];
           }
           {
+            name = "tower";
+            packageId = "tower";
+            usesDefaultFeatures = false;
+            features = [ "timeout" "util" ];
+          }
+          {
             name = "tower-service";
             packageId = "tower-service";
           }
@@ -10703,6 +10709,12 @@ rec {
             usesDefaultFeatures = false;
             target = {target, features}: (!("wasm32" == target."arch" or null));
             features = [ "macros" "rt-multi-thread" ];
+          }
+          {
+            name = "tower";
+            packageId = "tower";
+            usesDefaultFeatures = false;
+            features = [ "limit" ];
           }
           {
             name = "wasm-bindgen";
@@ -11358,7 +11370,7 @@ rec {
           }
           {
             name = "reqwest";
-            packageId = "reqwest 0.12.9";
+            packageId = "reqwest 0.12.10";
             optional = true;
             usesDefaultFeatures = false;
             features = [ "blocking" "json" ];
@@ -13467,7 +13479,7 @@ rec {
           "tracing" = [ "dep:tracing" ];
           "util" = [ "__common" "futures-util" "pin-project-lite" "sync_wrapper" ];
         };
-        resolvedDefaultFeatures = [ "__common" "futures-core" "futures-util" "make" "pin-project-lite" "sync_wrapper" "tokio" "util" ];
+        resolvedDefaultFeatures = [ "__common" "futures-core" "futures-util" "make" "pin-project-lite" "sync_wrapper" "timeout" "tokio" "util" ];
       };
       "tower-http" = rec {
         crateName = "tower-http";

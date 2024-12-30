@@ -4304,9 +4304,9 @@ rec {
       };
       "cc" = rec {
         crateName = "cc";
-        version = "1.2.5";
+        version = "1.2.6";
         edition = "2018";
-        sha256 = "0vlmqm7h6jwi1ihn8yg6n3yy7dqfbkkjv1qkmmcg8r6wq6ch86n3";
+        sha256 = "0cx32v9pcslavf8y10sb3y883v7377mw48q3dpw5b1cgidibnvcd";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -11152,9 +11152,9 @@ rec {
       };
       "rustversion" = rec {
         crateName = "rustversion";
-        version = "1.0.18";
+        version = "1.0.19";
         edition = "2018";
-        sha256 = "0j2207vmgrcxwwwvknfn3lwv4i8djhjnxlvwdnz8bwijqqmrz08f";
+        sha256 = "1m39qd65jcd1xgqzdm3017ppimiggh2446xngwp1ngr8hjbmpi7p";
         procMacro = true;
         build = "build/build.rs";
         authors = [

@@ -2244,7 +2244,7 @@ rec {
           }
           {
             name = "reqwest";
-            packageId = "reqwest 0.12.11";
+            packageId = "reqwest 0.12.12";
             usesDefaultFeatures = false;
             features = [ "http2" "rustls-tls" "json" ];
           }
@@ -2353,7 +2353,7 @@ rec {
           }
           {
             name = "reqwest";
-            packageId = "reqwest 0.12.11";
+            packageId = "reqwest 0.12.12";
             usesDefaultFeatures = false;
             features = [ "http2" "rustls-tls" "json" ];
           }
@@ -10452,11 +10452,11 @@ rec {
         };
         resolvedDefaultFeatures = [ "__rustls" "__tls" "blocking" "hyper-rustls" "rustls" "rustls-tls" "rustls-tls-webpki-roots" "tokio-rustls" "webpki-roots" ];
       };
-      "reqwest 0.12.11" = rec {
+      "reqwest 0.12.12" = rec {
         crateName = "reqwest";
-        version = "0.12.11";
+        version = "0.12.12";
         edition = "2021";
-        sha256 = "1csfxdldbqg9nlv5lg68x07gk68zqxcagaql094bw97ma3z61q3z";
+        sha256 = "1nnigi6jcrqdd5k5myc53qdkdnrx8zjgan029q1w5hspf5039rs3";
         authors = [
           "Sean McArthur <sean@seanmonstar.com>"
         ];
@@ -10631,6 +10631,7 @@ rec {
             name = "tower";
             packageId = "tower";
             usesDefaultFeatures = false;
+            target = { target, features }: (!("wasm32" == target."arch" or null));
             features = [ "timeout" "util" ];
           }
           {
@@ -11370,7 +11371,7 @@ rec {
           }
           {
             name = "reqwest";
-            packageId = "reqwest 0.12.11";
+            packageId = "reqwest 0.12.12";
             optional = true;
             usesDefaultFeatures = false;
             features = [ "blocking" "json" ];

@@ -766,7 +766,7 @@ rec {
           }
           {
             name = "axum";
-            packageId = "axum";
+            packageId = "axum 0.8.1";
             usesDefaultFeatures = false;
             features = [ "http1" "http2" "tokio" "json" "query" "form" "original-uri" "matched-path" ];
           }
@@ -2904,7 +2904,7 @@ rec {
           }
           {
             name = "axum";
-            packageId = "axum";
+            packageId = "axum 0.8.1";
             usesDefaultFeatures = false;
             features = [ "http1" "http2" "tokio" "json" "query" "form" "original-uri" "matched-path" ];
           }
@@ -3161,7 +3161,7 @@ rec {
         dependencies = [
           {
             name = "axum";
-            packageId = "axum";
+            packageId = "axum 0.7.9";
             optional = true;
             usesDefaultFeatures = false;
           }
@@ -3556,7 +3556,7 @@ rec {
         ];
 
       };
-      "axum" = rec {
+      "axum 0.7.9" = rec {
         crateName = "axum";
         version = "0.7.9";
         edition = "2021";
@@ -3568,11 +3568,139 @@ rec {
           }
           {
             name = "axum-core";
-            packageId = "axum-core";
+            packageId = "axum-core 0.4.5";
           }
           {
             name = "bytes";
             packageId = "bytes";
+          }
+          {
+            name = "futures-util";
+            packageId = "futures-util";
+            usesDefaultFeatures = false;
+            features = [ "alloc" ];
+          }
+          {
+            name = "http";
+            packageId = "http 1.2.0";
+          }
+          {
+            name = "http-body";
+            packageId = "http-body 1.0.1";
+          }
+          {
+            name = "http-body-util";
+            packageId = "http-body-util";
+          }
+          {
+            name = "itoa";
+            packageId = "itoa";
+          }
+          {
+            name = "matchit";
+            packageId = "matchit 0.7.3";
+          }
+          {
+            name = "memchr";
+            packageId = "memchr";
+          }
+          {
+            name = "mime";
+            packageId = "mime";
+          }
+          {
+            name = "percent-encoding";
+            packageId = "percent-encoding";
+          }
+          {
+            name = "pin-project-lite";
+            packageId = "pin-project-lite";
+          }
+          {
+            name = "rustversion";
+            packageId = "rustversion";
+          }
+          {
+            name = "serde";
+            packageId = "serde";
+          }
+          {
+            name = "sync_wrapper";
+            packageId = "sync_wrapper 1.0.2";
+          }
+          {
+            name = "tower";
+            packageId = "tower";
+            usesDefaultFeatures = false;
+            features = [ "util" ];
+          }
+          {
+            name = "tower-layer";
+            packageId = "tower-layer";
+          }
+          {
+            name = "tower-service";
+            packageId = "tower-service";
+          }
+          {
+            name = "tracing";
+            packageId = "tracing";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+        ];
+        devDependencies = [
+          {
+            name = "serde";
+            packageId = "serde";
+            features = [ "derive" ];
+          }
+          {
+            name = "tower";
+            packageId = "tower";
+            rename = "tower";
+            features = [ "util" "timeout" "limit" "load-shed" "steer" "filter" ];
+          }
+          {
+            name = "tracing";
+            packageId = "tracing";
+          }
+        ];
+        features = {
+          "__private_docs" = [ "axum-core/__private_docs" "tower/full" "dep:tower-http" ];
+          "default" = [ "form" "http1" "json" "matched-path" "original-uri" "query" "tokio" "tower-log" "tracing" ];
+          "form" = [ "dep:serde_urlencoded" ];
+          "http1" = [ "dep:hyper" "hyper?/http1" "hyper-util?/http1" ];
+          "http2" = [ "dep:hyper" "hyper?/http2" "hyper-util?/http2" ];
+          "json" = [ "dep:serde_json" "dep:serde_path_to_error" ];
+          "macros" = [ "dep:axum-macros" ];
+          "multipart" = [ "dep:multer" ];
+          "query" = [ "dep:serde_urlencoded" ];
+          "tokio" = [ "dep:hyper-util" "dep:tokio" "tokio/net" "tokio/rt" "tower/make" "tokio/macros" ];
+          "tower-log" = [ "tower/log" ];
+          "tracing" = [ "dep:tracing" "axum-core/tracing" ];
+          "ws" = [ "dep:hyper" "tokio" "dep:tokio-tungstenite" "dep:sha1" "dep:base64" ];
+        };
+        resolvedDefaultFeatures = [ "original-uri" "tracing" ];
+      };
+      "axum 0.8.1" = rec {
+        crateName = "axum";
+        version = "0.8.1";
+        edition = "2021";
+        sha256 = "1f78gc3sp2vx2dll147fm9yl697y38mz9jmrqssb662yqwjdcvvd";
+        dependencies = [
+          {
+            name = "axum-core";
+            packageId = "axum-core 0.5.0";
+          }
+          {
+            name = "bytes";
+            packageId = "bytes";
+          }
+          {
+            name = "form_urlencoded";
+            packageId = "form_urlencoded";
+            optional = true;
           }
           {
             name = "futures-util";
@@ -3609,7 +3737,7 @@ rec {
           }
           {
             name = "matchit";
-            packageId = "matchit";
+            packageId = "matchit 0.8.4";
           }
           {
             name = "memchr";
@@ -3676,14 +3804,13 @@ rec {
             name = "tower-service";
             packageId = "tower-service";
           }
-          {
-            name = "tracing";
-            packageId = "tracing";
-            optional = true;
-            usesDefaultFeatures = false;
-          }
         ];
         devDependencies = [
+          {
+            name = "hyper";
+            packageId = "hyper 1.5.2";
+            features = [ "client" ];
+          }
           {
             name = "serde";
             packageId = "serde";
@@ -3706,29 +3833,26 @@ rec {
             rename = "tower";
             features = [ "util" "timeout" "limit" "load-shed" "steer" "filter" ];
           }
-          {
-            name = "tracing";
-            packageId = "tracing";
-          }
         ];
         features = {
+          "__private" = [ "tokio" "http1" "dep:reqwest" ];
           "__private_docs" = [ "axum-core/__private_docs" "tower/full" "dep:tower-http" ];
           "default" = [ "form" "http1" "json" "matched-path" "original-uri" "query" "tokio" "tower-log" "tracing" ];
-          "form" = [ "dep:serde_urlencoded" ];
+          "form" = [ "dep:form_urlencoded" "dep:serde_urlencoded" "dep:serde_path_to_error" ];
           "http1" = [ "dep:hyper" "hyper?/http1" "hyper-util?/http1" ];
           "http2" = [ "dep:hyper" "hyper?/http2" "hyper-util?/http2" ];
           "json" = [ "dep:serde_json" "dep:serde_path_to_error" ];
           "macros" = [ "dep:axum-macros" ];
           "multipart" = [ "dep:multer" ];
-          "query" = [ "dep:serde_urlencoded" ];
+          "query" = [ "dep:form_urlencoded" "dep:serde_urlencoded" "dep:serde_path_to_error" ];
           "tokio" = [ "dep:hyper-util" "dep:tokio" "tokio/net" "tokio/rt" "tower/make" "tokio/macros" ];
           "tower-log" = [ "tower/log" ];
           "tracing" = [ "dep:tracing" "axum-core/tracing" ];
           "ws" = [ "dep:hyper" "tokio" "dep:tokio-tungstenite" "dep:sha1" "dep:base64" ];
         };
-        resolvedDefaultFeatures = [ "form" "http1" "http2" "json" "matched-path" "original-uri" "query" "tokio" "tracing" ];
+        resolvedDefaultFeatures = [ "form" "http1" "http2" "json" "matched-path" "original-uri" "query" "tokio" ];
       };
-      "axum-core" = rec {
+      "axum-core 0.4.5" = rec {
         crateName = "axum-core";
         version = "0.4.5";
         edition = "2021";
@@ -3806,6 +3930,73 @@ rec {
         };
         resolvedDefaultFeatures = [ "tracing" ];
       };
+      "axum-core 0.5.0" = rec {
+        crateName = "axum-core";
+        version = "0.5.0";
+        edition = "2021";
+        sha256 = "0cxpk0vbqd77zq49hjzrbszn35lgx469ghcrw55045pxcbrn44yz";
+        libName = "axum_core";
+        dependencies = [
+          {
+            name = "bytes";
+            packageId = "bytes";
+          }
+          {
+            name = "futures-util";
+            packageId = "futures-util";
+            usesDefaultFeatures = false;
+            features = [ "alloc" ];
+          }
+          {
+            name = "http";
+            packageId = "http 1.2.0";
+          }
+          {
+            name = "http-body";
+            packageId = "http-body 1.0.1";
+          }
+          {
+            name = "http-body-util";
+            packageId = "http-body-util";
+          }
+          {
+            name = "mime";
+            packageId = "mime";
+          }
+          {
+            name = "pin-project-lite";
+            packageId = "pin-project-lite";
+          }
+          {
+            name = "rustversion";
+            packageId = "rustversion";
+          }
+          {
+            name = "sync_wrapper";
+            packageId = "sync_wrapper 1.0.2";
+          }
+          {
+            name = "tower-layer";
+            packageId = "tower-layer";
+          }
+          {
+            name = "tower-service";
+            packageId = "tower-service";
+          }
+        ];
+        devDependencies = [
+          {
+            name = "futures-util";
+            packageId = "futures-util";
+            usesDefaultFeatures = false;
+            features = [ "alloc" ];
+          }
+        ];
+        features = {
+          "__private_docs" = [ "dep:tower-http" ];
+          "tracing" = [ "dep:tracing" ];
+        };
+      };
       "axum-extra" = rec {
         crateName = "axum-extra";
         version = "0.9.6";
@@ -3815,13 +4006,13 @@ rec {
         dependencies = [
           {
             name = "axum";
-            packageId = "axum";
+            packageId = "axum 0.7.9";
             usesDefaultFeatures = false;
             features = [ "original-uri" ];
           }
           {
             name = "axum-core";
-            packageId = "axum-core";
+            packageId = "axum-core 0.4.5";
           }
           {
             name = "bytes";
@@ -8043,11 +8234,23 @@ rec {
         ];
 
       };
-      "matchit" = rec {
+      "matchit 0.7.3" = rec {
         crateName = "matchit";
         version = "0.7.3";
         edition = "2021";
         sha256 = "156bgdmmlv4crib31qhgg49nsjk88dxkdqp80ha2pk2rk6n6ax0f";
+        authors = [
+          "Ibraheem Ahmed <ibraheem@ibraheem.ca>"
+        ];
+        features = {
+        };
+        resolvedDefaultFeatures = [ "default" ];
+      };
+      "matchit 0.8.4" = rec {
+        crateName = "matchit";
+        version = "0.8.4";
+        edition = "2021";
+        sha256 = "1hzl48fwq1cn5dvshfly6vzkzqhfihya65zpj7nz7lfx82mgzqa7";
         authors = [
           "Ibraheem Ahmed <ibraheem@ibraheem.ca>"
         ];
@@ -11953,7 +12156,7 @@ rec {
         dependencies = [
           {
             name = "axum";
-            packageId = "axum";
+            packageId = "axum 0.7.9";
             rename = "axum-framework";
             optional = true;
             usesDefaultFeatures = false;

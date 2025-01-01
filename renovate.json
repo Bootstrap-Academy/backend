@@ -13,6 +13,11 @@
       "matchUpdateTypes": ["minor", "patch"],
       "matchManagers": ["cargo"],
       "automerge": true
+    },
+    {
+      "groupName": "rust:axum",
+      "matchManagers": ["cargo"],
+      "matchPackageNames": ["axum", "axum-*", "aide"]
     }
   ],
 

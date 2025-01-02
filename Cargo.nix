@@ -17015,9 +17015,9 @@ rec {
       };
       "winnow" = rec {
         crateName = "winnow";
-        version = "0.6.20";
+        version = "0.6.21";
         edition = "2021";
-        sha256 = "16y4i8z9vh8hazjxg5mvmq0c5i35wlk8rxi5gkq6cn5vlb0zxh9n";
+        sha256 = "0s3x124zh15c2q2hd9kh7skr48b9v6zlkry64ma7lh7jax9bpxg6";
         dependencies = [
           {
             name = "memchr";

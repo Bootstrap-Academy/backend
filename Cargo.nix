@@ -3506,9 +3506,9 @@ rec {
       };
       "async-trait" = rec {
         crateName = "async-trait";
-        version = "0.1.83";
+        version = "0.1.84";
         edition = "2021";
-        sha256 = "1p8q8gm4fv2fdka8hwy2w3f8df7p5inixqi7rlmbnky3wmysw73j";
+        sha256 = "18603mb62l52xsilpw45w5wj0cbym7518kns34icjmnd1nql84hv";
         procMacro = true;
         libName = "async_trait";
         authors = [
@@ -3527,7 +3527,7 @@ rec {
             name = "syn";
             packageId = "syn";
             usesDefaultFeatures = false;
-            features = [ "full" "parsing" "printing" "proc-macro" "visit-mut" ];
+            features = [ "clone-impls" "full" "parsing" "printing" "proc-macro" "visit-mut" ];
           }
         ];
 
@@ -4232,9 +4232,9 @@ rec {
       };
       "bstr" = rec {
         crateName = "bstr";
-        version = "1.11.1";
+        version = "1.11.3";
         edition = "2021";
-        sha256 = "1j32ghvgwvc40bc6g38ximk52dv1xfknkzfmdwpgjnrsd1yk0skq";
+        sha256 = "1q3g2wmrvclgx7lk2p6mpzhqxzx41hyg962gkmlyxql1liar26jk";
         authors = [
           "Andrew Gallant <jamslam@gmail.com>"
         ];
@@ -4304,9 +4304,9 @@ rec {
       };
       "cc" = rec {
         crateName = "cc";
-        version = "1.2.6";
+        version = "1.2.7";
         edition = "2018";
-        sha256 = "0cx32v9pcslavf8y10sb3y883v7377mw48q3dpw5b1cgidibnvcd";
+        sha256 = "1mwkvh1hdq96vjpnc9gxpv37fp8s5m0dca8vkax0cvfxjvgs04m0";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -8706,9 +8706,9 @@ rec {
       };
       "os_info" = rec {
         crateName = "os_info";
-        version = "3.9.1";
+        version = "3.9.2";
         edition = "2018";
-        sha256 = "0c74d41gsnqxg4zlk8q5v0jrmfcy6hk87k759wy5cfaypvs52rpb";
+        sha256 = "12zl51iws71ary70282kxbqfaizwd71ivv38xr0mg34rrk420rbf";
         authors = [
           "Jan Schulte <hello@unexpected-co.de>"
           "Stanislav Tkach <stanislav.tkach@gmail.com>"
@@ -17015,9 +17015,9 @@ rec {
       };
       "winnow" = rec {
         crateName = "winnow";
-        version = "0.6.21";
+        version = "0.6.22";
         edition = "2021";
-        sha256 = "0s3x124zh15c2q2hd9kh7skr48b9v6zlkry64ma7lh7jax9bpxg6";
+        sha256 = "10595yffwpz3a05q4v5zgjyzjyz6lc1b65mkkp07xh41my4i2a1r";
         dependencies = [
           {
             name = "memchr";

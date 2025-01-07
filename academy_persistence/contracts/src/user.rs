@@ -94,6 +94,7 @@ pub trait UserRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
     ) -> impl Future<Output = Result<(), UserRepoError>> + Send;
 
     /// Update an existing user.
+    #[allow(clippy::needless_lifetimes, reason = "automock")]
     fn update<'a>(
         &self,
         txn: &mut Txn,
@@ -102,6 +103,7 @@ pub trait UserRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
     ) -> impl Future<Output = Result<bool, UserRepoError>> + Send;
 
     /// Update the profile of an existing user.
+    #[allow(clippy::needless_lifetimes, reason = "automock")]
     fn update_profile<'a>(
         &self,
         txn: &mut Txn,
@@ -110,6 +112,7 @@ pub trait UserRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
     ) -> impl Future<Output = anyhow::Result<bool>> + Send;
 
     /// Update the invoice info of an existing user.
+    #[allow(clippy::needless_lifetimes, reason = "automock")]
     fn update_invoice_info<'a>(
         &self,
         txn: &mut Txn,

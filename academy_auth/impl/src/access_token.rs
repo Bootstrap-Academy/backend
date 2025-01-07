@@ -76,10 +76,12 @@ where
             .get::<()>(&access_token_invalidated_key(refresh_token_hash))
             .await
             .map(|x| x.is_some())
-            .context(
-                "Failed to check whether the access token of refresh token hash \
-                 {refresh_token_hash} has been invalidated",
-            )
+            .with_context(|| {
+                format!(
+                    "Failed to check whether the access token of refresh token hash \
+                     {refresh_token_hash} has been invalidated"
+                )
+            })
     }
 }
 

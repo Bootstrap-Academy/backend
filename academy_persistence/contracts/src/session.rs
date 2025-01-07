@@ -37,6 +37,7 @@ pub trait SessionRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
     ) -> impl Future<Output = anyhow::Result<()>> + Send;
 
     /// Update an existing session.
+    #[allow(clippy::needless_lifetimes, reason = "automock")]
     fn update<'a>(
         &self,
         txn: &mut Txn,

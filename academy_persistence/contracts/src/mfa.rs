@@ -23,6 +23,7 @@ pub trait MfaRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
     ) -> impl Future<Output = anyhow::Result<()>> + Send;
 
     /// Update an existing TOTP device.
+    #[allow(clippy::needless_lifetimes, reason = "automock")]
     fn update_totp_device<'a>(
         &self,
         txn: &mut Txn,

@@ -4134,9 +4134,9 @@ rec {
       };
       "bb8-redis" = rec {
         crateName = "bb8-redis";
-        version = "0.18.0";
+        version = "0.20.0";
         edition = "2021";
-        sha256 = "0anz8scv3lqk5bawv84gcgnz1nbw5z0whnfn1vymf1sj74val5l4";
+        sha256 = "0w4hc75zbb4fq4q1m0x8kkvfpkna1iih4s907i9zfvl130lnfa1l";
         libName = "bb8_redis";
         dependencies = [
           {
@@ -9852,18 +9852,13 @@ rec {
       };
       "redis" = rec {
         crateName = "redis";
-        version = "0.27.6";
+        version = "0.28.0";
         edition = "2021";
-        sha256 = "1g3mx0g34bj8smklhyw7ygxrpmpa074k6j59i729rj4h82dgkn09";
+        sha256 = "1nm5zs85gb3s6rq8yqx72qr0cbgqadqhz33qsrm2lg9dbl1ds8gz";
         dependencies = [
           {
             name = "arc-swap";
             packageId = "arc-swap";
-          }
-          {
-            name = "async-trait";
-            packageId = "async-trait";
-            optional = true;
           }
           {
             name = "bytes";
@@ -9932,60 +9927,35 @@ rec {
         ];
         features = {
           "ahash" = [ "dep:ahash" ];
-          "aio" = [ "bytes" "pin-project-lite" "futures-util" "futures-util/alloc" "futures-util/sink" "tokio/io-util" "tokio-util" "tokio-util/codec" "combine/tokio" "async-trait" ];
-          "async-native-tls" = [ "dep:async-native-tls" ];
-          "async-std" = [ "dep:async-std" ];
-          "async-std-comp" = [ "aio" "async-std" ];
-          "async-std-native-tls-comp" = [ "async-std-comp" "async-native-tls" "tls-native-tls" ];
-          "async-std-rustls-comp" = [ "async-std-comp" "futures-rustls" "tls-rustls" ];
+          "aio" = [ "bytes" "dep:pin-project-lite" "dep:futures-util" "futures-util/alloc" "futures-util/std" "futures-util/sink" "dep:tokio" "tokio/io-util" "dep:tokio-util" "tokio-util/codec" "combine/tokio" ];
+          "async-std-comp" = [ "aio" "dep:async-std" ];
+          "async-std-native-tls-comp" = [ "async-std-comp" "dep:async-native-tls" "tls-native-tls" ];
+          "async-std-rustls-comp" = [ "async-std-comp" "dep:futures-rustls" "tls-rustls" ];
           "async-std-tls-comp" = [ "async-std-native-tls-comp" ];
-          "async-trait" = [ "dep:async-trait" ];
-          "backon" = [ "dep:backon" ];
           "bigdecimal" = [ "dep:bigdecimal" ];
           "bytes" = [ "dep:bytes" ];
-          "cluster" = [ "crc16" "rand" ];
-          "cluster-async" = [ "cluster" "futures" "futures-util" "log" ];
-          "connection-manager" = [ "futures" "aio" "backon" ];
-          "crc16" = [ "dep:crc16" ];
+          "cluster" = [ "dep:crc16" "dep:rand" ];
+          "cluster-async" = [ "cluster" "dep:futures-sink" "dep:futures-util" "dep:log" ];
+          "connection-manager" = [ "dep:futures-channel" "aio" "dep:backon" ];
           "default" = [ "acl" "streams" "geospatial" "script" "keep-alive" ];
-          "futures" = [ "dep:futures" ];
-          "futures-rustls" = [ "dep:futures-rustls" ];
-          "futures-util" = [ "dep:futures-util" ];
           "hashbrown" = [ "dep:hashbrown" ];
-          "json" = [ "serde" "serde/derive" "serde_json" ];
-          "keep-alive" = [ "socket2" ];
-          "log" = [ "dep:log" ];
-          "native-tls" = [ "dep:native-tls" ];
-          "pin-project-lite" = [ "dep:pin-project-lite" ];
+          "json" = [ "dep:serde" "serde/derive" "dep:serde_json" ];
+          "keep-alive" = [ "dep:socket2" ];
           "r2d2" = [ "dep:r2d2" ];
-          "rand" = [ "dep:rand" ];
           "rust_decimal" = [ "dep:rust_decimal" ];
-          "rustls" = [ "dep:rustls" ];
-          "rustls-native-certs" = [ "dep:rustls-native-certs" ];
-          "rustls-pemfile" = [ "dep:rustls-pemfile" ];
-          "rustls-pki-types" = [ "dep:rustls-pki-types" ];
-          "script" = [ "sha1_smol" ];
-          "sentinel" = [ "rand" ];
-          "serde" = [ "dep:serde" ];
-          "serde_json" = [ "dep:serde_json" ];
-          "sha1_smol" = [ "dep:sha1_smol" ];
-          "socket2" = [ "dep:socket2" ];
+          "script" = [ "dep:sha1_smol" ];
+          "sentinel" = [ "dep:rand" ];
           "tls" = [ "tls-native-tls" ];
-          "tls-native-tls" = [ "native-tls" ];
-          "tls-rustls" = [ "rustls/std" "rustls/ring" "rustls-native-certs" "rustls-pemfile" "rustls-pki-types" ];
+          "tls-native-tls" = [ "dep:native-tls" ];
+          "tls-rustls" = [ "dep:rustls" "rustls/std" "rustls/ring" "dep:rustls-native-certs" "dep:rustls-pemfile" "dep:rustls-pki-types" ];
           "tls-rustls-insecure" = [ "tls-rustls" ];
-          "tls-rustls-webpki-roots" = [ "tls-rustls" "webpki-roots" ];
-          "tokio" = [ "dep:tokio" ];
+          "tls-rustls-webpki-roots" = [ "tls-rustls" "dep:webpki-roots" ];
           "tokio-comp" = [ "aio" "tokio/net" ];
-          "tokio-native-tls" = [ "dep:tokio-native-tls" ];
-          "tokio-native-tls-comp" = [ "tokio-comp" "tls-native-tls" "tokio-native-tls" ];
-          "tokio-rustls" = [ "dep:tokio-rustls" ];
-          "tokio-rustls-comp" = [ "tokio-comp" "tls-rustls" "tokio-rustls" ];
-          "tokio-util" = [ "dep:tokio-util" ];
+          "tokio-native-tls-comp" = [ "tokio-comp" "tls-native-tls" "dep:tokio-native-tls" ];
+          "tokio-rustls-comp" = [ "tokio-comp" "tls-rustls" "dep:tokio-rustls" ];
           "uuid" = [ "dep:uuid" ];
-          "webpki-roots" = [ "dep:webpki-roots" ];
         };
-        resolvedDefaultFeatures = [ "aio" "async-trait" "bytes" "futures-util" "pin-project-lite" "tokio" "tokio-comp" "tokio-util" ];
+        resolvedDefaultFeatures = [ "aio" "bytes" "tokio-comp" ];
       };
       "redox_syscall" = rec {
         crateName = "redox_syscall";

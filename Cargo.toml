@@ -90,7 +90,7 @@ axum-extra = { version = "0.9.6", default-features = false, features = ["typed-h
 base32 = { version = "0.5.1", default-features = false }
 base64 = { version = "0.22.1", default-features = false }
 chrono = { version = "0.4.39", default-features = false, features = ["serde", "clock"] }
-clap = { version = "4.5.24", features = ["derive", "env"] }
+clap = { version = "4.5.25", features = ["derive", "env"] }
 clap_complete = { version = "4.5.41", default-features = false }
 darling = { version = "0.20.10", default-features = false, features = ["suggestions"] }
 futures = { version = "0.3.31", default-features = false, features = ["std"] }

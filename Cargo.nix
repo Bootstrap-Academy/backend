@@ -3506,9 +3506,9 @@ rec {
       };
       "async-trait" = rec {
         crateName = "async-trait";
-        version = "0.1.84";
+        version = "0.1.85";
         edition = "2021";
-        sha256 = "18603mb62l52xsilpw45w5wj0cbym7518kns34icjmnd1nql84hv";
+        sha256 = "0mm0gwad44zs7mna4a0m1z4dhzpmydfj73w4wm23c8xpnhrli4rz";
         procMacro = true;
         libName = "async_trait";
         authors = [
@@ -9087,9 +9087,9 @@ rec {
       };
       "phf" = rec {
         crateName = "phf";
-        version = "0.11.2";
+        version = "0.11.3";
         edition = "2021";
-        sha256 = "1p03rsw66l7naqhpgr1a34r9yzi1gv9jh16g3fsk6wrwyfwdiqmd";
+        sha256 = "0y6hxp1d48rx2434wgi5g8j1pr8s5jja29ha2b65435fh057imhz";
         authors = [
           "Steven Fackler <sfackler@gmail.com>"
         ];
@@ -9113,9 +9113,9 @@ rec {
       };
       "phf_shared" = rec {
         crateName = "phf_shared";
-        version = "0.11.2";
+        version = "0.11.3";
         edition = "2021";
-        sha256 = "0azphb0a330ypqx3qvyffal5saqnks0xvl8rj73jlk3qxxgbkz4h";
+        sha256 = "1rallyvh28jqd9i916gk5gk2igdmzlgvv5q0l3xbf3m6y8pbrsk7";
         authors = [
           "Steven Fackler <sfackler@gmail.com>"
         ];
@@ -9134,9 +9134,9 @@ rec {
       };
       "pin-project-lite" = rec {
         crateName = "pin-project-lite";
-        version = "0.2.15";
+        version = "0.2.16";
         edition = "2018";
-        sha256 = "1zz4xif3iknfrpmvqmh0pcc9mx4cxm28jywqydir3pimcla1wnli";
+        sha256 = "16wzc7z7dfkf9bmjin22f5282783f6mdksnr0nv0j5ym5f9gyg1v";
         libName = "pin_project_lite";
 
       };
@@ -12129,9 +12129,9 @@ rec {
       };
       "siphasher" = rec {
         crateName = "siphasher";
-        version = "0.3.11";
+        version = "1.0.1";
         edition = "2018";
-        sha256 = "03axamhmwsrmh0psdw3gf7c0zc4fyl5yjxfifz9qfka6yhkqid9q";
+        sha256 = "17f35782ma3fn6sh21c027kjmd227xyrx06ffi8gw4xzv9yry6an";
         authors = [
           "Frank Denis <github@pureftpd.org>"
         ];

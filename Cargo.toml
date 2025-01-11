@@ -101,7 +101,7 @@ nutype = { version = "0.5.1", default-features = false, features = ["std", "rege
 oauth2 = { version = "4.4.2", default-features = false, features = ["reqwest", "rustls-tls"] }
 paste = { version = "1.0.15", default-features = false }
 pretty_assertions = { version = "1.4.1", default-features = false, features = ["std"] }
-proc-macro2 = { version = "1.0.92", default-features = false, features = ["proc-macro"] }
+proc-macro2 = { version = "1.0.93", default-features = false, features = ["proc-macro"] }
 quote = { version = "1.0.38", default-features = false, features = ["proc-macro"] }
 rand = { version = "0.8.5", default-features = false, features = ["std", "std_rng"] }
 regex = { version = "1.11.1", default-features = false }

@@ -7574,28 +7574,7 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" ];
       };
-      "itertools 0.12.1" = rec {
-        crateName = "itertools";
-        version = "0.12.1";
-        edition = "2018";
-        sha256 = "0s95jbb3ndj1lvfxyq5wanc0fm0r6hg6q4ngb92qlfdxvci10ads";
-        authors = [
-          "bluss"
-        ];
-        dependencies = [
-          {
-            name = "either";
-            packageId = "either";
-            usesDefaultFeatures = false;
-          }
-        ];
-        features = {
-          "default" = [ "use_std" ];
-          "use_std" = [ "use_alloc" "either/use_std" ];
-        };
-        resolvedDefaultFeatures = [ "default" "use_alloc" "use_std" ];
-      };
-      "itertools 0.13.0" = rec {
+      "itertools" = rec {
         crateName = "itertools";
         version = "0.13.0";
         edition = "2018";
@@ -8739,9 +8718,9 @@ rec {
       };
       "ouroboros" = rec {
         crateName = "ouroboros";
-        version = "0.18.4";
+        version = "0.18.5";
         edition = "2018";
-        sha256 = "0rsazk2hh2w626585scb7ylaf500y5insp3rnkbdwnm2jq4s4kwl";
+        sha256 = "0ndy8hvp24gs7yxw9wj81hs5rb36wxmpw4i38ylrfjy4p46ha3qy";
         authors = [
           "Josh <someguynamedjosh@github.com>"
         ];
@@ -8766,9 +8745,9 @@ rec {
       };
       "ouroboros_macro" = rec {
         crateName = "ouroboros_macro";
-        version = "0.18.4";
+        version = "0.18.5";
         edition = "2018";
-        sha256 = "1gb5njxh9clp9krjc7kfbz17g5racjlld1bsjkjx13sjs7mdxc1r";
+        sha256 = "1l343ss6hlh0abbwjk6zah6mdlyhh1v1imflv3v86c6lsfyjhw1w";
         procMacro = true;
         authors = [
           "Josh <someguynamedjosh@github.com>"
@@ -8777,10 +8756,6 @@ rec {
           {
             name = "heck";
             packageId = "heck 0.4.1";
-          }
-          {
-            name = "itertools";
-            packageId = "itertools 0.12.1";
           }
           {
             name = "proc-macro2";
@@ -9879,7 +9854,7 @@ rec {
           }
           {
             name = "itertools";
-            packageId = "itertools 0.13.0";
+            packageId = "itertools";
           }
           {
             name = "itoa";

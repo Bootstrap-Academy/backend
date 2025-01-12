@@ -1,7 +1,7 @@
 use std::fmt::Write;
 
 use aide::{
-    gen::in_context,
+    generate::in_context,
     openapi::{ReferenceOr, Response, Responses},
     transform::{TransformOperation, TransformResponse},
     OperationOutput,

@@ -10,7 +10,7 @@ use serde::Serialize;
 use tokio::net::TcpListener;
 use tracing::info;
 
-const VALIDATE_ROUTE: &str = "/validate/:country/vat/:id";
+const VALIDATE_ROUTE: &str = "/validate/{country}/vat/{id}";
 
 pub async fn start_server(host: IpAddr, port: u16) -> anyhow::Result<()> {
     info!("Starting vat api testing server on {host}:{port}");

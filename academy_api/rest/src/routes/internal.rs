@@ -32,11 +32,11 @@ pub const TAG: &str = "Internal";
 pub fn router(service: Arc<impl InternalService>) -> ApiRouter<()> {
     ApiRouter::new()
         .api_route(
-            "/auth/_internal/users/:user_id",
+            "/auth/_internal/users/{user_id}",
             routing::get_with(get_user, get_user_docs),
         )
         .api_route(
-            "/auth/_internal/users/by_email/:email",
+            "/auth/_internal/users/by_email/{email}",
             routing::get_with(get_user_by_email, get_user_by_email_docs),
         )
         .with_state(service)

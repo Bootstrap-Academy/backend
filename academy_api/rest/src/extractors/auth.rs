@@ -1,9 +1,8 @@
 use std::convert::Infallible;
 
 use academy_models::auth::{AccessToken, InternalToken};
-use aide::{gen::GenContext, openapi::Operation, OperationInput};
+use aide::{generate::GenContext, openapi::Operation, OperationInput};
 use axum::{
-    async_trait,
     extract::FromRequestParts,
     http::{header::AUTHORIZATION, request::Parts},
 };
@@ -29,7 +28,6 @@ mod private {
     impl Sealed for InternalToken {}
 }
 
-#[async_trait]
 impl<S: Send + Sync, T: ApiTokenType> FromRequestParts<S> for ApiToken<T> {
     type Rejection = Infallible;
 

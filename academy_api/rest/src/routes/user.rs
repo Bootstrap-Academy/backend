@@ -56,18 +56,18 @@ pub fn router(service: Arc<impl UserFeatureService>) -> ApiRouter<()> {
             routing::get_with(list, list_docs).post_with(create, create_docs),
         )
         .api_route(
-            "/auth/users/:user_id",
+            "/auth/users/{user_id}",
             routing::get_with(get, get_docs)
                 .patch_with(update, update_docs)
                 .delete_with(delete, delete_docs),
         )
         .api_route(
-            "/auth/users/:user_id/email",
+            "/auth/users/{user_id}/email",
             routing::post_with(request_verification_email, request_verification_email_docs)
                 .put_with(verify_email, verify_email_docs),
         )
         .api_route(
-            "/auth/users/:user_id/newsletter",
+            "/auth/users/{user_id}/newsletter",
             routing::put_with(
                 verify_newsletter_subscription,
                 verify_newsletter_subscription_docs,

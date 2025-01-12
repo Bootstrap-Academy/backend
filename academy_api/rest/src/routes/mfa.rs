@@ -31,7 +31,7 @@ pub const TAG: &str = "MFA";
 pub fn router(service: Arc<impl MfaFeatureService>) -> ApiRouter<()> {
     ApiRouter::new()
         .api_route(
-            "/auth/users/:user_id/mfa",
+            "/auth/users/{user_id}/mfa",
             routing::post_with(initialize, initialize_docs)
                 .put_with(enable, enable_docs)
                 .delete_with(disable, disable_docs),

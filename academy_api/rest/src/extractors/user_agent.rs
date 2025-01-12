@@ -2,7 +2,6 @@ use std::convert::Infallible;
 
 use aide::OperationInput;
 use axum::{
-    async_trait,
     extract::FromRequestParts,
     http::{header::USER_AGENT, request::Parts},
 };
@@ -10,8 +9,7 @@ use axum::{
 /// Extract the contents of the User-Agent header
 pub struct UserAgent(pub Option<String>);
 
-#[async_trait]
-impl<S> FromRequestParts<S> for UserAgent {
+impl<S: Sync> FromRequestParts<S> for UserAgent {
     type Rejection = Infallible;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {

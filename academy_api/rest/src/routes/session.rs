@@ -56,13 +56,13 @@ pub fn router(service: Arc<impl SessionFeatureService>) -> ApiRouter<()> {
         )
         .api_route("/auth/sessions", routing::post_with(create, create_docs))
         .api_route(
-            "/auth/sessions/:user_id",
+            "/auth/sessions/{user_id}",
             routing::get_with(list_by_user, list_by_user_docs)
                 .post_with(impersonate, impersonate_docs)
                 .delete_with(delete_by_user, delete_by_user_docs),
         )
         .api_route(
-            "/auth/sessions/:user_id/:session_id",
+            "/auth/sessions/{user_id}/{session_id}",
             routing::delete_with(delete, delete_docs),
         )
         .with_state(service)

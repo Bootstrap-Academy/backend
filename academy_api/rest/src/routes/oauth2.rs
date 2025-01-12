@@ -44,11 +44,11 @@ pub fn router(service: Arc<impl OAuth2FeatureService>) -> ApiRouter<()> {
             routing::get_with(list_providers, list_providers_docs),
         )
         .api_route(
-            "/auth/oauth/links/:user_id",
+            "/auth/oauth/links/{user_id}",
             routing::get_with(list_links, list_links_docs).post_with(create_link, create_link_docs),
         )
         .api_route(
-            "/auth/oauth/links/:user_id/:link_id",
+            "/auth/oauth/links/{user_id}/{link_id}",
             routing::delete_with(delete_link, delete_link_docs),
         )
         .api_route(

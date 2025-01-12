@@ -16,7 +16,7 @@ pub async fn start_server(host: IpAddr, port: u16) -> anyhow::Result<()> {
 
     let router = Router::new()
         .route(
-            "/shop/_internal/coins/:user_id/withheld",
+            "/shop/_internal/coins/{user_id}/withheld",
             routing::get(release_coins_calls).put(release_coins),
         )
         .with_state(Arc::new(StateInner {

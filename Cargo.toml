@@ -116,7 +116,7 @@ tokio = { version = "1.43.0", default-features = false, features = ["rt-multi-th
 tracing = { version = "0.1.41", default-features = false, features = ["attributes"] }
 tracing-subscriber = { version = "0.3.19", default-features = false, features = ["ansi", "fmt", "env-filter"] }
 url = { version = "2.5.3", default-features = false, features = ["serde"] }
-uuid = { version = "1.11.1", default-features = false, features = ["v4", "v7", "serde"] }
+uuid = { version = "1.12.0", default-features = false, features = ["v4", "v7", "serde"] }
 
 [profile.dev.package]
 argon2.opt-level = 3

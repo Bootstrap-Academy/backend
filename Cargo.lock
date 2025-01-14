@@ -1135,9 +1135,9 @@ dependencies = [
 
 [[package]]
 name = "config"
-version = "0.15.2"
+version = "0.15.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "87a6a7d8628236381296f45bc661db1e67d2f90fa2e00b7d2fc78e2ed0f6cde8"
+checksum = "e329294a796e9b22329669c1f433a746983f9e324e07f4ef135be81bb2262de4"
 dependencies = [
  "pathdiff",
  "serde",

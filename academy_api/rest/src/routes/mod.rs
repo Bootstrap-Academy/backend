@@ -8,5 +8,6 @@ pub mod internal;
 pub mod mfa;
 pub mod oauth2;
 pub mod paypal;
+pub mod premium;
 pub mod session;
 pub mod user;

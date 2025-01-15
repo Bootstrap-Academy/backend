@@ -3,7 +3,7 @@ use std::sync::Arc;
 use academy_auth_contracts::internal::AuthInternalAuthenticateError;
 use academy_core_internal_contracts::{
     InternalAddCoinsError, InternalAddHeartsError, InternalGetHeartsError,
-    InternalGetUserByEmailError, InternalGetUserError, InternalService,
+    InternalGetUserByEmailError, InternalGetUserError, InternalHasPremiumError, InternalService,
 };
 use academy_models::{
     auth::InternalToken, coin::TransactionDescription, email_address::EmailAddress,
@@ -53,6 +53,10 @@ pub fn router(service: Arc<impl InternalService>) -> ApiRouter<()> {
         .api_route(
             "/shop/_internal/hearts/{user_id}",
             routing::get_with(get_hearts, get_hearts_docs).post_with(add_hearts, add_hearts_docs),
+        )
+        .api_route(
+            "/shop/_internal/premium/{user_id}",
+            routing::get_with(has_premium, has_premium_docs),
         )
         .with_state(service)
         .with_path_items(|op| op.tag(TAG))
@@ -204,6 +208,27 @@ fn add_hearts_docs(op: TransformOperation) -> TransformOperation {
             StatusCode::OK,
             "Returns whether the operation was successful.",
         )
+        .add_error::<UserNotFoundError>()
+        .with(internal_auth_error_docs)
+        .with(internal_server_error_docs)
+}
+
+async fn has_premium(
+    service: State<Arc<impl InternalService>>,
+    token: ApiToken<InternalToken>,
+    Path(PathUserId { user_id }): Path<PathUserId>,
+) -> Response {
+    match service.has_premium(&token.0, user_id).await {
+        Ok(result) => Json(result).into_response(),
+        Err(InternalHasPremiumError::UserNotFound) => UserNotFoundError.into_response(),
+        Err(InternalHasPremiumError::Auth(err)) => internal_auth_error(err),
+        Err(InternalHasPremiumError::Other(err)) => internal_server_error(err),
+    }
+}
+
+fn has_premium_docs(op: TransformOperation) -> TransformOperation {
+    op.summary("Return whether the given user is a premium member.")
+        .add_response::<bool>(StatusCode::OK, None)
         .add_error::<UserNotFoundError>()
         .with(internal_auth_error_docs)
         .with(internal_server_error_docs)

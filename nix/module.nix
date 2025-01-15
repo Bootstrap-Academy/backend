@@ -41,7 +41,7 @@ in {
       default = {};
     };
 
-    tasks = lib.genAttrs ["prune-database"] (task: {
+    tasks = lib.genAttrs ["prune-database" "refresh-premium"] (task: {
       schedule = lib.mkOption {
         type = lib.types.either lib.types.str (lib.types.listOf lib.types.str);
         default = [];
@@ -135,12 +135,19 @@ in {
       };
       users.groups.academy = {};
 
-      services.academy.backend.settings = {
-        database.url = lib.mkIf cfg.localDatabase "host=/run/postgresql user=academy";
-        cache.url = lib.mkIf cfg.localCache "redis+unix://${config.services.redis.servers.academy.unixSocket}";
-        render.chrome_bin = lib.mkDefault (lib.getExe cfg.chromePackage);
-        finance.invoices_archive = lib.mkDefault "/var/lib/academy/invoices";
-        finance.credit_notes_archive = lib.mkDefault "/var/lib/academy/credit_notes";
+      services.academy.backend = {
+        settings = {
+          database.url = lib.mkIf cfg.localDatabase "host=/run/postgresql user=academy";
+          cache.url = lib.mkIf cfg.localCache "redis+unix://${config.services.redis.servers.academy.unixSocket}";
+          render.chrome_bin = lib.mkDefault (lib.getExe cfg.chromePackage);
+          finance.invoices_archive = lib.mkDefault "/var/lib/academy/invoices";
+          finance.credit_notes_archive = lib.mkDefault "/var/lib/academy/credit_notes";
+        };
+
+        tasks = {
+          prune-database.schedule = lib.mkDefault "hourly";
+          refresh-premium.schedule = lib.mkDefault "daily";
+        };
       };
 
       environment.systemPackages = [wrapper];

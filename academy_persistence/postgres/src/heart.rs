@@ -1,6 +1,7 @@
 use academy_di::Build;
 use academy_models::{heart::Hearts, user::UserId};
 use academy_persistence_contracts::heart::HeartRepository;
+use academy_utils::trace_instrument;
 
 use crate::PostgresTransaction;
 
@@ -8,6 +9,7 @@ use crate::PostgresTransaction;
 pub struct PostgresHeartRepository;
 
 impl HeartRepository<PostgresTransaction> for PostgresHeartRepository {
+    #[trace_instrument(skip(self, txn))]
     async fn get(
         &self,
         txn: &mut PostgresTransaction,
@@ -31,6 +33,7 @@ impl HeartRepository<PostgresTransaction> for PostgresHeartRepository {
             })
     }
 
+    #[trace_instrument(skip(self, txn))]
     async fn set(
         &self,
         txn: &mut PostgresTransaction,

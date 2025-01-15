@@ -1,6 +1,7 @@
 use academy_auth_contracts::internal::MockAuthInternalService;
 use academy_core_coin_contracts::coin::MockCoinService;
 use academy_core_heart_contracts::heart::MockHeartService;
+use academy_core_premium_contracts::premium::MockPremiumService;
 use academy_persistence_contracts::{user::MockUserRepository, MockDatabase, MockTransaction};
 
 use crate::InternalServiceImpl;
@@ -10,6 +11,7 @@ mod add_hearts;
 mod get_hearts;
 mod get_user;
 mod get_user_by_email;
+mod has_premium;
 
 type Sut = InternalServiceImpl<
     MockDatabase,
@@ -17,4 +19,5 @@ type Sut = InternalServiceImpl<
     MockUserRepository<MockTransaction>,
     MockCoinService<MockTransaction>,
     MockHeartService<MockTransaction>,
+    MockPremiumService<MockTransaction>,
 >;

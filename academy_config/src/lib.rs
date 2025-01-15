@@ -94,6 +94,7 @@ pub struct Config {
     pub paypal: PaypalConfig,
     pub coin: CoinConfig,
     pub heart: HeartConfig,
+    pub premium: PremiumConfig,
     pub render: RenderConfig,
     pub finance: FinanceConfig,
     pub sentry: Option<SentryConfig>,
@@ -227,6 +228,12 @@ pub struct HeartConfig {
     pub max: u64,
     pub refill_price: u64,
     pub auto_refill_time: NaiveTime,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct PremiumConfig {
+    pub monthly_price: u64,
+    pub yearly_price: u64,
 }
 
 #[derive(Debug, Deserialize)]

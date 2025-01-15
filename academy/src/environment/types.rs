@@ -23,6 +23,10 @@ use academy_core_oauth2_impl::{
     registration::OAuth2RegistrationServiceImpl, OAuth2FeatureServiceImpl,
 };
 use academy_core_paypal_impl::{coin_order::PaypalCoinOrderServiceImpl, PaypalFeatureServiceImpl};
+use academy_core_premium_impl::{
+    plan::PremiumPlanServiceImpl, premium::PremiumServiceImpl,
+    purchase::PremiumPurchaseServiceImpl, PremiumFeatureServiceImpl,
+};
 use academy_core_session_impl::{
     failed_auth_count::SessionFailedAuthCountServiceImpl, session::SessionServiceImpl,
     SessionFeatureServiceImpl,
@@ -39,7 +43,8 @@ use academy_extern_impl::{
 use academy_persistence_postgres::{
     coin::PostgresCoinRepository, heart::PostgresHeartRepository, mfa::PostgresMfaRepository,
     oauth2::PostgresOAuth2Repository, paypal::PostgresPaypalRepository,
-    session::PostgresSessionRepository, user::PostgresUserRepository, PostgresDatabase,
+    premium::PostgresPremiumRepository, session::PostgresSessionRepository,
+    user::PostgresUserRepository, PostgresDatabase,
 };
 use academy_render_impl::pdf::RenderPdfServiceImpl;
 use academy_shared_impl::{
@@ -62,6 +67,7 @@ pub type RestServer = academy_api_rest::RestServer<
     PaypalFeature,
     FinanceFeature,
     HeartFeature,
+    PremiumFeature,
     Internal,
 >;
 
@@ -106,6 +112,7 @@ pub type OAuth2Repo = PostgresOAuth2Repository;
 pub type CoinRepo = PostgresCoinRepository;
 pub type PaypalRepo = PostgresPaypalRepository;
 pub type HeartRepo = PostgresHeartRepository;
+pub type PremiumRepo = PostgresPremiumRepository;
 
 // Auth
 pub type Auth =
@@ -213,4 +220,17 @@ pub type FinanceCoin = FinanceCoinServiceImpl;
 pub type HeartFeature = HeartFeatureServiceImpl<Database, Auth, UserRepo, Heart, Coin>;
 pub type Heart = HeartServiceImpl<Time, HeartRepo>;
 
-pub type Internal = InternalServiceImpl<Database, AuthInternal, UserRepo, Coin, Heart>;
+pub type PremiumFeature = PremiumFeatureServiceImpl<
+    Database,
+    Auth,
+    PremiumPlan,
+    Premium,
+    PremiumPurchase,
+    UserRepo,
+    PremiumRepo,
+>;
+pub type PremiumPlan = PremiumPlanServiceImpl;
+pub type Premium = PremiumServiceImpl<Time, PremiumPurchase, PremiumRepo>;
+pub type PremiumPurchase = PremiumPurchaseServiceImpl<Id, Time, Coin, PremiumPlan, PremiumRepo>;
+
+pub type Internal = InternalServiceImpl<Database, AuthInternal, UserRepo, Coin, Heart, Premium>;

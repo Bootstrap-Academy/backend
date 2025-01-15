@@ -3,8 +3,9 @@ use academy_core_coin_contracts::coin::{CoinAddCoinsError, CoinService};
 use academy_core_heart_contracts::heart::{HeartAddError, HeartService};
 use academy_core_internal_contracts::{
     InternalAddCoinsError, InternalAddHeartsError, InternalGetHeartsError,
-    InternalGetUserByEmailError, InternalGetUserError, InternalService,
+    InternalGetUserByEmailError, InternalGetUserError, InternalHasPremiumError, InternalService,
 };
+use academy_core_premium_contracts::premium::PremiumService;
 use academy_di::Build;
 use academy_models::{
     auth::InternalToken,
@@ -21,22 +22,24 @@ use anyhow::Context;
 mod tests;
 
 #[derive(Debug, Clone, Build, Default)]
-pub struct InternalServiceImpl<Db, AuthInternal, UserRepo, Coin, Heart> {
+pub struct InternalServiceImpl<Db, AuthInternal, UserRepo, Coin, Heart, Premium> {
     db: Db,
     auth_internal: AuthInternal,
     user_repo: UserRepo,
     coin: Coin,
     heart: Heart,
+    premium: Premium,
 }
 
-impl<Db, AuthInternal, UserRepo, Coin, Heart> InternalService
-    for InternalServiceImpl<Db, AuthInternal, UserRepo, Coin, Heart>
+impl<Db, AuthInternal, UserRepo, Coin, Heart, Premium> InternalService
+    for InternalServiceImpl<Db, AuthInternal, UserRepo, Coin, Heart, Premium>
 where
     Db: Database,
     AuthInternal: AuthInternalService,
     UserRepo: UserRepository<Db::Transaction>,
     Coin: CoinService<Db::Transaction>,
     Heart: HeartService<Db::Transaction>,
+    Premium: PremiumService<Db::Transaction>,
 {
     #[trace_instrument(skip(self))]
     async fn get_user(
@@ -154,6 +157,27 @@ where
                 HeartAddError::NotEnoughHearts => InternalAddHeartsError::NotEnoughHearts,
                 HeartAddError::Other(err) => err.into(),
             })?;
+
+        txn.commit().await?;
+
+        Ok(result)
+    }
+
+    #[trace_instrument(skip(self))]
+    async fn has_premium(
+        &self,
+        token: &InternalToken,
+        user_id: UserId,
+    ) -> Result<bool, InternalHasPremiumError> {
+        self.auth_internal.authenticate(token, "shop")?;
+
+        let mut txn = self.db.begin_transaction().await?;
+
+        if !self.user_repo.exists(&mut txn, user_id).await? {
+            return Err(InternalHasPremiumError::UserNotFound);
+        }
+
+        let result = self.premium.get_active(&mut txn, user_id).await?.is_some();
 
         txn.commit().await?;
 

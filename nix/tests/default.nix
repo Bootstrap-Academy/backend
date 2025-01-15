@@ -98,6 +98,10 @@
           };
         };
       };
+      tasks = {
+        prune-database.schedule = [];
+        refresh-premium.schedule = [];
+      };
     };
 
     systemd.services."academy-testing-recaptcha" = lib.mkIf config.services.academy.backend.settings.recaptcha.enable {

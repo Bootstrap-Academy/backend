@@ -15,6 +15,7 @@ pub mod mfa;
 pub mod oauth2;
 pub mod pagination;
 pub mod paypal;
+pub mod premium;
 pub mod session;
 pub mod url;
 pub mod user;

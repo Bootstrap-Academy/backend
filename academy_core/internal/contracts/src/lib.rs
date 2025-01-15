@@ -50,6 +50,13 @@ pub trait InternalService: Send + Sync + 'static {
         user_id: UserId,
         hearts: i64,
     ) -> impl Future<Output = Result<Hearts, InternalAddHeartsError>> + Send;
+
+    /// Return whether the given user is a premium member.
+    fn has_premium(
+        &self,
+        token: &InternalToken,
+        user_id: UserId,
+    ) -> impl Future<Output = Result<bool, InternalHasPremiumError>> + Send;
 }
 
 #[derive(Debug, Error)]
@@ -100,6 +107,16 @@ pub enum InternalAddHeartsError {
     UserNotFound,
     #[error("The user does not have enough hearts.")]
     NotEnoughHearts,
+    #[error(transparent)]
+    Auth(#[from] AuthInternalAuthenticateError),
+    #[error(transparent)]
+    Other(#[from] anyhow::Error),
+}
+
+#[derive(Debug, Error)]
+pub enum InternalHasPremiumError {
+    #[error("The user does not exist.")]
+    UserNotFound,
     #[error(transparent)]
     Auth(#[from] AuthInternalAuthenticateError),
     #[error(transparent)]

@@ -5,6 +5,7 @@ mod heart;
 mod mfa;
 mod oauth2;
 mod paypal;
+mod premium;
 mod session;
 mod user;
 

@@ -1,4 +1,4 @@
-use std::{collections::HashSet, fmt::Write, time::Duration};
+use std::{collections::HashSet, fmt::Write, future::Future, time::Duration};
 
 use academy_models::Sha256Hash;
 use academy_persistence_contracts::{Database, Transaction};
@@ -17,6 +17,7 @@ pub mod heart;
 pub mod mfa;
 pub mod oauth2;
 pub mod paypal;
+pub mod premium;
 pub mod session;
 pub mod user;
 
@@ -226,6 +227,29 @@ pub struct PostgresTransaction {
 impl PostgresTransaction {
     fn txn(&self) -> &PgTransaction<'_> {
         self.borrow_txn().as_ref().unwrap()
+    }
+
+    async fn savepoint<'a, F, T, E>(
+        &'a self,
+        f: impl FnOnce(&'a PgTransaction) -> F,
+    ) -> Result<T, E>
+    where
+        F: Future<Output = Result<T, E>>,
+        E: From<anyhow::Error>,
+    {
+        let txn = self.txn();
+        txn.batch_execute("savepoint sp")
+            .await
+            .map_err(anyhow::Error::from)?;
+        match f(txn).await {
+            Ok(result) => Ok(result),
+            Err(err) => {
+                txn.batch_execute("rollback to savepoint sp")
+                    .await
+                    .map_err(anyhow::Error::from)?;
+                Err(err)
+            }
+        }
     }
 }
 

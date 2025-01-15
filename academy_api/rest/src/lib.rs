@@ -13,6 +13,7 @@ use academy_core_internal_contracts::InternalService;
 use academy_core_mfa_contracts::MfaFeatureService;
 use academy_core_oauth2_contracts::OAuth2FeatureService;
 use academy_core_paypal_contracts::PaypalFeatureService;
+use academy_core_premium_contracts::PremiumFeatureService;
 use academy_core_session_contracts::SessionFeatureService;
 use academy_core_user_contracts::UserFeatureService;
 use academy_di::Build;
@@ -55,6 +56,7 @@ pub struct RestServer<
     Paypal,
     Finance,
     Heart,
+    Premium,
     Internal,
 > {
     _config: RestServerConfig,
@@ -69,6 +71,7 @@ pub struct RestServer<
     paypal: Paypal,
     finance: Finance,
     heart: Heart,
+    premium: Premium,
     internal: Internal,
 }
 
@@ -97,6 +100,7 @@ impl<
         Paypal,
         Finance,
         Heart,
+        Premium,
         Internal,
     >
     RestServer<
@@ -111,6 +115,7 @@ impl<
         Paypal,
         Finance,
         Heart,
+        Premium,
         Internal,
     >
 where
@@ -125,6 +130,7 @@ where
     Paypal: PaypalFeatureService,
     Finance: FinanceFeatureService,
     Heart: HeartFeatureService,
+    Premium: PremiumFeatureService,
     Internal: InternalService,
 {
     pub async fn serve(self) -> anyhow::Result<()> {
@@ -155,6 +161,7 @@ where
                 routes::paypal::TAG,
                 routes::finance::TAG,
                 routes::heart::TAG,
+                routes::premium::TAG,
                 routes::internal::TAG,
             ]
             .into_iter()
@@ -231,6 +238,7 @@ where
             .merge(routes::paypal::router(self.paypal.into()))
             .merge(routes::finance::router(self.finance.into()))
             .merge(routes::heart::router(self.heart.into()))
+            .merge(routes::premium::router(self.premium.into()))
             .merge(routes::internal::router(self.internal.into()))
     }
 }

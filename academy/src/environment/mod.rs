@@ -9,6 +9,7 @@ use academy_core_health_impl::HealthFeatureConfig;
 use academy_core_heart_impl::HeartFeatureConfig;
 use academy_core_oauth2_impl::OAuth2FeatureConfig;
 use academy_core_paypal_impl::PaypalFeatureConfig;
+use academy_core_premium_impl::PremiumFeatureConfig;
 use academy_core_session_impl::SessionFeatureConfig;
 use academy_core_user_impl::UserFeatureConfig;
 use academy_di::provider;
@@ -61,6 +62,7 @@ provider! {
             PaypalFeatureConfig,
             FinanceFeatureConfig,
             HeartFeatureConfig,
+            PremiumFeatureConfig,
         }
     }
 }
@@ -108,6 +110,7 @@ provider! {
         paypal_feature_config: PaypalFeatureConfig,
         finance_feature_config: FinanceFeatureConfig,
         heart_feature_config: HeartFeatureConfig,
+        premium_feature_config: PremiumFeatureConfig,
     }
 }
 
@@ -247,6 +250,11 @@ impl ConfigProvider {
             auto_refill_time: config.heart.auto_refill_time,
         };
 
+        let premium_feature_config = PremiumFeatureConfig {
+            monthly_price: config.premium.monthly_price,
+            yearly_price: config.premium.yearly_price,
+        };
+
         Ok(Self {
             _cache: Default::default(),
 
@@ -278,6 +286,7 @@ impl ConfigProvider {
             paypal_feature_config,
             finance_feature_config,
             heart_feature_config,
+            premium_feature_config,
         })
     }
 }

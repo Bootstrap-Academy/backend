@@ -48,35 +48,36 @@ impl CoinRepository<PostgresTransaction> for PostgresCoinRepository {
     ) -> Result<Balance, CoinRepoAddCoinsError> {
         let (coins, withheld_coins) = if withhold { (0, coins) } else { (coins, 0) };
 
-        if let Some(row) = txn
-            .txn()
-            .query_opt(
-                "update coins set coins=coins+$2, withheld_coins=withheld_coins+$3 where \
-                 user_id=$1 returning coins, withheld_coins",
-                &[&*user_id, &coins, &withheld_coins],
-            )
-            .await
-            .map_err(map_add_coins_error)?
-        {
-            return decode_balance(&row, &mut Default::default()).map_err(Into::into);
-        }
+        txn.savepoint(|txn| async move {
+            if let Some(row) = txn
+                .query_opt(
+                    "update coins set coins=coins+$2, withheld_coins=withheld_coins+$3 where \
+                     user_id=$1 returning coins, withheld_coins",
+                    &[&*user_id, &coins, &withheld_coins],
+                )
+                .await
+                .map_err(map_add_coins_error)?
+            {
+                return decode_balance(&row, &mut Default::default()).map_err(Into::into);
+            }
 
-        if coins < 0 || withheld_coins < 0 {
-            return Err(CoinRepoAddCoinsError::NotEnoughCoins);
-        }
+            if coins < 0 || withheld_coins < 0 {
+                return Err(CoinRepoAddCoinsError::NotEnoughCoins);
+            }
 
-        txn.txn()
-            .execute(
+            txn.execute(
                 "insert into coins as c (user_id, coins, withheld_coins) values ($1, $2, $3)",
                 &[&*user_id, &coins, &withheld_coins],
             )
             .await
             .map_err(map_add_coins_error)?;
 
-        Ok(Balance {
-            coins: coins as _,
-            withheld_coins: withheld_coins as _,
+            Ok(Balance {
+                coins: coins as _,
+                withheld_coins: withheld_coins as _,
+            })
         })
+        .await
     }
 
     #[trace_instrument(skip(self, txn))]

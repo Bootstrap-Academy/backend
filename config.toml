@@ -80,6 +80,10 @@ max = 6
 refill_price = 50
 auto_refill_time = "00:00" # UTC
 
+[premium]
+monthly_price = 1000
+yearly_price = 10000
+
 [render]
 # chrome_bin = ""
 

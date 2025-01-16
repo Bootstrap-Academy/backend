@@ -787,6 +787,7 @@ dependencies = [
 name = "academy_testing"
 version = "0.0.0"
 dependencies = [
+ "academy_utils",
  "anyhow",
  "axum",
  "axum-extra",

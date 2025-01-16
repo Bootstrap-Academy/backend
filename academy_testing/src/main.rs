@@ -1,6 +1,7 @@
 use std::net::IpAddr;
 
 use academy_testing::{oauth2, paypal, recaptcha, vat};
+use academy_utils::academy_version;
 use clap::{CommandFactory, Parser, Subcommand};
 use clap_complete::Shell;
 use url::Url;
@@ -48,7 +49,7 @@ async fn main() -> anyhow::Result<()> {
 }
 
 #[derive(Debug, Parser)]
-#[command(version)]
+#[command(version = academy_version())]
 struct Cli {
     #[command(subcommand)]
     command: Command,

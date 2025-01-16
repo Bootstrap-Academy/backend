@@ -5,7 +5,7 @@ This document aims to provide a high-level overview over the architecture of the
 The backend currently consists of the following components:
 
 - The Rust backend monolith found in this repository
-- The old Python/Rust microservices (soon to be integrated into the new backend): [skills-ms](https://github.com/Bootstrap-Academy/skills-ms), [shop-ms](https://github.com/Bootstrap-Academy/shop-ms), [jobs-ms](https://github.com/Bootstrap-Academy/jobs-ms), [events-ms](https://github.com/Bootstrap-Academy/events-ms), [challenges-ms](https://github.com/Bootstrap-Academy/challenges-ms)
+- The old Python/Rust microservices (soon to be integrated into the new backend): [skills-ms](https://github.com/Bootstrap-Academy/skills-ms), [jobs-ms](https://github.com/Bootstrap-Academy/jobs-ms), [events-ms](https://github.com/Bootstrap-Academy/events-ms), [challenges-ms](https://github.com/Bootstrap-Academy/challenges-ms)
 - A [PostgreSQL](https://www.postgresql.org/) database for persistence
 - A [Valkey](https://valkey.io/)/[Redis](https://redis.io/) server for caching
 - External services/APIs:

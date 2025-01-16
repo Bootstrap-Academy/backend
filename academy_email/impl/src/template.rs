@@ -1,9 +1,13 @@
+use academy_assets::email::{ALLGEMEINE_GESCHAEFTSBEDINGUNGEN_PDF, WIDERRUFSBELEHRUNG_PDF};
 use academy_di::Build;
-use academy_email_contracts::{template::TemplateEmailService, ContentType, Email, EmailService};
+use academy_email_contracts::{
+    template::TemplateEmailService, AttachmentContentType, ContentType, Email, EmailAttachment,
+    EmailService,
+};
 use academy_models::email_address::EmailAddressWithName;
 use academy_templates_contracts::{
-    ResetPasswordTemplate, SubscribeNewsletterTemplate, Template, TemplateService,
-    VerifyEmailTemplate,
+    PurchaseConfirmationTemplate, ResetPasswordTemplate, SubscribeNewsletterTemplate, Template,
+    TemplateService, VerifyEmailTemplate,
 };
 use academy_utils::trace_instrument;
 
@@ -24,8 +28,13 @@ where
         recipient: EmailAddressWithName,
         data: &ResetPasswordTemplate,
     ) -> anyhow::Result<bool> {
-        self.send_email(recipient, data, "Passwort zurücksetzen - Bootstrap Academy")
-            .await
+        self.send_email(
+            recipient,
+            data,
+            "Passwort zurücksetzen - Bootstrap Academy",
+            Vec::new(),
+        )
+        .await
     }
 
     #[trace_instrument(skip(self))]
@@ -34,8 +43,13 @@ where
         recipient: EmailAddressWithName,
         data: &SubscribeNewsletterTemplate,
     ) -> anyhow::Result<bool> {
-        self.send_email(recipient, data, "Newsletter abonnieren - Bootstrap Academy")
-            .await
+        self.send_email(
+            recipient,
+            data,
+            "Newsletter abonnieren - Bootstrap Academy",
+            Vec::new(),
+        )
+        .await
     }
 
     #[trace_instrument(skip(self))]
@@ -44,8 +58,47 @@ where
         recipient: EmailAddressWithName,
         data: &VerifyEmailTemplate,
     ) -> anyhow::Result<bool> {
-        self.send_email(recipient, data, "Willkommen bei der Bootstrap Academy!")
-            .await
+        self.send_email(
+            recipient,
+            data,
+            "Willkommen bei der Bootstrap Academy!",
+            Vec::new(),
+        )
+        .await
+    }
+
+    #[trace_instrument(skip(self, invoice))]
+    async fn send_purchase_confirmation_email(
+        &self,
+        recipient: EmailAddressWithName,
+        data: &PurchaseConfirmationTemplate,
+        invoice: Vec<u8>,
+    ) -> anyhow::Result<bool> {
+        let invoice = EmailAttachment {
+            filename: "rechnung.pdf".into(),
+            content_type: AttachmentContentType::Pdf,
+            content: invoice,
+        };
+
+        let terms = EmailAttachment {
+            filename: "allgemeine_geschaeftsbedingungen.pdf".into(),
+            content_type: AttachmentContentType::Pdf,
+            content: ALLGEMEINE_GESCHAEFTSBEDINGUNGEN_PDF.into(),
+        };
+
+        let revocation_policy = EmailAttachment {
+            filename: "widerrufsbelehrung.pdf".into(),
+            content_type: AttachmentContentType::Pdf,
+            content: WIDERRUFSBELEHRUNG_PDF.into(),
+        };
+
+        self.send_email(
+            recipient,
+            data,
+            "Kaufbestätigung - Bootstrap Academy",
+            vec![invoice, terms, revocation_policy],
+        )
+        .await
     }
 }
 
@@ -59,6 +112,7 @@ where
         recipient: EmailAddressWithName,
         data: &T,
         subject: impl Into<String>,
+        attachments: Vec<EmailAttachment>,
     ) -> anyhow::Result<bool> {
         self.email
             .send(Email {
@@ -67,6 +121,7 @@ where
                 body: self.template.render(data)?,
                 content_type: ContentType::Html,
                 reply_to: None,
+                attachments,
             })
             .await
     }

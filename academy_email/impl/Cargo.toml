@@ -13,6 +13,7 @@ workspace = true
 dummy = []
 
 [dependencies]
+academy_assets.workspace = true
 academy_di.workspace = true
 academy_email_contracts.workspace = true
 academy_models.workspace = true

@@ -9,17 +9,17 @@ pub trait JwtService: Send + Sync + 'static {
     ///
     /// `data` must serialize to a map (JSON object), which may not contain the
     /// `exp` key.
-    fn sign<T: Serialize + Debug + 'static, S: From<String> + Debug + 'static>(
+    fn sign<T: Serialize + Debug + 'static>(
         &self,
         data: T,
         ttl: Duration,
-    ) -> anyhow::Result<S>;
+    ) -> anyhow::Result<String>;
 
     /// Verify the signature of the given JWT, deserialize its payload and
     /// ensure the JWT has not expired yet.
-    fn verify<S: AsRef<str> + Debug + 'static, T: DeserializeOwned + Debug + 'static>(
+    fn verify<T: DeserializeOwned + Debug + 'static>(
         &self,
-        jwt: &S,
+        jwt: &str,
     ) -> Result<T, VerifyJwtError<T>>;
 }
 
@@ -33,14 +33,11 @@ pub enum VerifyJwtError<T> {
 
 #[cfg(feature = "mock")]
 impl MockJwtService {
-    pub fn with_sign<
-        T: Debug + PartialEq + Serialize + Send + 'static,
-        S: From<String> + Debug + Send + 'static,
-    >(
+    pub fn with_sign<T: Debug + PartialEq + Serialize + Send + 'static>(
         mut self,
         data: T,
         ttl: Duration,
-        result: anyhow::Result<S>,
+        result: anyhow::Result<String>,
     ) -> Self {
         self.expect_sign()
             .once()
@@ -49,12 +46,9 @@ impl MockJwtService {
         self
     }
 
-    pub fn with_verify<
-        S: AsRef<str> + Debug + PartialEq + Send + 'static,
-        T: DeserializeOwned + Debug + Send + 'static,
-    >(
+    pub fn with_verify<T: DeserializeOwned + Debug + Send + 'static>(
         mut self,
-        jwt: S,
+        jwt: String,
         result: Result<T, VerifyJwtError<T>>,
     ) -> Self {
         self.expect_verify()

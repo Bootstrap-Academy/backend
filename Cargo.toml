@@ -15,9 +15,9 @@ members = [
   "academy_extern/*",
   "academy_models",
   "academy_persistence/*",
+  "academy_render/*",
   "academy_shared/*",
-  "academy_templates/contracts",
-  "academy_templates/impl",
+  "academy_templates/*",
   "academy_testing",
   "academy_utils",
   "academy_utils_derive",
@@ -50,18 +50,28 @@ academy_auth_impl.path = "academy_auth/impl"
 academy_cache_contracts.path = "academy_cache/contracts"
 academy_cache_valkey.path = "academy_cache/valkey"
 academy_config.path = "academy_config"
+academy_core_coin_contracts.path = "academy_core/coin/contracts"
+academy_core_coin_impl.path = "academy_core/coin/impl"
 academy_core_config_contracts.path = "academy_core/config/contracts"
 academy_core_config_impl.path = "academy_core/config/impl"
 academy_core_contact_contracts.path = "academy_core/contact/contracts"
 academy_core_contact_impl.path = "academy_core/contact/impl"
+academy_core_finance_contracts.path = "academy_core/finance/contracts"
+academy_core_finance_impl.path = "academy_core/finance/impl"
 academy_core_health_contracts.path = "academy_core/health/contracts"
 academy_core_health_impl.path = "academy_core/health/impl"
+academy_core_heart_contracts.path = "academy_core/heart/contracts"
+academy_core_heart_impl.path = "academy_core/heart/impl"
 academy_core_internal_contracts.path = "academy_core/internal/contracts"
 academy_core_internal_impl.path = "academy_core/internal/impl"
 academy_core_mfa_contracts.path = "academy_core/mfa/contracts"
 academy_core_mfa_impl.path = "academy_core/mfa/impl"
 academy_core_oauth2_contracts.path = "academy_core/oauth2/contracts"
 academy_core_oauth2_impl.path = "academy_core/oauth2/impl"
+academy_core_paypal_contracts.path = "academy_core/paypal/contracts"
+academy_core_paypal_impl.path = "academy_core/paypal/impl"
+academy_core_premium_contracts.path = "academy_core/premium/contracts"
+academy_core_premium_impl.path = "academy_core/premium/impl"
 academy_core_session_contracts.path = "academy_core/session/contracts"
 academy_core_session_impl.path = "academy_core/session/impl"
 academy_core_user_contracts.path = "academy_core/user/contracts"
@@ -76,6 +86,8 @@ academy_extern_impl.path = "academy_extern/impl"
 academy_models.path = "academy_models"
 academy_persistence_contracts.path = "academy_persistence/contracts"
 academy_persistence_postgres.path = "academy_persistence/postgres"
+academy_render_contracts.path = "academy_render/contracts"
+academy_render_impl.path = "academy_render/impl"
 academy_shared_contracts.path = "academy_shared/contracts"
 academy_shared_impl.path = "academy_shared/impl"
 academy_templates_contracts.path = "academy_templates/contracts"
@@ -96,6 +108,7 @@ darling = { version = "0.20.10", default-features = false, features = ["suggesti
 futures = { version = "0.3.31", default-features = false, features = ["std"] }
 hex = { version = "0.4.3", default-features = false, features = ["std"] }
 lettre = { version = "0.11.11", default-features = false, features = ["builder", "hostname", "pool", "rustls-tls", "serde", "smtp-transport", "tokio1", "tokio1-rustls-tls", "tracing"] }
+mime = { version = "0.3.17", default-features = false }
 mockall = { version = "0.13.1", default-features = false }
 nutype = { version = "0.5.1", default-features = false, features = ["std", "regex", "serde", "schemars08"] }
 oauth2 = { version = "4.4.2", default-features = false, features = ["reqwest", "rustls-tls"] }
@@ -106,13 +119,15 @@ quote = { version = "1.0.38", default-features = false, features = ["proc-macro"
 rand = { version = "0.8.5", default-features = false, features = ["std", "std_rng"] }
 regex = { version = "1.11.1", default-features = false }
 reqwest = { version = "0.12.12", default-features = false, features = ["http2", "rustls-tls", "json"] }
+rust_decimal = { version = "1.36.0", default-features = false, features = ["std", "serde-str"] }
+rust_decimal_macros = { version = "1.36.0", default-features = false }
 schemars = { version = "0.8.21", default-features = false, features = ["derive", "preserve_order", "uuid1", "url"] }
 serde = { version = "1.0.217", default-features = false, features = ["derive", "std"] }
 serde_json = { version = "1.0.135", default-features = false, features = ["std"] }
 sha2 = { version = "0.10.8", default-features = false }
-syn = { version = "2.0.96", default-features = false, features = ["parsing", "proc-macro", "derive", "printing"] }
+syn = { version = "2.0.96", default-features = false, features = ["parsing", "proc-macro", "derive", "printing", "full"] }
 thiserror = { version = "2.0.11", default-features = false }
-tokio = { version = "1.43.0", default-features = false, features = ["rt-multi-thread", "macros", "sync"] }
+tokio = { version = "1.43.0", default-features = false, features = ["rt-multi-thread", "macros", "sync", "fs", "process"] }
 tracing = { version = "0.1.41", default-features = false, features = ["attributes"] }
 tracing-subscriber = { version = "0.3.19", default-features = false, features = ["ansi", "fmt", "env-filter"] }
 url = { version = "2.5.3", default-features = false, features = ["serde"] }

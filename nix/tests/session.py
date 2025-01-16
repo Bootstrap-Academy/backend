@@ -1,6 +1,6 @@
 import os
 
-from utils import assert_access_token_invalid, c, create_account, get_self, make_client, save_auth
+from utils import assert_access_token_invalid, c, create_account, create_admin_account, get_self, make_client, save_auth
 
 login = create_account("a", "a@a", "a")
 sessions = [login["session"]]
@@ -93,11 +93,7 @@ assert resp.status_code == 200
 assert resp.json() == sessions
 
 # impersonate
-os.system("academy admin user create --admin admin admin@admin admin")
-resp = c.post("/auth/sessions", json={"name_or_email": "admin", "password": "admin"})
-assert resp.status_code == 200
-save_auth(resp.json())
-
+create_admin_account("admin", "admin@admin", "admin")
 resp = c.post(f"/auth/sessions/{login['user']['id']}")
 assert resp.status_code == 200
 

@@ -14,6 +14,8 @@ in {
       default = self.packages.${pkgs.system}.default;
     };
 
+    chromePackage = lib.mkPackageOption pkgs "ungoogled-chromium" {};
+
     localDatabase = lib.mkOption {
       type = lib.types.bool;
       default = true;
@@ -39,7 +41,7 @@ in {
       default = {};
     };
 
-    tasks = lib.genAttrs ["prune-database"] (task: {
+    tasks = lib.genAttrs ["prune-database" "refresh-premium"] (task: {
       schedule = lib.mkOption {
         type = lib.types.either lib.types.str (lib.types.listOf lib.types.str);
         default = [];
@@ -73,6 +75,7 @@ in {
           serviceConfig = {
             User = "academy";
             Group = "academy";
+            StateDirectory = "academy";
           };
 
           environment = {
@@ -132,8 +135,20 @@ in {
       };
       users.groups.academy = {};
 
-      services.academy.backend.settings.database.url = lib.mkIf cfg.localDatabase "host=/run/postgresql user=academy";
-      services.academy.backend.settings.cache.url = lib.mkIf cfg.localCache "redis+unix://${config.services.redis.servers.academy.unixSocket}";
+      services.academy.backend = {
+        settings = {
+          database.url = lib.mkIf cfg.localDatabase "host=/run/postgresql user=academy";
+          cache.url = lib.mkIf cfg.localCache "redis+unix://${config.services.redis.servers.academy.unixSocket}";
+          render.chrome_bin = lib.mkDefault (lib.getExe cfg.chromePackage);
+          finance.invoices_archive = lib.mkDefault "/var/lib/academy/invoices";
+          finance.credit_notes_archive = lib.mkDefault "/var/lib/academy/credit_notes";
+        };
+
+        tasks = {
+          prune-database.schedule = lib.mkDefault "hourly";
+          refresh-premium.schedule = lib.mkDefault "daily";
+        };
+      };
 
       environment.systemPackages = [wrapper];
     };

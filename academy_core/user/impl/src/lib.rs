@@ -18,7 +18,7 @@ use academy_core_user_contracts::{
     UserVerifyEmailError, UserVerifyNewsletterSubscriptionError,
 };
 use academy_di::Build;
-use academy_extern_contracts::{internal::InternalApiService, vat::VatApiService};
+use academy_extern_contracts::vat::VatApiService;
 use academy_models::{
     auth::{AccessToken, Login},
     email_address::EmailAddress,
@@ -26,7 +26,9 @@ use academy_models::{
     user::{UserComposite, UserIdOrSelf, UserInvoiceInfoPatch, UserPassword, UserPatchRef},
     RecaptchaResponse, VerificationCode,
 };
-use academy_persistence_contracts::{user::UserRepository, Database, Transaction};
+use academy_persistence_contracts::{
+    coin::CoinRepository, user::UserRepository, Database, Transaction,
+};
 use academy_shared_contracts::captcha::{CaptchaCheckError, CaptchaService};
 use academy_utils::{
     patch::{Patch, PatchValue},
@@ -47,25 +49,25 @@ pub struct UserFeatureServiceImpl<
     Auth,
     Captcha,
     VatApi,
-    InternalApi,
     User,
     UserEmailConfirmation,
     UserUpdate,
     Session,
     OAuth2Registration,
     UserRepo,
+    CoinRepo,
 > {
     db: Db,
     auth: Auth,
     captcha: Captcha,
     vat_api: VatApi,
-    internal_api: InternalApi,
     user: User,
     user_email_confirmation: UserEmailConfirmation,
     user_update: UserUpdate,
     session: Session,
     oauth2_registration: OAuth2Registration,
     user_repo: UserRepo,
+    coin_repo: CoinRepo,
 }
 
 #[derive(Debug, Clone)]
@@ -84,39 +86,39 @@ impl<
         Auth,
         Captcha,
         VatApi,
-        InternalApi,
         UserS,
         UserEmailConfirmation,
         UserUpdate,
         Session,
         OAuth2RegistrationS,
         UserRepo,
+        CoinRepo,
     > UserFeatureService
     for UserFeatureServiceImpl<
         Db,
         Auth,
         Captcha,
         VatApi,
-        InternalApi,
         UserS,
         UserEmailConfirmation,
         UserUpdate,
         Session,
         OAuth2RegistrationS,
         UserRepo,
+        CoinRepo,
     >
 where
     Db: Database,
     Auth: AuthService<Db::Transaction>,
     Captcha: CaptchaService,
     VatApi: VatApiService,
-    InternalApi: InternalApiService,
     UserS: UserService<Db::Transaction>,
     UserEmailConfirmation: UserEmailConfirmationService<Db::Transaction>,
     UserUpdate: UserUpdateService<Db::Transaction>,
     Session: SessionService<Db::Transaction>,
     OAuth2RegistrationS: OAuth2RegistrationService,
     UserRepo: UserRepository<Db::Transaction>,
+    CoinRepo: CoinRepository<Db::Transaction>,
 {
     #[trace_instrument(skip(self))]
     async fn list_users(
@@ -439,10 +441,6 @@ where
             commit = true;
         }
 
-        if commit {
-            txn.commit().await?;
-        }
-
         let user_composite = UserComposite {
             user,
             profile,
@@ -451,10 +449,14 @@ where
         };
 
         if invoice_info_updated && user_composite.can_receive_coins() {
-            self.internal_api
-                .release_coins(user_composite.user.id)
+            self.coin_repo
+                .release_coins(&mut txn, user_id)
                 .await
                 .context("Failed to release coins")?;
+        }
+
+        if commit {
+            txn.commit().await?;
         }
 
         Ok(user_composite)

@@ -28,6 +28,7 @@ where
                 },
                 self.config.internal_token_ttl,
             )
+            .map(Into::into)
             .with_context(|| {
                 format!("Failed to issue internal access token for audience {audience}")
             })
@@ -40,7 +41,7 @@ where
         audience: &str,
     ) -> Result<(), AuthInternalAuthenticateError> {
         self.jwt
-            .verify::<_, Token>(token)
+            .verify::<Token>(token)
             .ok()
             .filter(|data| data.aud == audience)
             .map(|_| ())
@@ -72,7 +73,7 @@ mod tests {
         let jwt = MockJwtService::new().with_sign(
             Token { aud: "test".into() },
             config.internal_token_ttl,
-            Ok(InternalToken::new(expected)),
+            Ok(expected.into()),
         );
 
         let sut = AuthInternalServiceImpl {
@@ -90,10 +91,8 @@ mod tests {
     #[test]
     fn authenticate_ok() {
         // Arrange
-        let jwt = MockJwtService::new().with_verify(
-            InternalToken::new("token"),
-            Ok(Token { aud: "auth".into() }),
-        );
+        let jwt =
+            MockJwtService::new().with_verify("token".into(), Ok(Token { aud: "auth".into() }));
 
         let sut = AuthInternalServiceImpl {
             jwt,
@@ -110,10 +109,8 @@ mod tests {
     #[test]
     fn authenticate_invalid() {
         // Arrange
-        let jwt = MockJwtService::new().with_verify(
-            InternalToken::new("token"),
-            Err(VerifyJwtError::<Token>::Invalid),
-        );
+        let jwt = MockJwtService::new()
+            .with_verify("token".into(), Err(VerifyJwtError::<Token>::Invalid));
 
         let sut = AuthInternalServiceImpl {
             jwt,
@@ -131,7 +128,7 @@ mod tests {
     fn authenticate_expired() {
         // Arrange
         let jwt = MockJwtService::new().with_verify(
-            InternalToken::new("token"),
+            "token".into(),
             Err(VerifyJwtError::Expired(Token { aud: "auth".into() })),
         );
 

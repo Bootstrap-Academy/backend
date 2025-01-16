@@ -19,6 +19,7 @@ async fn ok() {
         db,
         auth_internal,
         user_repo,
+        ..Sut::default()
     };
 
     // Act
@@ -63,6 +64,7 @@ async fn not_found() {
         db,
         auth_internal,
         user_repo,
+        ..Sut::default()
     };
 
     // Act

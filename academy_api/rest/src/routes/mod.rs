@@ -1,8 +1,13 @@
+pub mod coin;
 pub mod config;
 pub mod contact;
+pub mod finance;
 pub mod health;
+pub mod heart;
 pub mod internal;
 pub mod mfa;
 pub mod oauth2;
+pub mod paypal;
+pub mod premium;
 pub mod session;
 pub mod user;

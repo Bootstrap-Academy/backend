@@ -1,7 +1,7 @@
 [http]
 # address = "0.0.0.0:80"
 # real_ip = { header = "X-Real-Ip", set_from = "127.0.0.1" }
-allowed_origins = [] # RegexSet
+allowed_origins = []
 
 [database]
 # url = "" # https://docs.rs/tokio-postgres/latest/tokio_postgres/config/struct.Config.html
@@ -10,6 +10,7 @@ min_connections = 0
 acquire_timeout = "10s"
 idle_timeout = "10m"
 max_lifetime = "30m"
+run_migrations = true
 
 [cache]
 # url = "" # https://docs.rs/redis/latest/redis/#connection-parameters
@@ -25,10 +26,10 @@ max_lifetime = "30m"
 
 [jwt]
 # secret = ""
+download_token_ttl = "10m"
 
 [internal]
 jwt_ttl = "10s"
-# shop_url = ""
 
 [health]
 database_cache_ttl = "10s"
@@ -65,6 +66,32 @@ min_score = 0.5
 
 [vat]
 # validate_endpoint_override = ""
+
+[paypal]
+# base_url_override = ""
+# client_id = ""
+# client_secret = ""
+
+[coin]
+purchase_min = 500
+purchase_max = 1000000
+
+[heart]
+max = 6
+refill_price = 50
+auto_refill_time = "00:00" # UTC
+
+[premium]
+monthly_price = 1000
+yearly_price = 10000
+
+[render]
+# chrome_bin = ""
+
+[finance]
+vat_percent = 19
+# invoices_archive = ""
+# credit_notes_archive = ""
 
 # [sentry]
 # enable = true

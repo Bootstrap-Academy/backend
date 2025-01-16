@@ -16,5 +16,5 @@ academy_templates_contracts.workspace = true
 academy_utils.workspace = true
 anyhow.workspace = true
 serde.workspace = true
-tera = { version = "1.20.0", default-features = false }
+tera = { version = "1.20.0", default-features = false, features = ["builtins"] }
 tracing.workspace = true

@@ -43,6 +43,7 @@ where
 
         self.jwt
             .sign(Token::from(auth), self.config.access_token_ttl)
+            .map(Into::into)
             .context("Failed to sign JWT")
     }
 
@@ -160,7 +161,7 @@ mod tests {
         let jwt = MockJwtService::new().with_sign(
             Token::from(auth),
             config.access_token_ttl,
-            Ok(AccessToken::new(expected)),
+            Ok(expected.into()),
         );
 
         let sut = AuthAccessTokenServiceImpl {
@@ -188,8 +189,7 @@ mod tests {
             email_verified: FOO.user.email_verified,
         };
 
-        let jwt =
-            MockJwtService::new().with_verify(AccessToken::new(token), Ok(Token::from(expected)));
+        let jwt = MockJwtService::new().with_verify(token.into(), Ok(Token::from(expected)));
 
         let sut = AuthAccessTokenServiceImpl {
             jwt,
@@ -208,10 +208,8 @@ mod tests {
         // Arrange
         let token = "the access token";
 
-        let jwt = MockJwtService::new().with_verify(
-            AccessToken::new(token),
-            Err(VerifyJwtError::<Token>::Invalid),
-        );
+        let jwt =
+            MockJwtService::new().with_verify(token.into(), Err(VerifyJwtError::<Token>::Invalid));
 
         let sut = AuthAccessTokenServiceImpl {
             jwt,
@@ -238,7 +236,7 @@ mod tests {
         };
 
         let jwt = MockJwtService::new().with_verify(
-            AccessToken::new(token),
+            token.into(),
             Err(VerifyJwtError::Expired(Token::from(auth))),
         );
 

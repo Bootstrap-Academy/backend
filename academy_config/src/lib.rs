@@ -1,15 +1,17 @@
 use std::{
     collections::HashMap,
     net::{IpAddr, SocketAddr},
-    path::Path,
+    path::{Path, PathBuf},
 };
 
 use academy_assets::CONFIG_TOML;
 use academy_models::{email_address::EmailAddressWithName, mfa::TotpSecretLength, url::Url};
 use anyhow::Context;
+use chrono::NaiveTime;
 use config::{File, FileFormat};
 use duration::Duration;
 use regex::bytes::RegexSet;
+use rust_decimal::Decimal;
 use serde::{Deserialize, Deserializer};
 
 pub mod duration;
@@ -89,6 +91,12 @@ pub struct Config {
     pub contact: ContactConfig,
     pub recaptcha: Option<RecaptchaConfig>,
     pub vat: VatConfig,
+    pub paypal: PaypalConfig,
+    pub coin: CoinConfig,
+    pub heart: HeartConfig,
+    pub premium: PremiumConfig,
+    pub render: RenderConfig,
+    pub finance: FinanceConfig,
     pub sentry: Option<SentryConfig>,
     pub oauth2: Option<OAuth2Config>,
 }
@@ -123,6 +131,7 @@ pub struct DatabaseConfig {
     pub acquire_timeout: Duration,
     pub idle_timeout: Option<Duration>,
     pub max_lifetime: Option<Duration>,
+    pub run_migrations: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -144,12 +153,12 @@ pub struct EmailConfig {
 #[derive(Debug, Deserialize)]
 pub struct JwtConfig {
     pub secret: String,
+    pub download_token_ttl: Duration,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct InternalConfig {
     pub jwt_ttl: Duration,
-    pub shop_url: Url,
 }
 
 #[derive(Debug, Deserialize)]
@@ -203,6 +212,44 @@ pub struct VatConfig {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct PaypalConfig {
+    pub base_url_override: Option<Url>,
+    pub client_id: String,
+    pub client_secret: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct CoinConfig {
+    pub purchase_min: u64,
+    pub purchase_max: u64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct HeartConfig {
+    pub max: u64,
+    pub refill_price: u64,
+    pub auto_refill_time: NaiveTime,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct PremiumConfig {
+    pub monthly_price: u64,
+    pub yearly_price: u64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct RenderConfig {
+    pub chrome_bin: PathBuf,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct FinanceConfig {
+    pub vat_percent: Decimal,
+    pub invoices_archive: PathBuf,
+    pub credit_notes_archive: PathBuf,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct SentryConfig {
     pub enable: Option<bool>,
     pub dsn: Url,
@@ -247,10 +294,14 @@ mod tests {
                 "email.smtp_url = \"\"",
                 "email.from = \"Test <test@example.com>\"",
                 "jwt.secret = \"\"",
-                "internal.shop_url = \"http://127.0.0.1:8002\"",
                 "contact.email = \"test@example.com\"",
                 "recaptcha.sitekey = \"\"",
                 "recaptcha.secret = \"\"",
+                "paypal.client_id = \"\"",
+                "paypal.client_secret = \"\"",
+                "render.chrome_bin = \"\"",
+                "finance.invoices_archive = \"\"",
+                "finance.credit_notes_archive = \"\"",
                 "oauth2.providers.github.client_id = \"\"",
                 "oauth2.providers.github.client_secret = \"\"",
                 "oauth2.providers.discord.client_id = \"\"",

@@ -14,7 +14,9 @@ academy_assets.workspace = true
 academy_models.workspace = true
 anyhow.workspace = true
 config = { version = "0.15.6", default-features = false, features = ["toml"] }
+chrono.workspace = true
 regex.workspace = true
+rust_decimal.workspace = true
 serde.workspace = true
 
 [dev-dependencies]

@@ -5,7 +5,7 @@ This document aims to provide a high-level overview over the architecture of the
 The backend currently consists of the following components:
 
 - The Rust backend monolith found in this repository
-- The old Python/Rust microservices (soon to be integrated into the new backend): [skills-ms](https://github.com/Bootstrap-Academy/skills-ms), [shop-ms](https://github.com/Bootstrap-Academy/shop-ms), [jobs-ms](https://github.com/Bootstrap-Academy/jobs-ms), [events-ms](https://github.com/Bootstrap-Academy/events-ms), [challenges-ms](https://github.com/Bootstrap-Academy/challenges-ms)
+- The old Python/Rust microservices (soon to be integrated into the new backend): [skills-ms](https://github.com/Bootstrap-Academy/skills-ms), [jobs-ms](https://github.com/Bootstrap-Academy/jobs-ms), [events-ms](https://github.com/Bootstrap-Academy/events-ms), [challenges-ms](https://github.com/Bootstrap-Academy/challenges-ms)
 - A [PostgreSQL](https://www.postgresql.org/) database for persistence
 - A [Valkey](https://valkey.io/)/[Redis](https://redis.io/) server for caching
 - External services/APIs:
@@ -46,7 +46,7 @@ In addition, both [Swagger UI](https://swagger.io/tools/swagger-ui/) and [Redoc]
 Clients are mostly authenticated using JWTs:
 
 - Normal users logging in with their account credentials receive an access token (JWT) and a refresh token (random opaque secret) and use the access token to authenticate all subsequent requests. When the access token expires (or is invalidated) the client uses the refresh token to request a new access/refresh token pair which replaces the current one.
-- Services (esp. the old Python/Rust microservices) authenticate each request by issuing a very short lived JWT which includes the target audience (the recipient of the request).
+- Services (esp. the old Python/Rust microservices) authenticate each request by issuing a very short-lived JWT which includes the target audience (the recipient of the request).
 
 #### Tracing
 Each incoming request is assigned a unique request id (Base64 encoded UUIDv7).

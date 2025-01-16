@@ -3,7 +3,8 @@ use academy_config::Config;
 use academy_di::Provide;
 use academy_email_contracts::EmailService;
 use academy_persistence_contracts::Database;
-use tracing::info;
+use academy_persistence_postgres::MigrationStatus;
+use tracing::{info, warn};
 
 use crate::{
     cache, database, email,
@@ -15,14 +16,34 @@ pub async fn serve(config: Config) -> anyhow::Result<()> {
     let database = database::connect(&config.database).await?;
     database.ping().await?;
 
-    info!("Applying pending migrations");
-    let mut applied = false;
-    for name in database.run_migrations(None).await? {
-        info!("Applied {name}");
-        applied = true;
-    }
-    if !applied {
-        info!("No migrations pending");
+    if config.database.run_migrations {
+        info!("Applying pending migrations");
+        let mut applied = false;
+        for name in database.run_migrations(None).await? {
+            info!("Applied {name}");
+            applied = true;
+        }
+        if !applied {
+            info!("No migrations pending");
+        }
+    } else {
+        info!("Checking for pending migrations");
+        let pending = database
+            .list_migrations()
+            .await?
+            .into_iter()
+            .filter_map(|MigrationStatus { migration, applied }| (!applied).then_some(migration))
+            .collect::<Vec<_>>();
+        if !pending.is_empty() {
+            for migration in pending {
+                warn!("Migration {} is pending", migration.name);
+            }
+            anyhow::bail!(
+                "Some database migrations are pending. Run `academy migrate up` to apply them."
+            );
+        } else {
+            info!("No migrations pending");
+        }
     }
 
     info!("Connecting to valkey cache");

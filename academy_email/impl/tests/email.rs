@@ -19,6 +19,7 @@ async fn send_email() {
             body: "<h1>Hello World!</h1>".into(),
             content_type: ContentType::Html,
             reply_to: Some("replyto@example.com".parse().unwrap()),
+            attachments: Vec::new(),
         })
         .await
         .unwrap();

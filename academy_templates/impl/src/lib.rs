@@ -3,9 +3,9 @@ use std::{fmt::Debug, sync::Arc};
 use academy_assets::templates;
 use academy_di::Build;
 use academy_templates_contracts::{Template, TemplateService, TEMPLATES};
-use academy_utils::trace_instrument;
 use anyhow::Context;
 use tera::Tera;
+use tracing::instrument;
 
 #[derive(Debug, Clone, Build)]
 pub struct TemplateServiceImpl {
@@ -31,7 +31,7 @@ impl Default for State {
 }
 
 impl TemplateService for TemplateServiceImpl {
-    #[trace_instrument(skip(self))]
+    #[instrument(skip(self))]
     fn render<T: Template>(&self, template: &T) -> anyhow::Result<String> {
         let context = tera::Context::from_serialize(template)
             .with_context(|| format!("Failed to build tera context for template {}", T::NAME))?;
@@ -46,7 +46,8 @@ impl TemplateService for TemplateServiceImpl {
 #[cfg(test)]
 mod tests {
     use academy_templates_contracts::{
-        ResetPasswordTemplate, SubscribeNewsletterTemplate, VerifyEmailTemplate,
+        InvoiceTemplate, PurchaseConfirmationTemplate, ResetPasswordTemplate,
+        SubscribeNewsletterTemplate, VerifyEmailTemplate,
     };
 
     use super::*;
@@ -72,6 +73,32 @@ mod tests {
         test_template(SubscribeNewsletterTemplate {
             code: "code".into(),
             url: "https://bootstrap.academy/".into(),
+        });
+    }
+
+    #[test]
+    fn purchase_confirmation() {
+        test_template(PurchaseConfirmationTemplate {
+            coins: 4207,
+            vat_percent: 19.into(),
+            vat_total: 7.into(),
+            gross_total: 49.into(),
+        });
+    }
+
+    #[test]
+    fn invoice() {
+        test_template(InvoiceTemplate {
+            title: "Rechnung",
+            customer_details: ["foo", "bar", "baz"].into_iter().map(Into::into).collect(),
+            timestamp: Default::default(),
+            invoice_number: "R1234".into(),
+            items: vec![],
+            vat_percent: 19.into(),
+            net_total: 42.into(),
+            vat_total: 7.into(),
+            gross_total: 49.into(),
+            _static: Default::default(),
         });
     }
 

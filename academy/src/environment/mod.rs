@@ -4,16 +4,20 @@ use academy_api_rest::{RestServerConfig, RestServerRealIpConfig};
 use academy_auth_impl::AuthServiceConfig;
 use academy_config::Config;
 use academy_core_contact_impl::ContactFeatureConfig;
+use academy_core_finance_impl::FinanceFeatureConfig;
 use academy_core_health_impl::HealthFeatureConfig;
+use academy_core_heart_impl::HeartFeatureConfig;
 use academy_core_oauth2_impl::OAuth2FeatureConfig;
+use academy_core_paypal_impl::PaypalFeatureConfig;
+use academy_core_premium_impl::PremiumFeatureConfig;
 use academy_core_session_impl::SessionFeatureConfig;
 use academy_core_user_impl::UserFeatureConfig;
 use academy_di::provider;
 use academy_extern_impl::{
-    internal::InternalApiServiceConfig, recaptcha::RecaptchaApiServiceConfig,
-    vat::VatApiServiceConfig,
+    paypal::PaypalApiServiceConfig, recaptcha::RecaptchaApiServiceConfig, vat::VatApiServiceConfig,
 };
 use academy_models::oauth2::OAuth2Provider;
+use academy_render_impl::pdf::RenderPdfServiceConfig;
 use academy_shared_impl::{
     captcha::{CaptchaServiceConfig, RecaptchaCaptchaServiceConfig},
     jwt::JwtServiceConfig,
@@ -34,9 +38,12 @@ provider! {
             RestServerConfig,
 
             // Extern
-            InternalApiServiceConfig,
             RecaptchaApiServiceConfig,
             VatApiServiceConfig,
+            PaypalApiServiceConfig,
+
+            // Render
+            RenderPdfServiceConfig,
 
             // Shared
             CaptchaServiceConfig,
@@ -52,6 +59,10 @@ provider! {
             HealthFeatureConfig,
             SessionFeatureConfig,
             UserFeatureConfig,
+            PaypalFeatureConfig,
+            FinanceFeatureConfig,
+            HeartFeatureConfig,
+            PremiumFeatureConfig,
         }
     }
 }
@@ -75,9 +86,12 @@ provider! {
         rest_server_config: RestServerConfig,
 
         // Extern
-        internal_api_service_config: InternalApiServiceConfig,
         recaptcha_api_service_config: RecaptchaApiServiceConfig,
         vat_api_service_config: VatApiServiceConfig,
+        paypal_api_service_config: PaypalApiServiceConfig,
+
+        // Render
+        render_pdf_service_config: RenderPdfServiceConfig,
 
         // Shared
         captcha_service_config: CaptchaServiceConfig,
@@ -93,6 +107,10 @@ provider! {
         health_feature_config: HealthFeatureConfig,
         session_feature_config: SessionFeatureConfig,
         user_feature_config: UserFeatureConfig,
+        paypal_feature_config: PaypalFeatureConfig,
+        finance_feature_config: FinanceFeatureConfig,
+        heart_feature_config: HeartFeatureConfig,
+        premium_feature_config: PremiumFeatureConfig,
     }
 }
 
@@ -111,10 +129,6 @@ impl ConfigProvider {
         };
 
         // Extern
-        let internal_api_service_config = InternalApiServiceConfig {
-            shop_url: config.internal.shop_url.clone(),
-        };
-
         let recaptcha_api_service_config = RecaptchaApiServiceConfig::new(
             config
                 .recaptcha
@@ -124,6 +138,17 @@ impl ConfigProvider {
 
         let vat_api_service_config =
             VatApiServiceConfig::new(config.vat.validate_endpoint_override.clone());
+
+        let paypal_api_service_config = PaypalApiServiceConfig::new(
+            config.paypal.base_url_override.clone(),
+            config.paypal.client_id.clone(),
+            config.paypal.client_secret.clone(),
+        );
+
+        // Render
+        let render_pdf_service_config = RenderPdfServiceConfig {
+            chrome_bin: config.render.chrome_bin.clone().into(),
+        };
 
         // Shared
         let captcha_service_config = match config.recaptcha.as_ref() {
@@ -208,6 +233,28 @@ impl ConfigProvider {
             newsletter_subscription_verification_code_ttl: config.user.newsletter_code_ttl.into(),
         };
 
+        let paypal_feature_config = PaypalFeatureConfig {
+            purchase_range: config.coin.purchase_min..=config.coin.purchase_max,
+        };
+
+        let finance_feature_config = FinanceFeatureConfig {
+            vat_percent: config.finance.vat_percent,
+            invoices_archive: config.finance.invoices_archive.clone().into(),
+            credit_notes_archive: config.finance.credit_notes_archive.clone().into(),
+            download_token_ttl: config.jwt.download_token_ttl.into(),
+        };
+
+        let heart_feature_config = HeartFeatureConfig {
+            hearts_max: config.heart.max,
+            hearts_refill_price: config.heart.refill_price,
+            auto_refill_time: config.heart.auto_refill_time,
+        };
+
+        let premium_feature_config = PremiumFeatureConfig {
+            monthly_price: config.premium.monthly_price,
+            yearly_price: config.premium.yearly_price,
+        };
+
         Ok(Self {
             _cache: Default::default(),
 
@@ -215,9 +262,12 @@ impl ConfigProvider {
             rest_server_config,
 
             // Extern
-            internal_api_service_config,
             recaptcha_api_service_config,
             vat_api_service_config,
+            paypal_api_service_config,
+
+            // Render
+            render_pdf_service_config,
 
             // Shared
             jwt_service_config,
@@ -233,6 +283,10 @@ impl ConfigProvider {
             health_feature_config,
             session_feature_config,
             user_feature_config,
+            paypal_feature_config,
+            finance_feature_config,
+            heart_feature_config,
+            premium_feature_config,
         })
     }
 }

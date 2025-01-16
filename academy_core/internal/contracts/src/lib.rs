@@ -3,7 +3,9 @@ use std::future::Future;
 use academy_auth_contracts::internal::AuthInternalAuthenticateError;
 use academy_models::{
     auth::InternalToken,
+    coin::{Balance, TransactionDescription},
     email_address::EmailAddress,
+    heart::Hearts,
     user::{UserComposite, UserId},
 };
 use thiserror::Error;
@@ -23,6 +25,38 @@ pub trait InternalService: Send + Sync + 'static {
         token: &InternalToken,
         email: EmailAddress,
     ) -> impl Future<Output = Result<UserComposite, InternalGetUserByEmailError>> + Send;
+
+    /// Add Morphcoins to the balance of the given user.
+    fn add_coins(
+        &self,
+        token: &InternalToken,
+        user_id: UserId,
+        coins: i64,
+        description: Option<TransactionDescription>,
+        include_in_credit_note: bool,
+    ) -> impl Future<Output = Result<Balance, InternalAddCoinsError>> + Send;
+
+    /// Get hearts of the given user.
+    fn get_hearts(
+        &self,
+        token: &InternalToken,
+        user_id: UserId,
+    ) -> impl Future<Output = Result<Hearts, InternalGetHeartsError>> + Send;
+
+    /// Add hearts for the given user.
+    fn add_hearts(
+        &self,
+        token: &InternalToken,
+        user_id: UserId,
+        hearts: i64,
+    ) -> impl Future<Output = Result<Hearts, InternalAddHeartsError>> + Send;
+
+    /// Return whether the given user is a premium member.
+    fn has_premium(
+        &self,
+        token: &InternalToken,
+        user_id: UserId,
+    ) -> impl Future<Output = Result<bool, InternalHasPremiumError>> + Send;
 }
 
 #[derive(Debug, Error)]
@@ -39,6 +73,50 @@ pub enum InternalGetUserError {
 pub enum InternalGetUserByEmailError {
     #[error("The user does not exist.")]
     NotFound,
+    #[error(transparent)]
+    Auth(#[from] AuthInternalAuthenticateError),
+    #[error(transparent)]
+    Other(#[from] anyhow::Error),
+}
+
+#[derive(Debug, Error)]
+pub enum InternalAddCoinsError {
+    #[error("The user does not exist.")]
+    UserNotFound,
+    #[error("The user does not have enough coins.")]
+    NotEnoughCoins,
+    #[error(transparent)]
+    Auth(#[from] AuthInternalAuthenticateError),
+    #[error(transparent)]
+    Other(#[from] anyhow::Error),
+}
+
+#[derive(Debug, Error)]
+pub enum InternalGetHeartsError {
+    #[error("The user does not exist.")]
+    UserNotFound,
+    #[error(transparent)]
+    Auth(#[from] AuthInternalAuthenticateError),
+    #[error(transparent)]
+    Other(#[from] anyhow::Error),
+}
+
+#[derive(Debug, Error)]
+pub enum InternalAddHeartsError {
+    #[error("The user does not exist.")]
+    UserNotFound,
+    #[error("The user does not have enough hearts.")]
+    NotEnoughHearts,
+    #[error(transparent)]
+    Auth(#[from] AuthInternalAuthenticateError),
+    #[error(transparent)]
+    Other(#[from] anyhow::Error),
+}
+
+#[derive(Debug, Error)]
+pub enum InternalHasPremiumError {
+    #[error("The user does not exist.")]
+    UserNotFound,
     #[error(transparent)]
     Auth(#[from] AuthInternalAuthenticateError),
     #[error(transparent)]

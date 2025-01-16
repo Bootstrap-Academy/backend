@@ -34,7 +34,7 @@ pub async fn start_server(
     client_secret: String,
     redirect_url: Url,
 ) -> anyhow::Result<()> {
-    info!("Starting recaptcha testing server on {host}:{port}");
+    info!("Starting OAuth2 testing server on {host}:{port}");
     info!("Authorization endpoint: http://{host}:{port}/oauth2/authorize");
     info!("Token endpoint: http://{host}:{port}/oauth2/token");
     info!("User info endpoint: http://{host}:{port}/user");

@@ -1,5 +1,7 @@
 import email
 import email.header
+import os
+import subprocess
 import time
 from email.message import Message
 from pathlib import Path
@@ -24,8 +26,16 @@ def decode_mail_header(header):
     return str(email.header.make_header(email.header.decode_header(header)))
 
 
+def get_mail_parts(mail: Message) -> list[Message]:
+    return cast(list[Message], mail.get_payload())
+
+
+def decode_mail_part(mail: Message) -> bytes:
+    return cast(bytes, mail.get_payload(decode=True))
+
+
 def decode_mail_payload(mail: Message):
-    return cast(bytes, mail.get_payload(decode=True)).decode()
+    return decode_mail_part(get_mail_parts(mail)[0]).decode()
 
 
 def refresh_session(refresh_token=None, client=None):
@@ -60,6 +70,19 @@ def make_client():
     return httpx.Client(base_url="http://127.0.0.1:8000", timeout=httpx.Timeout(60))
 
 
+def make_internal_client(aud):
+    client = make_client()
+
+    def auth(req):
+        status, jwt = subprocess.getstatusoutput(f'academy jwt sign \'{{"aud":"{aud}"}}\'')
+        assert status == 0
+        req.headers["Authorization"] = jwt.strip()
+        return req
+
+    client.auth = auth
+    return client
+
+
 def create_account(name, email, password, client=None):
     client = client or c
     resp = client.post(
@@ -74,6 +97,29 @@ def create_account(name, email, password, client=None):
     )
     assert resp.status_code == 200
     login = resp.json()
+    save_auth(login, client)
+    return login
+
+
+def create_verified_account(name, email, password, client=None):
+    client = client or c
+    os.system(f"academy admin user create --verified {name} {email} {password}")
+    resp = client.post("/auth/sessions", json={"name_or_email": name, "password": password})
+    assert resp.status_code == 200
+    login = resp.json()
+    assert login["user"]["email_verified"] is True
+    save_auth(login, client)
+    return login
+
+
+def create_admin_account(name, email, password, client=None):
+    client = client or c
+    os.system(f"academy admin user create --admin --verified {name} {email} {password}")
+    resp = client.post("/auth/sessions", json={"name_or_email": name, "password": password})
+    assert resp.status_code == 200
+    login = resp.json()
+    assert login["user"]["email_verified"] is True
+    assert login["user"]["admin"] is True
     save_auth(login, client)
     return login
 

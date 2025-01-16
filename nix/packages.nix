@@ -8,6 +8,7 @@
   self,
   stdenv,
   makeWrapper,
+  versionCheckHook,
 }: let
   toolchain = fenix.packages.${system}.stable;
 
@@ -30,6 +31,9 @@
           wrapProgram $bin --argv0 $(basename $bin) --set ACADEMY_VERSION ${lib.escapeShellArg version}
         done
       '';
+      nativeInstallCheckInputs = [versionCheckHook];
+      versionCheckProgramArg = "--version";
+      doInstallCheck = true;
       passthru.unwrapped = drv;
     };
 

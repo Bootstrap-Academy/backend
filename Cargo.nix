@@ -3929,6 +3929,10 @@ rec {
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_testing; };
         dependencies = [
           {
+            name = "academy_utils";
+            packageId = "academy_utils";
+          }
+          {
             name = "anyhow";
             packageId = "anyhow";
             usesDefaultFeatures = false;

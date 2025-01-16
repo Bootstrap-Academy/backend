@@ -13,6 +13,7 @@ The backend currently consists of the following components:
     - [Google reCAPTCHA](https://developers.google.com/recaptcha/intro)
     - Various OAuth2 providers like GitHub, Discord, Google, ...
     - [Vies on-the-Web](https://ec.europa.eu/taxation_customs/vies/#/technical-information) for VAT validation
+    - [PayPal](https://developer.paypal.com/docs/api/orders/v2/)
     - [GlitchTip](https://glitchtip.com/)/[Sentry](https://sentry.io/) for error tracking and monitoring
 
 ## Important Crates

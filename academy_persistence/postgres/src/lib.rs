@@ -225,7 +225,7 @@ pub struct PostgresTransaction {
 }
 
 impl PostgresTransaction {
-    fn txn(&self) -> &PgTransaction<'_> {
+    pub fn txn(&self) -> &PgTransaction<'_> {
         self.borrow_txn().as_ref().unwrap()
     }
 

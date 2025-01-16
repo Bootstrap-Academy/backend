@@ -6,12 +6,18 @@ use clap::Subcommand;
 use super::migration_logs;
 
 mod auth;
+mod shop;
 
 #[derive(Debug, Subcommand)]
 pub enum LoadCommand {
     /// Import data from the old auth microservice
     Auth {
         /// The connection string of the old auth-ms database
+        url: String,
+    },
+    /// Import data from the old shop microservice
+    Shop {
+        /// The connection string of the old shop-ms database
         url: String,
     },
 }
@@ -21,6 +27,7 @@ impl LoadCommand {
         migration_logs(&db.run_migrations(None).await?, "applied");
         match self {
             LoadCommand::Auth { url } => auth::load(db, connect(url).await?).await,
+            LoadCommand::Shop { url } => shop::load(db, connect(url).await?).await,
         }
     }
 }

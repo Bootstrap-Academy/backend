@@ -123,7 +123,7 @@
       <div class="row">
         <div class="customer-details">
           {% for line in customer_details -%}
-            <div>{{ line }}</div>
+            <div>{{ line | escape }}</div>
           {%- endfor %}
         </div>
 
@@ -153,7 +153,7 @@
 
         {% for item in items -%}
           <div class="table-row">
-            <div>{{ item.description }}</div>
+            <div>{{ item.description | escape }}</div>
             <div class="table-right">{{ item.net_unit }} EUR</div>
             <div class="table-right">{{ item.count }}</div>
             <div class="table-right">{{ item.net_total }} EUR</div>

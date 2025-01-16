@@ -131,6 +131,7 @@ pub struct DatabaseConfig {
     pub acquire_timeout: Duration,
     pub idle_timeout: Option<Duration>,
     pub max_lifetime: Option<Duration>,
+    pub run_migrations: bool,
 }
 
 #[derive(Debug, Deserialize)]

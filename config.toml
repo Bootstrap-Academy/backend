@@ -10,6 +10,7 @@ min_connections = 0
 acquire_timeout = "10s"
 idle_timeout = "10m"
 max_lifetime = "30m"
+run_migrations = true
 
 [cache]
 # url = "" # https://docs.rs/redis/latest/redis/#connection-parameters

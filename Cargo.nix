@@ -13670,9 +13670,9 @@ rec {
       };
       "serde_json" = rec {
         crateName = "serde_json";
-        version = "1.0.136";
+        version = "1.0.137";
         edition = "2021";
-        sha256 = "1lipcjhh1zazh283i4wsl4l14knh81q2rlkwmag8v8s2rwihqsik";
+        sha256 = "0sql0gndrw2miw440sl0m2lrk6bsxyxrmlnpma52k6dzd9pgn34k";
         authors = [
           "Erick Tryzelaar <erick.tryzelaar@gmail.com>"
           "David Tolnay <dtolnay@gmail.com>"

@@ -5346,10 +5346,10 @@ rec {
       };
       "borsh" = rec {
         crateName = "borsh";
-        version = "1.5.4";
+        version = "1.5.5";
         edition = "2018";
         crateBin = [];
-        sha256 = "1wzyrp71iz68dfj8mpmavxgaikh8jmdv09wg5jjd6lafcx9m3dlz";
+        sha256 = "1k4ivf9xzcgc9sjzl487ci4dba9ini78a71rs62djs0bf6zf6c2l";
         authors = [
           "Near Inc <hello@near.org>"
         ];
@@ -5380,9 +5380,9 @@ rec {
       };
       "borsh-derive" = rec {
         crateName = "borsh-derive";
-        version = "1.5.4";
+        version = "1.5.5";
         edition = "2018";
-        sha256 = "19z0visnxfskl7kygv9f8vmz29srwav3n99xvd8ccna0v5xf35m3";
+        sha256 = "11q4gbhl70injx67dxivz7k3k9g3zs33mj6par9svfkhk79nidpq";
         procMacro = true;
         libName = "borsh_derive";
         authors = [
@@ -5558,9 +5558,9 @@ rec {
       };
       "cc" = rec {
         crateName = "cc";
-        version = "1.2.9";
+        version = "1.2.10";
         edition = "2018";
-        sha256 = "02rim94a0c7rdwyc5yz6wlzyd4cm22r4b6x3maylb4sx2rr3faf8";
+        sha256 = "0aaj2ivamhfzhgb9maasnfkh03s2mzhzpzwrkghgzbkfnv5qy80k";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -8915,9 +8915,9 @@ rec {
       };
       "ipnet" = rec {
         crateName = "ipnet";
-        version = "2.10.1";
+        version = "2.11.0";
         edition = "2018";
-        sha256 = "025p9wm94q1w2l13hbbr4cbmfygly3a2ag8g5s618l2jhq4l3hnx";
+        sha256 = "0c5i9sfi2asai28m8xp48k5gvwkqrg5ffpi767py6mzsrswv17s6";
         authors = [
           "Kris Price <kris@krisprice.nz>"
         ];
@@ -13134,9 +13134,9 @@ rec {
       };
       "semver" = rec {
         crateName = "semver";
-        version = "1.0.24";
+        version = "1.0.25";
         edition = "2018";
-        sha256 = "1fmvjjkd3f64y5fqr1nakkq371mnwzv09fbz5mbmdxril63ypdiw";
+        sha256 = "00sy306qpi7vfand7dxm2vc76nlc8fkh1rrhdy0qh12v50nzx7gp";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -16199,9 +16199,9 @@ rec {
       };
       "valuable" = rec {
         crateName = "valuable";
-        version = "0.1.0";
-        edition = "2018";
-        sha256 = "0v9gp3nkjbl30z0fd56d8mx7w1csk86wwjhfjhr400wh9mfpw2w3";
+        version = "0.1.1";
+        edition = "2021";
+        sha256 = "0r9srp55v7g27s5bg7a2m095fzckrcdca5maih6dy9bay6fflwxs";
         features = {
           "default" = [ "std" ];
           "derive" = [ "valuable-derive" ];

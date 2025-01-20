@@ -32,8 +32,6 @@ pub enum MigrateCommand {
         /// Revert the last `n` migrations
         #[arg(short = 'n', long, default_value = "1")]
         count: usize,
-        #[arg(long, required = true)]
-        force: bool,
     },
     /// Reset the database and delete all data
     Reset {
@@ -58,7 +56,7 @@ impl MigrateCommand {
         match self {
             Self::List => list(db).await,
             Self::Up { count } => up(db, count).await,
-            Self::Down { count, force: _ } => down(db, Some(count)).await,
+            Self::Down { count } => down(db, Some(count)).await,
             Self::Reset { force: _ } => reset(db).await,
             Self::Demo { force: _ } => demo(db).await,
             Self::Load { command } => command.invoke(db).await,

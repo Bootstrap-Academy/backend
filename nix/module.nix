@@ -66,6 +66,13 @@ in {
     };
   in
     lib.mkIf cfg.enable {
+      assertions = [
+        {
+          assertion = cfg.localDatabase -> lib.versionAtLeast config.services.postgresql.package.version "17";
+          message = "PostgreSQL 17 is required";
+        }
+      ];
+
       systemd.services = let
         dependencies = ["network-online.target"] ++ (lib.optional cfg.localDatabase "postgresql.service") ++ (lib.optional cfg.localCache "redis-academy.service");
         baseConfig = {

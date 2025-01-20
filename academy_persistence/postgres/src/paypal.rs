@@ -1,19 +1,20 @@
-use std::sync::LazyLock;
-
 use academy_di::Build;
 use academy_models::paypal::{PaypalCoinOrder, PaypalOrderId};
 use academy_persistence_contracts::paypal::PaypalRepository;
-use bb8_postgres::tokio_postgres::Row;
 use chrono::{DateTime, Utc};
+use clorinde::{
+    client::Params,
+    queries::{
+        self,
+        paypal::{CaptureCoinOrderParams, CreateCoinOrderParams},
+    },
+};
 use futures::{Stream, StreamExt, TryFutureExt};
-use uuid::Uuid;
 
-use crate::{arg_indices, columns, ColumnCounter, PostgresTransaction};
+use crate::PostgresTransaction;
 
 #[derive(Debug, Clone, Build)]
 pub struct PostgresPaypalRepository;
-
-columns!(paypal_coin_order as "pco": "id", "user_id", "created_at", "captured_at", "coins", "invoice_number");
 
 impl PaypalRepository<PostgresTransaction> for PostgresPaypalRepository {
     async fn create_coin_order(
@@ -21,49 +22,44 @@ impl PaypalRepository<PostgresTransaction> for PostgresPaypalRepository {
         txn: &mut PostgresTransaction,
         order: &PaypalCoinOrder,
     ) -> anyhow::Result<()> {
-        txn.txn()
-            .execute(
-                &format!(
-                    "insert into paypal_coin_orders ({}) values ({})",
-                    PAYPAL_COIN_ORDER_COL_NAMES,
-                    arg_indices(1..=PAYPAL_COIN_ORDER_CNT)
-                ),
-                &[
-                    &*order.id,
-                    &*order.user_id,
-                    &order.created_at,
-                    &order.captured_at,
-                    &i64::try_from(order.coins)?,
-                    &i64::try_from(order.invoice_number)?,
-                ],
-            )
+        let params = CreateCoinOrderParams {
+            id: &*order.id,
+            user_id: *order.user_id,
+            created_at: order.created_at.into(),
+            captured_at: order.captured_at.map(Into::into),
+            coins: order.coins.try_into()?,
+            invoice_number: order.invoice_number.try_into()?,
+        };
+
+        queries::paypal::create_coin_order()
+            .params(txn.txn(), &params)
             .await
             .map(|_| ())
             .map_err(Into::into)
     }
 
     async fn count_coin_orders(&self, txn: &mut PostgresTransaction) -> anyhow::Result<u64> {
-        txn.txn()
-            .query_one("select count(*) from paypal_coin_orders", &[])
+        queries::paypal::count_coin_orders()
+            .bind(txn.txn())
+            .one()
             .await
-            .map(|row| row.get::<_, i64>(0) as _)
             .map_err(Into::into)
+            .and_then(|cnt| cnt.try_into().map_err(Into::into))
     }
 
     fn stream_coin_orders(
         &self,
         txn: &mut PostgresTransaction,
     ) -> impl Stream<Item = anyhow::Result<PaypalCoinOrder>> {
-        static STMT: LazyLock<String> = LazyLock::new(|| {
-            format!("select {PAYPAL_COIN_ORDER_COLS} from paypal_coin_orders pco")
-        });
-        txn.txn()
-            .query_raw(&*STMT, std::iter::empty::<&str>())
-            .try_flatten_stream()
-            .map(|row| {
-                row.map_err(anyhow::Error::from)
-                    .and_then(|row| decode_paypal_coin_order(&row, &mut Default::default()))
-            })
+        async {
+            queries::paypal::list_coin_orders()
+                .bind(txn.txn())
+                .iter()
+                .await
+                .map_err(Into::into)
+                .map(|s| s.map(|row| row.map_err(Into::into).and_then(decode_paypal_coin_order)))
+        }
+        .try_flatten_stream()
     }
 
     async fn get_coin_order(
@@ -71,17 +67,12 @@ impl PaypalRepository<PostgresTransaction> for PostgresPaypalRepository {
         txn: &mut PostgresTransaction,
         order_id: &PaypalOrderId,
     ) -> anyhow::Result<Option<PaypalCoinOrder>> {
-        txn.txn()
-            .query_opt(
-                &format!("select {PAYPAL_COIN_ORDER_COLS} from paypal_coin_orders pco where id=$1"),
-                &[&**order_id],
-            )
+        queries::paypal::get_coin_order()
+            .bind(txn.txn(), &**order_id)
+            .opt()
             .await
             .map_err(Into::into)
-            .and_then(|row| {
-                row.map(|row| decode_paypal_coin_order(&row, &mut Default::default()))
-                    .transpose()
-            })
+            .and_then(|row| row.map(decode_paypal_coin_order).transpose())
     }
 
     async fn get_coin_order_by_invoice_number(
@@ -89,20 +80,12 @@ impl PaypalRepository<PostgresTransaction> for PostgresPaypalRepository {
         txn: &mut PostgresTransaction,
         invoice_number: u64,
     ) -> anyhow::Result<Option<PaypalCoinOrder>> {
-        txn.txn()
-            .query_opt(
-                &format!(
-                    "select {PAYPAL_COIN_ORDER_COLS} from paypal_coin_orders pco where \
-                     invoice_number=$1"
-                ),
-                &[&(invoice_number as i64)],
-            )
+        queries::paypal::get_coin_order_by_invoice_number()
+            .bind(txn.txn(), &invoice_number.try_into()?)
+            .opt()
             .await
             .map_err(Into::into)
-            .and_then(|row| {
-                row.map(|row| decode_paypal_coin_order(&row, &mut Default::default()))
-                    .transpose()
-            })
+            .and_then(|row| row.map(decode_paypal_coin_order).transpose())
     }
 
     async fn capture_coin_order(
@@ -111,32 +94,35 @@ impl PaypalRepository<PostgresTransaction> for PostgresPaypalRepository {
         order_id: &PaypalOrderId,
         captured_at: DateTime<Utc>,
     ) -> anyhow::Result<()> {
-        txn.txn()
-            .execute(
-                "update paypal_coin_orders set captured_at=$2 where id=$1",
-                &[&**order_id, &captured_at],
-            )
+        let params = CaptureCoinOrderParams {
+            id: &**order_id,
+            captured_at: captured_at.into(),
+        };
+
+        queries::paypal::capture_coin_order()
+            .params(txn.txn(), &params)
             .await
             .map_err(Into::into)
             .map(|_| ())
     }
 
     async fn get_next_invoice_number(&self, txn: &mut PostgresTransaction) -> anyhow::Result<u64> {
-        txn.txn()
-            .query_one("select nextval('invoice_number')", &[])
+        queries::paypal::get_next_invoice_number()
+            .bind(txn.txn())
+            .one()
             .await
             .map_err(Into::into)
-            .and_then(|row| row.get::<_, i64>(0).try_into().map_err(Into::into))
+            .and_then(|row| row.try_into().map_err(Into::into))
     }
 }
 
-fn decode_paypal_coin_order(row: &Row, cnt: &mut ColumnCounter) -> anyhow::Result<PaypalCoinOrder> {
+fn decode_paypal_coin_order(value: queries::paypal::CoinOrder) -> anyhow::Result<PaypalCoinOrder> {
     Ok(PaypalCoinOrder {
-        id: row.get::<_, String>(cnt.idx()).try_into()?,
-        user_id: row.get::<_, Uuid>(cnt.idx()).into(),
-        created_at: row.get(cnt.idx()),
-        captured_at: row.get(cnt.idx()),
-        coins: row.get::<_, i64>(cnt.idx()).try_into()?,
-        invoice_number: row.get::<_, i64>(cnt.idx()).try_into()?,
+        id: value.id.try_into()?,
+        user_id: value.user_id.into(),
+        created_at: value.created_at.into(),
+        captured_at: value.captured_at.map(Into::into),
+        coins: value.coins.try_into()?,
+        invoice_number: value.invoice_number.try_into()?,
     })
 }

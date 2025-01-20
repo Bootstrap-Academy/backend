@@ -23,6 +23,14 @@ pub mod user;
 #[derive(Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Sha256Hash(#[serde(with = "academy_utils::serde::hex")] pub [u8; 32]);
 
+impl Deref for Sha256Hash {
+    type Target = [u8; 32];
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 impl std::fmt::Debug for Sha256Hash {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         hex::encode(self.0).fmt(f)

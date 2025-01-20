@@ -1,4 +1,4 @@
-use std::{collections::HashSet, fmt::Write, future::Future, time::Duration};
+use std::{collections::HashSet, future::Future, time::Duration};
 
 use academy_models::Sha256Hash;
 use academy_persistence_contracts::{Database, Transaction};
@@ -321,39 +321,4 @@ fn decode_sha256hash(hash: Vec<u8>) -> anyhow::Result<Sha256Hash> {
     hash.try_into()
         .map(Sha256Hash)
         .map_err(|x| anyhow!("Failed to decode SHA256 hash {x:?}"))
-}
-
-macro_rules! columns {
-    ($vis:vis $ident:ident as $alias:literal: $fst:literal $(, $col:literal)* $(,)?) => {
-        ::paste::paste! {
-            #[allow(unused, reason = "usually not needed for views")]
-            $vis const [< $ident:snake:upper _CNT >]: usize = [ $fst $(, $col)* ].len();
-            $vis const [< $ident:snake:upper _COLS >]: &str = ::core::concat!( '"', $alias, "\".\"", $fst, '"' $(, ", \"" , $alias, "\".\"", $col, '"' )* );
-            #[allow(unused, reason = "usually not needed for views")]
-            $vis const [< $ident:snake:upper _COL_NAMES >]: &str = ::core::concat!( '"', $fst, '"' $(, ", \"", $col, '"' )* );
-        }
-    };
-}
-use columns;
-
-fn arg_indices(indices: impl IntoIterator<Item = usize>) -> String {
-    let mut it = indices.into_iter();
-    let mut out = String::new();
-    if let Some(x) = it.next() {
-        write!(&mut out, "${x}").unwrap();
-    }
-    for x in it {
-        write!(&mut out, ", ${x}").unwrap();
-    }
-    out
-}
-
-#[derive(Debug, Default)]
-struct ColumnCounter(usize);
-impl ColumnCounter {
-    fn idx(&mut self) -> usize {
-        let idx = self.0;
-        self.0 += 1;
-        idx
-    }
 }

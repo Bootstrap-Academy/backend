@@ -1,4 +1,4 @@
-use std::fmt::Write;
+use std::str::FromStr;
 
 use academy_di::Build;
 use academy_models::{
@@ -11,23 +11,25 @@ use academy_models::{
     },
 };
 use academy_persistence_contracts::user::{UserRepoError, UserRepository};
-use academy_utils::{patch::PatchValue, trace_instrument};
-use bb8_postgres::tokio_postgres::{self, types::ToSql, Row};
-use uuid::Uuid;
+use academy_utils::trace_instrument;
+use bb8_postgres::tokio_postgres;
+use clorinde::{
+    client::Params,
+    queries::{
+        self,
+        user::{
+            CountCompositesParams, CreateInvoiceInfoParams, CreateParams, CreateProfileParams,
+            GetCompositeByOauth2ProviderIdAndRemoteUserIdParams, ListCompositesParams,
+            UpdateInvoiceInfoParams, UpdateParams, UpdateProfileParams,
+        },
+    },
+};
+use futures::{StreamExt, TryStreamExt};
 
-use crate::{arg_indices, columns, ColumnCounter, PostgresTransaction};
+use crate::PostgresTransaction;
 
 #[derive(Debug, Clone, Copy, Default, Build)]
 pub struct PostgresUserRepository;
-
-columns!(user as "u": "id", "name", "email", "email_verified", "created_at", "last_login", "last_name_change", "enabled", "admin", "newsletter");
-columns!(profile as "p": "user_id", "display_name", "bio", "tags");
-columns!(details as "d": "user_id", "mfa_enabled", "password_login", "oauth2_login");
-columns!(invoice_info as "i": "user_id", "business", "first_name", "last_name", "street", "zip_code", "city", "country", "vat_id");
-
-const JOIN_PROFILE: &str = "inner join user_profiles p on u.id=p.user_id";
-const JOIN_DETAILS: &str = "inner join user_details d on u.id=d.user_id";
-const JOIN_INVOICE_INFO: &str = "inner join user_invoice_info i on u.id=i.user_id";
 
 impl UserRepository<PostgresTransaction> for PostgresUserRepository {
     #[trace_instrument(skip(self, txn))]
@@ -36,23 +38,22 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
         txn: &mut PostgresTransaction,
         filter: &UserFilter,
     ) -> anyhow::Result<u64> {
-        let mut query = "select count(*) from users u ".to_owned();
-        if filter.name.is_some() {
-            query.push_str(JOIN_PROFILE)
-        }
-        if filter.mfa_enabled.is_some() {
-            query.push_str(JOIN_DETAILS)
-        }
-        query.push_str(" where true");
+        let params = CountCompositesParams {
+            name: filter.name.as_deref(),
+            email: filter.email.as_deref(),
+            enabled: filter.enabled,
+            admin: filter.admin,
+            mfa_enabled: filter.mfa_enabled,
+            email_verified: filter.email_verified,
+            newsletter: filter.newsletter,
+        };
 
-        let mut params: Vec<&(dyn ToSql + Sync)> = Vec::new();
-        make_filter(filter, &mut query, &mut params);
-
-        txn.txn()
-            .query_one(&query, &params)
+        queries::user::count_composites()
+            .params(txn.txn(), &params)
+            .one()
             .await
-            .map(|row| row.get::<_, i64>(0) as _)
             .map_err(Into::into)
+            .and_then(|row| row.try_into().map_err(Into::into))
     }
 
     #[trace_instrument(skip(self, txn))]
@@ -62,34 +63,33 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
         filter: &UserFilter,
         pagination: PaginationSlice,
     ) -> anyhow::Result<Vec<UserComposite>> {
-        let mut query = format!(
-            "select {USER_COLS}, {PROFILE_COLS}, {DETAILS_COLS}, {INVOICE_INFO_COLS} from users u \
-             {JOIN_PROFILE} {JOIN_DETAILS} {JOIN_INVOICE_INFO} where true"
-        );
-        let mut params: Vec<&(dyn ToSql + Sync)> = Vec::new();
-        make_filter(filter, &mut query, &mut params);
-        query.push_str(&format!(
-            " order by u.created_at asc limit {} offset {}",
-            *pagination.limit, pagination.offset
-        ));
+        let params = ListCompositesParams {
+            name: filter.name.as_deref(),
+            email: filter.email.as_deref(),
+            enabled: filter.enabled,
+            admin: filter.admin,
+            mfa_enabled: filter.mfa_enabled,
+            email_verified: filter.email_verified,
+            newsletter: filter.newsletter,
+            limit: (*pagination.limit).try_into()?,
+            offset: pagination.offset.try_into()?,
+        };
 
-        txn.txn()
-            .query(&query, &params)
+        queries::user::list_composites()
+            .params(txn.txn(), &params)
+            .iter()
+            .await?
+            .map(|row| row.map_err(Into::into).and_then(decode_composite))
+            .try_collect()
             .await
-            .map_err(Into::into)
-            .and_then(|rows| {
-                rows.into_iter()
-                    .map(|row| decode_composite(&row, &mut Default::default()))
-                    .collect()
-            })
     }
 
     #[trace_instrument(skip(self, txn))]
     async fn exists(&self, txn: &mut PostgresTransaction, user_id: UserId) -> anyhow::Result<bool> {
-        txn.txn()
-            .query_opt("select id from users where id=$1", &[&*user_id])
+        queries::user::exists()
+            .bind(txn.txn(), &user_id)
+            .one()
             .await
-            .map(|row| row.is_some())
             .map_err(Into::into)
     }
 
@@ -99,20 +99,12 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
         txn: &mut PostgresTransaction,
         user_id: UserId,
     ) -> anyhow::Result<Option<UserComposite>> {
-        txn.txn()
-            .query_opt(
-                &format!(
-                    "select {USER_COLS}, {PROFILE_COLS}, {DETAILS_COLS}, {INVOICE_INFO_COLS} from \
-                     users u {JOIN_PROFILE} {JOIN_DETAILS} {JOIN_INVOICE_INFO} where id=$1"
-                ),
-                &[&*user_id],
-            )
+        queries::user::get_composite()
+            .bind(txn.txn(), &user_id)
+            .opt()
             .await
             .map_err(Into::into)
-            .and_then(|row| {
-                row.map(|row| decode_composite(&row, &mut Default::default()))
-                    .transpose()
-            })
+            .and_then(|row| row.map(decode_composite).transpose())
     }
 
     #[trace_instrument(skip(self, txn))]
@@ -121,21 +113,12 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
         txn: &mut PostgresTransaction,
         name: &UserName,
     ) -> anyhow::Result<Option<UserComposite>> {
-        txn.txn()
-            .query_opt(
-                &format!(
-                    "select {USER_COLS}, {PROFILE_COLS}, {DETAILS_COLS}, {INVOICE_INFO_COLS} from \
-                     users u {JOIN_PROFILE} {JOIN_DETAILS} {JOIN_INVOICE_INFO} where \
-                     lower(name)=lower($1)"
-                ),
-                &[&name.as_str()],
-            )
+        queries::user::get_composite_by_name()
+            .bind(txn.txn(), &**name)
+            .opt()
             .await
             .map_err(Into::into)
-            .and_then(|row| {
-                row.map(|row| decode_composite(&row, &mut Default::default()))
-                    .transpose()
-            })
+            .and_then(|row| row.map(decode_composite).transpose())
     }
 
     #[trace_instrument(skip(self, txn))]
@@ -144,21 +127,12 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
         txn: &mut PostgresTransaction,
         email: &EmailAddress,
     ) -> anyhow::Result<Option<UserComposite>> {
-        txn.txn()
-            .query_opt(
-                &format!(
-                    "select {USER_COLS}, {PROFILE_COLS}, {DETAILS_COLS}, {INVOICE_INFO_COLS} from \
-                     users u {JOIN_PROFILE} {JOIN_DETAILS} {JOIN_INVOICE_INFO} where \
-                     lower(email)=lower($1)"
-                ),
-                &[&email.as_str()],
-            )
+        queries::user::get_composite_by_email()
+            .bind(txn.txn(), &email.as_str())
+            .opt()
             .await
             .map_err(Into::into)
-            .and_then(|row| {
-                row.map(|row| decode_composite(&row, &mut Default::default()))
-                    .transpose()
-            })
+            .and_then(|row| row.map(decode_composite).transpose())
     }
 
     #[trace_instrument(skip(self, txn))]
@@ -168,22 +142,17 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
         provider_id: &OAuth2ProviderId,
         remote_user_id: &OAuth2RemoteUserId,
     ) -> anyhow::Result<Option<UserComposite>> {
-        txn.txn()
-            .query_opt(
-                &format!(
-                    "select {USER_COLS}, {PROFILE_COLS}, {DETAILS_COLS}, {INVOICE_INFO_COLS} from \
-                     users u {JOIN_PROFILE} {JOIN_DETAILS} {JOIN_INVOICE_INFO} inner join \
-                     oauth2_links ol on u.id=ol.user_id where ol.provider_id=$1 and \
-                     ol.remote_user_id=$2"
-                ),
-                &[&**provider_id, &**remote_user_id],
-            )
+        let params = GetCompositeByOauth2ProviderIdAndRemoteUserIdParams {
+            provider_id: &**provider_id,
+            remote_user_id: &**remote_user_id,
+        };
+
+        queries::user::get_composite_by_oauth2_provider_id_and_remote_user_id()
+            .params(txn.txn(), &params)
+            .opt()
             .await
             .map_err(Into::into)
-            .and_then(|row| {
-                row.map(|row| decode_composite(&row, &mut Default::default()))
-                    .transpose()
-            })
+            .and_then(|row| row.map(decode_composite).transpose())
     }
 
     #[trace_instrument(skip(self, txn))]
@@ -194,64 +163,52 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
         profile: &UserProfile,
         invoice_info: &UserInvoiceInfo,
     ) -> Result<(), UserRepoError> {
-        txn.txn()
-            .execute(
-                &format!(
-                    "insert into users ({USER_COL_NAMES}) values ({})",
-                    arg_indices(1..=USER_CNT)
-                ),
-                &[
-                    &*user.id,
-                    &user.name.as_str(),
-                    &user.email.as_ref().map(EmailAddress::as_str),
-                    &user.email_verified,
-                    &user.created_at,
-                    &user.last_login,
-                    &user.last_name_change,
-                    &user.enabled,
-                    &user.admin,
-                    &user.newsletter,
-                ],
-            )
+        let user_params = CreateParams {
+            id: *user.id,
+            name: &*user.name,
+            email: user.email.as_ref().map(EmailAddress::as_str),
+            email_verified: user.email_verified,
+            created_at: user.created_at.into(),
+            last_login: user.last_login.map(Into::into),
+            last_name_change: user.last_name_change.map(Into::into),
+            enabled: user.enabled,
+            admin: user.admin,
+            newsletter: user.newsletter,
+        };
+
+        let profile_params = CreateProfileParams {
+            user_id: *user.id,
+            display_name: &*profile.display_name,
+            bio: &*profile.bio,
+            tags: profile.tags.iter().map(|tag| &**tag).collect::<Vec<_>>(),
+        };
+
+        let invoice_info_params = CreateInvoiceInfoParams {
+            user_id: *user.id,
+            business: invoice_info.business,
+            first_name: invoice_info.first_name.as_deref(),
+            last_name: invoice_info.last_name.as_deref(),
+            street: invoice_info.street.as_deref(),
+            zip_code: invoice_info.zip_code.as_deref(),
+            city: invoice_info.city.as_deref(),
+            country: invoice_info.country.as_deref(),
+            vat_id: invoice_info.vat_id.as_deref(),
+        };
+
+        queries::user::create()
+            .params(txn.txn(), &user_params)
             .await
             .map_err(map_user_repo_error)?;
 
-        txn.txn()
-            .execute(
-                &format!(
-                    "insert into user_profiles ({PROFILE_COL_NAMES}) values ({})",
-                    arg_indices(1..=PROFILE_CNT)
-                ),
-                &[
-                    &*user.id,
-                    &profile.display_name.as_str(),
-                    &profile.bio.as_str(),
-                    &profile.tags.iter().map(|x| x.as_str()).collect::<Vec<_>>(),
-                ],
-            )
+        queries::user::create_profile()
+            .params(txn.txn(), &profile_params)
             .await
-            .map_err(|err| UserRepoError::Other(err.into()))?;
+            .map_err(anyhow::Error::from)?;
 
-        txn.txn()
-            .execute(
-                &format!(
-                    "insert into user_invoice_info ({INVOICE_INFO_COL_NAMES}) values ({})",
-                    arg_indices(1..=INVOICE_INFO_CNT)
-                ),
-                &[
-                    &*user.id,
-                    &invoice_info.business,
-                    &invoice_info.first_name.as_deref(),
-                    &invoice_info.last_name.as_deref(),
-                    &invoice_info.street.as_deref(),
-                    &invoice_info.zip_code.as_deref(),
-                    &invoice_info.city.as_deref(),
-                    &invoice_info.country.as_deref(),
-                    &invoice_info.vat_id.as_deref(),
-                ],
-            )
+        queries::user::create_invoice_info()
+            .params(txn.txn(), &invoice_info_params)
             .await
-            .map_err(|err| UserRepoError::Other(err.into()))?;
+            .map_err(anyhow::Error::from)?;
 
         Ok(())
     }
@@ -272,48 +229,23 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
             newsletter,
         }: UserPatchRef<'a>,
     ) -> Result<bool, UserRepoError> {
-        let mut query = "update users set id=id".to_owned();
-        let mut params: Vec<&(dyn ToSql + Sync)> = vec![&*user_id];
+        let params = UpdateParams {
+            id: *user_id,
+            name: name.update().map(|x| &**x),
+            email: email
+                .update()
+                .and_then(Option::as_ref)
+                .map(EmailAddress::as_str),
+            email_verified: email_verified.update().copied(),
+            last_login: last_login.update().copied().flatten().map(Into::into),
+            last_name_change: last_name_change.update().copied().flatten().map(Into::into),
+            enabled: enabled.update().copied(),
+            admin: admin.update().copied(),
+            newsletter: newsletter.update().copied(),
+        };
 
-        let email = email.map(|x| x.as_ref().map(|x| x.as_str()));
-
-        if let PatchValue::Update(name) = name {
-            params.push(&**name);
-            write!(&mut query, ", name=${}", params.len()).unwrap();
-        }
-        if let PatchValue::Update(email) = &email {
-            params.push(email);
-            write!(&mut query, ", email=${}", params.len()).unwrap();
-        }
-        if let PatchValue::Update(email_verified) = email_verified {
-            params.push(email_verified);
-            write!(&mut query, ", email_verified=${}", params.len()).unwrap();
-        }
-        if let PatchValue::Update(last_login) = last_login {
-            params.push(last_login);
-            write!(&mut query, ", last_login=${}", params.len()).unwrap();
-        }
-        if let PatchValue::Update(last_name_change) = last_name_change {
-            params.push(last_name_change);
-            write!(&mut query, ", last_name_change=${}", params.len()).unwrap();
-        }
-        if let PatchValue::Update(enabled) = enabled {
-            params.push(enabled);
-            write!(&mut query, ", enabled=${}", params.len()).unwrap();
-        }
-        if let PatchValue::Update(admin) = admin {
-            params.push(admin);
-            write!(&mut query, ", admin=${}", params.len()).unwrap();
-        }
-        if let PatchValue::Update(newsletter) = newsletter {
-            params.push(newsletter);
-            write!(&mut query, ", newsletter=${}", params.len()).unwrap();
-        }
-
-        query.push_str(" where id=$1");
-
-        txn.txn()
-            .execute(&query, &params)
+        queries::user::update()
+            .params(txn.txn(), &params)
             .await
             .map(|n| n != 0)
             .map_err(map_user_repo_error)
@@ -330,28 +262,17 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
             tags,
         }: UserProfilePatchRef<'a>,
     ) -> anyhow::Result<bool> {
-        let mut query = "update user_profiles set user_id=user_id".to_owned();
-        let mut params: Vec<&(dyn ToSql + Sync)> = vec![&*user_id];
+        let params = UpdateProfileParams {
+            user_id: *user_id,
+            display_name: display_name.update().map(|x| &**x),
+            bio: bio.update().map(|x| &**x),
+            tags: tags
+                .update()
+                .map(|tags| tags.iter().map(|x| &**x).collect::<Vec<_>>()),
+        };
 
-        let tags = tags.map(|x| x.iter().map(|x| x.as_str()).collect::<Vec<_>>());
-
-        if let PatchValue::Update(display_name) = display_name {
-            params.push(&**display_name);
-            write!(&mut query, ", display_name=${}", params.len()).unwrap();
-        }
-        if let PatchValue::Update(bio) = bio {
-            params.push(&**bio);
-            write!(&mut query, ", bio=${}", params.len()).unwrap();
-        }
-        if let PatchValue::Update(tags) = &tags {
-            params.push(tags);
-            write!(&mut query, ", tags=${}", params.len()).unwrap();
-        }
-
-        query.push_str(" where user_id=$1");
-
-        txn.txn()
-            .execute(&query, &params)
+        queries::user::update_profile()
+            .params(txn.txn(), &params)
             .await
             .map(|n| n != 0)
             .map_err(Into::into)
@@ -373,54 +294,28 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
             vat_id,
         }: UserInvoiceInfoPatchRef<'a>,
     ) -> anyhow::Result<bool> {
-        let mut query = "update user_invoice_info set user_id=user_id".to_owned();
-        let mut params: Vec<&(dyn ToSql + Sync)> = vec![&*user_id];
+        let params = UpdateInvoiceInfoParams {
+            user_id: *user_id,
+            clear_business: business.is_update_and(|x| x.is_none()),
+            business: business.update().and_then(|x| x.as_ref().copied()),
+            clear_first_name: first_name.is_update_and(|x| x.is_none()),
+            first_name: first_name.update().and_then(Option::as_deref),
+            clear_last_name: last_name.is_update_and(|x| x.is_none()),
+            last_name: last_name.update().and_then(Option::as_deref),
+            clear_street: street.is_update_and(|x| x.is_none()),
+            street: street.update().and_then(Option::as_deref),
+            clear_zip_code: zip_code.is_update_and(|x| x.is_none()),
+            zip_code: zip_code.update().and_then(Option::as_deref),
+            clear_city: city.is_update_and(|x| x.is_none()),
+            city: city.update().and_then(Option::as_deref),
+            clear_country: country.is_update_and(|x| x.is_none()),
+            country: country.update().and_then(Option::as_deref),
+            clear_vat_id: vat_id.is_update_and(|x| x.is_none()),
+            vat_id: vat_id.update().and_then(Option::as_deref),
+        };
 
-        let first_name = first_name.map(|x| x.as_deref());
-        let last_name = last_name.map(|x| x.as_deref());
-        let street = street.map(|x| x.as_deref());
-        let zip_code = zip_code.map(|x| x.as_deref());
-        let city = city.map(|x| x.as_deref());
-        let country = country.map(|x| x.as_deref());
-        let vat_id = vat_id.map(|x| x.as_deref());
-
-        if let PatchValue::Update(business) = &business {
-            params.push(business);
-            write!(&mut query, ", business=${}", params.len()).unwrap();
-        }
-        if let PatchValue::Update(first_name) = &first_name {
-            params.push(first_name);
-            write!(&mut query, ", first_name=${}", params.len()).unwrap();
-        }
-        if let PatchValue::Update(last_name) = &last_name {
-            params.push(last_name);
-            write!(&mut query, ", last_name=${}", params.len()).unwrap();
-        }
-        if let PatchValue::Update(street) = &street {
-            params.push(street);
-            write!(&mut query, ", street=${}", params.len()).unwrap();
-        }
-        if let PatchValue::Update(zip_code) = &zip_code {
-            params.push(zip_code);
-            write!(&mut query, ", zip_code=${}", params.len()).unwrap();
-        }
-        if let PatchValue::Update(city) = &city {
-            params.push(city);
-            write!(&mut query, ", city=${}", params.len()).unwrap();
-        }
-        if let PatchValue::Update(country) = &country {
-            params.push(country);
-            write!(&mut query, ", country=${}", params.len()).unwrap();
-        }
-        if let PatchValue::Update(vat_id) = &vat_id {
-            params.push(vat_id);
-            write!(&mut query, ", vat_id=${}", params.len()).unwrap();
-        }
-
-        query.push_str(" where user_id=$1");
-
-        txn.txn()
-            .execute(&query, &params)
+        queries::user::update_invoice_info()
+            .params(txn.txn(), &params)
             .await
             .map(|n| n != 0)
             .map_err(Into::into)
@@ -428,8 +323,8 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
 
     #[trace_instrument(skip(self, txn))]
     async fn delete(&self, txn: &mut PostgresTransaction, user_id: UserId) -> anyhow::Result<bool> {
-        txn.txn()
-            .execute("delete from users where id=$1", &[&*user_id])
+        queries::user::delete()
+            .bind(txn.txn(), &user_id)
             .await
             .map(|x| x != 0)
             .map_err(Into::into)
@@ -442,14 +337,11 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
         user_id: UserId,
         password_hash: String,
     ) -> anyhow::Result<()> {
-        txn.txn()
-            .execute(
-                "insert into user_passwords (user_id, password_hash) values ($1, $2) on conflict \
-                 (user_id) do update set password_hash=$2",
-                &[&*user_id, &password_hash],
-            )
-            .await?;
-        Ok(())
+        queries::user::set_password_hash()
+            .bind(txn.txn(), &user_id, &password_hash)
+            .await
+            .map(|_| ())
+            .map_err(Into::into)
     }
 
     #[trace_instrument(skip(self, txn))]
@@ -458,13 +350,10 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
         txn: &mut PostgresTransaction,
         user_id: UserId,
     ) -> anyhow::Result<Option<String>> {
-        txn.txn()
-            .query_opt(
-                "select password_hash from user_passwords where user_id=$1",
-                &[&*user_id],
-            )
+        queries::user::get_password_hash()
+            .bind(txn.txn(), &user_id)
+            .opt()
             .await
-            .map(|row| row.map(|row| row.get(0)))
             .map_err(Into::into)
     }
 
@@ -474,8 +363,8 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
         txn: &mut PostgresTransaction,
         user_id: UserId,
     ) -> anyhow::Result<bool> {
-        txn.txn()
-            .execute("delete from user_passwords where user_id=$1", &[&*user_id])
+        queries::user::remove_password_hash()
+            .bind(txn.txn(), &user_id)
             .await
             .map(|n| n != 0)
             .map_err(Into::into)
@@ -486,152 +375,62 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
         txn: &mut PostgresTransaction,
         user_id: UserId,
     ) -> anyhow::Result<u64> {
-        if let Some(number) = txn
-            .txn()
-            .query_opt(
-                "select number from user_numbers where user_id=$1",
-                &[&*user_id],
-            )
+        queries::user::get_number()
+            .bind(txn.txn(), &user_id)
+            .one()
             .await
-            .map(|row| row.map(|row| row.get::<_, i64>(0) as _))?
-        {
-            return Ok(number);
-        }
-
-        txn.txn()
-            .query_one(
-                "insert into user_numbers as un (user_id, number) values ($1, \
-                 nextval('user_number')) on conflict (user_id) do update set number=un.number \
-                 returning number",
-                &[&*user_id],
-            )
-            .await
-            .map(|row| row.get::<_, i64>(0) as _)
             .map_err(Into::into)
+            .and_then(|row| row.try_into().map_err(Into::into))
     }
 }
 
-fn make_filter<'a>(
-    filter: &'a UserFilter,
-    query: &mut String,
-    params: &mut Vec<&'a (dyn ToSql + Sync)>,
-) {
-    if let Some(name) = &filter.name {
-        params.push(&**name);
-        query.push_str(&format!(
-            " and (lower(name)~lower(${0}) or lower(display_name)~lower(${0}))",
-            params.len()
-        ));
-    }
-    if let Some(email) = &filter.email {
-        params.push(&**email);
-        query.push_str(&format!(" and lower(email)~lower(${})", params.len()));
-    }
-    if let Some(enabled) = &filter.enabled {
-        params.push(enabled);
-        query.push_str(&format!(" and enabled=${}", params.len()));
-    }
-    if let Some(admin) = &filter.admin {
-        params.push(admin);
-        query.push_str(&format!(" and admin=${}", params.len()));
-    }
-    if let Some(mfa_enabled) = &filter.mfa_enabled {
-        params.push(mfa_enabled);
-        query.push_str(&format!(" and mfa_enabled=${}", params.len()));
-    }
-    if let Some(email_verified) = &filter.email_verified {
-        params.push(email_verified);
-        query.push_str(&format!(" and email_verified=${}", params.len()));
-    }
-    if let Some(newsletter) = &filter.newsletter {
-        params.push(newsletter);
-        query.push_str(&format!(" and newsletter=${}", params.len()));
-    }
-}
+fn decode_composite(value: queries::user::UserComposite) -> anyhow::Result<UserComposite> {
+    let user = User {
+        id: value.id.into(),
+        name: value.name.try_into()?,
+        email: value.email.as_deref().map(FromStr::from_str).transpose()?,
+        email_verified: value.email_verified,
+        created_at: value.created_at.into(),
+        last_login: value.last_login.map(Into::into),
+        last_name_change: value.last_name_change.map(Into::into),
+        enabled: value.enabled,
+        admin: value.admin,
+        newsletter: value.newsletter,
+    };
 
-fn decode_user(row: &Row, cnt: &mut ColumnCounter) -> anyhow::Result<User> {
-    Ok(User {
-        id: row.get::<_, Uuid>(cnt.idx()).into(),
-        name: row.get::<_, String>(cnt.idx()).try_into()?,
-        email: row
-            .get::<_, Option<String>>(cnt.idx())
-            .as_deref()
-            .map(str::parse)
-            .transpose()?,
-        email_verified: row.get(cnt.idx()),
-        created_at: row.get(cnt.idx()),
-        last_login: row.get(cnt.idx()),
-        last_name_change: row.get(cnt.idx()),
-        enabled: row.get(cnt.idx()),
-        admin: row.get(cnt.idx()),
-        newsletter: row.get(cnt.idx()),
-    })
-}
-
-fn decode_profile(row: &Row, cnt: &mut ColumnCounter) -> anyhow::Result<UserProfile> {
-    cnt.idx(); // user_id
-    Ok(UserProfile {
-        display_name: row.get::<_, String>(cnt.idx()).try_into()?,
-        bio: row.get::<_, String>(cnt.idx()).try_into()?,
-        tags: row
-            .get::<_, Vec<String>>(cnt.idx())
+    let profile = UserProfile {
+        display_name: value.display_name.try_into()?,
+        bio: value.bio.try_into()?,
+        tags: value
+            .tags
             .into_iter()
-            .map(TryInto::try_into)
+            .map(|tag| tag.try_into())
             .collect::<Result<Vec<_>, _>>()?
             .try_into()?,
-    })
-}
+    };
 
-fn decode_details(row: &Row, cnt: &mut ColumnCounter) -> anyhow::Result<UserDetails> {
-    cnt.idx(); // user_id
-    Ok(UserDetails {
-        mfa_enabled: row.get(cnt.idx()),
-        password_login: row.get(cnt.idx()),
-        oauth2_login: row.get(cnt.idx()),
-    })
-}
+    let details = UserDetails {
+        mfa_enabled: value.mfa_enabled,
+        password_login: value.password_login,
+        oauth2_login: value.oauth2_login,
+    };
 
-fn decode_invoice_info(row: &Row, cnt: &mut ColumnCounter) -> anyhow::Result<UserInvoiceInfo> {
-    cnt.idx(); // user_id
-    Ok(UserInvoiceInfo {
-        business: row.get(cnt.idx()),
-        first_name: row
-            .get::<_, Option<String>>(cnt.idx())
-            .map(TryInto::try_into)
-            .transpose()?,
-        last_name: row
-            .get::<_, Option<String>>(cnt.idx())
-            .map(TryInto::try_into)
-            .transpose()?,
-        street: row
-            .get::<_, Option<String>>(cnt.idx())
-            .map(TryInto::try_into)
-            .transpose()?,
-        zip_code: row
-            .get::<_, Option<String>>(cnt.idx())
-            .map(TryInto::try_into)
-            .transpose()?,
-        city: row
-            .get::<_, Option<String>>(cnt.idx())
-            .map(TryInto::try_into)
-            .transpose()?,
-        country: row
-            .get::<_, Option<String>>(cnt.idx())
-            .map(TryInto::try_into)
-            .transpose()?,
-        vat_id: row
-            .get::<_, Option<String>>(cnt.idx())
-            .map(TryInto::try_into)
-            .transpose()?,
-    })
-}
+    let invoice_info = UserInvoiceInfo {
+        business: value.business,
+        first_name: value.first_name.map(TryInto::try_into).transpose()?,
+        last_name: value.last_name.map(TryInto::try_into).transpose()?,
+        street: value.street.map(TryInto::try_into).transpose()?,
+        zip_code: value.zip_code.map(TryInto::try_into).transpose()?,
+        city: value.city.map(TryInto::try_into).transpose()?,
+        country: value.country.map(TryInto::try_into).transpose()?,
+        vat_id: value.vat_id.map(TryInto::try_into).transpose()?,
+    };
 
-fn decode_composite(row: &Row, cnt: &mut ColumnCounter) -> anyhow::Result<UserComposite> {
     Ok(UserComposite {
-        user: decode_user(row, cnt)?,
-        profile: decode_profile(row, cnt)?,
-        details: decode_details(row, cnt)?,
-        invoice_info: decode_invoice_info(row, cnt)?,
+        user,
+        profile,
+        details,
+        invoice_info,
     })
 }
 

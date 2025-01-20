@@ -190,7 +190,7 @@ where
         invoice_info: UserInvoiceInfo,
         mut patch: UserInvoiceInfoPatch,
     ) -> anyhow::Result<UserInvoiceInfo> {
-        if patch.business.update(invoice_info.business) == Some(false) {
+        if patch.business.update_or(invoice_info.business) == Some(false) {
             patch.vat_id = PatchValue::Update(None).minimize(&invoice_info.vat_id);
         }
 

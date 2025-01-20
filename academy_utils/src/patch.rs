@@ -13,7 +13,7 @@ impl<T> Default for PatchValue<T> {
 }
 
 impl<T> PatchValue<T> {
-    pub fn update(self, old_value: T) -> T {
+    pub fn update_or(self, old_value: T) -> T {
         match self {
             Self::Update(new_value) => new_value,
             Self::Unchanged => old_value,
@@ -36,6 +36,20 @@ impl<T> PatchValue<T> {
 
     pub fn is_update(&self) -> bool {
         matches!(self, Self::Update(_))
+    }
+
+    pub fn is_update_and(&self, f: impl FnOnce(&T) -> bool) -> bool {
+        match self {
+            Self::Update(value) => f(value),
+            _ => false,
+        }
+    }
+
+    pub fn update(self) -> Option<T> {
+        match self {
+            PatchValue::Update(value) => Some(value),
+            PatchValue::Unchanged => None,
+        }
     }
 
     pub fn is_unchanged(&self) -> bool {

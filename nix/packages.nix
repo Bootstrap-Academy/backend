@@ -119,6 +119,25 @@ in
       ${lib.getExe pkgs.crate2nix} generate
     '';
 
+    generate-clorinde = pkgs.writeShellScriptBin "generate-clorinde" ''
+      set -e
+
+      cd "$(${lib.getExe pkgs.git} rev-parse --show-toplevel)/academy_persistence/postgres"
+
+      static=(Cargo.toml src/lib.rs)
+      if [[ "$1" != "-f" ]]; then
+        mkdir -p .clorinde.bak
+        for f in "''${static[@]}"; do mkdir -p "$(dirname ".clorinde.bak/$f")"; cp -f "clorinde/$f" ".clorinde.bak/$f"; done
+      fi
+      ${lib.getExe pkgs.clorinde} live "postgres://academy@127.0.0.1:5432/academy"
+      if [[ "$1" != "-f" ]]; then
+        for f in "''${static[@]}"; do cp ".clorinde.bak/$f" "clorinde/$f"; done
+        rm -rf .clorinde.bak
+      fi
+      ${lib.getExe' toolchain.toolchain "cargo"} fmt -p clorinde -- --config-path /dev/null
+      ${lib.getExe pkgs.gnused} -i '/^#\[cfg(feature = "time")\]$/,/^}$/d' clorinde/src/types.rs
+    '';
+
     update-swagger-ui = pkgs.writeShellScriptBin "update-swagger-ui" ''
       export PATH=${lib.escapeShellArg (lib.makeBinPath (with pkgs; [git coreutils curl jq gnutar gzip]))}
 

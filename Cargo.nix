@@ -567,6 +567,16 @@ rec {
       # File a bug if you depend on any for non-debug work!
       debug = internal.debugCrate { inherit packageId; };
     };
+    "clorinde" = rec {
+      packageId = "clorinde";
+      build = internal.buildRustCrateWithFeatures {
+        packageId = "clorinde";
+      };
+
+      # Debug support which might change between releases.
+      # File a bug if you depend on any for non-debug work!
+      debug = internal.debugCrate { inherit packageId; };
+    };
   };
 
   # A derivation that joins the outputs of all workspace members together.
@@ -3500,6 +3510,10 @@ rec {
             features = [ "serde" "clock" ];
           }
           {
+            name = "clorinde";
+            packageId = "clorinde";
+          }
+          {
             name = "futures";
             packageId = "futures";
             usesDefaultFeatures = false;
@@ -3508,11 +3522,6 @@ rec {
           {
             name = "ouroboros";
             packageId = "ouroboros";
-            usesDefaultFeatures = false;
-          }
-          {
-            name = "paste";
-            packageId = "paste";
             usesDefaultFeatures = false;
           }
           {
@@ -5991,6 +6000,58 @@ rec {
         sha256 = "19nwfls5db269js5n822vkc8dw0wjq2h1wf0hgr06ld2g52d2spl";
 
       };
+      "clorinde" = rec {
+        crateName = "clorinde";
+        version = "0.0.0";
+        edition = "2021";
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_persistence/postgres/clorinde; };
+        dependencies = [
+          {
+            name = "chrono";
+            packageId = "chrono";
+            usesDefaultFeatures = false;
+            features = [ "serde" "clock" ];
+          }
+          {
+            name = "deadpool-postgres";
+            packageId = "deadpool-postgres";
+          }
+          {
+            name = "fallible-iterator";
+            packageId = "fallible-iterator";
+          }
+          {
+            name = "futures";
+            packageId = "futures";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "postgres-protocol";
+            packageId = "postgres-protocol";
+          }
+          {
+            name = "postgres-types";
+            packageId = "postgres-types";
+            features = [ "derive" ];
+          }
+          {
+            name = "tokio-postgres";
+            packageId = "tokio-postgres";
+            features = [ "with-chrono-0_4" "with-uuid-1" ];
+          }
+          {
+            name = "uuid";
+            packageId = "uuid";
+            usesDefaultFeatures = false;
+            features = [ "v4" "v7" "serde" ];
+          }
+        ];
+        features = {
+          "default" = [ "deadpool" "chrono" ];
+        };
+        resolvedDefaultFeatures = [ "chrono" "deadpool" "default" ];
+      };
       "colorchoice" = rec {
         crateName = "colorchoice";
         version = "1.0.3";
@@ -6416,6 +6477,130 @@ rec {
           }
         ];
 
+      };
+      "deadpool" = rec {
+        crateName = "deadpool";
+        version = "0.12.1";
+        edition = "2021";
+        sha256 = "1vghb2lqmzn0spgkz44cr9sbyz7cnpzv3q2bimv5gzijd68s6hb5";
+        authors = [
+          "Michael P. Jung <michael.jung@terreon.de>"
+        ];
+        dependencies = [
+          {
+            name = "deadpool-runtime";
+            packageId = "deadpool-runtime";
+          }
+          {
+            name = "num_cpus";
+            packageId = "num_cpus";
+          }
+          {
+            name = "tokio";
+            packageId = "tokio";
+            features = [ "sync" ];
+          }
+        ];
+        devDependencies = [
+          {
+            name = "tokio";
+            packageId = "tokio";
+            features = [ "macros" "rt" "rt-multi-thread" "time" ];
+          }
+        ];
+        features = {
+          "default" = [ "managed" "unmanaged" ];
+          "rt_async-std_1" = [ "deadpool-runtime/async-std_1" ];
+          "rt_tokio_1" = [ "deadpool-runtime/tokio_1" ];
+          "serde" = [ "dep:serde" ];
+        };
+        resolvedDefaultFeatures = [ "managed" "rt_tokio_1" ];
+      };
+      "deadpool-postgres" = rec {
+        crateName = "deadpool-postgres";
+        version = "0.14.1";
+        edition = "2021";
+        sha256 = "1ydyw2khdjx3v7l39h580v4xjgc8s4gspjml7v11i85zdhvpss9x";
+        libName = "deadpool_postgres";
+        authors = [
+          "Michael P. Jung <michael.jung@terreon.de>"
+        ];
+        dependencies = [
+          {
+            name = "async-trait";
+            packageId = "async-trait";
+          }
+          {
+            name = "deadpool";
+            packageId = "deadpool";
+            usesDefaultFeatures = false;
+            features = [ "managed" ];
+          }
+          {
+            name = "getrandom";
+            packageId = "getrandom";
+            target = { target, features }: ("wasm32" == target."arch" or null);
+            features = [ "js" ];
+          }
+          {
+            name = "tokio";
+            packageId = "tokio";
+            features = [ "rt" ];
+          }
+          {
+            name = "tokio-postgres";
+            packageId = "tokio-postgres";
+            target = { target, features }: (!("wasm32" == target."arch" or null));
+          }
+          {
+            name = "tokio-postgres";
+            packageId = "tokio-postgres";
+            usesDefaultFeatures = false;
+            target = { target, features }: ("wasm32" == target."arch" or null);
+          }
+          {
+            name = "tracing";
+            packageId = "tracing";
+          }
+        ];
+        devDependencies = [
+          {
+            name = "tokio";
+            packageId = "tokio";
+            features = [ "macros" "rt-multi-thread" ];
+          }
+        ];
+        features = {
+          "default" = [ "rt_tokio_1" ];
+          "rt_async-std_1" = [ "deadpool/rt_async-std_1" ];
+          "rt_tokio_1" = [ "deadpool/rt_tokio_1" ];
+          "serde" = [ "deadpool/serde" "dep:serde" ];
+        };
+        resolvedDefaultFeatures = [ "default" "rt_tokio_1" ];
+      };
+      "deadpool-runtime" = rec {
+        crateName = "deadpool-runtime";
+        version = "0.1.4";
+        edition = "2021";
+        sha256 = "0arbchl5j887hcfvjy4gq38d32055s5cf7pkpmwn0lfw3ss6ca89";
+        libName = "deadpool_runtime";
+        authors = [
+          "Michael P. Jung <michael.jung@terreon.de>"
+        ];
+        dependencies = [
+          {
+            name = "tokio";
+            packageId = "tokio";
+            rename = "tokio_1";
+            optional = true;
+            features = [ "time" "rt" ];
+          }
+        ];
+        features = {
+          "async-std_1" = [ "dep:async-std_1" ];
+          "tokio_1" = [ "dep:tokio_1" ];
+        };
+        resolvedDefaultFeatures = [ "tokio_1" ];
       };
       "debugid" = rec {
         crateName = "debugid";
@@ -7442,6 +7627,23 @@ rec {
         edition = "2021";
         sha256 = "1sjmpsdl8czyh9ywl3qcsfsq9a307dg4ni2vnlwgnzzqhc4y0113";
 
+      };
+      "hermit-abi" = rec {
+        crateName = "hermit-abi";
+        version = "0.3.9";
+        edition = "2021";
+        sha256 = "092hxjbjnq5fmz66grd9plxd0sh6ssg5fhgwwwqbrzgzkjwdycfj";
+        libName = "hermit_abi";
+        authors = [
+          "Stefan Lankes"
+        ];
+        features = {
+          "alloc" = [ "dep:alloc" ];
+          "compiler_builtins" = [ "dep:compiler_builtins" ];
+          "core" = [ "dep:core" ];
+          "rustc-dep-of-std" = [ "core" "alloc" "compiler_builtins/rustc-dep-of-std" ];
+        };
+        resolvedDefaultFeatures = [ "default" ];
       };
       "hex" = rec {
         crateName = "hex";
@@ -9492,6 +9694,28 @@ rec {
         };
         resolvedDefaultFeatures = [ "i128" "std" ];
       };
+      "num_cpus" = rec {
+        crateName = "num_cpus";
+        version = "1.16.0";
+        edition = "2015";
+        sha256 = "0hra6ihpnh06dvfvz9ipscys0xfqa9ca9hzp384d5m02ssvgqqa1";
+        authors = [
+          "Sean McArthur <sean@seanmonstar.com>"
+        ];
+        dependencies = [
+          {
+            name = "hermit-abi";
+            packageId = "hermit-abi";
+            target = { target, features }: ("hermit" == target."os" or null);
+          }
+          {
+            name = "libc";
+            packageId = "libc";
+            target = { target, features }: (!(target."windows" or false));
+          }
+        ];
+
+      };
       "number_prefix" = rec {
         crateName = "number_prefix";
         version = "0.4.0";
@@ -10232,6 +10456,36 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" "fallback" ];
       };
+      "postgres-derive" = rec {
+        crateName = "postgres-derive";
+        version = "0.4.6";
+        edition = "2018";
+        sha256 = "0pqpwjjswzajgzll4200g8csrs6kkjhyc23p8hnz6piwc2j0ww39";
+        procMacro = true;
+        libName = "postgres_derive";
+        authors = [
+          "Steven Fackler <sfackler@palantir.com>"
+        ];
+        dependencies = [
+          {
+            name = "heck";
+            packageId = "heck 0.5.0";
+          }
+          {
+            name = "proc-macro2";
+            packageId = "proc-macro2";
+          }
+          {
+            name = "quote";
+            packageId = "quote";
+          }
+          {
+            name = "syn";
+            packageId = "syn 2.0.96";
+          }
+        ];
+
+      };
       "postgres-protocol" = rec {
         crateName = "postgres-protocol";
         version = "0.6.7";
@@ -10316,6 +10570,11 @@ rec {
             packageId = "fallible-iterator";
           }
           {
+            name = "postgres-derive";
+            packageId = "postgres-derive";
+            optional = true;
+          }
+          {
             name = "postgres-protocol";
             packageId = "postgres-protocol";
           }
@@ -10362,7 +10621,7 @@ rec {
           "with-uuid-0_8" = [ "uuid-08" ];
           "with-uuid-1" = [ "uuid-1" ];
         };
-        resolvedDefaultFeatures = [ "chrono-04" "uuid-1" "with-chrono-0_4" "with-uuid-1" ];
+        resolvedDefaultFeatures = [ "chrono-04" "derive" "postgres-derive" "uuid-1" "with-chrono-0_4" "with-uuid-1" ];
       };
       "powerfmt" = rec {
         crateName = "powerfmt";

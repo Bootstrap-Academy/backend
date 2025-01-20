@@ -59,7 +59,7 @@ pub fn derive_patch(input: TokenStream) -> TokenStream {
             if is_no_patch(field) {
                 quote! { #ident: self.#ident }
             } else {
-                quote! { #ident: patch.#ident.update(self.#ident) }
+                quote! { #ident: patch.#ident.update_or(self.#ident) }
             }
         })
         .collect::<Vec<_>>();

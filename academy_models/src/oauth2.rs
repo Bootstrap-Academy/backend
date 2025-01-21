@@ -13,7 +13,7 @@ id!(OAuth2LinkId);
 pub struct OAuth2Provider {
     pub name: OAuth2ProviderName,
     pub client_id: String,
-    pub client_secret: Option<OAuth2ProviderClientSecret>,
+    pub client_secret: OAuth2ProviderClientSecret,
     pub auth_url: Url,
     pub token_url: Url,
     pub userinfo_url: Url,

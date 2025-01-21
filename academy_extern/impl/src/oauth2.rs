@@ -49,20 +49,18 @@ impl OAuth2ApiService for OAuth2ApiServiceImpl {
         code: OAuth2AuthorizationCode,
         redirect_url: Url,
     ) -> Result<OAuth2UserInfo, OAuth2ResolveCodeError> {
-        let client = BasicClient::new(
-            ClientId::new(provider.client_id),
-            provider
-                .client_secret
-                .map(|x| ClientSecret::new(x.into_inner())),
-            AuthUrl::from_url(provider.auth_url.0),
-            Some(TokenUrl::from_url(provider.token_url.0)),
-        )
-        .set_redirect_uri(RedirectUrl::from_url(redirect_url.0));
+        let client = BasicClient::new(ClientId::new(provider.client_id))
+            .set_client_secret(ClientSecret::new(provider.client_secret.into_inner()))
+            .set_auth_uri(AuthUrl::from_url(provider.auth_url.0))
+            .set_token_uri(TokenUrl::from_url(provider.token_url.0))
+            .set_redirect_uri(RedirectUrl::from_url(redirect_url.0));
+
+        let http_client = make_http_client();
 
         // exchange the authorization code for an access token
         let response = client
             .exchange_code(AuthorizationCode::new(code.into_inner()))
-            .request_async(http_client)
+            .request_async(&http_client)
             .await
             .map_err(|err| match err {
                 RequestTokenError::ServerResponse(_) | RequestTokenError::Parse(_, _) => {
@@ -117,19 +115,22 @@ impl OAuth2ApiService for OAuth2ApiServiceImpl {
     }
 }
 
-async fn http_client(
-    mut request: oauth2::HttpRequest,
-) -> Result<oauth2::HttpResponse, oauth2::reqwest::AsyncHttpClientError> {
-    request.headers.insert(
-        oauth2::http::header::USER_AGENT,
-        oauth2::http::HeaderValue::from_static(&USER_AGENT),
-    );
-    oauth2::reqwest::async_http_client(request).await
+fn make_http_client() -> reqwest::Client {
+    reqwest::Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .user_agent(&*USER_AGENT)
+        .build()
+        .unwrap()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn make_http_client() {
+        super::make_http_client();
+    }
 
     #[test]
     fn generate_auth_url_with_scopes() {
@@ -169,7 +170,7 @@ mod tests {
         OAuth2Provider {
             name: "test".into(),
             client_id: "the-client-id".into(),
-            client_secret: None,
+            client_secret: "the-client-secret".into(),
             auth_url: "https://oauth2.provider/auth".parse().unwrap(),
             token_url: "http://test".parse().unwrap(),
             userinfo_url: "http://test".parse().unwrap(),

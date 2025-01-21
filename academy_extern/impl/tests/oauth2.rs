@@ -75,7 +75,7 @@ fn get_provider() -> OAuth2Provider {
     OAuth2Provider {
         name: "test".into(),
         client_id: "client-id".into(),
-        client_secret: Some("client-secret".into()),
+        client_secret: "client-secret".into(),
         auth_url: base_url.join("oauth2/authorize").unwrap().into(),
         token_url: base_url.join("oauth2/token").unwrap().into(),
         userinfo_url: base_url.join("user").unwrap().into(),

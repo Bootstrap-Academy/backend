@@ -111,7 +111,7 @@ lettre = { version = "0.11.11", default-features = false, features = ["builder",
 mime = { version = "0.3.17", default-features = false }
 mockall = { version = "0.13.1", default-features = false }
 nutype = { version = "0.5.1", default-features = false, features = ["std", "regex", "serde", "schemars08"] }
-oauth2 = { version = "4.4.2", default-features = false, features = ["reqwest", "rustls-tls"] }
+oauth2 = { version = "5.0.0", default-features = false, features = ["reqwest", "rustls-tls"] }
 paste = { version = "1.0.15", default-features = false }
 pretty_assertions = { version = "1.4.1", default-features = false, features = ["std"] }
 proc-macro2 = { version = "1.0.93", default-features = false, features = ["proc-macro"] }

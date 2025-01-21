@@ -178,7 +178,7 @@ impl ConfigProvider {
                         OAuth2Provider {
                             name: provider.name.clone().into(),
                             client_id: provider.client_id.clone(),
-                            client_secret: Some(provider.client_secret.clone().into()),
+                            client_secret: provider.client_secret.clone().into(),
                             auth_url: provider.auth_url.clone(),
                             token_url: provider.token_url.clone(),
                             userinfo_url: provider.userinfo_url.clone(),

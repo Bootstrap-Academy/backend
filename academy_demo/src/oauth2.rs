@@ -12,7 +12,7 @@ pub static TEST_OAUTH2_PROVIDER_ID: LazyLock<OAuth2ProviderId> =
 pub static TEST_OAUTH2_PROVIDER: LazyLock<OAuth2Provider> = LazyLock::new(|| OAuth2Provider {
     name: "Test Provider".into(),
     client_id: "test-id".into(),
-    client_secret: Some("test-secret".into()),
+    client_secret: "test-secret".into(),
     auth_url: "http://test/auth".parse().unwrap(),
     token_url: "http://test/token".parse().unwrap(),
     userinfo_url: "http://test/user".parse().unwrap(),

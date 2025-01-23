@@ -1,22 +1,24 @@
-use std::fmt::Write;
-
 use academy_di::Build;
 use academy_models::{
     session::{Session, SessionId, SessionPatchRef, SessionRefreshTokenHash},
     user::UserId,
 };
 use academy_persistence_contracts::session::SessionRepository;
-use academy_utils::{patch::PatchValue, trace_instrument};
-use bb8_postgres::tokio_postgres::{types::ToSql, Row};
+use academy_utils::trace_instrument;
 use chrono::{DateTime, Utc};
-use uuid::Uuid;
+use clorinde::{
+    client::Params,
+    queries::{
+        self,
+        session::{CreateParams, UpdateParams},
+    },
+};
+use futures::{StreamExt, TryStreamExt};
 
-use crate::{arg_indices, columns, decode_sha256hash, ColumnCounter, PostgresTransaction};
+use crate::{decode_sha256hash, PostgresTransaction};
 
 #[derive(Debug, Clone, Build)]
 pub struct PostgresSessionRepository;
-
-columns!(session as "s": "id", "user_id", "device_name", "created_at", "updated_at");
 
 impl SessionRepository<PostgresTransaction> for PostgresSessionRepository {
     #[trace_instrument(skip(self, txn))]
@@ -25,17 +27,12 @@ impl SessionRepository<PostgresTransaction> for PostgresSessionRepository {
         txn: &mut PostgresTransaction,
         session_id: SessionId,
     ) -> anyhow::Result<Option<Session>> {
-        txn.txn()
-            .query_opt(
-                &format!("select {SESSION_COLS} from sessions s where id=$1",),
-                &[&*session_id],
-            )
+        queries::session::get()
+            .bind(txn.txn(), &session_id)
+            .opt()
             .await
             .map_err(Into::into)
-            .and_then(|row| {
-                row.map(|row| decode_session(&row, &mut Default::default()))
-                    .transpose()
-            })
+            .and_then(|row| row.map(decode_session).transpose())
     }
 
     #[trace_instrument(skip(self, txn))]
@@ -44,20 +41,12 @@ impl SessionRepository<PostgresTransaction> for PostgresSessionRepository {
         txn: &mut PostgresTransaction,
         refresh_token_hash: SessionRefreshTokenHash,
     ) -> anyhow::Result<Option<Session>> {
-        txn.txn()
-            .query_opt(
-                &format!(
-                    "select {SESSION_COLS} from sessions s inner join session_refresh_tokens rt \
-                     on s.id=rt.session_id where rt.refresh_token_hash=$1"
-                ),
-                &[&refresh_token_hash.0.as_slice()],
-            )
+        queries::session::get_by_refresh_token_hash()
+            .bind(txn.txn(), &refresh_token_hash.as_slice())
+            .opt()
             .await
             .map_err(Into::into)
-            .and_then(|row| {
-                row.map(|row| decode_session(&row, &mut Default::default()))
-                    .transpose()
-            })
+            .and_then(|row| row.map(decode_session).transpose())
     }
 
     #[trace_instrument(skip(self, txn))]
@@ -66,36 +55,27 @@ impl SessionRepository<PostgresTransaction> for PostgresSessionRepository {
         txn: &mut PostgresTransaction,
         user_id: UserId,
     ) -> anyhow::Result<Vec<Session>> {
-        txn.txn()
-            .query(
-                &format!("select {SESSION_COLS} from sessions s where user_id=$1"),
-                &[&*user_id],
-            )
+        queries::session::list_by_user()
+            .bind(txn.txn(), &user_id)
+            .iter()
+            .await?
+            .map(|row| row.map_err(Into::into).and_then(decode_session))
+            .try_collect()
             .await
-            .map_err(Into::into)
-            .and_then(|rows| {
-                rows.into_iter()
-                    .map(|row| decode_session(&row, &mut Default::default()))
-                    .collect()
-            })
     }
 
     #[trace_instrument(skip(self, txn))]
     async fn create(&self, txn: &mut PostgresTransaction, session: &Session) -> anyhow::Result<()> {
-        txn.txn()
-            .execute(
-                &format!(
-                    "insert into sessions ({SESSION_COL_NAMES}) values ({})",
-                    arg_indices(1..=SESSION_CNT)
-                ),
-                &[
-                    &*session.id,
-                    &*session.user_id,
-                    &session.device_name.as_deref(),
-                    &session.created_at,
-                    &session.updated_at,
-                ],
-            )
+        let params = CreateParams {
+            id: *session.id,
+            user_id: *session.user_id,
+            device_name: session.device_name.as_deref(),
+            created_at: session.created_at.into(),
+            updated_at: session.updated_at.into(),
+        };
+
+        queries::session::create()
+            .params(txn.txn(), &params)
             .await
             .map(|_| ())
             .map_err(Into::into)
@@ -111,24 +91,15 @@ impl SessionRepository<PostgresTransaction> for PostgresSessionRepository {
             updated_at,
         }: SessionPatchRef<'_>,
     ) -> anyhow::Result<bool> {
-        let mut query = "update sessions set id=id".to_owned();
-        let mut params: Vec<&(dyn ToSql + Sync)> = vec![&*session_id];
+        let params = UpdateParams {
+            id: *session_id,
+            clear_device_name: device_name.is_update_and(|x| x.is_none()),
+            device_name: device_name.update().and_then(Option::as_deref),
+            updated_at: updated_at.update().copied().map(Into::into),
+        };
 
-        let device_name = device_name.map(|x| x.as_ref().map(|x| x.as_str()));
-
-        if let PatchValue::Update(device_name) = &device_name {
-            params.push(device_name);
-            write!(&mut query, ", device_name=${}", params.len()).unwrap();
-        }
-        if let PatchValue::Update(updated_at) = updated_at {
-            params.push(updated_at);
-            write!(&mut query, ", updated_at=${}", params.len()).unwrap();
-        }
-
-        query.push_str(" where id=$1");
-
-        txn.txn()
-            .execute(&query, &params)
+        queries::session::update()
+            .params(txn.txn(), &params)
             .await
             .map(|n| n != 0)
             .map_err(Into::into)
@@ -140,8 +111,8 @@ impl SessionRepository<PostgresTransaction> for PostgresSessionRepository {
         txn: &mut PostgresTransaction,
         session_id: SessionId,
     ) -> anyhow::Result<bool> {
-        txn.txn()
-            .execute("delete from sessions where id=$1", &[&*session_id])
+        queries::session::delete()
+            .bind(txn.txn(), &session_id)
             .await
             .map(|n| n != 0)
             .map_err(Into::into)
@@ -153,8 +124,8 @@ impl SessionRepository<PostgresTransaction> for PostgresSessionRepository {
         txn: &mut PostgresTransaction,
         user_id: UserId,
     ) -> anyhow::Result<()> {
-        txn.txn()
-            .execute("delete from sessions where user_id=$1", &[&*user_id])
+        queries::session::delete_by_user()
+            .bind(txn.txn(), &user_id)
             .await
             .map(|_| ())
             .map_err(Into::into)
@@ -166,8 +137,8 @@ impl SessionRepository<PostgresTransaction> for PostgresSessionRepository {
         txn: &mut PostgresTransaction,
         updated_at: DateTime<Utc>,
     ) -> anyhow::Result<u64> {
-        txn.txn()
-            .execute("delete from sessions where updated_at<$1", &[&updated_at])
+        queries::session::delete_by_updated_at()
+            .bind(txn.txn(), &updated_at.into())
             .await
             .map_err(Into::into)
     }
@@ -178,19 +149,17 @@ impl SessionRepository<PostgresTransaction> for PostgresSessionRepository {
         txn: &mut PostgresTransaction,
         user_id: UserId,
     ) -> anyhow::Result<Vec<SessionRefreshTokenHash>> {
-        txn.txn()
-            .query(
-                "select rt.refresh_token_hash from session_refresh_tokens rt inner join sessions \
-                 s on s.id=rt.session_id where s.user_id=$1",
-                &[&*user_id],
-            )
-            .await
-            .map_err(Into::into)
-            .and_then(|rows| {
-                rows.into_iter()
-                    .map(|row| decode_sha256hash(row.get(0)).map(Into::into))
-                    .collect()
+        queries::session::list_refresh_token_hashes_by_user()
+            .bind(txn.txn(), &user_id)
+            .iter()
+            .await?
+            .map(|row| {
+                row.map_err(Into::into)
+                    .and_then(decode_sha256hash)
+                    .map(SessionRefreshTokenHash::from)
             })
+            .try_collect()
+            .await
     }
 
     #[trace_instrument(skip(self, txn))]
@@ -199,15 +168,13 @@ impl SessionRepository<PostgresTransaction> for PostgresSessionRepository {
         txn: &mut PostgresTransaction,
         session_id: SessionId,
     ) -> anyhow::Result<Option<SessionRefreshTokenHash>> {
-        txn.txn()
-            .query_opt(
-                "select refresh_token_hash from session_refresh_tokens where session_id=$1",
-                &[&*session_id],
-            )
+        queries::session::get_refresh_token_hash()
+            .bind(txn.txn(), &session_id)
+            .opt()
             .await
             .map_err(Into::into)
             .and_then(|row| {
-                row.map(|row| decode_sha256hash(row.get(0)).map(Into::into))
+                row.map(|row| decode_sha256hash(row).map(Into::into))
                     .transpose()
             })
     }
@@ -219,27 +186,20 @@ impl SessionRepository<PostgresTransaction> for PostgresSessionRepository {
         session_id: SessionId,
         refresh_token_hash: SessionRefreshTokenHash,
     ) -> anyhow::Result<()> {
-        txn.txn()
-            .execute(
-                "insert into session_refresh_tokens (session_id, refresh_token_hash) values ($1, \
-                 $2) on conflict (session_id) do update set refresh_token_hash=$2",
-                &[&*session_id, &refresh_token_hash.0.as_slice()],
-            )
+        queries::session::set_refresh_token_hash()
+            .bind(txn.txn(), &session_id, &refresh_token_hash.as_slice())
             .await
             .map(|_| ())
             .map_err(Into::into)
     }
 }
 
-fn decode_session(row: &Row, cnt: &mut ColumnCounter) -> anyhow::Result<Session> {
+fn decode_session(value: queries::session::Session) -> anyhow::Result<Session> {
     Ok(Session {
-        id: row.get::<_, Uuid>(cnt.idx()).into(),
-        user_id: row.get::<_, Uuid>(cnt.idx()).into(),
-        device_name: row
-            .get::<_, Option<String>>(cnt.idx())
-            .map(TryInto::try_into)
-            .transpose()?,
-        created_at: row.get(cnt.idx()),
-        updated_at: row.get(cnt.idx()),
+        id: value.id.into(),
+        user_id: value.user_id.into(),
+        device_name: value.device_name.map(TryInto::try_into).transpose()?,
+        created_at: value.created_at.into(),
+        updated_at: value.updated_at.into(),
     })
 }

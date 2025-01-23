@@ -1,21 +1,23 @@
-use std::fmt::Write;
-
 use academy_di::Build;
 use academy_models::{
     mfa::{MfaRecoveryCodeHash, TotpDevice, TotpDeviceId, TotpDevicePatchRef, TotpSecret},
     user::UserId,
 };
 use academy_persistence_contracts::mfa::MfaRepository;
-use academy_utils::{patch::PatchValue, trace_instrument};
-use bb8_postgres::tokio_postgres::{types::ToSql, Row};
-use uuid::Uuid;
+use academy_utils::trace_instrument;
+use clorinde::{
+    client::Params,
+    queries::{
+        self,
+        mfa::{CreateTotpDeviceParams, UpdateTotpDeviceParams},
+    },
+};
+use futures::{StreamExt, TryStreamExt};
 
-use crate::{arg_indices, columns, decode_sha256hash, ColumnCounter, PostgresTransaction};
+use crate::{decode_sha256hash, PostgresTransaction};
 
 #[derive(Debug, Clone, Build)]
 pub struct PostgresMfaRepository;
-
-columns!(totp_device as "td": "id", "user_id", "enabled", "created_at");
 
 impl MfaRepository<PostgresTransaction> for PostgresMfaRepository {
     #[trace_instrument(skip(self, txn))]
@@ -24,18 +26,13 @@ impl MfaRepository<PostgresTransaction> for PostgresMfaRepository {
         txn: &mut PostgresTransaction,
         user_id: UserId,
     ) -> anyhow::Result<Vec<TotpDevice>> {
-        txn.txn()
-            .query(
-                &format!("select {TOTP_DEVICE_COLS} from totp_devices td where user_id=$1"),
-                &[&*user_id],
-            )
+        queries::mfa::list_totp_devices_by_user()
+            .bind(txn.txn(), &user_id)
+            .iter()
+            .await?
+            .map(|row| row.map_err(Into::into).and_then(decode_totp_device))
+            .try_collect()
             .await
-            .map_err(Into::into)
-            .and_then(|rows| {
-                rows.into_iter()
-                    .map(|row| decode_totp_device(&row, &mut Default::default()))
-                    .collect()
-            })
     }
 
     #[trace_instrument(skip(self, txn))]
@@ -45,22 +42,19 @@ impl MfaRepository<PostgresTransaction> for PostgresMfaRepository {
         totp_device: &TotpDevice,
         secret: &TotpSecret,
     ) -> anyhow::Result<()> {
-        txn.txn()
-            .execute(
-                &format!(
-                    "insert into totp_devices ({TOTP_DEVICE_COL_NAMES}) values ({})",
-                    arg_indices(1..=TOTP_DEVICE_CNT)
-                ),
-                &[
-                    &*totp_device.id,
-                    &*totp_device.user_id,
-                    &totp_device.enabled,
-                    &totp_device.created_at,
-                ],
-            )
+        let params = CreateTotpDeviceParams {
+            id: *totp_device.id,
+            user_id: *totp_device.user_id,
+            enabled: totp_device.enabled,
+            created_at: totp_device.created_at.into(),
+        };
+
+        queries::mfa::create_totp_device()
+            .params(txn.txn(), &params)
             .await?;
 
-        self.save_totp_device_secret(txn, totp_device.id, secret)
+        queries::mfa::set_totp_device_secret()
+            .bind(txn.txn(), &totp_device.id, &**secret)
             .await?;
 
         Ok(())
@@ -73,18 +67,13 @@ impl MfaRepository<PostgresTransaction> for PostgresMfaRepository {
         totp_device_id: TotpDeviceId,
         TotpDevicePatchRef { enabled }: TotpDevicePatchRef<'a>,
     ) -> anyhow::Result<bool> {
-        let mut query = "update totp_devices set id=id".to_owned();
-        let mut params: Vec<&(dyn ToSql + Sync)> = vec![&*totp_device_id];
+        let params = UpdateTotpDeviceParams {
+            id: *totp_device_id,
+            enabled: enabled.update().copied(),
+        };
 
-        if let PatchValue::Update(enabled) = enabled {
-            params.push(enabled);
-            write!(&mut query, ", enabled=${}", params.len()).unwrap();
-        }
-
-        query.push_str(" where id=$1");
-
-        txn.txn()
-            .execute(&query, &params)
+        queries::mfa::update_totp_device()
+            .params(txn.txn(), &params)
             .await
             .map(|n| n != 0)
             .map_err(Into::into)
@@ -96,8 +85,8 @@ impl MfaRepository<PostgresTransaction> for PostgresMfaRepository {
         txn: &mut PostgresTransaction,
         user_id: UserId,
     ) -> anyhow::Result<()> {
-        txn.txn()
-            .execute("delete from totp_devices where user_id=$1", &[&*user_id])
+        queries::mfa::delete_totp_devices_by_user()
+            .bind(txn.txn(), &user_id)
             .await
             .map(|_| ())
             .map_err(Into::into)
@@ -109,19 +98,13 @@ impl MfaRepository<PostgresTransaction> for PostgresMfaRepository {
         txn: &mut PostgresTransaction,
         user_id: UserId,
     ) -> anyhow::Result<Vec<TotpSecret>> {
-        txn.txn()
-            .query(
-                "select secret from totp_device_secrets inner join totp_devices using(id) where \
-                 user_id=$1 and enabled",
-                &[&*user_id],
-            )
+        queries::mfa::list_enabled_totp_device_secrets_by_user()
+            .bind(txn.txn(), &user_id)
+            .iter()
+            .await?
+            .map(|row| row.map_err(Into::into).and_then(decode_totp_device_secret))
+            .try_collect()
             .await
-            .map_err(Into::into)
-            .and_then(|rows| {
-                rows.into_iter()
-                    .map(|row| decode_totp_device_secret(row.get(0)))
-                    .collect()
-            })
     }
 
     #[trace_instrument(skip(self, txn))]
@@ -130,14 +113,12 @@ impl MfaRepository<PostgresTransaction> for PostgresMfaRepository {
         txn: &mut PostgresTransaction,
         totp_device_id: TotpDeviceId,
     ) -> anyhow::Result<TotpSecret> {
-        txn.txn()
-            .query_one(
-                "select secret from totp_device_secrets where id=$1",
-                &[&*totp_device_id],
-            )
+        queries::mfa::get_totp_device_secret()
+            .bind(txn.txn(), &totp_device_id)
+            .one()
             .await
             .map_err(Into::into)
-            .and_then(|row| decode_totp_device_secret(row.get(0)))
+            .and_then(decode_totp_device_secret)
     }
 
     #[trace_instrument(skip(self, txn))]
@@ -147,12 +128,8 @@ impl MfaRepository<PostgresTransaction> for PostgresMfaRepository {
         totp_device_id: TotpDeviceId,
         secret: &TotpSecret,
     ) -> anyhow::Result<()> {
-        txn.txn()
-            .execute(
-                "insert into totp_device_secrets (id, secret) values ($1, $2) on conflict (id) do \
-                 update set secret=$2",
-                &[&*totp_device_id, &**secret],
-            )
+        queries::mfa::set_totp_device_secret()
+            .bind(txn.txn(), &totp_device_id, &**secret)
             .await
             .map(|_| ())
             .map_err(Into::into)
@@ -164,15 +141,13 @@ impl MfaRepository<PostgresTransaction> for PostgresMfaRepository {
         txn: &mut PostgresTransaction,
         user_id: UserId,
     ) -> anyhow::Result<Option<MfaRecoveryCodeHash>> {
-        txn.txn()
-            .query_opt(
-                "select code from mfa_recovery_codes where user_id=$1",
-                &[&*user_id],
-            )
+        queries::mfa::get_recovery_code_hash()
+            .bind(txn.txn(), &user_id)
+            .opt()
             .await
             .map_err(Into::into)
             .and_then(|row| {
-                row.map(|row| decode_sha256hash(row.get(0)).map(Into::into))
+                row.map(|row| decode_sha256hash(row).map(Into::into))
                     .transpose()
             })
     }
@@ -184,12 +159,8 @@ impl MfaRepository<PostgresTransaction> for PostgresMfaRepository {
         user_id: UserId,
         recovery_code_hash: MfaRecoveryCodeHash,
     ) -> anyhow::Result<()> {
-        txn.txn()
-            .execute(
-                "insert into mfa_recovery_codes (user_id, code) values ($1, $2) on conflict \
-                 (user_id) do update set code=$2",
-                &[&*user_id, &recovery_code_hash.0.as_slice()],
-            )
+        queries::mfa::set_recovery_code_hash()
+            .bind(txn.txn(), &user_id, &recovery_code_hash.as_slice())
             .await
             .map(|_| ())
             .map_err(Into::into)
@@ -201,26 +172,23 @@ impl MfaRepository<PostgresTransaction> for PostgresMfaRepository {
         txn: &mut PostgresTransaction,
         user_id: UserId,
     ) -> anyhow::Result<()> {
-        txn.txn()
-            .execute(
-                "delete from mfa_recovery_codes where user_id=$1",
-                &[&*user_id],
-            )
+        queries::mfa::delete_recovery_code_hash()
+            .bind(txn.txn(), &user_id)
             .await
             .map(|_| ())
             .map_err(Into::into)
     }
 }
 
-fn decode_totp_device(row: &Row, cnt: &mut ColumnCounter) -> anyhow::Result<TotpDevice> {
+fn decode_totp_device(value: queries::mfa::TotpDevice) -> anyhow::Result<TotpDevice> {
     Ok(TotpDevice {
-        id: row.get::<_, Uuid>(cnt.idx()).into(),
-        user_id: row.get::<_, Uuid>(cnt.idx()).into(),
-        enabled: row.get(cnt.idx()),
-        created_at: row.get(cnt.idx()),
+        id: value.id.into(),
+        user_id: value.user_id.into(),
+        enabled: value.enabled,
+        created_at: value.created_at.into(),
     })
 }
 
-fn decode_totp_device_secret(data: Vec<u8>) -> anyhow::Result<TotpSecret> {
-    data.try_into().map_err(Into::into)
+fn decode_totp_device_secret(value: Vec<u8>) -> anyhow::Result<TotpSecret> {
+    value.try_into().map_err(Into::into)
 }

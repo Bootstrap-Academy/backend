@@ -1,0 +1,22 @@
+[package]
+name = "clorinde"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+homepage.workspace = true
+repository.workspace = true
+
+[features]
+default = ["deadpool", "chrono"]
+deadpool = []
+chrono = []
+
+[dependencies]
+chrono.workspace = true
+deadpool-postgres = "0.14.1"
+fallible-iterator = "0.2.0"
+futures.workspace = true
+postgres-protocol = "0.6.7"
+postgres-types = { version = "0.2.8", features = ["derive"] }
+tokio-postgres = { version = "0.7.12", features = ["with-chrono-0_4", "with-uuid-1"] }
+uuid.workspace = true

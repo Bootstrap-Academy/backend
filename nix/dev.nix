@@ -5,6 +5,7 @@
   pkgs,
   testing,
   generate,
+  generate-clorinde,
   update-swagger-ui,
   ...
 }: {
@@ -15,7 +16,7 @@
   };
 
   packages =
-    [generate update-swagger-ui]
+    [generate generate-clorinde update-swagger-ui]
     ++ (with pkgs; [
       crate2nix
       alejandra
@@ -23,6 +24,7 @@
       lcov
       smtp4dev
       oath-toolkit
+      clorinde
       (python3.withPackages (p: with p; [httpx pyotp pypdf]))
     ])
     ++ (lib.optional (!pkgs.cargo-llvm-cov.meta.broken) pkgs.cargo-llvm-cov)
@@ -32,7 +34,7 @@
 
   services.postgres = {
     enable = true;
-    package = pkgs.postgresql_16;
+    package = pkgs.postgresql_17;
     listen_addresses = "127.0.0.1";
     initialScript = ''
       CREATE USER academy SUPERUSER;

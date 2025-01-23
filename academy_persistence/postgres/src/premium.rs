@@ -5,16 +5,20 @@ use academy_models::{
 };
 use academy_persistence_contracts::premium::PremiumRepository;
 use academy_utils::trace_instrument;
-use bb8_postgres::tokio_postgres::Row;
 use chrono::{DateTime, Utc};
-use uuid::Uuid;
+use clorinde::{
+    client::Params,
+    queries::{
+        self,
+        premium::{CreateParams, ExtendParams},
+    },
+};
+use futures::{StreamExt, TryStreamExt};
 
-use crate::{arg_indices, columns, ColumnCounter, PostgresTransaction};
+use crate::PostgresTransaction;
 
 #[derive(Debug, Clone, Build)]
 pub struct PostgresPremiumRepository;
-
-columns!(premium as "p": "id", "user_id", "since", "until");
 
 impl PremiumRepository<PostgresTransaction> for PostgresPremiumRepository {
     #[trace_instrument(skip(self, txn))]
@@ -23,34 +27,25 @@ impl PremiumRepository<PostgresTransaction> for PostgresPremiumRepository {
         txn: &mut PostgresTransaction,
         user_id: UserId,
     ) -> anyhow::Result<Option<Premium>> {
-        txn.txn()
-            .query_opt(
-                &format!(
-                    "select {PREMIUM_COLS} from premium p where user_id=$1 order by until desc \
-                     limit 1"
-                ),
-                &[&*user_id],
-            )
+        queries::premium::get_latest_by_user_id()
+            .bind(txn.txn(), &user_id)
+            .opt()
             .await
             .map_err(Into::into)
-            .map(|row| row.map(|row| decode_premium(&row, &mut Default::default())))
+            .map(|row| row.map(decode_premium))
     }
 
     #[trace_instrument(skip(self, txn))]
     async fn create(&self, txn: &mut PostgresTransaction, premium: Premium) -> anyhow::Result<()> {
-        txn.txn()
-            .execute(
-                &format!(
-                    "insert into premium ({PREMIUM_COL_NAMES}) values ({})",
-                    arg_indices(1..=PREMIUM_CNT)
-                ),
-                &[
-                    &*premium.id,
-                    &*premium.user_id,
-                    &premium.since,
-                    &premium.until,
-                ],
-            )
+        let params = CreateParams {
+            id: *premium.id,
+            user_id: *premium.user_id,
+            since: premium.since.into(),
+            until: premium.until.into(),
+        };
+
+        queries::premium::create()
+            .params(txn.txn(), &params)
             .await
             .map(|_| ())
             .map_err(Into::into)
@@ -63,8 +58,13 @@ impl PremiumRepository<PostgresTransaction> for PostgresPremiumRepository {
         id: PremiumId,
         until: DateTime<Utc>,
     ) -> anyhow::Result<()> {
-        txn.txn()
-            .execute("update premium set until=$2 where id=$1", &[&*id, &until])
+        let params = ExtendParams {
+            id: *id,
+            until: until.into(),
+        };
+
+        queries::premium::extend()
+            .params(txn.txn(), &params)
             .await
             .map(|_| ())
             .map_err(Into::into)
@@ -75,15 +75,13 @@ impl PremiumRepository<PostgresTransaction> for PostgresPremiumRepository {
         &self,
         txn: &mut PostgresTransaction,
     ) -> anyhow::Result<Vec<UserId>> {
-        txn.txn()
-            .query("select user_id from premium_subscriptions", &[])
+        queries::premium::list_subscription_users()
+            .bind(txn.txn())
+            .iter()
+            .await?
+            .map(|row| row.map_err(Into::into).map(UserId::from))
+            .try_collect()
             .await
-            .map_err(Into::into)
-            .map(|rows| {
-                rows.into_iter()
-                    .map(|row| row.get::<_, Uuid>(0).into())
-                    .collect()
-            })
     }
 
     #[trace_instrument(skip(self, txn))]
@@ -92,14 +90,12 @@ impl PremiumRepository<PostgresTransaction> for PostgresPremiumRepository {
         txn: &mut PostgresTransaction,
         user_id: UserId,
     ) -> anyhow::Result<Option<PremiumPlan>> {
-        txn.txn()
-            .query_opt(
-                "select plan from premium_subscriptions where user_id=$1",
-                &[&*user_id],
-            )
+        queries::premium::get_subscription()
+            .bind(txn.txn(), &user_id)
+            .opt()
             .await
             .map_err(Into::into)
-            .and_then(|row| row.map(|row| decode_plan(row.get(0))).transpose())
+            .map(|row| row.map(decode_plan))
     }
 
     #[trace_instrument(skip(self, txn))]
@@ -109,47 +105,33 @@ impl PremiumRepository<PostgresTransaction> for PostgresPremiumRepository {
         user_id: UserId,
         plan: Option<PremiumPlan>,
     ) -> anyhow::Result<()> {
-        if let Some(plan) = plan {
-            txn.txn()
-                .execute(
-                    "insert into premium_subscriptions (user_id, plan) values ($1, $2) on \
-                     conflict (user_id) do update set plan=$2",
-                    &[&*user_id, &encode_plan(plan)],
-                )
-                .await
-        } else {
-            txn.txn()
-                .execute(
-                    "delete from premium_subscriptions where user_id=$1",
-                    &[&*user_id],
-                )
-                .await
-        }
-        .map(|_| ())
-        .map_err(Into::into)
+        queries::premium::set_subscription()
+            .bind(txn.txn(), &user_id, &plan.map(encode_plan))
+            .await
+            .map(|_| ())
+            .map_err(Into::into)
     }
 }
 
-fn decode_premium(row: &Row, cnt: &mut ColumnCounter) -> Premium {
+fn decode_premium(value: queries::premium::Premium) -> Premium {
     Premium {
-        id: row.get::<_, Uuid>(cnt.idx()).into(),
-        user_id: row.get::<_, Uuid>(cnt.idx()).into(),
-        since: row.get(cnt.idx()),
-        until: row.get(cnt.idx()),
+        id: value.id.into(),
+        user_id: value.user_id.into(),
+        since: value.since.into(),
+        until: value.until.into(),
     }
 }
 
-fn encode_plan(plan: PremiumPlan) -> i16 {
+fn encode_plan(plan: PremiumPlan) -> clorinde::types::PremiumPlan {
     match plan {
-        PremiumPlan::Monthly => 0,
-        PremiumPlan::Yearly => 1,
+        PremiumPlan::Monthly => clorinde::types::PremiumPlan::monthly,
+        PremiumPlan::Yearly => clorinde::types::PremiumPlan::yearly,
     }
 }
 
-fn decode_plan(code: i16) -> anyhow::Result<PremiumPlan> {
-    Ok(match code {
-        0 => PremiumPlan::Monthly,
-        1 => PremiumPlan::Yearly,
-        _ => anyhow::bail!("Invalid premium plan code {code}"),
-    })
+fn decode_plan(value: clorinde::types::PremiumPlan) -> PremiumPlan {
+    match value {
+        clorinde::types::PremiumPlan::monthly => PremiumPlan::Monthly,
+        clorinde::types::PremiumPlan::yearly => PremiumPlan::Yearly,
+    }
 }

@@ -40,5 +40,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@main
-      - run: nix run .#generate
+      - run: nix run --accept-flake-config .#generate
       - run: git diff --exit-code
+
+  clorinde:
+    runs-on: ubuntu-latest
+    if: ${{ !(github.event_name == 'push' && github.actor == 'github-merge-queue[bot]') }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+      - run: |
+          for m in academy_persistence/postgres/migrations/*.up.sql; do
+            psql -h 127.0.0.1 academy academy < "$m"
+          done
+      - run: nix run --accept-flake-config .#generate-clorinde
+      - run: git diff --exit-code
+    services:
+      postgres:
+        image: postgres:17-alpine
+        ports:
+          - '5432:5432'
+        env:
+          POSTGRES_USER: academy
+          POSTGRES_DB: academy
+          POSTGRES_HOST_AUTH_METHOD: trust

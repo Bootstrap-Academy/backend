@@ -350,8 +350,8 @@ where
 
         if email.is_update() || email_verified.is_update() {
             user.email_verified =
-                email_verified.update(user.email_verified && email.is_unchanged());
-            user.email = email.update(user.email);
+                email_verified.update_or(user.email_verified && email.is_unchanged());
+            user.email = email.update_or(user.email);
             self.user_update
                 .update_email(&mut txn, user_id, &user.email, user.email_verified)
                 .await

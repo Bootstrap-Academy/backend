@@ -39,6 +39,8 @@
   in {
     imports = [self.nixosModules.default];
 
+    services.postgresql.package = pkgs.postgresql_17;
+
     services.academy.backend = {
       enable = true;
       package = self.packages.${system}.default.unwrapped;

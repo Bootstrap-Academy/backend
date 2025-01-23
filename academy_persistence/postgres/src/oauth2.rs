@@ -5,15 +5,17 @@ use academy_models::{
 };
 use academy_persistence_contracts::oauth2::{OAuth2RepoError, OAuth2Repository};
 use academy_utils::trace_instrument;
-use bb8_postgres::tokio_postgres::{self, Row};
-use uuid::Uuid;
+use bb8_postgres::tokio_postgres;
+use clorinde::{
+    client::Params,
+    queries::{self, oauth2::CreateLinkParams},
+};
+use futures::{StreamExt, TryStreamExt};
 
-use crate::{arg_indices, columns, ColumnCounter, PostgresTransaction};
+use crate::PostgresTransaction;
 
 #[derive(Debug, Clone, Build)]
 pub struct PostgresOAuth2Repository;
-
-columns!(oauth2_links as "ol": "id", "user_id", "provider_id", "created_at", "remote_user_id", "remote_user_name");
 
 impl OAuth2Repository<PostgresTransaction> for PostgresOAuth2Repository {
     #[trace_instrument(skip(self, txn))]
@@ -22,18 +24,13 @@ impl OAuth2Repository<PostgresTransaction> for PostgresOAuth2Repository {
         txn: &mut PostgresTransaction,
         user_id: UserId,
     ) -> anyhow::Result<Vec<OAuth2Link>> {
-        txn.txn()
-            .query(
-                &format!("select {OAUTH2_LINKS_COLS} from oauth2_links ol where user_id=$1"),
-                &[&*user_id],
-            )
+        queries::oauth2::list_links_by_user()
+            .bind(txn.txn(), &user_id)
+            .iter()
+            .await?
+            .map(|row| row.map_err(Into::into).and_then(decode_oauth2_link))
+            .try_collect()
             .await
-            .map_err(Into::into)
-            .and_then(|rows| {
-                rows.into_iter()
-                    .map(|row| decode_oauth2_link(&row, &mut Default::default()))
-                    .collect()
-            })
     }
 
     #[trace_instrument(skip(self, txn))]
@@ -42,17 +39,12 @@ impl OAuth2Repository<PostgresTransaction> for PostgresOAuth2Repository {
         txn: &mut PostgresTransaction,
         link_id: OAuth2LinkId,
     ) -> anyhow::Result<Option<OAuth2Link>> {
-        txn.txn()
-            .query_opt(
-                &format!("select {OAUTH2_LINKS_COLS} from oauth2_links ol where id=$1"),
-                &[&*link_id],
-            )
+        queries::oauth2::get_link()
+            .bind(txn.txn(), &link_id)
+            .opt()
             .await
             .map_err(Into::into)
-            .and_then(|row| {
-                row.map(|row| decode_oauth2_link(&row, &mut Default::default()))
-                    .transpose()
-            })
+            .and_then(|row| row.map(decode_oauth2_link).transpose())
     }
 
     #[trace_instrument(skip(self, txn))]
@@ -61,21 +53,17 @@ impl OAuth2Repository<PostgresTransaction> for PostgresOAuth2Repository {
         txn: &mut PostgresTransaction,
         oauth2_link: &OAuth2Link,
     ) -> Result<(), OAuth2RepoError> {
-        txn.txn()
-            .execute(
-                &format!(
-                    "insert into oauth2_links ({OAUTH2_LINKS_COL_NAMES}) values ({})",
-                    arg_indices(1..=OAUTH2_LINKS_CNT)
-                ),
-                &[
-                    &*oauth2_link.id,
-                    &*oauth2_link.user_id,
-                    &*oauth2_link.provider_id,
-                    &oauth2_link.created_at,
-                    &*oauth2_link.remote_user.id,
-                    &*oauth2_link.remote_user.name,
-                ],
-            )
+        let params = CreateLinkParams {
+            id: *oauth2_link.id,
+            user_id: *oauth2_link.user_id,
+            provider_id: &*oauth2_link.provider_id,
+            created_at: oauth2_link.created_at.into(),
+            remote_user_id: &*oauth2_link.remote_user.id,
+            remote_user_name: &*oauth2_link.remote_user.name,
+        };
+
+        queries::oauth2::create_link()
+            .params(txn.txn(), &params)
             .await
             .map(|_| ())
             .map_err(map_oauth2_repo_error)
@@ -87,23 +75,23 @@ impl OAuth2Repository<PostgresTransaction> for PostgresOAuth2Repository {
         txn: &mut PostgresTransaction,
         link_id: OAuth2LinkId,
     ) -> anyhow::Result<bool> {
-        txn.txn()
-            .execute("delete from oauth2_links where id=$1", &[&*link_id])
+        queries::oauth2::delete_link()
+            .bind(txn.txn(), &link_id)
             .await
             .map(|n| n != 0)
             .map_err(Into::into)
     }
 }
 
-fn decode_oauth2_link(row: &Row, cnt: &mut ColumnCounter) -> anyhow::Result<OAuth2Link> {
+fn decode_oauth2_link(value: queries::oauth2::OAuth2Link) -> anyhow::Result<OAuth2Link> {
     Ok(OAuth2Link {
-        id: row.get::<_, Uuid>(cnt.idx()).into(),
-        user_id: row.get::<_, Uuid>(cnt.idx()).into(),
-        provider_id: row.get::<_, String>(cnt.idx()).into(),
-        created_at: row.get(cnt.idx()),
+        id: value.id.into(),
+        user_id: value.user_id.into(),
+        provider_id: value.provider_id.into(),
+        created_at: value.created_at.into(),
         remote_user: OAuth2UserInfo {
-            id: row.get::<_, String>(cnt.idx()).try_into()?,
-            name: row.get::<_, String>(cnt.idx()).try_into()?,
+            id: value.remote_user_id.try_into()?,
+            name: value.remote_user_name.try_into()?,
         },
     })
 }

@@ -14,7 +14,7 @@ chrono = []
 [dependencies]
 chrono.workspace = true
 deadpool-postgres = "0.14.1"
-fallible-iterator = "0.2.0"
+fallible-iterator = "0.3.0"
 futures.workspace = true
 postgres-protocol = "0.6.7"
 postgres-types = { version = "0.2.8", features = ["derive"] }

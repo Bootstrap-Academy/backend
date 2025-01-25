@@ -6047,10 +6047,7 @@ rec {
             features = [ "v4" "v7" "serde" ];
           }
         ];
-        features = {
-          "default" = [ "deadpool" "chrono" ];
-        };
-        resolvedDefaultFeatures = [ "chrono" "deadpool" "default" ];
+
       };
       "colorchoice" = rec {
         crateName = "colorchoice";

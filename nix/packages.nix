@@ -124,7 +124,7 @@ in
 
       cd "$(${lib.getExe pkgs.git} rev-parse --show-toplevel)/academy_persistence/postgres"
 
-      static=(Cargo.toml src/lib.rs)
+      static=(Cargo.toml)
       if [[ "$1" != "-f" ]]; then
         mkdir -p .clorinde.bak
         for f in "''${static[@]}"; do mkdir -p "$(dirname ".clorinde.bak/$f")"; cp -f "clorinde/$f" ".clorinde.bak/$f"; done
@@ -135,7 +135,9 @@ in
         rm -rf .clorinde.bak
       fi
       ${lib.getExe' toolchain.toolchain "cargo"} fmt -p clorinde -- --config-path /dev/null
+      ${lib.getExe pkgs.gnused} -i '/use postgres;/d' clorinde/src/lib.rs
       ${lib.getExe pkgs.gnused} -i '/^#\[cfg(feature = "time")\]$/,/^}$/d' clorinde/src/types.rs
+      ${lib.getExe pkgs.gnused} -i '/^#\[cfg/d' clorinde/src/{lib,types,client/async_}.rs
     '';
 
     update-swagger-ui = pkgs.writeShellScriptBin "update-swagger-ui" ''

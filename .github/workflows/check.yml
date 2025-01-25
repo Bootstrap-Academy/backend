@@ -40,7 +40,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@main
-      - run: nix run --accept-flake-config .#generate
+      - run: nix run --accept-flake-config .#scripts.generate
       - run: git diff --exit-code
 
   clorinde:
@@ -53,7 +53,7 @@ jobs:
           for m in academy_persistence/postgres/migrations/*.up.sql; do
             psql -h 127.0.0.1 academy academy < "$m"
           done
-      - run: nix run --accept-flake-config .#generate-clorinde
+      - run: nix run --accept-flake-config .#scripts.generate-clorinde
       - run: git diff --exit-code
     services:
       postgres:

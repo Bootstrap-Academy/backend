@@ -4,9 +4,7 @@
   lib,
   pkgs,
   testing,
-  generate,
-  generate-clorinde,
-  update-swagger-ui,
+  scripts,
   ...
 }: {
   languages.c.enable = true;
@@ -16,7 +14,7 @@
   };
 
   packages =
-    [generate generate-clorinde update-swagger-ui]
+    (lib.attrValues scripts)
     ++ (with pkgs; [
       crate2nix
       alejandra

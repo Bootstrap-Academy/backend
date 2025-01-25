@@ -2,7 +2,6 @@
 
 pub use generic_client::GenericClient;
 use tokio_postgres::{Error, Statement};
-#[cfg(feature = "deadpool")]
 mod deadpool;
 mod generic_client;
 /// This trait allows you to bind parameters to a query using a single

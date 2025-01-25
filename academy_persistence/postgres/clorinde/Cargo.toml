@@ -6,11 +6,6 @@ publish.workspace = true
 homepage.workspace = true
 repository.workspace = true
 
-[features]
-default = ["deadpool", "chrono"]
-deadpool = []
-chrono = []
-
 [dependencies]
 chrono.workspace = true
 deadpool-postgres = "0.14.1"

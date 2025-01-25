@@ -16,10 +16,8 @@ mod type_traits;
 pub mod types;
 mod utils;
 pub use array_iterator::ArrayIterator;
-#[cfg(feature = "deadpool")]
 pub use deadpool_postgres;
 pub use domain::{Domain, DomainArray};
-#[cfg(feature = "deadpool")]
 pub use tokio_postgres;
 pub use type_traits::{ArraySql, BytesSql, IterSql, StringSql};
 pub(crate) use utils::slice_iter;

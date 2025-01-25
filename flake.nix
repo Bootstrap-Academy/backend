@@ -66,7 +66,7 @@
       root ? null,
     }:
       devenv.lib.mkShell {
-        inputs = inputs // {inherit (self.packages.${system}) testing generate generate-clorinde update-swagger-ui;};
+        inputs = inputs // {inherit (self.packages.${system}) testing scripts;};
         pkgs = importNixpkgs system;
         modules = [
           ./nix/dev.nix
@@ -80,11 +80,13 @@
       (pkgs.callPackages ./nix/packages.nix {inherit fenix self;})
       // {
         tests = pkgs.callPackages ./nix/tests {inherit self;};
+        scripts = pkgs.callPackages ./nix/scripts.nix {inherit fenix;};
         devenv-up = self.devShells.${system}.default.config.procfileScript;
 
-        checks = pkgs.linkFarm "academy-checks" (builtins.removeAttrs self.packages.${system} ["checks" "devenv-up"]
+        checks = pkgs.linkFarm "academy-checks" (lib.removeAttrs self.packages.${system} ["checks"]
           // rec {
             tests = self.packages.${system}.tests.composite;
+            scripts = pkgs.linkFarm "scripts" self.packages.${system}.scripts;
             devShell = mkDevShell {
               inherit system;
               root = "/fake-root";

@@ -107,7 +107,7 @@
   };
 
   nixConfig = {
-    extra-substituters = "https://academy-backend.cachix.org";
-    extra-trusted-public-keys = "academy-backend.cachix.org-1:MxmjN6hjaiGdi42M6evdALWj5hHOyUAQTEgKvm+J0Ow=";
+    extra-substituters = "https://cache.bootstrap.academy/academy";
+    extra-trusted-public-keys = "academy:JU67oyd32Kzh7XFkUD/rZ6I3wVT8xMtgghwBvEINGus=";
   };
 }

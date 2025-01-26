@@ -26,40 +26,7 @@
       "aarch64-darwin"
     ];
 
-    importNixpkgs = system:
-      import nixpkgs {
-        inherit system;
-
-        overlays = [
-          (final: prev: {
-            clorinde = final.rustPlatform.buildRustPackage rec {
-              pname = "clorinde";
-              version = "0.11.1-unstable-2025-01-23";
-
-              src = final.fetchFromGitHub {
-                owner = "halcyonnouveau";
-                repo = "clorinde";
-                rev = "d111bbfd49062d459c81ae529d1ebf5f6c7275e6";
-                hash = "sha256-nI3IvSxQ6bZ72GrBVYDCI0NQT8s/H19P5WDCGNF3cCI=";
-              };
-
-              cargoHash = "sha256-f4vXITZxWXgozpj53HBZIL/w9becyZBvXc05KSYEjZI=";
-
-              cargoBuildFlags = ["--package=clorinde"];
-              cargoTestFlags = cargoBuildFlags;
-
-              nativeInstallCheckInputs = [final.versionCheckHook];
-              preVersionCheck = ''
-                export version=${lib.head (lib.split "-" version)}
-              '';
-              versionCheckProgramArg = "--version";
-              doInstallCheck = true;
-
-              meta.mainProgram = "clorinde";
-            };
-          })
-        ];
-      };
+    importNixpkgs = system: import nixpkgs {inherit system;};
 
     mkDevShell = {
       system,

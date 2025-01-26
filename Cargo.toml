@@ -98,8 +98,8 @@ academy_utils_derive.path = "academy_utils_derive"
 
 anyhow = { version = "1.0.95", default-features = false, features = ["std"] }
 argon2 = { version = "0.5.3", default-features = false, features = ["std", "password-hash"] }
-axum = { version = "0.8.2", default-features = false, features = ["http1", "http2", "tokio", "json", "query", "form", "original-uri", "matched-path"] }
-axum-extra = { version = "0.11.0", default-features = false, features = ["typed-header"] }
+axum = { version = "0.8.1", default-features = false, features = ["http1", "http2", "tokio", "json", "query", "form", "original-uri", "matched-path"] }
+axum-extra = { version = "0.10.0", default-features = false, features = ["typed-header"] }
 base32 = { version = "0.5.1", default-features = false }
 base64 = { version = "0.22.1", default-features = false }
 chrono = { version = "0.4.39", default-features = false, features = ["serde", "clock"] }

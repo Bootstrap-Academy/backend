@@ -4267,7 +4267,7 @@ rec {
           }
           {
             name = "indexmap";
-            packageId = "indexmap 2.7.0";
+            packageId = "indexmap 2.7.1";
             features = [ "serde" ];
           }
           {
@@ -6177,9 +6177,9 @@ rec {
       };
       "cpufeatures" = rec {
         crateName = "cpufeatures";
-        version = "0.2.16";
+        version = "0.2.17";
         edition = "2018";
-        sha256 = "1hy466fkhxjbb16i7na95wz8yr14d0kd578pwzj5lbkz14jh5f0n";
+        sha256 = "10023dnnaghhdl70xcds12fsx2b966sxbxjq5sxs49mvxqw5ivar";
         authors = [
           "RustCrypto Developers"
         ];
@@ -6187,21 +6187,25 @@ rec {
           {
             name = "libc";
             packageId = "libc";
+            usesDefaultFeatures = false;
             target = { target, features }: (stdenv.hostPlatform.rust.rustcTarget == "aarch64-linux-android");
           }
           {
             name = "libc";
             packageId = "libc";
+            usesDefaultFeatures = false;
             target = { target, features }: (("aarch64" == target."arch" or null) && ("linux" == target."os" or null));
           }
           {
             name = "libc";
             packageId = "libc";
+            usesDefaultFeatures = false;
             target = { target, features }: (("aarch64" == target."arch" or null) && ("apple" == target."vendor" or null));
           }
           {
             name = "libc";
             packageId = "libc";
+            usesDefaultFeatures = false;
             target = { target, features }: (("loongarch64" == target."arch" or null) && ("linux" == target."os" or null));
           }
         ];
@@ -7329,7 +7333,7 @@ rec {
           }
           {
             name = "indexmap";
-            packageId = "indexmap 2.7.0";
+            packageId = "indexmap 2.7.1";
             features = [ "std" ];
           }
           {
@@ -8661,11 +8665,11 @@ rec {
         };
         resolvedDefaultFeatures = [ "serde" "serde-1" ];
       };
-      "indexmap 2.7.0" = rec {
+      "indexmap 2.7.1" = rec {
         crateName = "indexmap";
-        version = "2.7.0";
+        version = "2.7.1";
         edition = "2021";
-        sha256 = "07s7jmdymvd0rm4yswp0j3napx57hkjm9gs9n55lvs2g78vj5y32";
+        sha256 = "0lmnm1zbr5gq3wic3d8a76gpvampridzwckfl97ckd5m08mrk74c";
         dependencies = [
           {
             name = "equivalent";
@@ -11157,9 +11161,9 @@ rec {
       };
       "redis" = rec {
         crateName = "redis";
-        version = "0.28.1";
+        version = "0.28.2";
         edition = "2021";
-        sha256 = "198d07x1wc2jz597y8dkm1bzw2fxyqgk4hlraz60bv4wp9y752cz";
+        sha256 = "19mx0bjhvg2hq8kmihx7mj86b6lrsws7dk56gfafr8my8kyw6zp3";
         dependencies = [
           {
             name = "arc-swap";
@@ -12215,9 +12219,9 @@ rec {
       };
       "rustix" = rec {
         crateName = "rustix";
-        version = "0.38.43";
+        version = "0.38.44";
         edition = "2021";
-        sha256 = "1xjfhdnmqsbwnfmm77vyh7ldhqx0g9waqm4982404d7jdgp93257";
+        sha256 = "0m61v0h15lf5rrnbjhcb9306bgqrhskrqv7i1n0939dsw8dbrdgx";
         authors = [
           "Dan Gohman <dev@sunfishcode.online>"
           "Jakub Konka <kubkon@jakubkonka.com>"
@@ -12529,7 +12533,7 @@ rec {
           }
           {
             name = "indexmap";
-            packageId = "indexmap 2.7.0";
+            packageId = "indexmap 2.7.1";
             rename = "indexmap2";
             optional = true;
             features = [ "serde" ];
@@ -14665,7 +14669,7 @@ rec {
         dependencies = [
           {
             name = "indexmap";
-            packageId = "indexmap 2.7.0";
+            packageId = "indexmap 2.7.1";
             features = [ "std" ];
           }
           {
@@ -15326,9 +15330,9 @@ rec {
       };
       "unicode-ident" = rec {
         crateName = "unicode-ident";
-        version = "1.0.14";
+        version = "1.0.15";
         edition = "2018";
-        sha256 = "10ywa1pg0glgkr4l3dppjxizr9r2b7im0ycbfa0137l69z5fdfdd";
+        sha256 = "0hr2b72jf9zb5avd2k6p7rbwkjjgl21vdhd90114kihp5ghqik8i";
         libName = "unicode_ident";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"

@@ -2,6 +2,8 @@ from utils import c, create_account, create_admin_account, make_client
 
 login = create_account("a", "a@a", "a")
 
+# test
+
 # get balance
 resp = c.get(f"/shop/coins/me")
 assert resp.status_code == 200

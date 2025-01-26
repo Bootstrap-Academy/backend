@@ -15,6 +15,10 @@
       "automerge": true
     },
     {
+      "matchManagers": ["cargo"],
+      "rollbackPrs": true
+    },
+    {
       "groupName": "rust:axum",
       "matchManagers": ["cargo"],
       "matchPackageNames": ["axum", "axum-*", "aide"]

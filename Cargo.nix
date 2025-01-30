@@ -5448,9 +5448,9 @@ rec {
       };
       "bumpalo" = rec {
         crateName = "bumpalo";
-        version = "3.16.0";
+        version = "3.17.0";
         edition = "2021";
-        sha256 = "0b015qb4knwanbdlp1x48pkb4pm57b8gidbhhhxr900q2wb6fabr";
+        sha256 = "1gxxsn2fsjmv03g8p3m749mczv2k4m8xspifs5l7bcx0vx3gna0n";
         authors = [
           "Nick Fitzgerald <fitzgen@gmail.com>"
         ];
@@ -7716,9 +7716,9 @@ rec {
       };
       "httparse" = rec {
         crateName = "httparse";
-        version = "1.9.5";
+        version = "1.10.0";
         edition = "2018";
-        sha256 = "0ip9v8m9lvgvq1lznl31wvn0ch1v254na7lhid9p29yx9rbx6wbx";
+        sha256 = "0ahyh51rrpizd7m1jy5p791xfwn9cnmv0snd2q528h3i9vghimzj";
         authors = [
           "Sean McArthur <sean@seanmonstar.com>"
         ];
@@ -7756,9 +7756,9 @@ rec {
       };
       "hyper" = rec {
         crateName = "hyper";
-        version = "1.5.2";
+        version = "1.6.0";
         edition = "2021";
-        sha256 = "1q7akfb443yrjzkmnnbp2vs8zi15hgbk466rr4y144v4ppabhvr5";
+        sha256 = "103ggny2k31z0iq2gzwk2vbx601wx6xkpjpxn40hr3p3b0b5fayc";
         authors = [
           "Sean McArthur <sean@seanmonstar.com>"
         ];
@@ -12417,9 +12417,9 @@ rec {
       };
       "rustls-pki-types" = rec {
         crateName = "rustls-pki-types";
-        version = "1.10.1";
+        version = "1.11.0";
         edition = "2021";
-        sha256 = "0dqb3d0cbld1yrp084wyzgw6yk3qzzic8l5pbs1b6bcjzzk4ggyj";
+        sha256 = "0755isc0x5iymm3wsn59s0ad1pm9zidw7p34qfqlsjsac9jf4z4i";
         libName = "rustls_pki_types";
         dependencies = [
           {
@@ -12484,9 +12484,9 @@ rec {
       };
       "ryu" = rec {
         crateName = "ryu";
-        version = "1.0.18";
+        version = "1.0.19";
         edition = "2018";
-        sha256 = "17xx2s8j1lln7iackzd9p0sv546vjq71i779gphjq923vjh5pjzk";
+        sha256 = "1pg6a0b80m32ahygsdkwzs3bfydk4snw695akz4rqxj4lv8a58bf";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -15330,9 +15330,9 @@ rec {
       };
       "unicode-ident" = rec {
         crateName = "unicode-ident";
-        version = "1.0.15";
+        version = "1.0.16";
         edition = "2018";
-        sha256 = "0hr2b72jf9zb5avd2k6p7rbwkjjgl21vdhd90114kihp5ghqik8i";
+        sha256 = "0d2hji0i16naw43l02dplrz8fbv625n7475s463iqw4by1hd2452";
         libName = "unicode_ident";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
@@ -17951,9 +17951,9 @@ rec {
       };
       "winnow" = rec {
         crateName = "winnow";
-        version = "0.6.24";
+        version = "0.6.25";
         edition = "2021";
-        sha256 = "0fm0z1gk9wb47s1jhh889isz657kavd1yb3fhzbjmi657icimmy8";
+        sha256 = "046k3772481hxa596krj2fckpzf61983aps3nipcrihjhbs9ssdd";
         dependencies = [
           {
             name = "memchr";

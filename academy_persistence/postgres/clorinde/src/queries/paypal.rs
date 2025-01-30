@@ -159,8 +159,9 @@ where
     }
 }
 pub fn create_coin_order() -> CreateCoinOrderStmt {
-    CreateCoinOrderStmt(crate::client::async_::Stmt::new("insert into paypal_coin_orders (id, user_id, created_at, captured_at, coins, invoice_number)
-  values ($1, $2, $3, $4, $5, $6)"))
+    CreateCoinOrderStmt(crate::client::async_::Stmt::new(
+        "insert into paypal_coin_orders (id, user_id, created_at, captured_at, coins, invoice_number) values ($1, $2, $3, $4, $5, $6)",
+    ))
 }
 pub struct CreateCoinOrderStmt(crate::client::async_::Stmt);
 impl CreateCoinOrderStmt {
@@ -256,7 +257,7 @@ impl ListCoinOrdersStmt {
                 coins: row.get(4),
                 invoice_number: row.get(5),
             },
-            mapper: |it| <CoinOrder>::from(it),
+            mapper: |it| CoinOrder::from(it),
         }
     }
 }
@@ -284,7 +285,7 @@ impl GetCoinOrderStmt {
                 coins: row.get(4),
                 invoice_number: row.get(5),
             },
-            mapper: |it| <CoinOrder>::from(it),
+            mapper: |it| CoinOrder::from(it),
         }
     }
 }
@@ -312,7 +313,7 @@ impl GetCoinOrderByInvoiceNumberStmt {
                 coins: row.get(4),
                 invoice_number: row.get(5),
             },
-            mapper: |it| <CoinOrder>::from(it),
+            mapper: |it| CoinOrder::from(it),
         }
     }
 }

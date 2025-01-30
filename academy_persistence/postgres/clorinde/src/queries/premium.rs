@@ -207,14 +207,13 @@ impl GetLatestByUserIdStmt {
                 since: row.get(2),
                 until: row.get(3),
             },
-            mapper: |it| <Premium>::from(it),
+            mapper: |it| Premium::from(it),
         }
     }
 }
 pub fn create() -> CreateStmt {
     CreateStmt(crate::client::async_::Stmt::new(
-        "insert into premium (id, user_id, since, until)
-  values ($1, $2, $3, $4)",
+        "insert into premium (id, user_id, since, until) values ($1, $2, $3, $4)",
     ))
 }
 pub struct CreateStmt(crate::client::async_::Stmt);
@@ -341,12 +340,7 @@ impl GetSubscriptionStmt {
 }
 pub fn set_subscription() -> SetSubscriptionStmt {
     SetSubscriptionStmt(crate::client::async_::Stmt::new(
-        "merge into premium_subscriptions
-  using (select $1::uuid as user_id where $2::premium_plan is not null) as s
-  on premium_subscriptions.user_id = s.user_id
-  when not matched by target then insert (user_id, plan) values ($1, $2)
-  when not matched by source then delete
-  when matched then update set plan=$2",
+        "merge into premium_subscriptions using (select $1::uuid as user_id where $2::premium_plan is not null) as s on premium_subscriptions.user_id = s.user_id when not matched by target then insert (user_id, plan) values ($1, $2) when not matched by source then delete when matched then update set plan=$2",
     ))
 }
 pub struct SetSubscriptionStmt(crate::client::async_::Stmt);

@@ -85,15 +85,13 @@ impl GetStmt {
                 hearts: row.get(0),
                 last_refill: row.get(1),
             },
-            mapper: |it| <Get>::from(it),
+            mapper: |it| Get::from(it),
         }
     }
 }
 pub fn set() -> SetStmt {
     SetStmt(crate::client::async_::Stmt::new(
-        "insert into hearts (user_id, hearts, last_refill)
-  values ($1, $2, $3)
-  on conflict (user_id) do update set hearts=$2, last_refill=$3",
+        "insert into hearts (user_id, hearts, last_refill) values ($1, $2, $3) on conflict (user_id) do update set hearts=$2, last_refill=$3",
     ))
 }
 pub struct SetStmt(crate::client::async_::Stmt);

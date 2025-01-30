@@ -193,18 +193,13 @@ impl GetBalanceStmt {
                 coins: row.get(0),
                 withheld_coins: row.get(1),
             },
-            mapper: |it| <Balance>::from(it),
+            mapper: |it| Balance::from(it),
         }
     }
 }
 pub fn add_coins() -> AddCoinsStmt {
     AddCoinsStmt(crate::client::async_::Stmt::new(
-        "merge into coins
-  using (select $1::uuid as user_id) as u
-  on coins.user_id=u.user_id
-  when not matched then insert (user_id, coins, withheld_coins) values ($1, $2, $3)
-  when matched then update set coins=coins+$2, withheld_coins=withheld_coins+$3
-  returning coins, withheld_coins",
+        "merge into coins using (select $1::uuid as user_id) as u on coins.user_id=u.user_id when not matched then insert (user_id, coins, withheld_coins) values ($1, $2, $3) when matched then update set coins=coins+$2, withheld_coins=withheld_coins+$3 returning coins, withheld_coins",
     ))
 }
 pub struct AddCoinsStmt(crate::client::async_::Stmt);
@@ -224,7 +219,7 @@ impl AddCoinsStmt {
                 coins: row.get(0),
                 withheld_coins: row.get(1),
             },
-            mapper: |it| <Balance>::from(it),
+            mapper: |it| Balance::from(it),
         }
     }
 }
@@ -269,11 +264,7 @@ impl ReleaseCoinsStmt {
 }
 pub fn list_transactions() -> ListTransactionsStmt {
     ListTransactionsStmt(crate::client::async_::Stmt::new(
-        "select * from transactions
-  where user_id=$1
-    and $2 <= created_at
-    and created_at < $3
-  order by created_at asc",
+        "select * from transactions where user_id=$1 and $2 <= created_at and created_at < $3 order by created_at asc",
     ))
 }
 pub struct ListTransactionsStmt(crate::client::async_::Stmt);
@@ -297,7 +288,7 @@ impl ListTransactionsStmt {
                 description: row.get(4),
                 include_in_credit_note: row.get(5),
             },
-            mapper: |it| <Transaction>::from(it),
+            mapper: |it| Transaction::from(it),
         }
     }
 }
@@ -320,8 +311,9 @@ impl<'c, 'a, 's, C: GenericClient>
     }
 }
 pub fn create_transaction() -> CreateTransactionStmt {
-    CreateTransactionStmt(crate::client::async_::Stmt::new("insert into transactions (id, user_id, created_at, coins, description, include_in_credit_note)
-  values ($1, $2, $3, $4, $5, $6)"))
+    CreateTransactionStmt(crate::client::async_::Stmt::new(
+        "insert into transactions (id, user_id, created_at, coins, description, include_in_credit_note) values ($1, $2, $3, $4, $5, $6)",
+    ))
 }
 pub struct CreateTransactionStmt(crate::client::async_::Stmt);
 impl CreateTransactionStmt {

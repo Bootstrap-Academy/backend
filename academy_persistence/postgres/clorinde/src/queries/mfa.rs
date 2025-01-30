@@ -157,14 +157,13 @@ impl ListTotpDevicesByUserStmt {
                 enabled: row.get(2),
                 created_at: row.get(3),
             },
-            mapper: |it| <TotpDevice>::from(it),
+            mapper: |it| TotpDevice::from(it),
         }
     }
 }
 pub fn create_totp_device() -> CreateTotpDeviceStmt {
     CreateTotpDeviceStmt(crate::client::async_::Stmt::new(
-        "insert into totp_devices (id, user_id, enabled, created_at)
-  values ($1, $2, $3, $4)",
+        "insert into totp_devices (id, user_id, enabled, created_at) values ($1, $2, $3, $4)",
     ))
 }
 pub struct CreateTotpDeviceStmt(crate::client::async_::Stmt);
@@ -213,9 +212,7 @@ impl<'a, C: GenericClient + Send + Sync>
 }
 pub fn update_totp_device() -> UpdateTotpDeviceStmt {
     UpdateTotpDeviceStmt(crate::client::async_::Stmt::new(
-        "update totp_devices
-  set enabled=coalesce($1, enabled)
-  where id=$2",
+        "update totp_devices set enabled=coalesce($1, enabled) where id=$2",
     ))
 }
 pub struct UpdateTotpDeviceStmt(crate::client::async_::Stmt);
@@ -270,9 +267,7 @@ impl DeleteTotpDevicesByUserStmt {
 }
 pub fn list_enabled_totp_device_secrets_by_user() -> ListEnabledTotpDeviceSecretsByUserStmt {
     ListEnabledTotpDeviceSecretsByUserStmt(crate::client::async_::Stmt::new(
-        "select secret from totp_device_secrets
-  inner join totp_devices using(id)
-  where user_id=$1 and enabled",
+        "select secret from totp_device_secrets inner join totp_devices using(id) where user_id=$1 and enabled",
     ))
 }
 pub struct ListEnabledTotpDeviceSecretsByUserStmt(crate::client::async_::Stmt);
@@ -314,8 +309,7 @@ impl GetTotpDeviceSecretStmt {
 }
 pub fn set_totp_device_secret() -> SetTotpDeviceSecretStmt {
     SetTotpDeviceSecretStmt(crate::client::async_::Stmt::new(
-        "insert into totp_device_secrets (id, secret) values ($1, $2)
-  on conflict (id) do update set secret=$2",
+        "insert into totp_device_secrets (id, secret) values ($1, $2) on conflict (id) do update set secret=$2",
     ))
 }
 pub struct SetTotpDeviceSecretStmt(crate::client::async_::Stmt);
@@ -375,8 +369,7 @@ impl GetRecoveryCodeHashStmt {
 }
 pub fn set_recovery_code_hash() -> SetRecoveryCodeHashStmt {
     SetRecoveryCodeHashStmt(crate::client::async_::Stmt::new(
-        "insert into mfa_recovery_codes (user_id, code) values ($1, $2)
-  on conflict (user_id) do update set code=$2",
+        "insert into mfa_recovery_codes (user_id, code) values ($1, $2) on conflict (user_id) do update set code=$2",
     ))
 }
 pub struct SetRecoveryCodeHashStmt(crate::client::async_::Stmt);

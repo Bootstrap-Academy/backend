@@ -461,16 +461,7 @@ where
 }
 pub fn count_composites() -> CountCompositesStmt {
     CountCompositesStmt(crate::client::async_::Stmt::new(
-        "select count(*) from user_composites
-  where ($1::text is null
-    or position(lower($1) in lower(name)) > 0
-    or position(lower($1) in lower(display_name)) > 0)
-  and ($2::text is null or position(lower($2) in email) > 0)
-  and ($3::boolean is null or enabled = $3)
-  and ($4::boolean is null or admin = $4)
-  and ($5::boolean is null or mfa_enabled = $5)
-  and ($6::boolean is null or email_verified = $6)
-  and ($7::boolean is null or newsletter = $7)",
+        "select count(*) from user_composites where ($1::text is null or position(lower($1) in lower(name)) > 0 or position(lower($1) in lower(display_name)) > 0) and ($2::text is null or position(lower($2) in email) > 0) and ($3::boolean is null or enabled = $3) and ($4::boolean is null or admin = $4) and ($5::boolean is null or mfa_enabled = $5) and ($6::boolean is null or email_verified = $6) and ($7::boolean is null or newsletter = $7)",
     ))
 }
 pub struct CountCompositesStmt(crate::client::async_::Stmt);
@@ -532,18 +523,7 @@ impl<'c, 'a, 's, C: GenericClient, T1: crate::StringSql, T2: crate::StringSql>
 }
 pub fn list_composites() -> ListCompositesStmt {
     ListCompositesStmt(crate::client::async_::Stmt::new(
-        "select * from user_composites
-  where ($1::text is null
-    or position(lower($1) in lower(name)) > 0
-    or position(lower($1) in lower(display_name)) > 0)
-  and ($2::text is null or position(lower($2) in email) > 0)
-  and ($3::boolean is null or enabled = $3)
-  and ($4::boolean is null or admin = $4)
-  and ($5::boolean is null or mfa_enabled = $5)
-  and ($6::boolean is null or email_verified = $6)
-  and ($7::boolean is null or newsletter = $7)
-  order by created_at asc
-  limit $8 offset $9",
+        "select * from user_composites where ($1::text is null or position(lower($1) in lower(name)) > 0 or position(lower($1) in lower(display_name)) > 0) and ($2::text is null or position(lower($2) in email) > 0) and ($3::boolean is null or enabled = $3) and ($4::boolean is null or admin = $4) and ($5::boolean is null or mfa_enabled = $5) and ($6::boolean is null or email_verified = $6) and ($7::boolean is null or newsletter = $7) order by created_at asc limit $8 offset $9",
     ))
 }
 pub struct ListCompositesStmt(crate::client::async_::Stmt);
@@ -602,7 +582,7 @@ impl ListCompositesStmt {
                 country: row.get(23),
                 vat_id: row.get(24),
             },
-            mapper: |it| <UserComposite>::from(it),
+            mapper: |it| UserComposite::from(it),
         }
     }
 }
@@ -699,7 +679,7 @@ impl GetCompositeStmt {
                 country: row.get(23),
                 vat_id: row.get(24),
             },
-            mapper: |it| <UserComposite>::from(it),
+            mapper: |it| UserComposite::from(it),
         }
     }
 }
@@ -746,7 +726,7 @@ impl GetCompositeByNameStmt {
                 country: row.get(23),
                 vat_id: row.get(24),
             },
-            mapper: |it| <UserComposite>::from(it),
+            mapper: |it| UserComposite::from(it),
         }
     }
 }
@@ -793,17 +773,14 @@ impl GetCompositeByEmailStmt {
                 country: row.get(23),
                 vat_id: row.get(24),
             },
-            mapper: |it| <UserComposite>::from(it),
+            mapper: |it| UserComposite::from(it),
         }
     }
 }
 pub fn get_composite_by_oauth2_provider_id_and_remote_user_id(
 ) -> GetCompositeByOauth2ProviderIdAndRemoteUserIdStmt {
     GetCompositeByOauth2ProviderIdAndRemoteUserIdStmt(crate::client::async_::Stmt::new(
-        "with cte as (
-  select user_id as id from oauth2_links where provider_id=$1 and remote_user_id=$2
-)
-select * from user_composites inner join cte using (id)",
+        "with cte as ( select user_id as id from oauth2_links where provider_id=$1 and remote_user_id=$2 ) select * from user_composites inner join cte using (id)",
     ))
 }
 pub struct GetCompositeByOauth2ProviderIdAndRemoteUserIdStmt(crate::client::async_::Stmt);
@@ -845,7 +822,7 @@ impl GetCompositeByOauth2ProviderIdAndRemoteUserIdStmt {
                 country: row.get(23),
                 vat_id: row.get(24),
             },
-            mapper: |it| <UserComposite>::from(it),
+            mapper: |it| UserComposite::from(it),
         }
     }
 }
@@ -868,8 +845,9 @@ impl<'c, 'a, 's, C: GenericClient, T1: crate::StringSql, T2: crate::StringSql>
     }
 }
 pub fn create() -> CreateStmt {
-    CreateStmt(crate::client::async_::Stmt::new("insert into users (id, name, email, email_verified, created_at, last_login, last_name_change, enabled, admin, newsletter)
-  values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)"))
+    CreateStmt(crate::client::async_::Stmt::new(
+        "insert into users (id, name, email, email_verified, created_at, last_login, last_name_change, enabled, admin, newsletter) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+    ))
 }
 pub struct CreateStmt(crate::client::async_::Stmt);
 impl CreateStmt {
@@ -943,8 +921,7 @@ impl<'a, C: GenericClient + Send + Sync, T1: crate::StringSql, T2: crate::String
 }
 pub fn create_profile() -> CreateProfileStmt {
     CreateProfileStmt(crate::client::async_::Stmt::new(
-        "insert into user_profiles (user_id, display_name, bio, tags)
-  values ($1, $2, $3, $4)",
+        "insert into user_profiles (user_id, display_name, bio, tags) values ($1, $2, $3, $4)",
     ))
 }
 pub struct CreateProfileStmt(crate::client::async_::Stmt);
@@ -1008,8 +985,9 @@ impl<
     }
 }
 pub fn create_invoice_info() -> CreateInvoiceInfoStmt {
-    CreateInvoiceInfoStmt(crate::client::async_::Stmt::new("insert into user_invoice_info (user_id, business, first_name, last_name, street, zip_code, city, country, vat_id)
-  values ($1, $2, $3, $4, $5, $6, $7, $8, $9)"))
+    CreateInvoiceInfoStmt(crate::client::async_::Stmt::new(
+        "insert into user_invoice_info (user_id, business, first_name, last_name, street, zip_code, city, country, vat_id) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+    ))
 }
 pub struct CreateInvoiceInfoStmt(crate::client::async_::Stmt);
 impl CreateInvoiceInfoStmt {
@@ -1095,17 +1073,7 @@ impl<
 }
 pub fn update() -> UpdateStmt {
     UpdateStmt(crate::client::async_::Stmt::new(
-        "update users
-  set
-    name=coalesce($1, name),
-    email=coalesce($2, email),
-    email_verified=coalesce($3, email_verified),
-    last_login=coalesce($4, last_login),
-    last_name_change=coalesce($5, last_name_change),
-    enabled=coalesce($6, enabled),
-    admin=coalesce($7, admin),
-    newsletter=coalesce($8, newsletter)
-  where id=$9",
+        "update users set name=coalesce($1, name), email=coalesce($2, email), email_verified=coalesce($3, email_verified), last_login=coalesce($4, last_login), last_name_change=coalesce($5, last_name_change), enabled=coalesce($6, enabled), admin=coalesce($7, admin), newsletter=coalesce($8, newsletter) where id=$9",
     ))
 }
 pub struct UpdateStmt(crate::client::async_::Stmt);
@@ -1177,12 +1145,7 @@ impl<'a, C: GenericClient + Send + Sync, T1: crate::StringSql, T2: crate::String
 }
 pub fn update_profile() -> UpdateProfileStmt {
     UpdateProfileStmt(crate::client::async_::Stmt::new(
-        "update user_profiles
-  set
-    display_name=coalesce($1, display_name),
-    bio=coalesce($2, bio),
-    tags=coalesce($3, tags)
-  where user_id=$4",
+        "update user_profiles set display_name=coalesce($1, display_name), bio=coalesce($2, bio), tags=coalesce($3, tags) where user_id=$4",
     ))
 }
 pub struct UpdateProfileStmt(crate::client::async_::Stmt);
@@ -1247,17 +1210,7 @@ impl<
 }
 pub fn update_invoice_info() -> UpdateInvoiceInfoStmt {
     UpdateInvoiceInfoStmt(crate::client::async_::Stmt::new(
-        "update user_invoice_info
-  set
-    business=case when $1 then null else coalesce($2, business) end,
-    first_name=case when $3 then null else coalesce($4, first_name) end,
-    last_name=case when $5 then null else coalesce($6, last_name) end,
-    street=case when $7 then null else coalesce($8, street) end,
-    zip_code=case when $9 then null else coalesce($10, zip_code) end,
-    city=case when $11 then null else coalesce($12, city) end,
-    country=case when $13 then null else coalesce($14, country) end,
-    vat_id=case when $15 then null else coalesce($16, vat_id) end
-  where user_id=$17",
+        "update user_invoice_info set business=case when $1 then null else coalesce($2, business) end, first_name=case when $3 then null else coalesce($4, first_name) end, last_name=case when $5 then null else coalesce($6, last_name) end, street=case when $7 then null else coalesce($8, street) end, zip_code=case when $9 then null else coalesce($10, zip_code) end, city=case when $11 then null else coalesce($12, city) end, country=case when $13 then null else coalesce($14, country) end, vat_id=case when $15 then null else coalesce($16, vat_id) end where user_id=$17",
     ))
 }
 pub struct UpdateInvoiceInfoStmt(crate::client::async_::Stmt);
@@ -1412,9 +1365,7 @@ impl GetPasswordHashStmt {
 }
 pub fn set_password_hash() -> SetPasswordHashStmt {
     SetPasswordHashStmt(crate::client::async_::Stmt::new(
-        "insert into user_passwords (user_id, password_hash)
-  values ($1, $2)
-  on conflict (user_id) do update set password_hash=$2",
+        "insert into user_passwords (user_id, password_hash) values ($1, $2) on conflict (user_id) do update set password_hash=$2",
     ))
 }
 pub struct SetPasswordHashStmt(crate::client::async_::Stmt);
@@ -1469,12 +1420,7 @@ impl RemovePasswordHashStmt {
 }
 pub fn get_number() -> GetNumberStmt {
     GetNumberStmt(crate::client::async_::Stmt::new(
-        "merge into user_numbers
-  using (select $1::uuid as user_id) s
-  on user_numbers.user_id = s.user_id
-  when matched then update set number=number
-  when not matched then insert (user_id, number) values ($1, nextval('user_number'))
-  returning number",
+        "merge into user_numbers using (select $1::uuid as user_id) s on user_numbers.user_id = s.user_id when matched then update set number=number when not matched then insert (user_id, number) values ($1, nextval('user_number')) returning number",
     ))
 }
 pub struct GetNumberStmt(crate::client::async_::Stmt);

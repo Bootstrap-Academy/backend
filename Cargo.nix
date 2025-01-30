@@ -6045,9 +6045,9 @@ rec {
       };
       "config" = rec {
         crateName = "config";
-        version = "0.15.6";
+        version = "0.15.7";
         edition = "2018";
-        sha256 = "1r1d4sr1ps2v2gpz81sf6ag3z626lwrz9hb9jqr256vfg552jag3";
+        sha256 = "15i5wfi1mlgx29xd5g6zw71al0dssm3199px3h4llp27594rarp2";
         dependencies = [
           {
             name = "pathdiff";
@@ -6066,7 +6066,7 @@ rec {
           }
           {
             name = "winnow";
-            packageId = "winnow";
+            packageId = "winnow 0.7.0";
           }
         ];
         features = {
@@ -14689,7 +14689,7 @@ rec {
           }
           {
             name = "winnow";
-            packageId = "winnow";
+            packageId = "winnow 0.6.25";
             optional = true;
           }
         ];
@@ -17949,11 +17949,33 @@ rec {
         ];
 
       };
-      "winnow" = rec {
+      "winnow 0.6.25" = rec {
         crateName = "winnow";
         version = "0.6.25";
         edition = "2021";
         sha256 = "046k3772481hxa596krj2fckpzf61983aps3nipcrihjhbs9ssdd";
+        dependencies = [
+          {
+            name = "memchr";
+            packageId = "memchr";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+        ];
+        features = {
+          "debug" = [ "std" "dep:anstream" "dep:anstyle" "dep:is-terminal" "dep:terminal_size" ];
+          "default" = [ "std" ];
+          "simd" = [ "dep:memchr" ];
+          "std" = [ "alloc" "memchr?/std" ];
+          "unstable-doc" = [ "alloc" "std" "simd" "unstable-recover" ];
+        };
+        resolvedDefaultFeatures = [ "alloc" "default" "std" ];
+      };
+      "winnow 0.7.0" = rec {
+        crateName = "winnow";
+        version = "0.7.0";
+        edition = "2021";
+        sha256 = "06948rqffp1iww8rr2wm12gkakzvxhvr04wlkfrnkb9zbp9x4jby";
         dependencies = [
           {
             name = "memchr";

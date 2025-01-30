@@ -183,16 +183,13 @@ impl GetStmt {
                 created_at: row.get(3),
                 updated_at: row.get(4),
             },
-            mapper: |it| <Session>::from(it),
+            mapper: |it| Session::from(it),
         }
     }
 }
 pub fn get_by_refresh_token_hash() -> GetByRefreshTokenHashStmt {
     GetByRefreshTokenHashStmt(crate::client::async_::Stmt::new(
-        "select s.* from sessions s
-  inner join session_refresh_tokens rt
-  on s.id=rt.session_id
-  where rt.refresh_token_hash=$1",
+        "select s.* from sessions s inner join session_refresh_tokens rt on s.id=rt.session_id where rt.refresh_token_hash=$1",
     ))
 }
 pub struct GetByRefreshTokenHashStmt(crate::client::async_::Stmt);
@@ -213,7 +210,7 @@ impl GetByRefreshTokenHashStmt {
                 created_at: row.get(3),
                 updated_at: row.get(4),
             },
-            mapper: |it| <Session>::from(it),
+            mapper: |it| Session::from(it),
         }
     }
 }
@@ -240,14 +237,13 @@ impl ListByUserStmt {
                 created_at: row.get(3),
                 updated_at: row.get(4),
             },
-            mapper: |it| <Session>::from(it),
+            mapper: |it| Session::from(it),
         }
     }
 }
 pub fn create() -> CreateStmt {
     CreateStmt(crate::client::async_::Stmt::new(
-        "insert into sessions (id, user_id, device_name, created_at, updated_at)
-  values ($1, $2, $3, $4, $5)",
+        "insert into sessions (id, user_id, device_name, created_at, updated_at) values ($1, $2, $3, $4, $5)",
     ))
 }
 pub struct CreateStmt(crate::client::async_::Stmt);
@@ -298,11 +294,7 @@ impl<'a, C: GenericClient + Send + Sync, T1: crate::StringSql>
 }
 pub fn update() -> UpdateStmt {
     UpdateStmt(crate::client::async_::Stmt::new(
-        "update sessions
-  set
-    device_name=case when $1 then null else coalesce($2, device_name) end,
-    updated_at=coalesce($3, updated_at)
-  where id=$4",
+        "update sessions set device_name=case when $1 then null else coalesce($2, device_name) end, updated_at=coalesce($3, updated_at) where id=$4",
     ))
 }
 pub struct UpdateStmt(crate::client::async_::Stmt);
@@ -399,10 +391,7 @@ impl DeleteByUpdatedAtStmt {
 }
 pub fn list_refresh_token_hashes_by_user() -> ListRefreshTokenHashesByUserStmt {
     ListRefreshTokenHashesByUserStmt(crate::client::async_::Stmt::new(
-        "select rt.refresh_token_hash
-  from session_refresh_tokens rt
-  inner join sessions s on s.id=rt.session_id
-  where s.user_id=$1",
+        "select rt.refresh_token_hash from session_refresh_tokens rt inner join sessions s on s.id=rt.session_id where s.user_id=$1",
     ))
 }
 pub struct ListRefreshTokenHashesByUserStmt(crate::client::async_::Stmt);
@@ -444,9 +433,7 @@ impl GetRefreshTokenHashStmt {
 }
 pub fn set_refresh_token_hash() -> SetRefreshTokenHashStmt {
     SetRefreshTokenHashStmt(crate::client::async_::Stmt::new(
-        "insert into session_refresh_tokens (session_id, refresh_token_hash)
-  values ($1, $2)
-  on conflict (session_id) do update set refresh_token_hash=$2",
+        "insert into session_refresh_tokens (session_id, refresh_token_hash) values ($1, $2) on conflict (session_id) do update set refresh_token_hash=$2",
     ))
 }
 pub struct SetRefreshTokenHashStmt(crate::client::async_::Stmt);

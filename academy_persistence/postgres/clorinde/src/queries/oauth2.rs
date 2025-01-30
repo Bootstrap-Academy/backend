@@ -128,7 +128,7 @@ impl ListLinksByUserStmt {
                 remote_user_id: row.get(4),
                 remote_user_name: row.get(5),
             },
-            mapper: |it| <OAuth2Link>::from(it),
+            mapper: |it| OAuth2Link::from(it),
         }
     }
 }
@@ -156,13 +156,14 @@ impl GetLinkStmt {
                 remote_user_id: row.get(4),
                 remote_user_name: row.get(5),
             },
-            mapper: |it| <OAuth2Link>::from(it),
+            mapper: |it| OAuth2Link::from(it),
         }
     }
 }
 pub fn create_link() -> CreateLinkStmt {
-    CreateLinkStmt(crate::client::async_::Stmt::new("insert into oauth2_links (id, user_id, provider_id, created_at, remote_user_id, remote_user_name)
-  values ($1, $2, $3, $4, $5, $6)"))
+    CreateLinkStmt(crate::client::async_::Stmt::new(
+        "insert into oauth2_links (id, user_id, provider_id, created_at, remote_user_id, remote_user_name) values ($1, $2, $3, $4, $5, $6)",
+    ))
 }
 pub struct CreateLinkStmt(crate::client::async_::Stmt);
 impl CreateLinkStmt {

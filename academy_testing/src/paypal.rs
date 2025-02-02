@@ -12,8 +12,8 @@ use axum_extra::{
     TypedHeader,
 };
 use rand::{
-    distributions::{Alphanumeric, DistString},
-    thread_rng,
+    distr::{Alphanumeric, SampleString},
+    rng,
 };
 use serde::{Deserialize, Serialize};
 use tokio::{net::TcpListener, sync::RwLock};
@@ -187,5 +187,5 @@ struct CaptureOrderResponse {
 }
 
 fn generate_order_id() -> String {
-    Alphanumeric.sample_string(&mut thread_rng(), 32)
+    Alphanumeric.sample_string(&mut rng(), 32)
 }

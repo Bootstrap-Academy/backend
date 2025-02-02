@@ -40,6 +40,7 @@ in {
       ${lib.getExe pkgs.gnused} -i '/use postgres;/d' clorinde/src/lib.rs
       ${lib.getExe pkgs.gnused} -i '/^#\[cfg(feature = "time")\]$/,/^}$/d' clorinde/src/types.rs
       ${lib.getExe pkgs.gnused} -i '/^#\[cfg/d' clorinde/src/{lib,types,client/async_}.rs
+      ${lib.getExe pkgs.gnused} -i 's/use fallible_iterator/use postgres::fallible_iterator/' clorinde/src/array_iterator.rs
     '';
 
   update-swagger-ui = pkgs.writeShellScriptBin "update-swagger-ui" ''

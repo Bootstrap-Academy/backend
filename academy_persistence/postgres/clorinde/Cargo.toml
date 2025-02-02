@@ -10,8 +10,8 @@ repository.workspace = true
 chrono.workspace = true
 deadpool-postgres = "0.14.1"
 futures.workspace = true
-postgres = { version = "0.19.9" }
-postgres-protocol = "0.6.7"
-postgres-types = { version = "0.2.8", features = ["derive"] }
-tokio-postgres = { version = "0.7.12", features = ["with-chrono-0_4", "with-uuid-1"] }
+postgres = { version = "0.19.10" }
+postgres-protocol = "0.6.8"
+postgres-types = { version = "0.2.9", features = ["derive"] }
+tokio-postgres = { version = "0.7.13", features = ["with-chrono-0_4", "with-uuid-1"] }
 uuid.workspace = true

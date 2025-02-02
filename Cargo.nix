@@ -10529,9 +10529,9 @@ rec {
       };
       "postgres-protocol" = rec {
         crateName = "postgres-protocol";
-        version = "0.6.7";
+        version = "0.6.8";
         edition = "2018";
-        sha256 = "08sbm36w68vyrzaaxiv8srrr1w65wi8ycdgf9flfz2y2xfyhxnmc";
+        sha256 = "0m2w0zfbamk2qw1dfb7gm9i60dhazhg1zf7p7swl9f59njx0mzvn";
         libName = "postgres_protocol";
         authors = [
           "Steven Fackler <sfackler@gmail.com>"
@@ -10567,7 +10567,7 @@ rec {
           }
           {
             name = "rand";
-            packageId = "rand 0.8.5";
+            packageId = "rand 0.9.0";
           }
           {
             name = "sha2";
@@ -10580,15 +10580,15 @@ rec {
         ];
         features = {
           "getrandom" = [ "dep:getrandom" ];
-          "js" = [ "getrandom/js" ];
+          "js" = [ "getrandom/wasm_js" ];
         };
         resolvedDefaultFeatures = [ "default" ];
       };
       "postgres-types" = rec {
         crateName = "postgres-types";
-        version = "0.2.8";
+        version = "0.2.9";
         edition = "2018";
-        sha256 = "0vrkxhpwpymf5wpysjzkjrv9a2jy6f9m2w2pfclk8mqf5lxa4vpn";
+        sha256 = "0j2bvqv1zwjw3y41kmjy8ljygq27xv54im8q6py1s3nr7ib86ck1";
         libName = "postgres_types";
         authors = [
           "Steven Fackler <sfackler@gmail.com>"
@@ -10632,6 +10632,7 @@ rec {
           "bit-vec-06" = [ "dep:bit-vec-06" ];
           "chrono-04" = [ "dep:chrono-04" ];
           "cidr-02" = [ "dep:cidr-02" ];
+          "cidr-03" = [ "dep:cidr-03" ];
           "derive" = [ "postgres-derive" ];
           "eui48-04" = [ "dep:eui48-04" ];
           "eui48-1" = [ "dep:eui48-1" ];
@@ -10650,6 +10651,7 @@ rec {
           "with-bit-vec-0_6" = [ "bit-vec-06" ];
           "with-chrono-0_4" = [ "chrono-04" ];
           "with-cidr-0_2" = [ "cidr-02" ];
+          "with-cidr-0_3" = [ "cidr-03" ];
           "with-eui48-0_4" = [ "eui48-04" ];
           "with-eui48-1" = [ "eui48-1" ];
           "with-geo-types-0_6" = [ "geo-types-06" ];
@@ -11275,7 +11277,7 @@ rec {
           "std_rng" = [ "dep:rand_chacha" ];
           "thread_rng" = [ "std" "std_rng" "os_rng" ];
         };
-        resolvedDefaultFeatures = [ "alloc" "os_rng" "std" "std_rng" "thread_rng" ];
+        resolvedDefaultFeatures = [ "alloc" "default" "os_rng" "small_rng" "std" "std_rng" "thread_rng" ];
       };
       "rand_chacha 0.3.1" = rec {
         crateName = "rand_chacha";

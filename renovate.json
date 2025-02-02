@@ -22,6 +22,11 @@
       "groupName": "rust:axum",
       "matchManagers": ["cargo"],
       "matchPackageNames": ["axum", "axum-*", "aide"]
+    },
+    {
+      "groupName": "rust:postgres",
+      "matchManagers": ["cargo"],
+      "matchPackageNames": ["postgres", "postgres-*", "tokio-postgres"]
     }
   ],
 

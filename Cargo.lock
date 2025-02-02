@@ -1414,8 +1414,8 @@ version = "0.0.0"
 dependencies = [
  "chrono",
  "deadpool-postgres",
- "fallible-iterator",
  "futures",
+ "postgres",
  "postgres-protocol",
  "postgres-types",
  "tokio-postgres",
@@ -2905,6 +2905,20 @@ name = "portable-atomic"
 version = "1.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "280dc24453071f1b63954171985a0b0d30058d287960968b9b2aca264c8d4ee6"
+
+[[package]]
+name = "postgres"
+version = "0.19.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "95c918733159f4d55d2ceb262950f00b0aebd6af4aa97b5a47bb0655120475ed"
+dependencies = [
+ "bytes",
+ "fallible-iterator",
+ "futures-util",
+ "log",
+ "tokio",
+ "tokio-postgres",
+]
 
 [[package]]
 name = "postgres-derive"

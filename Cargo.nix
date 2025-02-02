@@ -5925,14 +5925,14 @@ rec {
             packageId = "deadpool-postgres";
           }
           {
-            name = "fallible-iterator";
-            packageId = "fallible-iterator";
-          }
-          {
             name = "futures";
             packageId = "futures";
             usesDefaultFeatures = false;
             features = [ "std" ];
+          }
+          {
+            name = "postgres";
+            packageId = "postgres";
           }
           {
             name = "postgres-protocol";
@@ -10443,6 +10443,59 @@ rec {
           "serde" = [ "dep:serde" ];
         };
         resolvedDefaultFeatures = [ "default" "fallback" ];
+      };
+      "postgres" = rec {
+        crateName = "postgres";
+        version = "0.19.9";
+        edition = "2018";
+        sha256 = "1vbm0h95a1mv8xd7paaamzbfn2hby182j9pb5ifxbx2r65riijcm";
+        authors = [
+          "Steven Fackler <sfackler@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "bytes";
+            packageId = "bytes";
+          }
+          {
+            name = "fallible-iterator";
+            packageId = "fallible-iterator";
+          }
+          {
+            name = "futures-util";
+            packageId = "futures-util";
+            features = [ "sink" ];
+          }
+          {
+            name = "log";
+            packageId = "log";
+          }
+          {
+            name = "tokio";
+            packageId = "tokio";
+            features = [ "rt" "time" ];
+          }
+          {
+            name = "tokio-postgres";
+            packageId = "tokio-postgres";
+          }
+        ];
+        features = {
+          "array-impls" = [ "tokio-postgres/array-impls" ];
+          "with-bit-vec-0_6" = [ "tokio-postgres/with-bit-vec-0_6" ];
+          "with-chrono-0_4" = [ "tokio-postgres/with-chrono-0_4" ];
+          "with-eui48-0_4" = [ "tokio-postgres/with-eui48-0_4" ];
+          "with-eui48-1" = [ "tokio-postgres/with-eui48-1" ];
+          "with-geo-types-0_6" = [ "tokio-postgres/with-geo-types-0_6" ];
+          "with-geo-types-0_7" = [ "tokio-postgres/with-geo-types-0_7" ];
+          "with-jiff-0_1" = [ "tokio-postgres/with-jiff-0_1" ];
+          "with-serde_json-1" = [ "tokio-postgres/with-serde_json-1" ];
+          "with-smol_str-01" = [ "tokio-postgres/with-smol_str-01" ];
+          "with-time-0_2" = [ "tokio-postgres/with-time-0_2" ];
+          "with-time-0_3" = [ "tokio-postgres/with-time-0_3" ];
+          "with-uuid-0_8" = [ "tokio-postgres/with-uuid-0_8" ];
+          "with-uuid-1" = [ "tokio-postgres/with-uuid-1" ];
+        };
       };
       "postgres-derive" = rec {
         crateName = "postgres-derive";

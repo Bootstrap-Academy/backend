@@ -16,8 +16,8 @@ use axum_extra::{
 };
 use oauth2::{PkceCodeChallenge, PkceCodeVerifier};
 use rand::{
-    distributions::{Alphanumeric, DistString},
-    thread_rng,
+    distr::{Alphanumeric, SampleString},
+    rng,
 };
 use serde::{Deserialize, Serialize};
 use tokio::{
@@ -242,5 +242,5 @@ async fn user(state: State, TypedHeader(auth): TypedHeader<Authorization<Bearer>
 }
 
 fn generate_code() -> String {
-    Alphanumeric.sample_string(&mut thread_rng(), 32)
+    Alphanumeric.sample_string(&mut rng(), 32)
 }

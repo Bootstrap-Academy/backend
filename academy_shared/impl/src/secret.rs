@@ -3,9 +3,8 @@ use academy_models::{mfa::MfaRecoveryCode, Sensitive, VerificationCode};
 use academy_shared_contracts::secret::SecretService;
 use academy_utils::trace_instrument;
 use rand::{
-    distributions::{Alphanumeric, DistString, Uniform},
-    prelude::Distribution,
-    thread_rng, CryptoRng, Rng, RngCore,
+    distr::{Alphanumeric, Distribution, SampleString, Uniform},
+    rng, CryptoRng, Rng, RngCore,
 };
 
 #[derive(Debug, Clone, Copy, Build)]
@@ -71,11 +70,13 @@ fn generate_hyphenated_code(
 }
 
 fn csprng() -> impl Rng + CryptoRng {
-    thread_rng()
+    rng()
 }
 
 fn uppercase_digits() -> impl Distribution<char> {
-    Uniform::new(0u8, 10 + 26).map(|x| (x + b'0' + (x >= 10) as u8 * 7) as char)
+    Uniform::new(0u8, 10 + 26)
+        .unwrap()
+        .map(|x| (x + b'0' + (x >= 10) as u8 * 7) as char)
 }
 
 #[cfg(test)]

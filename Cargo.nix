@@ -5764,10 +5764,10 @@ rec {
       };
       "clap" = rec {
         crateName = "clap";
-        version = "4.5.27";
+        version = "4.5.28";
         edition = "2021";
         crateBin = [];
-        sha256 = "15j720q1z953h1qxm2q5nwkmyhhl2vb45v017rqlhjrbk12h36vn";
+        sha256 = "1zq53kp3lfcz9xr584i7r9bw8ivkcra53jvj6v046hnr7cjc6xry";
         dependencies = [
           {
             name = "clap_builder";
@@ -5796,6 +5796,7 @@ rec {
           "unicode" = [ "clap_builder/unicode" ];
           "unstable-doc" = [ "clap_builder/unstable-doc" "derive" ];
           "unstable-ext" = [ "clap_builder/unstable-ext" ];
+          "unstable-markdown" = [ "clap_derive/unstable-markdown" ];
           "unstable-styles" = [ "clap_builder/unstable-styles" ];
           "unstable-v5" = [ "clap_builder/unstable-v5" "clap_derive?/unstable-v5" "deprecated" ];
           "usage" = [ "clap_builder/usage" ];
@@ -5872,9 +5873,9 @@ rec {
       };
       "clap_derive" = rec {
         crateName = "clap_derive";
-        version = "4.5.24";
+        version = "4.5.28";
         edition = "2021";
-        sha256 = "131ih3dm76srkbpfx7zfspp9b556zgzj31wqhl0ji2b39lcmbdsl";
+        sha256 = "1vgigkhljp3r8r5lwdrn1ij93nafmjwh8cx77nppb9plqsaysk5z";
         procMacro = true;
         dependencies = [
           {
@@ -5897,6 +5898,7 @@ rec {
         ];
         features = {
           "raw-deprecated" = [ "deprecated" ];
+          "unstable-markdown" = [ "dep:pulldown-cmark" "dep:anstyle" ];
           "unstable-v5" = [ "deprecated" ];
         };
         resolvedDefaultFeatures = [ "default" ];

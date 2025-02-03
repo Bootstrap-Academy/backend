@@ -1,7 +1,6 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nixpkgs-clorinde.url = "github:NixOS/nixpkgs/pull/377847/merge";
     fenix.url = "github:nix-community/fenix";
     devenv = {
       url = "github:cachix/devenv";
@@ -27,16 +26,7 @@
       "aarch64-darwin"
     ];
 
-    importNixpkgs = system:
-      import nixpkgs {
-        inherit system;
-        overlays = [
-          (final: prev: {
-            clorinde = assert prev.clorinde.version == "0.11.2";
-              inputs.nixpkgs-clorinde.legacyPackages.${system}.clorinde;
-          })
-        ];
-      };
+    importNixpkgs = system: import nixpkgs {inherit system;};
 
     mkDevShell = {
       system,

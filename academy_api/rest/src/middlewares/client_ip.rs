@@ -48,7 +48,7 @@ impl ClientIp {
 
         let header_value = request.headers().get(header);
 
-        if *set_from != client_ip {
+        if set_from.is_some_and(|set_from| set_from != client_ip) {
             // client is not trusted, fall back to socket address
             if let Some(header_value) = header_value {
                 debug!(%client_ip, ?header_value, "ignoring real ip header value from untrusted source");

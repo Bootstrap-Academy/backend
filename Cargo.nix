@@ -5537,15 +5537,16 @@ rec {
       };
       "bytes" = rec {
         crateName = "bytes";
-        version = "1.9.0";
+        version = "1.10.0";
         edition = "2018";
-        sha256 = "16ykzx24v1x4f42v2lxyvlczqhdfji3v7r4ghwckpwijzvb1hn9j";
+        sha256 = "1ybcmdrlxrsrn7lnl0xrjg10j7zb4r01jjs5b2sqhrcwh62aq7gn";
         authors = [
           "Carl Lerche <me@carllerche.com>"
           "Sean McArthur <sean@seanmonstar.com>"
         ];
         features = {
           "default" = [ "std" ];
+          "extra-platforms" = [ "dep:extra-platforms" ];
           "serde" = [ "dep:serde" ];
         };
         resolvedDefaultFeatures = [ "default" "std" ];
@@ -18218,9 +18219,9 @@ rec {
       };
       "winnow" = rec {
         crateName = "winnow";
-        version = "0.7.0";
+        version = "0.7.1";
         edition = "2021";
-        sha256 = "06948rqffp1iww8rr2wm12gkakzvxhvr04wlkfrnkb9zbp9x4jby";
+        sha256 = "0pslmfs69hp44qgca8iys5agkjrs1ng75kv3ni6z8hsgbz3pdqw6";
         dependencies = [
           {
             name = "memchr";

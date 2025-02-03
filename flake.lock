@@ -221,22 +221,6 @@
         "type": "github"
       }
     },
-    "nixpkgs-clorinde": {
-      "locked": {
-        "lastModified": 1738248984,
-        "narHash": "sha256-MgEEaupTVusr5H/PLxsMqR72NODLNyOw+hXnpH9N9Ek=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "a463d39ec97d7dcce538eab8f1440936210a4c65",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "ref": "pull/377847/merge",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "nixpkgs_2": {
       "locked": {
         "lastModified": 1717432640,
@@ -271,11 +255,11 @@
     },
     "nixpkgs_4": {
       "locked": {
-        "lastModified": 1738142207,
-        "narHash": "sha256-NGqpVVxNAHwIicXpgaVqJEJWeyqzoQJ9oc8lnK9+WC4=",
+        "lastModified": 1738410390,
+        "narHash": "sha256-xvTo0Aw0+veek7hvEVLzErmJyQkEcRk6PSR4zsRQFEc=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "9d3ae807ebd2981d593cddd0080856873139aa40",
+        "rev": "3a228057f5b619feb3186e986dbe76278d707b6e",
         "type": "github"
       },
       "original": {
@@ -289,8 +273,7 @@
       "inputs": {
         "devenv": "devenv",
         "fenix": "fenix",
-        "nixpkgs": "nixpkgs_4",
-        "nixpkgs-clorinde": "nixpkgs-clorinde"
+        "nixpkgs": "nixpkgs_4"
       }
     },
     "rust-analyzer-src": {

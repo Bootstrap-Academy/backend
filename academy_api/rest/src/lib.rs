@@ -85,7 +85,7 @@ pub struct RestServerConfig {
 #[derive(Debug, Clone)]
 pub struct RestServerRealIpConfig {
     pub header: String,
-    pub set_from: IpAddr,
+    pub set_from: Option<IpAddr>,
 }
 
 impl<

@@ -120,7 +120,7 @@ where
 #[derive(Debug, Deserialize)]
 pub struct HttpRealIpConfig {
     pub header: String,
-    pub set_from: IpAddr,
+    pub set_from: Option<IpAddr>,
 }
 
 #[derive(Debug, Deserialize)]

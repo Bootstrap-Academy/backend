@@ -35,6 +35,8 @@ For development in [VSCode](https://code.visualstudio.com/)/[VSCodium](https://v
 - `valkey-cli`: Connect to the local Valkey cache
 - `cargo run -- --help`: List all commands provided by the backend CLI
 - `just`: List all recipes provided by the `justfile`
+- `generate`: Regenerate `Cargo.nix`. Run this command after changing any `Cargo.toml` or `Cargo.lock` file.
+- `generate-clorinde`: Regenerate `academy_persistence/postgres/clorinde`. Run this command after changing the database schema or the queries in `academy_persistence/postgres/queries`.
 
 ### Services
 - The web interface of [smtp4dev](https://github.com/rnwood/smtp4dev) is available on http://localhost:5000/

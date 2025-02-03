@@ -6389,9 +6389,9 @@ rec {
       };
       "deadpool" = rec {
         crateName = "deadpool";
-        version = "0.12.1";
+        version = "0.12.2";
         edition = "2021";
-        sha256 = "1vghb2lqmzn0spgkz44cr9sbyz7cnpzv3q2bimv5gzijd68s6hb5";
+        sha256 = "0bwf8qpi2k0p0pily20dqp1x5hrmg2hngcaslvvsss1pz5zrbmay";
         authors = [
           "Michael P. Jung <michael.jung@terreon.de>"
         ];

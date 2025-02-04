@@ -108,6 +108,6 @@ alias c := check
 
 # Create files for a new postgres database migration
 new-migration name:
-    touch "academy_persistence/postgres/migrations/$(date +%Y%m%d%H%M%S)_{{name}}".{up,down}.sql
+    p="academy_persistence/postgres/migrations/$(date +%Y-%m-%d-%H%M%S)_{{name}}"; mkdir "$p"; touch "$p"/{up,down}.sql
 [private]
 alias nm := new-migration

@@ -1,0 +1,1 @@
+../2024-08-30-010703_create_user_details_view/up.sql

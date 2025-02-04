@@ -50,7 +50,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@main
       - run: |
-          for m in academy_persistence/postgres/migrations/*.up.sql; do
+          for m in academy_persistence/postgres/migrations/*/up.sql; do
             psql -h 127.0.0.1 academy academy < "$m"
           done
       - run: nix run --accept-flake-config .#scripts.generate-clorinde

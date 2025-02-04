@@ -29,20 +29,18 @@ fn emit_migrations(path: &Path) {
 }
 
 fn collect_migrations() -> BTreeMap<String, (String, String)> {
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("migrations");
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("migrations")
+        .read_dir()
+        .unwrap()
+        .map(|file| {
+            let file = file.unwrap();
+            let name = file.file_name().into_string().unwrap();
 
-    let mut out = BTreeMap::new();
-    for file in dir.read_dir().unwrap() {
-        let file = file.unwrap();
-        let name = file.file_name().into_string().unwrap();
+            let up = std::fs::read_to_string(file.path().join("up.sql")).unwrap();
+            let down = std::fs::read_to_string(file.path().join("down.sql")).unwrap();
 
-        if let Some(name) = name.strip_suffix(".up.sql").map(ToOwned::to_owned) {
-            let (up, _) = out.entry(name).or_insert_with(Default::default);
-            *up = std::fs::read_to_string(file.path()).unwrap();
-        } else if let Some(name) = name.strip_suffix(".down.sql").map(ToOwned::to_owned) {
-            let (_, down) = out.entry(name).or_insert_with(Default::default);
-            *down = std::fs::read_to_string(file.path()).unwrap();
-        }
-    }
-    out
+            (name, (up, down))
+        })
+        .collect()
 }

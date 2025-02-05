@@ -15827,9 +15827,9 @@ rec {
       };
       "uuid" = rec {
         crateName = "uuid";
-        version = "1.12.1";
+        version = "1.13.0";
         edition = "2018";
-        sha256 = "0jxdmn94164g5yj9k152k5a47fysrz1f5dzrr1nbjaqrd1g8yxdk";
+        sha256 = "0q3hjb1s0gdnmx72l39gjfpyc88590zfx440v2kwfpzxkxm057av";
         authors = [
           "Ashley Mannix<ashleymannix@live.com.au>"
           "Dylan DPC<dylan.dpc@gmail.com>"
@@ -15838,8 +15838,9 @@ rec {
         dependencies = [
           {
             name = "getrandom";
-            packageId = "getrandom 0.2.15";
+            packageId = "getrandom 0.3.1";
             optional = true;
+            target = { target, features }: (!(("wasm32" == target."arch" or null) && ("unknown" == target."vendor" or null) && ("unknown" == target."os" or null)));
           }
           {
             name = "serde";
@@ -15855,13 +15856,16 @@ rec {
           "bytemuck" = [ "dep:bytemuck" ];
           "default" = [ "std" ];
           "fast-rng" = [ "rng" "dep:rand" ];
-          "js" = [ "dep:wasm-bindgen" "getrandom?/js" ];
+          "js" = [ "dep:wasm-bindgen" ];
           "macro-diagnostics" = [ "dep:uuid-macro-internal" ];
           "md5" = [ "dep:md-5" ];
           "rng" = [ "dep:getrandom" ];
+          "rng-getrandom" = [ "rng" "dep:getrandom" "uuid-rng-internal-lib" "uuid-rng-internal-lib/getrandom" ];
+          "rng-rand" = [ "rng" "dep:rand" "uuid-rng-internal-lib" "uuid-rng-internal-lib/rand" ];
           "serde" = [ "dep:serde" ];
           "sha1" = [ "dep:sha1_smol" ];
           "slog" = [ "dep:slog" ];
+          "uuid-rng-internal-lib" = [ "dep:uuid-rng-internal-lib" ];
           "v1" = [ "atomic" ];
           "v3" = [ "md5" ];
           "v4" = [ "rng" ];

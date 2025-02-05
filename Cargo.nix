@@ -15827,9 +15827,9 @@ rec {
       };
       "uuid" = rec {
         crateName = "uuid";
-        version = "1.13.0";
+        version = "1.13.1";
         edition = "2018";
-        sha256 = "0q3hjb1s0gdnmx72l39gjfpyc88590zfx440v2kwfpzxkxm057av";
+        sha256 = "1l6cdln80l288dj5pgc44fsbc8xabyadxy37da9p6cq8psj7rn6f";
         authors = [
           "Ashley Mannix<ashleymannix@live.com.au>"
           "Dylan DPC<dylan.dpc@gmail.com>"
@@ -15856,7 +15856,7 @@ rec {
           "bytemuck" = [ "dep:bytemuck" ];
           "default" = [ "std" ];
           "fast-rng" = [ "rng" "dep:rand" ];
-          "js" = [ "dep:wasm-bindgen" ];
+          "js" = [ "dep:wasm-bindgen" "dep:js-sys" ];
           "macro-diagnostics" = [ "dep:uuid-macro-internal" ];
           "md5" = [ "dep:md-5" ];
           "rng" = [ "dep:getrandom" ];

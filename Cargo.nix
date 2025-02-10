@@ -5553,9 +5553,9 @@ rec {
       };
       "cc" = rec {
         crateName = "cc";
-        version = "1.2.12";
+        version = "1.2.13";
         edition = "2018";
-        sha256 = "1lh3b4v7mk8yx7d63f3255zvvsjx12ck06izgyzm5i4yvskifmvm";
+        sha256 = "1nizaxd11q0a8n5fy0ajbbvcl36w42gs0d1r0cpc0634h50p6xy7";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -9912,9 +9912,9 @@ rec {
       };
       "once_cell" = rec {
         crateName = "once_cell";
-        version = "1.20.2";
+        version = "1.20.3";
         edition = "2021";
-        sha256 = "0xb7rw1aqr7pa4z3b00y7786gyf8awx2gca3md73afy76dzgwq8j";
+        sha256 = "0bp6rgrsri1vfdcahsimk08zdiilv14ppgcnpbiw8hqyp2j64m4l";
         authors = [
           "Aleksey Kladov <aleksey.kladov@gmail.com>"
         ];
@@ -9931,9 +9931,9 @@ rec {
       };
       "os_info" = rec {
         crateName = "os_info";
-        version = "3.9.2";
+        version = "3.10.0";
         edition = "2018";
-        sha256 = "12zl51iws71ary70282kxbqfaizwd71ivv38xr0mg34rrk420rbf";
+        sha256 = "1dd6hpdrrmir059dxcbnci96209snb4f597bc1l2hqa7q99lwq1a";
         authors = [
           "Jan Schulte <hello@unexpected-co.de>"
           "Stanislav Tkach <stanislav.tkach@gmail.com>"
@@ -11267,7 +11267,7 @@ rec {
           }
           {
             name = "zerocopy";
-            packageId = "zerocopy 0.8.16";
+            packageId = "zerocopy 0.8.17";
             usesDefaultFeatures = false;
             features = [ "simd" ];
           }
@@ -11392,7 +11392,7 @@ rec {
           }
           {
             name = "zerocopy";
-            packageId = "zerocopy 0.8.16";
+            packageId = "zerocopy 0.8.17";
             usesDefaultFeatures = false;
           }
         ];
@@ -18448,30 +18448,30 @@ rec {
         };
         resolvedDefaultFeatures = [ "byteorder" "default" "derive" "simd" "zerocopy-derive" ];
       };
-      "zerocopy 0.8.16" = rec {
+      "zerocopy 0.8.17" = rec {
         crateName = "zerocopy";
-        version = "0.8.16";
+        version = "0.8.17";
         edition = "2021";
-        sha256 = "031hqq7gy3qngkd9m7vvhikiyl5jxi9mfyv0s6x05kk112khg33v";
+        sha256 = "04r7y63q0qanyk9ar9668sw8558mc0kvwfp0dp2nhfnfmiyl14da";
         authors = [
           "Joshua Liebow-Feeser <joshlf@google.com>"
         ];
         dependencies = [
           {
             name = "zerocopy-derive";
-            packageId = "zerocopy-derive 0.8.16";
+            packageId = "zerocopy-derive 0.8.17";
             optional = true;
           }
           {
             name = "zerocopy-derive";
-            packageId = "zerocopy-derive 0.8.16";
+            packageId = "zerocopy-derive 0.8.17";
             target = { target, features }: false;
           }
         ];
         devDependencies = [
           {
             name = "zerocopy-derive";
-            packageId = "zerocopy-derive 0.8.16";
+            packageId = "zerocopy-derive 0.8.17";
           }
         ];
         features = {
@@ -18509,11 +18509,11 @@ rec {
         ];
 
       };
-      "zerocopy-derive 0.8.16" = rec {
+      "zerocopy-derive 0.8.17" = rec {
         crateName = "zerocopy-derive";
-        version = "0.8.16";
+        version = "0.8.17";
         edition = "2021";
-        sha256 = "09by849lsvhk879c1nxzm2hywbxjnrmygk9ni51ffdlqkadbq9jj";
+        sha256 = "09l698q12ni5470qajmxfhh9m5a6sfm37c8bzzax7jk5hcb8lw86";
         procMacro = true;
         libName = "zerocopy_derive";
         authors = [

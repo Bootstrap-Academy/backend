@@ -9401,9 +9401,9 @@ rec {
       };
       "miniz_oxide" = rec {
         crateName = "miniz_oxide";
-        version = "0.8.3";
+        version = "0.8.4";
         edition = "2021";
-        sha256 = "093r1kd1r9dyf05cbvsibgmh96pxp3qhzfvpd6f15bpggamjqh5q";
+        sha256 = "06ydc8zp00832jwyyl2pbqc2dam1njrrxsznhyrziw719yywkcdk";
         authors = [
           "Frommi <daniil.liferenko@gmail.com>"
           "oyvindln <oyvindln@users.noreply.github.com>"
@@ -12574,9 +12574,9 @@ rec {
       };
       "rustls" = rec {
         crateName = "rustls";
-        version = "0.23.22";
+        version = "0.23.23";
         edition = "2021";
-        sha256 = "19qvd1digcidv245qk8mkfjibmzvp3irdc0x6915wsgbnhx2dfcz";
+        sha256 = "15gk2bmry78cps3ya38a7cn4jxc36xv1r7gndr0fbz40qjc6qya7";
         dependencies = [
           {
             name = "log";
@@ -13838,9 +13838,9 @@ rec {
       };
       "stacker" = rec {
         crateName = "stacker";
-        version = "0.1.17";
-        edition = "2015";
-        sha256 = "0yya93mkaxidcxcc1jhfvb58xpmnp4ikyyqsmyc5xnxbalyqi73r";
+        version = "0.1.18";
+        edition = "2021";
+        sha256 = "0pk8flwpczy70qgsn425d5xga8yw530h76w1xnx6bd4myswgw20x";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
           "Simonas Kazlauskas <stacker@kazlauskas.me>"
@@ -14906,9 +14906,9 @@ rec {
       };
       "toml_edit" = rec {
         crateName = "toml_edit";
-        version = "0.22.23";
+        version = "0.22.24";
         edition = "2021";
-        sha256 = "1vhvransgx1ksmdzbr1k3h1xjgs5wfp8k9315n7c3mx3s5rb9a02";
+        sha256 = "0x0lgp70x5cl9nla03xqs5vwwwlrwmd0djkdrp3h3lpdymgpkd0p";
         authors = [
           "Andronik Ordian <write@reusable.software>"
           "Ed Page <eopage@gmail.com>"
@@ -18225,9 +18225,9 @@ rec {
       };
       "winnow" = rec {
         crateName = "winnow";
-        version = "0.7.1";
+        version = "0.7.2";
         edition = "2021";
-        sha256 = "0pslmfs69hp44qgca8iys5agkjrs1ng75kv3ni6z8hsgbz3pdqw6";
+        sha256 = "00znis68117jk13aw41g048wvvv3h0xw5jmhlg8rh8cg2vm0ssar";
         dependencies = [
           {
             name = "memchr";

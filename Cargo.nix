@@ -8996,9 +8996,9 @@ rec {
       };
       "lettre" = rec {
         crateName = "lettre";
-        version = "0.11.12";
+        version = "0.11.13";
         edition = "2021";
-        sha256 = "1y33iwk21dg7iccacc6cb87dz9xi291ij0kn8wcmk90hk14f30p8";
+        sha256 = "1abnq190060f7cgxzl1yp3k7l5ymmx7sjpvfkk82ygcz7pr76hjh";
         authors = [
           "Alexis Mousset <contact@amousset.me>"
           "Paolo Barbolini <paolo@paolo565.org>"
@@ -9176,6 +9176,7 @@ rec {
           "tokio1-native-tls" = [ "tokio1" "native-tls" "dep:tokio1_native_tls_crate" ];
           "tokio1-rustls-tls" = [ "tokio1" "rustls-tls" "dep:tokio1_rustls" ];
           "tracing" = [ "dep:tracing" ];
+          "web" = [ "dep:web-time" ];
         };
         resolvedDefaultFeatures = [ "builder" "hostname" "pool" "rustls-tls" "serde" "smtp-transport" "tokio1" "tokio1-rustls-tls" "tracing" ];
       };

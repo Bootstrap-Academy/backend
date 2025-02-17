@@ -5224,9 +5224,9 @@ rec {
       };
       "bb8-redis" = rec {
         crateName = "bb8-redis";
-        version = "0.20.0";
+        version = "0.21.0";
         edition = "2021";
-        sha256 = "0w4hc75zbb4fq4q1m0x8kkvfpkna1iih4s907i9zfvl130lnfa1l";
+        sha256 = "0l8k2b2afw99pcygkhk4ppm2yj3jrmy3jyh2xp7xqmy4frf22s4a";
         libName = "bb8_redis";
         dependencies = [
           {
@@ -11406,9 +11406,9 @@ rec {
       };
       "redis" = rec {
         crateName = "redis";
-        version = "0.28.2";
+        version = "0.29.0";
         edition = "2021";
-        sha256 = "19mx0bjhvg2hq8kmihx7mj86b6lrsws7dk56gfafr8my8kyw6zp3";
+        sha256 = "0ws3vxj7sj98yjvlxah96rvjgg1akmm2i7na5d8idzfyid78js4m";
         dependencies = [
           {
             name = "arc-swap";
@@ -11454,6 +11454,11 @@ rec {
             packageId = "ryu";
           }
           {
+            name = "socket2";
+            packageId = "socket2";
+            features = [ "all" ];
+          }
+          {
             name = "tokio";
             packageId = "tokio";
             optional = true;
@@ -11485,20 +11490,20 @@ rec {
           "async-std-tls-comp" = [ "async-std-native-tls-comp" ];
           "bigdecimal" = [ "dep:bigdecimal" ];
           "bytes" = [ "dep:bytes" ];
+          "cache-aio" = [ "aio" "dep:lru" ];
           "cluster" = [ "dep:crc16" "dep:rand" ];
           "cluster-async" = [ "aio" "cluster" "dep:futures-sink" "dep:log" ];
           "connection-manager" = [ "dep:futures-channel" "aio" "dep:backon" ];
           "default" = [ "acl" "streams" "geospatial" "script" "keep-alive" ];
           "hashbrown" = [ "dep:hashbrown" ];
           "json" = [ "dep:serde" "serde/derive" "dep:serde_json" ];
-          "keep-alive" = [ "dep:socket2" ];
           "r2d2" = [ "dep:r2d2" ];
           "rust_decimal" = [ "dep:rust_decimal" ];
           "script" = [ "dep:sha1_smol" ];
           "sentinel" = [ "dep:rand" ];
           "tls" = [ "tls-native-tls" ];
           "tls-native-tls" = [ "dep:native-tls" ];
-          "tls-rustls" = [ "dep:rustls" "rustls/std" "rustls/ring" "dep:rustls-native-certs" "dep:rustls-pemfile" "dep:rustls-pki-types" ];
+          "tls-rustls" = [ "dep:rustls" "rustls/std" "rustls/ring" "dep:rustls-native-certs" ];
           "tls-rustls-insecure" = [ "tls-rustls" ];
           "tls-rustls-webpki-roots" = [ "tls-rustls" "dep:webpki-roots" ];
           "tokio-comp" = [ "aio" "tokio/net" ];

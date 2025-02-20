@@ -7379,9 +7379,9 @@ rec {
       };
       "h2" = rec {
         crateName = "h2";
-        version = "0.4.7";
+        version = "0.4.8";
         edition = "2021";
-        sha256 = "0bljg66n2x3c5yzbi12v2jfcj77hb35rjq0gq21x0d6n52bjgbnc";
+        sha256 = "1hp3lijg1br982kzgglb5ks2ibg68a76z3rl052r8c5vyi7jj5sh";
         authors = [
           "Carl Lerche <me@carllerche.com>"
           "Sean McArthur <sean@seanmonstar.com>"
@@ -11269,7 +11269,7 @@ rec {
           }
           {
             name = "zerocopy";
-            packageId = "zerocopy 0.8.18";
+            packageId = "zerocopy 0.8.20";
             usesDefaultFeatures = false;
             features = [ "simd" ];
           }
@@ -11394,7 +11394,7 @@ rec {
           }
           {
             name = "zerocopy";
-            packageId = "zerocopy 0.8.18";
+            packageId = "zerocopy 0.8.20";
             usesDefaultFeatures = false;
           }
         ];
@@ -15396,10 +15396,9 @@ rec {
       };
       "typenum" = rec {
         crateName = "typenum";
-        version = "1.17.0";
+        version = "1.18.0";
         edition = "2018";
-        sha256 = "09dqxv69m9lj9zvv6xw5vxaqx15ps0vxyy5myg33i0kbqvq0pzs2";
-        build = "build/main.rs";
+        sha256 = "0gwgz8n91pv40gabrr1lzji0b0hsmg0817njpy397bq7rvizzk0x";
         authors = [
           "Paho Lurie-Gregg <paho@paholg.com>"
           "Andre Bogus <bogusandre@gmail.com>"
@@ -15565,9 +15564,9 @@ rec {
       };
       "unicode-ident" = rec {
         crateName = "unicode-ident";
-        version = "1.0.16";
+        version = "1.0.17";
         edition = "2018";
-        sha256 = "0d2hji0i16naw43l02dplrz8fbv625n7475s463iqw4by1hd2452";
+        sha256 = "1gpdxvaskz04whays5igg4zyca0dl7vdy2arsfxb13kpjcx4gqh0";
         libName = "unicode_ident";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
@@ -18213,9 +18212,9 @@ rec {
       };
       "winnow" = rec {
         crateName = "winnow";
-        version = "0.7.2";
+        version = "0.7.3";
         edition = "2021";
-        sha256 = "00znis68117jk13aw41g048wvvv3h0xw5jmhlg8rh8cg2vm0ssar";
+        sha256 = "1c9bmhpdwbdmll6b4l6skabz0296dchnmnxw84hh2y3ggyllwzqf";
         dependencies = [
           {
             name = "memchr";
@@ -18436,30 +18435,31 @@ rec {
         };
         resolvedDefaultFeatures = [ "byteorder" "default" "derive" "simd" "zerocopy-derive" ];
       };
-      "zerocopy 0.8.18" = rec {
+      "zerocopy 0.8.20" = rec {
         crateName = "zerocopy";
-        version = "0.8.18";
+        version = "0.8.20";
         edition = "2021";
-        sha256 = "1hirp0iazxdmjpzhq9qnyhm1308gp7fij2bb6gircj9alhqnsf3r";
+        sha256 = "0k08s03cipm2lrafmqm8c0zcxkhhdfnil8n99bnz3wx8d26bpqyx";
         authors = [
           "Joshua Liebow-Feeser <joshlf@google.com>"
+          "Jack Wrenn <jswrenn@amazon.com>"
         ];
         dependencies = [
           {
             name = "zerocopy-derive";
-            packageId = "zerocopy-derive 0.8.18";
+            packageId = "zerocopy-derive 0.8.20";
             optional = true;
           }
           {
             name = "zerocopy-derive";
-            packageId = "zerocopy-derive 0.8.18";
+            packageId = "zerocopy-derive 0.8.20";
             target = { target, features }: false;
           }
         ];
         devDependencies = [
           {
             name = "zerocopy-derive";
-            packageId = "zerocopy-derive 0.8.18";
+            packageId = "zerocopy-derive 0.8.20";
           }
         ];
         features = {
@@ -18497,15 +18497,16 @@ rec {
         ];
 
       };
-      "zerocopy-derive 0.8.18" = rec {
+      "zerocopy-derive 0.8.20" = rec {
         crateName = "zerocopy-derive";
-        version = "0.8.18";
+        version = "0.8.20";
         edition = "2021";
-        sha256 = "1drdraf9y1dv933hy7yhfc5j0fg6byysy4vys7w1pybjsdsiccvn";
+        sha256 = "0077n9rd82fg0g3sdlpawg7fj9sgdxigsdfslsbbz60q0wvp19gf";
         procMacro = true;
         libName = "zerocopy_derive";
         authors = [
           "Joshua Liebow-Feeser <joshlf@google.com>"
+          "Jack Wrenn <jswrenn@amazon.com>"
         ];
         dependencies = [
           {

@@ -4,23 +4,25 @@
   system,
   fenix,
   ...
-}: let
+}:
+let
   toolchain = fenix.packages.${system}.stable;
-in {
+in
+{
   generate = pkgs.writeShellScriptBin "generate" ''
     cd "$(${lib.getExe pkgs.git} rev-parse --show-toplevel)"
 
     ${lib.getExe pkgs.crate2nix} generate
   '';
 
-  generate-clorinde = let
-    rustfmtWrapper =
-      pkgs.runCommandNoCC "rustfmt-wrapper" {
-        nativeBuildInputs = [pkgs.makeWrapper];
-      } ''
-        makeWrapper ${lib.getExe' toolchain.toolchain "rustfmt"} $out/bin/rustfmt --add-flags --config-path=/dev/null
-      '';
-  in
+  generate-clorinde =
+    let
+      rustfmtWrapper =
+        pkgs.runCommandNoCC "rustfmt-wrapper" { nativeBuildInputs = [ pkgs.makeWrapper ]; }
+          ''
+            makeWrapper ${lib.getExe' toolchain.toolchain "rustfmt"} $out/bin/rustfmt --add-flags --config-path=/dev/null
+          '';
+    in
     pkgs.writeShellScriptBin "generate-clorinde" ''
       set -e
 
@@ -43,14 +45,27 @@ in {
       ${lib.getExe pkgs.gnused} -i 's/use fallible_iterator/use postgres::fallible_iterator/' clorinde/src/array_iterator.rs
     '';
 
-  update-swagger-ui = pkgs.writeShellScriptBin "update-swagger-ui" ''
-    export PATH=${lib.escapeShellArg (lib.makeBinPath (with pkgs; [git coreutils curl jq gnutar gzip]))}
+  update-swagger-ui =
+    let
+      runtimeDependencies = lib.attrValues {
+        inherit (pkgs)
+          git
+          coreutils
+          curl
+          jq
+          gnutar
+          gzip
+          ;
+      };
+    in
+    pkgs.writeShellScriptBin "update-swagger-ui" ''
+      export PATH=${lib.makeBinPath runtimeDependencies}
 
-    cd "$(git rev-parse --show-toplevel)/academy_assets/assets/swagger-ui"
+      cd "$(git rev-parse --show-toplevel)/academy_assets/assets/swagger-ui"
 
-    url=$(curl https://api.github.com/repos/swagger-api/swagger-ui/releases/latest | jq -r .tarball_url)
-    curl -L "$url" | tar xvz --wildcards --no-wildcards-match-slash '*/dist'
-    mv swagger-api-swagger-ui-*/dist/{swagger-ui-bundle.js,swagger-ui.css} .
-    rm -rf swagger-api-swagger-ui-*
-  '';
+      url=$(curl https://api.github.com/repos/swagger-api/swagger-ui/releases/latest | jq -r .tarball_url)
+      curl -L "$url" | tar xvz --wildcards --no-wildcards-match-slash '*/dist'
+      mv swagger-api-swagger-ui-*/dist/{swagger-ui-bundle.js,swagger-ui.css} .
+      rm -rf swagger-api-swagger-ui-*
+    '';
 }

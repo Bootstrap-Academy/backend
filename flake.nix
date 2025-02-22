@@ -6,72 +6,92 @@
       url = "github:cachix/devenv";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    treefmt-nix.url = "github:numtide/treefmt-nix";
   };
 
-  outputs = {
-    self,
-    nixpkgs,
-    fenix,
-    devenv,
-    ...
-  } @ inputs: let
-    inherit (nixpkgs) lib;
+  outputs =
+    {
+      self,
+      nixpkgs,
+      fenix,
+      devenv,
+      treefmt-nix,
+      ...
+    }@inputs:
+    let
+      inherit (nixpkgs) lib;
 
-    eachDefaultSystem = lib.genAttrs [
-      "x86_64-linux"
+      eachDefaultSystem = lib.genAttrs [
+        "x86_64-linux"
 
-      # untested
-      "aarch64-linux"
-      "x86_64-darwin"
-      "aarch64-darwin"
-    ];
+        # untested
+        "aarch64-linux"
+        "x86_64-darwin"
+        "aarch64-darwin"
+      ];
 
-    importNixpkgs = system: import nixpkgs {inherit system;};
+      importNixpkgs = system: import nixpkgs { inherit system; };
 
-    mkDevShell = {
-      system,
-      root ? null,
-    }:
-      devenv.lib.mkShell {
-        inputs = inputs // {inherit (self.packages.${system}) testing scripts;};
-        pkgs = importNixpkgs system;
-        modules = [
-          ./nix/dev.nix
-          {devenv.root = lib.mkIf (root != null) root;}
-        ];
-      };
-  in {
-    packages = eachDefaultSystem (system: let
-      pkgs = importNixpkgs system;
+      mkDevShell =
+        {
+          system,
+          root ? null,
+        }:
+        devenv.lib.mkShell {
+          inputs = inputs // {
+            inherit (self.packages.${system}) testing scripts;
+          };
+          pkgs = importNixpkgs system;
+          modules = [
+            ./nix/dev.nix
+            { devenv.root = lib.mkIf (root != null) root; }
+          ];
+        };
     in
-      (pkgs.callPackages ./nix/packages.nix {inherit fenix self;})
-      // {
-        tests = pkgs.callPackages ./nix/tests {inherit self;};
-        scripts = pkgs.callPackages ./nix/scripts.nix {inherit fenix;};
-        devenv-up = self.devShells.${system}.default.config.procfileScript;
+    {
+      packages = eachDefaultSystem (
+        system:
+        let
+          pkgs = importNixpkgs system;
+        in
+        (pkgs.callPackages ./nix/packages.nix { inherit fenix self; })
+        // {
+          tests = pkgs.callPackages ./nix/tests { inherit self; };
+          scripts = pkgs.callPackages ./nix/scripts.nix { inherit fenix; };
+          devenv-up = self.devShells.${system}.default.config.procfileScript;
 
-        checks = pkgs.linkFarm "academy-checks" (lib.removeAttrs self.packages.${system} ["checks"]
-          // rec {
-            tests = self.packages.${system}.tests.composite;
-            scripts = pkgs.linkFarm "scripts" self.packages.${system}.scripts;
-            devShell = mkDevShell {
-              inherit system;
-              root = "/fake-root";
-            };
-            devenv-up = devShell.config.procfileScript;
-          });
+          checks = pkgs.linkFarm "academy-checks" (
+            lib.removeAttrs self.packages.${system} [ "checks" ]
+            // rec {
+              tests = self.packages.${system}.tests.composite;
+              scripts = pkgs.linkFarm "scripts" self.packages.${system}.scripts;
+              devShell = mkDevShell {
+                inherit system;
+                root = "/fake-root";
+              };
+              devenv-up = devShell.config.procfileScript;
+            }
+          );
+        }
+      );
+
+      nixosModules = {
+        default = import ./nix/module.nix self;
+      };
+
+      devShells = eachDefaultSystem (system: {
+        default = mkDevShell { inherit system; };
       });
 
-    nixosModules = {
-      default = import ./nix/module.nix self;
+      formatter = eachDefaultSystem (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+          treefmtEval = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
+        in
+        treefmtEval.config.build.wrapper
+      );
     };
-
-    devShells = eachDefaultSystem (system: {
-      default = mkDevShell {inherit system;};
-    });
-
-    formatter = eachDefaultSystem (system: (importNixpkgs system).alejandra);
-  };
 
   nixConfig = {
     extra-substituters = "https://cache.bootstrap.academy/academy";

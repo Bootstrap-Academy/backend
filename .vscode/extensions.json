@@ -2,7 +2,6 @@
   "recommendations": [
     "bbenoist.nix",
     "eamodio.gitlens",
-    "kamadorueda.alejandra",
     "mkhl.direnv",
     "rust-lang.rust-analyzer",
     "tamasfe.even-better-toml",

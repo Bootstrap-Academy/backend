@@ -8,7 +8,7 @@ testers.runNixOSTest {
   name = "academy-basics";
 
   nodes.machine = {
-    imports = [defaultModule];
+    imports = [ defaultModule ];
   };
 
   testScript = ''
@@ -25,17 +25,19 @@ testers.runNixOSTest {
 
     machine.succeed("curl -s http://127.0.0.1:8000/")
 
-    assert machine.succeed("academy migrate list").strip() == ${lib.pipe ../../academy_persistence/postgres/migrations [
-      builtins.readDir
-      builtins.attrNames
-      (map (lib.removeSuffix ".up.sql"))
-      (map (lib.removeSuffix ".down.sql"))
-      lib.unique
-      (lib.sortOn lib.id)
-      (map (m: "[applied] ${m}"))
-      (builtins.concatStringsSep "\n")
-      builtins.toJSON
-    ]}, "some migrations are missing or have not been applied"
+    assert machine.succeed("academy migrate list").strip() == ${
+      lib.pipe ../../academy_persistence/postgres/migrations [
+        builtins.readDir
+        builtins.attrNames
+        (map (lib.removeSuffix ".up.sql"))
+        (map (lib.removeSuffix ".down.sql"))
+        lib.unique
+        (lib.sortOn lib.id)
+        (map (m: "[applied] ${m}"))
+        (builtins.concatStringsSep "\n")
+        builtins.toJSON
+      ]
+    }, "some migrations are missing or have not been applied"
 
     machine.succeed("academy email test root@localhost")
     machine.wait_until_succeeds("test -e /var/mail/root/new/*", 20)

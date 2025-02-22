@@ -1,11 +1,14 @@
-self: {
+self:
+{
   config,
   lib,
   pkgs,
   ...
-}: let
-  settingsFormat = pkgs.formats.toml {};
-in {
+}:
+let
+  settingsFormat = pkgs.formats.toml { };
+in
+{
   options.services.academy.backend = {
     enable = lib.mkEnableOption "Bootstrap Academy Backend";
 
@@ -14,7 +17,7 @@ in {
       default = self.packages.${pkgs.system}.default;
     };
 
-    chromePackage = lib.mkPackageOption pkgs "ungoogled-chromium" {};
+    chromePackage = lib.mkPackageOption pkgs "ungoogled-chromium" { };
 
     localDatabase = lib.mkOption {
       type = lib.types.bool;
@@ -33,38 +36,39 @@ in {
 
     extraConfigFiles = lib.mkOption {
       type = lib.types.listOf lib.types.path;
-      default = [];
+      default = [ ];
     };
 
     settings = lib.mkOption {
       inherit (settingsFormat) type;
-      default = {};
+      default = { };
     };
 
-    tasks = lib.genAttrs ["prune-database" "refresh-premium"] (task: {
+    tasks = lib.genAttrs [ "prune-database" "refresh-premium" ] (task: {
       schedule = lib.mkOption {
         type = lib.types.either lib.types.str (lib.types.listOf lib.types.str);
-        default = [];
+        default = [ ];
       };
     });
   };
 
-  config = let
-    cfg = config.services.academy.backend;
+  config =
+    let
+      cfg = config.services.academy.backend;
 
-    settings = settingsFormat.generate "config.toml" cfg.settings;
-    ACADEMY_CONFIG = builtins.concatStringsSep ":" (cfg.extraConfigFiles ++ [settings]);
+      settings = settingsFormat.generate "config.toml" cfg.settings;
+      ACADEMY_CONFIG = builtins.concatStringsSep ":" (cfg.extraConfigFiles ++ [ settings ]);
 
-    wrapper = pkgs.stdenvNoCC.mkDerivation {
-      inherit (cfg.package) pname version;
-      src = cfg.package;
-      nativeBuildInputs = [pkgs.makeWrapper];
-      installPhase = ''
-        cp -r . $out
-        wrapProgram $out/bin/academy --run "[[ \$USER = academy ]] || exec ${pkgs.sudo}/bin/sudo -u academy \"\$0\" \"\$@\"" --set ACADEMY_CONFIG ${lib.escapeShellArg ACADEMY_CONFIG}
-      '';
-    };
-  in
+      wrapper = pkgs.stdenvNoCC.mkDerivation {
+        inherit (cfg.package) pname version;
+        src = cfg.package;
+        nativeBuildInputs = [ pkgs.makeWrapper ];
+        installPhase = ''
+          cp -r . $out
+          wrapProgram $out/bin/academy --run "[[ \$USER = academy ]] || exec ${pkgs.sudo}/bin/sudo -u academy \"\$0\" \"\$@\"" --set ACADEMY_CONFIG ${lib.escapeShellArg ACADEMY_CONFIG}
+        '';
+      };
+    in
     lib.mkIf cfg.enable {
       assertions = [
         {
@@ -73,48 +77,49 @@ in {
         }
       ];
 
-      systemd.services = let
-        dependencies = ["network-online.target"] ++ (lib.optional cfg.localDatabase "postgresql.service") ++ (lib.optional cfg.localCache "redis-academy.service");
-        baseConfig = {
-          wants = dependencies;
-          after = dependencies;
+      systemd.services =
+        let
+          dependencies =
+            [ "network-online.target" ]
+            ++ (lib.optional cfg.localDatabase "postgresql.service")
+            ++ (lib.optional cfg.localCache "redis-academy.service");
+          baseConfig = {
+            wants = dependencies;
+            after = dependencies;
 
-          serviceConfig = {
-            User = "academy";
-            Group = "academy";
-            StateDirectory = "academy";
-          };
+            serviceConfig = {
+              User = "academy";
+              Group = "academy";
+              StateDirectory = "academy";
+            };
 
-          environment = {
-            inherit ACADEMY_CONFIG;
-            RUST_LOG = cfg.logLevel;
+            environment = {
+              inherit ACADEMY_CONFIG;
+              RUST_LOG = cfg.logLevel;
+            };
           };
-        };
-      in
+        in
         {
-          academy-backend =
-            baseConfig
-            // {
-              wantedBy = ["multi-user.target"];
+          academy-backend = baseConfig // {
+            wantedBy = [ "multi-user.target" ];
+            script = ''
+              ${cfg.package}/bin/academy serve
+            '';
+          };
+        }
+        // (lib.mapAttrs' (
+          task:
+          { schedule }:
+          {
+            name = "academy-task-${task}";
+            value = baseConfig // {
+              startAt = schedule;
               script = ''
-                ${cfg.package}/bin/academy serve
+                ${cfg.package}/bin/academy task ${task}
               '';
             };
-        }
-        // (
-          lib.mapAttrs' (task: {schedule}: {
-            name = "academy-task-${task}";
-            value =
-              baseConfig
-              // {
-                startAt = schedule;
-                script = ''
-                  ${cfg.package}/bin/academy task ${task}
-                '';
-              };
-          })
-          cfg.tasks
-        );
+          }
+        ) cfg.tasks);
 
       services.postgresql = lib.mkIf cfg.localDatabase {
         enable = true;
@@ -124,7 +129,7 @@ in {
             ensureDBOwnership = true;
           }
         ];
-        ensureDatabases = ["academy"];
+        ensureDatabases = [ "academy" ];
       };
 
       services.redis = lib.mkIf cfg.localCache {
@@ -132,7 +137,7 @@ in {
         servers.academy = {
           enable = true;
           user = "academy";
-          save = [];
+          save = [ ];
         };
       };
 
@@ -140,7 +145,7 @@ in {
         isSystemUser = true;
         group = "academy";
       };
-      users.groups.academy = {};
+      users.groups.academy = { };
 
       services.academy.backend = {
         settings = {
@@ -157,6 +162,6 @@ in {
         };
       };
 
-      environment.systemPackages = [wrapper];
+      environment.systemPackages = [ wrapper ];
     };
 }

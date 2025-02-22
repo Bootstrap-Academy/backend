@@ -6,170 +6,195 @@
   testers,
   writeShellScriptBin,
   writeTextDir,
-}: let
+}:
+let
   tests = lib.pipe ./. [
     builtins.readDir
     (lib.filterAttrs (name: type: type == "regular" && isTest name))
-    (lib.mapAttrs' (name: _: {
-      name = removeSuffix name;
-      value = mkTest name;
-    }))
+    (lib.mapAttrs' (
+      name: _: {
+        name = removeSuffix name;
+        value = mkTest name;
+      }
+    ))
   ];
 
-  isTest = name: builtins.any (f: f name) [isPythonTest isNixosTest] && ! builtins.elem name ignored;
+  isTest =
+    name:
+    builtins.any (f: f name) [
+      isPythonTest
+      isNixosTest
+    ]
+    && !builtins.elem name ignored;
   isPythonTest = lib.hasSuffix ".py";
   isNixosTest = lib.hasSuffix ".nix";
-  ignored = ["default.nix" "utils.py"];
+  ignored = [
+    "default.nix"
+    "utils.py"
+  ];
   removeSuffix = lib.flip lib.pipe [
     (lib.removeSuffix ".py")
     (lib.removeSuffix ".nix")
   ];
 
-  mkTest = name:
-    if isPythonTest name
-    then mkPythonTest name
-    else mkNixosTest name;
+  mkTest = name: if isPythonTest name then mkPythonTest name else mkNixosTest name;
 
-  defaultModule = {
-    config,
-    pkgs,
-    ...
-  }: let
-    inherit (pkgs) system;
-  in {
-    imports = [self.nixosModules.default];
+  defaultModule =
+    { config, pkgs, ... }:
+    let
+      inherit (pkgs) system;
+    in
+    {
+      imports = [ self.nixosModules.default ];
 
-    services.postgresql.package = pkgs.postgresql_17;
+      services.postgresql.package = pkgs.postgresql_17;
 
-    services.academy.backend = {
-      enable = true;
-      package = self.packages.${system}.default.unwrapped;
-      logLevel = "info,academy=debug";
-      extraConfigFiles = ["/run/academy-backend/secrets.toml"];
-      settings = {
-        http.address = "127.0.0.1:8000";
-        http.allowed_origins = [".*"];
-        database.acquire_timeout = "2s";
-        cache.acquire_timeout = "2s";
-        email = {
-          smtp_url = "smtp://127.0.0.1:25";
-          from = "test@bootstrap.academy";
-        };
-        health = {
-          database_cache_ttl = "2s";
-          cache_cache_ttl = "2s";
-          email_cache_ttl = "2s";
-        };
-        contact.email = "contact@academy";
-        recaptcha = {
-          enable = lib.mkDefault true;
-          siteverify_endpoint_override = "http://127.0.0.1:8001/recaptcha/api/siteverify";
-          sitekey = "test-sitekey";
-          secret = "test-secret";
-          min_score = 0.5;
-        };
-        vat.validate_endpoint_override = "http://127.0.0.1:8003/validate/";
-        paypal = {
-          base_url_override = "http://127.0.0.1:8004/";
-          client_id = "test-client";
-          client_secret = "test-secret";
-        };
-        oauth2 = {
-          enable = true;
-          providers = let
-            disabled = {
-              enable = false;
-              client_id = "";
-              client_secret = "";
-            };
-          in {
-            github = disabled;
-            discord = disabled;
-            google = disabled;
-            test = {
-              name = "Test OAuth2 Provider";
-              client_id = "client-id";
-              client_secret = "client-secret";
-              auth_url = "http://127.0.0.1:8002/oauth2/authorize";
-              token_url = "http://127.0.0.1:8002/oauth2/token";
-              userinfo_url = "http://127.0.0.1:8002/user";
-              userinfo_id_key = "id";
-              userinfo_name_key = "name";
-              scopes = [];
-            };
+      services.academy.backend = {
+        enable = true;
+        package = self.packages.${system}.default.unwrapped;
+        logLevel = "info,academy=debug";
+        extraConfigFiles = [ "/run/academy-backend/secrets.toml" ];
+        settings = {
+          http.address = "127.0.0.1:8000";
+          http.allowed_origins = [ ".*" ];
+          database.acquire_timeout = "2s";
+          cache.acquire_timeout = "2s";
+          email = {
+            smtp_url = "smtp://127.0.0.1:25";
+            from = "test@bootstrap.academy";
+          };
+          health = {
+            database_cache_ttl = "2s";
+            cache_cache_ttl = "2s";
+            email_cache_ttl = "2s";
+          };
+          contact.email = "contact@academy";
+          recaptcha = {
+            enable = lib.mkDefault true;
+            siteverify_endpoint_override = "http://127.0.0.1:8001/recaptcha/api/siteverify";
+            sitekey = "test-sitekey";
+            secret = "test-secret";
+            min_score = 0.5;
+          };
+          vat.validate_endpoint_override = "http://127.0.0.1:8003/validate/";
+          paypal = {
+            base_url_override = "http://127.0.0.1:8004/";
+            client_id = "test-client";
+            client_secret = "test-secret";
+          };
+          oauth2 = {
+            enable = true;
+            providers =
+              let
+                disabled = {
+                  enable = false;
+                  client_id = "";
+                  client_secret = "";
+                };
+              in
+              {
+                github = disabled;
+                discord = disabled;
+                google = disabled;
+                test = {
+                  name = "Test OAuth2 Provider";
+                  client_id = "client-id";
+                  client_secret = "client-secret";
+                  auth_url = "http://127.0.0.1:8002/oauth2/authorize";
+                  token_url = "http://127.0.0.1:8002/oauth2/token";
+                  userinfo_url = "http://127.0.0.1:8002/user";
+                  userinfo_id_key = "id";
+                  userinfo_name_key = "name";
+                  scopes = [ ];
+                };
+              };
           };
         };
+        tasks = {
+          prune-database.schedule = [ ];
+          refresh-premium.schedule = [ ];
+        };
       };
-      tasks = {
-        prune-database.schedule = [];
-        refresh-premium.schedule = [];
+
+      systemd.services."academy-testing-recaptcha" =
+        lib.mkIf config.services.academy.backend.settings.recaptcha.enable
+          {
+            wantedBy = [ "academy-backend.service" ];
+            before = [ "academy-backend.service" ];
+            script = ''
+              ${self.packages.${system}.testing.unwrapped}/bin/academy-testing recaptcha
+            '';
+          };
+
+      systemd.services."academy-testing-oauth2" =
+        lib.mkIf config.services.academy.backend.settings.oauth2.enable
+          {
+            wantedBy = [ "academy-backend.service" ];
+            before = [ "academy-backend.service" ];
+            script = ''
+              ${self.packages.${system}.testing.unwrapped}/bin/academy-testing oauth2
+            '';
+          };
+
+      systemd.services."academy-testing-vat" = {
+        wantedBy = [ "academy-backend.service" ];
+        before = [ "academy-backend.service" ];
+        script = ''
+          ${self.packages.${system}.testing.unwrapped}/bin/academy-testing vat
+        '';
+      };
+
+      systemd.services."academy-testing-paypal" = {
+        wantedBy = [ "academy-backend.service" ];
+        before = [ "academy-backend.service" ];
+        script = ''
+          ${self.packages.${system}.testing.unwrapped}/bin/academy-testing paypal
+        '';
+      };
+
+      systemd.services."test-set-date" = {
+        wantedBy = [ "academy-backend.service" ];
+        before = [ "academy-backend.service" ];
+        script = ''
+          ${lib.getExe' pkgs.coreutils "date"} -s 2024-01-01T06:00:00Z
+        '';
+      };
+
+      services.postfix = {
+        enable = true;
+        virtual = "/.*/ root";
+        virtualMapType = "pcre";
+      };
+
+      systemd.tmpfiles.settings.academy-secrets."/run/academy-backend/secrets.toml".f = {
+        user = "academy";
+        group = "academy";
+        mode = "0400";
+        argument = ''
+          jwt.secret = "changeme"
+        '';
       };
     };
 
-    systemd.services."academy-testing-recaptcha" = lib.mkIf config.services.academy.backend.settings.recaptcha.enable {
-      wantedBy = ["academy-backend.service"];
-      before = ["academy-backend.service"];
-      script = ''
-        ${self.packages.${system}.testing.unwrapped}/bin/academy-testing recaptcha
-      '';
-    };
-
-    systemd.services."academy-testing-oauth2" = lib.mkIf config.services.academy.backend.settings.oauth2.enable {
-      wantedBy = ["academy-backend.service"];
-      before = ["academy-backend.service"];
-      script = ''
-        ${self.packages.${system}.testing.unwrapped}/bin/academy-testing oauth2
-      '';
-    };
-
-    systemd.services."academy-testing-vat" = {
-      wantedBy = ["academy-backend.service"];
-      before = ["academy-backend.service"];
-      script = ''
-        ${self.packages.${system}.testing.unwrapped}/bin/academy-testing vat
-      '';
-    };
-
-    systemd.services."academy-testing-paypal" = {
-      wantedBy = ["academy-backend.service"];
-      before = ["academy-backend.service"];
-      script = ''
-        ${self.packages.${system}.testing.unwrapped}/bin/academy-testing paypal
-      '';
-    };
-
-    systemd.services."test-set-date" = {
-      wantedBy = ["academy-backend.service"];
-      before = ["academy-backend.service"];
-      script = ''
-        ${lib.getExe' pkgs.coreutils "date"} -s 2024-01-01T06:00:00Z
-      '';
-    };
-
-    services.postfix = {
-      enable = true;
-      virtual = "/.*/ root";
-      virtualMapType = "pcre";
-    };
-
-    systemd.tmpfiles.settings.academy-secrets."/run/academy-backend/secrets.toml".f = {
-      user = "academy";
-      group = "academy";
-      mode = "0400";
-      argument = ''
-        jwt.secret = "changeme"
-      '';
-    };
-  };
-
-  mkPythonTest = name:
+  mkPythonTest =
+    name:
     testers.runNixOSTest {
       name = "academy-${removeSuffix name}";
 
-      nodes.machine = {pkgs, ...}: {
-        imports = [defaultModule];
-        environment.systemPackages = [(pkgs.python3.withPackages (p: with p; [httpx pyotp pypdf]))];
-      };
+      nodes.machine =
+        { pkgs, ... }:
+        {
+          imports = [ defaultModule ];
+          environment.systemPackages = [
+            (pkgs.python3.withPackages (
+              p: with p; [
+                httpx
+                pyotp
+                pypdf
+              ]
+            ))
+          ];
+        };
 
       testScript = ''
         machine.start()
@@ -182,8 +207,8 @@
       '';
     };
 
-  mkNixosTest = name: callPackage ./${name} {inherit defaultModule;};
+  mkNixosTest = name: callPackage ./${name} { inherit defaultModule; };
 
   composite = linkFarm "academy-tests-composite" (builtins.mapAttrs (_: toString) tests);
 in
-  tests // {inherit composite;}
+tests // { inherit composite; }

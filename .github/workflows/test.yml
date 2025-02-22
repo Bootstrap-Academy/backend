@@ -40,7 +40,7 @@ jobs:
       postgres:
         image: postgres:17-alpine
         ports:
-          - '5432:5432'
+          - "5432:5432"
         env:
           POSTGRES_USER: academy
           POSTGRES_DB: academy
@@ -64,7 +64,7 @@ jobs:
       valkey:
         image: valkey/valkey:8.1-alpine
         ports:
-          - '6379:6379'
+          - "6379:6379"
 
   email:
     runs-on: ubuntu-latest
@@ -89,8 +89,8 @@ jobs:
           ServerOptions__Users__0__Username: academy
           ServerOptions__Users__0__Password: academy
         ports:
-          - '25:25'
-          - '80:80'
+          - "25:25"
+          - "80:80"
 
   extern:
     runs-on: ubuntu-latest

@@ -1,16 +1,12 @@
-{
-  testers,
-  defaultModule,
-  ...
-}:
+{ testers, defaultModule, ... }:
 testers.runNixOSTest {
   name = "academy-config";
 
   nodes.default = {
-    imports = [defaultModule];
+    imports = [ defaultModule ];
   };
   nodes.no_recaptcha = {
-    imports = [defaultModule];
+    imports = [ defaultModule ];
     services.academy.backend.settings = {
       recaptcha.enable = false;
     };

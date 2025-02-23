@@ -8996,9 +8996,9 @@ rec {
       };
       "lettre" = rec {
         crateName = "lettre";
-        version = "0.11.13";
+        version = "0.11.14";
         edition = "2021";
-        sha256 = "1abnq190060f7cgxzl1yp3k7l5ymmx7sjpvfkk82ygcz7pr76hjh";
+        sha256 = "07whzbvjgjd33ljwa8vmwcki361xsnkpm51lrs9g7657lkknyisx";
         authors = [
           "Alexis Mousset <contact@amousset.me>"
           "Paolo Barbolini <paolo@paolo565.org>"
@@ -9084,17 +9084,7 @@ rec {
             packageId = "rustls";
             optional = true;
             usesDefaultFeatures = false;
-            features = [ "ring" "logging" "std" "tls12" ];
-          }
-          {
-            name = "rustls-pemfile";
-            packageId = "rustls-pemfile";
-            optional = true;
-          }
-          {
-            name = "rustls-pki-types";
-            packageId = "rustls-pki-types";
-            optional = true;
+            features = [ "logging" "std" "tls12" ];
           }
           {
             name = "serde";
@@ -9119,7 +9109,7 @@ rec {
             rename = "tokio1_rustls";
             optional = true;
             usesDefaultFeatures = false;
-            features = [ "logging" "tls12" "ring" ];
+            features = [ "logging" "tls12" ];
           }
           {
             name = "tracing";
@@ -9155,30 +9145,37 @@ rec {
         ];
         features = {
           "async-std1" = [ "dep:async-std" "dep:async-trait" "dep:futures-io" "dep:futures-util" ];
-          "async-std1-rustls-tls" = [ "async-std1" "rustls-tls" "dep:futures-rustls" ];
+          "async-std1-rustls" = [ "async-std1" "rustls" "dep:futures-rustls" ];
+          "async-std1-rustls-tls" = [ "async-std1-rustls" "rustls-tls" ];
+          "aws-lc-rs" = [ "rustls?/aws-lc-rs" ];
           "boring-tls" = [ "dep:boring" ];
           "builder" = [ "dep:httpdate" "dep:mime" "dep:fastrand" "dep:quoted_printable" "dep:email-encoding" ];
           "default" = [ "smtp-transport" "pool" "native-tls" "hostname" "builder" ];
           "dkim" = [ "dep:base64" "dep:sha2" "dep:rsa" "dep:ed25519-dalek" ];
           "file-transport" = [ "dep:uuid" "tokio1_crate?/fs" "tokio1_crate?/io-util" ];
           "file-transport-envelope" = [ "serde" "dep:serde_json" "file-transport" ];
+          "fips" = [ "aws-lc-rs" "rustls?/fips" ];
           "hostname" = [ "dep:hostname" ];
           "mime03" = [ "dep:mime" ];
           "native-tls" = [ "dep:native-tls" ];
           "pool" = [ "dep:futures-util" ];
+          "ring" = [ "rustls?/ring" ];
+          "rustls" = [ "dep:rustls" ];
           "rustls-native-certs" = [ "dep:rustls-native-certs" ];
-          "rustls-tls" = [ "dep:webpki-roots" "dep:rustls" "dep:rustls-pemfile" "dep:rustls-pki-types" ];
+          "rustls-tls" = [ "webpki-roots" "rustls" "ring" ];
           "sendmail-transport" = [ "tokio1_crate?/process" "tokio1_crate?/io-util" "async-std?/unstable" ];
           "serde" = [ "dep:serde" ];
           "smtp-transport" = [ "dep:base64" "dep:nom" "dep:socket2" "dep:url" "dep:percent-encoding" "tokio1_crate?/rt" "tokio1_crate?/time" "tokio1_crate?/net" ];
           "tokio1" = [ "dep:tokio1_crate" "dep:async-trait" "dep:futures-io" "dep:futures-util" ];
           "tokio1-boring-tls" = [ "tokio1" "boring-tls" "dep:tokio1_boring" ];
           "tokio1-native-tls" = [ "tokio1" "native-tls" "dep:tokio1_native_tls_crate" ];
-          "tokio1-rustls-tls" = [ "tokio1" "rustls-tls" "dep:tokio1_rustls" ];
+          "tokio1-rustls" = [ "tokio1" "rustls" "dep:tokio1_rustls" ];
+          "tokio1-rustls-tls" = [ "tokio1-rustls" "rustls-tls" ];
           "tracing" = [ "dep:tracing" ];
           "web" = [ "dep:web-time" ];
+          "webpki-roots" = [ "dep:webpki-roots" ];
         };
-        resolvedDefaultFeatures = [ "builder" "hostname" "pool" "rustls-tls" "serde" "smtp-transport" "tokio1" "tokio1-rustls-tls" "tracing" ];
+        resolvedDefaultFeatures = [ "builder" "hostname" "pool" "ring" "rustls" "rustls-tls" "serde" "smtp-transport" "tokio1" "tokio1-rustls" "tokio1-rustls-tls" "tracing" "webpki-roots" ];
       };
       "libc" = rec {
         crateName = "libc";
@@ -9386,20 +9383,6 @@ rec {
         ];
 
       };
-      "minimal-lexical" = rec {
-        crateName = "minimal-lexical";
-        version = "0.2.1";
-        edition = "2018";
-        sha256 = "16ppc5g84aijpri4jzv14rvcnslvlpphbszc7zzp6vfkddf4qdb8";
-        libName = "minimal_lexical";
-        authors = [
-          "Alex Huszagh <ahuszagh@gmail.com>"
-        ];
-        features = {
-          "default" = [ "std" ];
-        };
-        resolvedDefaultFeatures = [ "std" ];
-      };
       "miniz_oxide" = rec {
         crateName = "miniz_oxide";
         version = "0.8.4";
@@ -9545,9 +9528,9 @@ rec {
       };
       "nom" = rec {
         crateName = "nom";
-        version = "7.1.3";
-        edition = "2018";
-        sha256 = "0jha9901wxam390jcf5pfa0qqfrgh8li787jx2ip0yk5b8y9hwyj";
+        version = "8.0.0";
+        edition = "2021";
+        sha256 = "01cl5xng9d0gxf26h39m0l8lprgpa00fcc75ps1yzgbib1vn35yz";
         authors = [
           "contact@geoffroycouprie.com"
         ];
@@ -9557,15 +9540,10 @@ rec {
             packageId = "memchr";
             usesDefaultFeatures = false;
           }
-          {
-            name = "minimal-lexical";
-            packageId = "minimal-lexical";
-            usesDefaultFeatures = false;
-          }
         ];
         features = {
           "default" = [ "std" ];
-          "std" = [ "alloc" "memchr/std" "minimal-lexical/std" ];
+          "std" = [ "alloc" "memchr/std" ];
         };
         resolvedDefaultFeatures = [ "alloc" "default" "std" ];
       };

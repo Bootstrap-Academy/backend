@@ -102,7 +102,7 @@ axum = { version = "0.8.1", default-features = false, features = ["http1", "http
 axum-extra = { version = "0.10.0", default-features = false, features = ["typed-header"] }
 base32 = { version = "0.5.1", default-features = false }
 base64 = { version = "0.22.1", default-features = false }
-chrono = { version = "0.4.39", default-features = false, features = ["serde", "clock"] }
+chrono = { version = "0.4.40", default-features = false, features = ["serde", "clock"] }
 clap = { version = "4.5.31", features = ["derive", "env"] }
 clap_complete = { version = "4.5.46", default-features = false }
 darling = { version = "0.20.10", default-features = false, features = ["suggestions"] }

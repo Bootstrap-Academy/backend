@@ -5596,9 +5596,9 @@ rec {
       };
       "chrono" = rec {
         crateName = "chrono";
-        version = "0.4.39";
+        version = "0.4.40";
         edition = "2021";
-        sha256 = "09g8nf409lb184kl9j4s85k0kn8wzgjkp5ls9zid50b886fwqdky";
+        sha256 = "0z334kqnvq5zx6xsq1k6zk8g9z14fgk2w3vkn4n13pvi3mhn8y8s";
         dependencies = [
           {
             name = "android-tzdata";
@@ -5637,8 +5637,8 @@ rec {
             target = { target, features }: (("wasm32" == target."arch" or null) && (!(("emscripten" == target."os" or null) || ("wasi" == target."os" or null))));
           }
           {
-            name = "windows-targets";
-            packageId = "windows-targets";
+            name = "windows-link";
+            packageId = "windows-link";
             optional = true;
             target = { target, features }: (target."windows" or false);
           }
@@ -5662,10 +5662,10 @@ rec {
           "unstable-locales" = [ "pure-rust-locales" ];
           "wasm-bindgen" = [ "dep:wasm-bindgen" ];
           "wasmbind" = [ "wasm-bindgen" "js-sys" ];
-          "winapi" = [ "windows-targets" ];
-          "windows-targets" = [ "dep:windows-targets" ];
+          "winapi" = [ "windows-link" ];
+          "windows-link" = [ "dep:windows-link" ];
         };
-        resolvedDefaultFeatures = [ "alloc" "android-tzdata" "clock" "iana-time-zone" "js-sys" "now" "serde" "std" "wasm-bindgen" "wasmbind" "winapi" "windows-targets" ];
+        resolvedDefaultFeatures = [ "alloc" "android-tzdata" "clock" "iana-time-zone" "js-sys" "now" "serde" "std" "wasm-bindgen" "wasmbind" "winapi" "windows-link" ];
       };
       "chrono-tz" = rec {
         crateName = "chrono-tz";
@@ -17468,6 +17468,17 @@ rec {
         features = {
         };
         resolvedDefaultFeatures = [ "default" ];
+      };
+      "windows-link" = rec {
+        crateName = "windows-link";
+        version = "0.1.0";
+        edition = "2021";
+        sha256 = "1qr0srnkw148wbrws3726pm640h2vxgcdlxn0cxpbcg27irzvk3d";
+        libName = "windows_link";
+        authors = [
+          "Microsoft"
+        ];
+
       };
       "windows-registry" = rec {
         crateName = "windows-registry";

@@ -12740,9 +12740,9 @@ rec {
       };
       "schemars" = rec {
         crateName = "schemars";
-        version = "0.8.21";
+        version = "0.8.22";
         edition = "2021";
-        sha256 = "14lyx04388wgbilgcm0nl75w6359nw16glswfqv7x2rpi9329h09";
+        sha256 = "05an9nbi18ynyxv1rjmwbg6j08j0496hd64mjggh53mwp3hjmgrz";
         authors = [
           "Graham Esau <gesau@hotmail.co.uk>"
         ];
@@ -12826,9 +12826,9 @@ rec {
       };
       "schemars_derive" = rec {
         crateName = "schemars_derive";
-        version = "0.8.21";
+        version = "0.8.22";
         edition = "2021";
-        sha256 = "03ncmrkldfmdc9skmlyysx2vqdlyyz91r5mbavw77zwaay4fbvmi";
+        sha256 = "0kakyzrp5801s4i043l4ilv96lzimnlh01pap958h66n99w6bqij";
         procMacro = true;
         authors = [
           "Graham Esau <gesau@hotmail.co.uk>"

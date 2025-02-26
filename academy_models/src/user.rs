@@ -182,8 +182,8 @@ impl JsonSchema for UserTags {
         stringify!(UserTags).into()
     }
 
-    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-        Vec::<UserTag>::json_schema(gen)
+    fn json_schema(generator: &mut SchemaGenerator) -> Schema {
+        Vec::<UserTag>::json_schema(generator)
     }
 }
 

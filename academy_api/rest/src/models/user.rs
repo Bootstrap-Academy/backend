@@ -191,7 +191,7 @@ impl JsonSchema for ApiUserIdOrSelf {
         "UserIdOrSelf".into()
     }
 
-    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+    fn json_schema(generator: &mut SchemaGenerator) -> Schema {
         const_schema! {
             Me("me");
             Slf("self");
@@ -201,9 +201,9 @@ impl JsonSchema for ApiUserIdOrSelf {
             subschemas: Some(
                 SubschemaValidation {
                     one_of: Some(vec![
-                        Me::json_schema(gen),
-                        Slf::json_schema(gen),
-                        UserId::json_schema(gen),
+                        Me::json_schema(generator),
+                        Slf::json_schema(generator),
+                        UserId::json_schema(generator),
                     ]),
                     ..Default::default()
                 }

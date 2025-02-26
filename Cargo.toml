@@ -121,7 +121,7 @@ regex = { version = "1.11.1", default-features = false }
 reqwest = { version = "0.12.12", default-features = false, features = ["http2", "rustls-tls", "json"] }
 rust_decimal = { version = "1.36.0", default-features = false, features = ["std", "serde-str"] }
 rust_decimal_macros = { version = "1.36.0", default-features = false }
-schemars = { version = "0.8.21", default-features = false, features = ["derive", "preserve_order", "uuid1", "url"] }
+schemars = { version = "0.8.22", default-features = false, features = ["derive", "preserve_order", "uuid1", "url"] }
 serde = { version = "1.0.218", default-features = false, features = ["derive", "std"] }
 serde_json = { version = "1.0.139", default-features = false, features = ["std"] }
 sha2 = { version = "0.10.8", default-features = false }

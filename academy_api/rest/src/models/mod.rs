@@ -75,8 +75,8 @@ impl<T: JsonSchema> JsonSchema for StringOption<T> {
         <Option<T> as JsonSchema>::schema_name()
     }
 
-    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-        <Option<T> as JsonSchema>::json_schema(gen)
+    fn json_schema(generator: &mut SchemaGenerator) -> Schema {
+        <Option<T> as JsonSchema>::json_schema(generator)
     }
 
     fn is_referenceable() -> bool {

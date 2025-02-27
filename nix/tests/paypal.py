@@ -2,9 +2,10 @@ import hashlib
 from io import BytesIO
 
 from pypdf import PdfReader
+
 from utils import c, create_verified_account, decode_mail_header, decode_mail_part, fetch_mail, get_mail_parts
 
-login = create_verified_account("a", "a@a", "a")
+login = create_verified_account("foobar", "foobar@example.com", "a")
 
 assert c.get(f"/shop/coins/me").json() == {"coins": 0, "withheld_coins": 0}
 
@@ -20,7 +21,9 @@ resp = c.post("/shop/coins/paypal/orders", json={"coins": 1337})
 assert resp.status_code == 412
 assert resp.json() == {"detail": "User Infos missing"}
 
-resp = c.patch("/auth/users/me", json={"business": False, "country": "Germany"})
+resp = c.patch(
+    "/auth/users/me", json={"business": False, "country": "Germany", "first_name": "Foo", "last_name": "Bar"}
+)
 assert resp.status_code == 200
 assert resp.json()["can_buy_coins"] is True
 
@@ -60,7 +63,7 @@ assert c.get(f"http://127.0.0.1:8004/v2/checkout/orders/{order_id}").json() == {
 
 # invoice email
 mail = fetch_mail()
-assert mail["X-Original-To"] == "a@a"
+assert mail["X-Original-To"] == "foobar@example.com"
 assert decode_mail_header(mail["Subject"]) == "Kaufbestätigung - Bootstrap Academy"
 payload, invoice, terms, revocation_policy = get_mail_parts(mail)
 content = decode_mail_part(payload).decode()
@@ -77,6 +80,9 @@ assert "Nettobetrag 11.24 EUR" in invoice_text
 assert "zzgl. 19% MwSt. 2.13 EUR" in invoice_text
 assert "Gesamtbetrag 13.37 EUR" in invoice_text
 assert "Rechnungs-Nr. R0000001" in invoice_text
+assert "Foo Bar" in invoice_text
+assert "Germany" in invoice_text
+assert "foobar@example.com" in invoice_text
 
 assert terms["Content-Disposition"] == 'attachment;\n filename*0="allgemeine_geschaeftsbedingungen.pdf"'
 assert terms["Content-Type"] == "application/pdf"

@@ -117,9 +117,10 @@ where
             .template
             .render(&InvoiceTemplate {
                 title: "Rechnung",
-                customer_details: user_composite.invoice_info.into_details(Some(
-                    user_composite.profile.display_name.clone().into_inner(),
-                )),
+                customer_details: user_composite.invoice_info.into_details(
+                    Some(user_composite.profile.display_name.clone().into_inner()),
+                    user_composite.user.email.as_ref().map(ToString::to_string),
+                ),
                 timestamp,
                 invoice_number: formatted_invoice_number,
                 items: vec![InvoiceItem {
@@ -212,9 +213,10 @@ where
             .template
             .render(&InvoiceTemplate {
                 title: "Gutschrift",
-                customer_details: user_composite.invoice_info.into_details(Some(
-                    user_composite.profile.display_name.clone().into_inner(),
-                )),
+                customer_details: user_composite.invoice_info.into_details(
+                    Some(user_composite.profile.display_name.clone().into_inner()),
+                    user_composite.user.email.as_ref().map(ToString::to_string),
+                ),
                 timestamp,
                 invoice_number: credit_note_number,
                 items,
@@ -317,10 +319,10 @@ mod tests {
         let template = MockTemplateService::new().with_render(
             InvoiceTemplate {
                 title: "Rechnung",
-                customer_details: FOO
-                    .invoice_info
-                    .clone()
-                    .into_details(Some(FOO.profile.display_name.clone().into_inner())),
+                customer_details: FOO.invoice_info.clone().into_details(
+                    Some(FOO.profile.display_name.clone().into_inner()),
+                    FOO.user.email.as_ref().map(ToString::to_string),
+                ),
                 timestamp: order.created_at,
                 invoice_number: "R0000042".into(),
                 items: vec![InvoiceItem {
@@ -554,10 +556,10 @@ mod tests {
         let template = MockTemplateService::new().with_render(
             InvoiceTemplate {
                 title: "Gutschrift",
-                customer_details: FOO
-                    .invoice_info
-                    .clone()
-                    .into_details(Some(FOO.profile.display_name.clone().into_inner())),
+                customer_details: FOO.invoice_info.clone().into_details(
+                    Some(FOO.profile.display_name.clone().into_inner()),
+                    FOO.user.email.as_ref().map(ToString::to_string),
+                ),
                 timestamp,
                 invoice_number: "G202402-7".into(),
                 items: vec![InvoiceItem {

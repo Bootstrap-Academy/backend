@@ -111,7 +111,7 @@ impl UserComposite {
 }
 
 impl UserInvoiceInfo {
-    pub fn into_details(self, name_fallback: Option<String>) -> Vec<String> {
+    pub fn into_details(self, name_fallback: Option<String>, email: Option<String>) -> Vec<String> {
         let name = match (self.first_name, self.last_name) {
             (Some(first_name), Some(last_name)) => Some(format!("{} {}", *first_name, *last_name)),
             _ => name_fallback,
@@ -133,6 +133,7 @@ impl UserInvoiceInfo {
             self.street.map(UserStreet::into_inner),
             city,
             self.country.map(UserCountry::into_inner),
+            email,
             vat_id,
         ]
         .into_iter()

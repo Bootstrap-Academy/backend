@@ -9224,14 +9224,13 @@ rec {
       };
       "litemap" = rec {
         crateName = "litemap";
-        version = "0.7.4";
+        version = "0.7.5";
         edition = "2021";
-        sha256 = "012ili3vppd4952sh6y3qwcd0jkd0bq2qpr9h7cppc8sj11k7saf";
+        sha256 = "0mi8ykav0s974ps79p438x04snh0cdb7lc864b42jws5375i9yr3";
         authors = [
           "The ICU4X Project Developers"
         ];
         features = {
-          "bench" = [ "serde" ];
           "databake" = [ "dep:databake" ];
           "default" = [ "alloc" ];
           "serde" = [ "dep:serde" ];
@@ -10415,9 +10414,9 @@ rec {
       };
       "portable-atomic" = rec {
         crateName = "portable-atomic";
-        version = "1.10.0";
+        version = "1.11.0";
         edition = "2018";
-        sha256 = "1rjfim62djiakf5rcq3r526hac0d1dd9hwa1jmiin7q7ad2c4398";
+        sha256 = "0glb2wngflvfmg789qbf6dbnwcf6ai212fs7n0lf1c66rd49n3im";
         libName = "portable_atomic";
         features = {
           "critical-section" = [ "dep:critical-section" ];
@@ -18507,9 +18506,9 @@ rec {
       };
       "zerofrom" = rec {
         crateName = "zerofrom";
-        version = "0.1.5";
+        version = "0.1.6";
         edition = "2021";
-        sha256 = "0bnd8vjcllzrvr3wvn8x14k2hkrpyy1fm3crkn2y3plmr44fxwyg";
+        sha256 = "19dyky67zkjichsb7ykhv0aqws3q0jfvzww76l66c19y6gh45k2h";
         authors = [
           "Manish Goregaokar <manishsmail@gmail.com>"
         ];
@@ -18529,9 +18528,9 @@ rec {
       };
       "zerofrom-derive" = rec {
         crateName = "zerofrom-derive";
-        version = "0.1.5";
+        version = "0.1.6";
         edition = "2021";
-        sha256 = "022q55phhb44qbrcfbc48k0b741fl8gnazw3hpmmndbx5ycfspjr";
+        sha256 = "00l5niw7c1b0lf1vhvajpjmcnbdp2vn96jg4nmkhq2db0rp5s7np";
         procMacro = true;
         libName = "zerofrom_derive";
         authors = [

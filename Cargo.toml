@@ -98,7 +98,16 @@ academy_utils_derive.path = "academy_utils_derive"
 
 anyhow = { version = "1.0.97", default-features = false, features = ["std"] }
 argon2 = { version = "0.5.3", default-features = false, features = ["std", "password-hash"] }
-axum = { version = "0.8.1", default-features = false, features = ["http1", "http2", "tokio", "json", "query", "form", "original-uri", "matched-path"] }
+axum = { version = "0.8.1", default-features = false, features = [
+  "http1",
+  "http2",
+  "tokio",
+  "json",
+  "query",
+  "form",
+  "original-uri",
+  "matched-path",
+] }
 axum-extra = { version = "0.10.0", default-features = false, features = ["typed-header"] }
 base32 = { version = "0.5.1", default-features = false }
 base64 = { version = "0.22.1", default-features = false }
@@ -108,7 +117,17 @@ clap_complete = { version = "4.5.46", default-features = false }
 darling = { version = "0.20.10", default-features = false, features = ["suggestions"] }
 futures = { version = "0.3.31", default-features = false, features = ["std"] }
 hex = { version = "0.4.3", default-features = false, features = ["std"] }
-lettre = { version = "0.11.14", default-features = false, features = ["builder", "hostname", "pool", "rustls-tls", "serde", "smtp-transport", "tokio1", "tokio1-rustls-tls", "tracing"] }
+lettre = { version = "0.11.14", default-features = false, features = [
+  "builder",
+  "hostname",
+  "pool",
+  "rustls-tls",
+  "serde",
+  "smtp-transport",
+  "tokio1",
+  "tokio1-rustls-tls",
+  "tracing",
+] }
 mime = { version = "0.3.17", default-features = false }
 mockall = { version = "0.13.1", default-features = false }
 nutype = { version = "0.6.1", default-features = false, features = ["std", "regex", "serde", "schemars08"] }
@@ -125,9 +144,21 @@ schemars = { version = "0.8.22", default-features = false, features = ["derive",
 serde = { version = "1.0.218", default-features = false, features = ["derive", "std"] }
 serde_json = { version = "1.0.140", default-features = false, features = ["std"] }
 sha2 = { version = "0.10.8", default-features = false }
-syn = { version = "2.0.99", default-features = false, features = ["parsing", "proc-macro", "derive", "printing", "full"] }
+syn = { version = "2.0.99", default-features = false, features = [
+  "parsing",
+  "proc-macro",
+  "derive",
+  "printing",
+  "full",
+] }
 thiserror = { version = "2.0.12", default-features = false }
-tokio = { version = "1.43.0", default-features = false, features = ["rt-multi-thread", "macros", "sync", "fs", "process"] }
+tokio = { version = "1.43.0", default-features = false, features = [
+  "rt-multi-thread",
+  "macros",
+  "sync",
+  "fs",
+  "process",
+] }
 tracing = { version = "0.1.41", default-features = false, features = ["attributes"] }
 tracing-subscriber = { version = "0.3.19", default-features = false, features = ["ansi", "fmt", "env-filter"] }
 url = { version = "2.5.3", default-features = false, features = ["serde"] }

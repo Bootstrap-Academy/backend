@@ -28,7 +28,13 @@ academy_core_user_contracts.workspace = true
 academy_di.workspace = true
 academy_models.workspace = true
 academy_utils.workspace = true
-aide = { version = "0.14.1", default-features = false, features = ["axum", "axum-extra", "axum-json", "axum-query", "redoc"] }
+aide = { version = "0.14.1", default-features = false, features = [
+  "axum",
+  "axum-extra",
+  "axum-json",
+  "axum-query",
+  "redoc",
+] }
 anyhow.workspace = true
 axum-extra.workspace = true
 axum.workspace = true

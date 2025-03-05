@@ -9,7 +9,6 @@
     "*.pdf"
     "*.png"
     "*.sql"
-    "*.toml"
   ];
 
   programs.black.enable = true;
@@ -24,4 +23,10 @@
   programs.prettier.enable = true;
 
   programs.rustfmt.enable = true;
+
+  programs.taplo.enable = true;
+  settings.formatter.taplo.options = [
+    "--option=column_width=120"
+    "--option=align_comments=false"
+  ];
 }

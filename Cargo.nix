@@ -4600,9 +4600,9 @@ rec {
       };
       "async-trait" = rec {
         crateName = "async-trait";
-        version = "0.1.86";
+        version = "0.1.87";
         edition = "2021";
-        sha256 = "17g7pk7fxbsf61hdbmf727q56bcqvdpjapxw5wd7gwvb114xfkb4";
+        sha256 = "15swwmyl4nx7w03rq6ibb4x2c8rzbx9fpiag1kn4fhapb49yqmnm";
         procMacro = true;
         libName = "async_trait";
         authors = [
@@ -5537,9 +5537,9 @@ rec {
       };
       "bytes" = rec {
         crateName = "bytes";
-        version = "1.10.0";
+        version = "1.10.1";
         edition = "2018";
-        sha256 = "1ybcmdrlxrsrn7lnl0xrjg10j7zb4r01jjs5b2sqhrcwh62aq7gn";
+        sha256 = "0smd4wi2yrhp5pmq571yiaqx84bjqlm1ixqhnvfwzzc6pqkn26yp";
         authors = [
           "Carl Lerche <me@carllerche.com>"
           "Sean McArthur <sean@seanmonstar.com>"
@@ -6671,9 +6671,9 @@ rec {
       };
       "dyn-clone" = rec {
         crateName = "dyn-clone";
-        version = "1.0.18";
+        version = "1.0.19";
         edition = "2018";
-        sha256 = "0dag651ph5q0mcax74y4m1k9hyl737q1v03isck3mzxsfd7g9vpy";
+        sha256 = "01ahm5abl20480v48nxy4ffyx80cs6263q9zf0gnrxpvm6w8yyhw";
         libName = "dyn_clone";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
@@ -7798,9 +7798,9 @@ rec {
       };
       "httparse" = rec {
         crateName = "httparse";
-        version = "1.10.0";
+        version = "1.10.1";
         edition = "2018";
-        sha256 = "0ahyh51rrpizd7m1jy5p791xfwn9cnmv0snd2q528h3i9vghimzj";
+        sha256 = "11ycd554bw2dkgw0q61xsa7a4jn1wb1xbfacmf3dbwsikvkkvgvd";
         authors = [
           "Sean McArthur <sean@seanmonstar.com>"
         ];
@@ -8854,9 +8854,9 @@ rec {
       };
       "itoa" = rec {
         crateName = "itoa";
-        version = "1.0.14";
+        version = "1.0.15";
         edition = "2018";
-        sha256 = "0x26kr9m062mafaxgcf2p6h2x7cmixm0zw95aipzn2hr3d5jlnnp";
+        sha256 = "0b4fj9kz54dr3wam0vprjwgygvycyw8r0qwg7vp19ly8b2w16psa";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -11246,7 +11246,7 @@ rec {
           }
           {
             name = "zerocopy";
-            packageId = "zerocopy 0.8.21";
+            packageId = "zerocopy 0.8.22";
             usesDefaultFeatures = false;
             features = [ "simd" ];
           }
@@ -11488,9 +11488,9 @@ rec {
       };
       "redox_syscall" = rec {
         crateName = "redox_syscall";
-        version = "0.5.9";
+        version = "0.5.10";
         edition = "2021";
-        sha256 = "0bvykdad226m3nqzkbb95piglyfn7m2yxp4r10m9xr4q7qr6idc2";
+        sha256 = "1l9b638qx72312yzh8ykvda9b3lqd9gf6yqn66b23a331ck0r30b";
         libName = "syscall";
         authors = [
           "Jeremy Soller <jackpot51@gmail.com>"
@@ -12019,10 +12019,10 @@ rec {
       };
       "ring" = rec {
         crateName = "ring";
-        version = "0.17.11";
+        version = "0.17.12";
         edition = "2021";
-        links = "ring_core_0_17_11_";
-        sha256 = "0wzyhdbf71ndd14kkpyj2a6nvczvli2mndzv2al7r26k4yp4jlys";
+        links = "ring_core_0_17_12_";
+        sha256 = "13cjxh0sgvffqfqyh1z25039xck6dsqdch8vcxcilwlvl8zq56zd";
         dependencies = [
           {
             name = "cfg-if";
@@ -12692,9 +12692,9 @@ rec {
       };
       "rustversion" = rec {
         crateName = "rustversion";
-        version = "1.0.19";
+        version = "1.0.20";
         edition = "2018";
-        sha256 = "1m39qd65jcd1xgqzdm3017ppimiggh2446xngwp1ngr8hjbmpi7p";
+        sha256 = "1lhwjb16dsm8brd18bn2bh0ryzc7qi29bi2jjsc6ny2zbwn3ivgd";
         procMacro = true;
         build = "build/build.rs";
         authors = [
@@ -12704,9 +12704,9 @@ rec {
       };
       "ryu" = rec {
         crateName = "ryu";
-        version = "1.0.19";
+        version = "1.0.20";
         edition = "2018";
-        sha256 = "1pg6a0b80m32ahygsdkwzs3bfydk4snw695akz4rqxj4lv8a58bf";
+        sha256 = "07s855l8sb333h6bpn24pka5sp7hjk2w667xy6a0khkf6sqv5lr8";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -12875,9 +12875,9 @@ rec {
       };
       "semver" = rec {
         crateName = "semver";
-        version = "1.0.25";
+        version = "1.0.26";
         edition = "2018";
-        sha256 = "00sy306qpi7vfand7dxm2vc76nlc8fkh1rrhdy0qh12v50nzx7gp";
+        sha256 = "1l5q2vb8fjkby657kdyfpvv40x2i2xqq9bg57pxqakfj92fgmrjn";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -13456,9 +13456,9 @@ rec {
       };
       "serde_path_to_error" = rec {
         crateName = "serde_path_to_error";
-        version = "0.1.16";
+        version = "0.1.17";
         edition = "2021";
-        sha256 = "19hlz2359l37ifirskpcds7sxg0gzpqvfilibs7whdys0128i6dg";
+        sha256 = "0alb447z25dvczd6ll3vfjbf51pypn23mgs5hv8978vzjczv3yjr";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -14265,9 +14265,9 @@ rec {
       };
       "time" = rec {
         crateName = "time";
-        version = "0.3.37";
+        version = "0.3.38";
         edition = "2021";
-        sha256 = "08bvydyc14plkwhchzia5bcdbmm0mk5fzilsdpjx06w6hf48drrm";
+        sha256 = "0wplwc57kq7pkd97fyifps1lvmrfghf6gr6vsa7vx3szy8h1215v";
         authors = [
           "Jacob Pratt <open-source@jhpratt.dev>"
           "Time contributors"
@@ -14345,9 +14345,9 @@ rec {
       };
       "time-core" = rec {
         crateName = "time-core";
-        version = "0.1.2";
+        version = "0.1.3";
         edition = "2021";
-        sha256 = "1wx3qizcihw6z151hywfzzyd1y5dl804ydyxci6qm07vbakpr4pg";
+        sha256 = "1vvn3vskn3dnvql1s0pvdlxazrjgvhksjzy2gcfw3dw5p6jrfp3n";
         libName = "time_core";
         authors = [
           "Jacob Pratt <open-source@jhpratt.dev>"
@@ -14357,9 +14357,9 @@ rec {
       };
       "time-macros" = rec {
         crateName = "time-macros";
-        version = "0.2.19";
+        version = "0.2.20";
         edition = "2021";
-        sha256 = "1pl558z26pp342l5y91n6dxb60xwhar975wk6jc4npiygq0ycd18";
+        sha256 = "0p2w00wawnr2nzpdyi6a8mg5m6kcs0crdq4xhzvwafqwx31kn2g8";
         procMacro = true;
         libName = "time_macros";
         authors = [
@@ -14411,9 +14411,9 @@ rec {
       };
       "tinyvec" = rec {
         crateName = "tinyvec";
-        version = "1.8.1";
+        version = "1.9.0";
         edition = "2018";
-        sha256 = "1s41rv7n39sjsxz3kd3d4adw45ndkxz1d18rfbz2wd7s9n8bhb82";
+        sha256 = "0w9w8qcifns9lzvlbfwa01y0skhr542anwa3rpn28rg82wgndcq9";
         authors = [
           "Lokathor <zefria@gmail.com>"
         ];
@@ -14427,6 +14427,9 @@ rec {
         features = {
           "alloc" = [ "tinyvec_macros" ];
           "arbitrary" = [ "dep:arbitrary" ];
+          "borsh" = [ "dep:borsh" ];
+          "generic-array" = [ "dep:generic-array" ];
+          "latest_stable_rust" = [ "rustc_1_61" ];
           "real_blackbox" = [ "criterion/real_blackbox" ];
           "rustc_1_55" = [ "rustc_1_40" ];
           "rustc_1_57" = [ "rustc_1_55" ];
@@ -15527,9 +15530,9 @@ rec {
       };
       "unicode-ident" = rec {
         crateName = "unicode-ident";
-        version = "1.0.17";
+        version = "1.0.18";
         edition = "2018";
-        sha256 = "1gpdxvaskz04whays5igg4zyca0dl7vdy2arsfxb13kpjcx4gqh0";
+        sha256 = "04k5r6sijkafzljykdq26mhjpmhdx4jwzvn1lh90g9ax9903jpss";
         libName = "unicode_ident";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
@@ -18409,11 +18412,11 @@ rec {
         };
         resolvedDefaultFeatures = [ "byteorder" "default" "derive" "simd" "zerocopy-derive" ];
       };
-      "zerocopy 0.8.21" = rec {
+      "zerocopy 0.8.22" = rec {
         crateName = "zerocopy";
-        version = "0.8.21";
+        version = "0.8.22";
         edition = "2021";
-        sha256 = "0y4lz5l7a7h5rsy37jwmjrs3pc9i2jgwyigm257i6pfxn91i3w6w";
+        sha256 = "0wj8i9i0fcl86q7z2ab80v5wvy51wmpr3rgp1agcpxv31gd2yq89";
         authors = [
           "Joshua Liebow-Feeser <joshlf@google.com>"
           "Jack Wrenn <jswrenn@amazon.com>"
@@ -18421,19 +18424,19 @@ rec {
         dependencies = [
           {
             name = "zerocopy-derive";
-            packageId = "zerocopy-derive 0.8.21";
+            packageId = "zerocopy-derive 0.8.22";
             optional = true;
           }
           {
             name = "zerocopy-derive";
-            packageId = "zerocopy-derive 0.8.21";
+            packageId = "zerocopy-derive 0.8.22";
             target = { target, features }: false;
           }
         ];
         devDependencies = [
           {
             name = "zerocopy-derive";
-            packageId = "zerocopy-derive 0.8.21";
+            packageId = "zerocopy-derive 0.8.22";
           }
         ];
         features = {
@@ -18471,11 +18474,11 @@ rec {
         ];
 
       };
-      "zerocopy-derive 0.8.21" = rec {
+      "zerocopy-derive 0.8.22" = rec {
         crateName = "zerocopy-derive";
-        version = "0.8.21";
+        version = "0.8.22";
         edition = "2021";
-        sha256 = "18kdbw6k5hgw81l8pn1rp67zg13hxsdj3vmbr6196aglyj386b3i";
+        sha256 = "086mi6yzfnywkpqpqbxsiazzj78iirb2rrily3c55vd2sww1vy3r";
         procMacro = true;
         libName = "zerocopy_derive";
         authors = [

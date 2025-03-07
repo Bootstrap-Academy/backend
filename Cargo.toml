@@ -152,7 +152,7 @@ syn = { version = "2.0.99", default-features = false, features = [
   "full",
 ] }
 thiserror = { version = "2.0.12", default-features = false }
-tokio = { version = "1.43.0", default-features = false, features = [
+tokio = { version = "1.44.0", default-features = false, features = [
   "rt-multi-thread",
   "macros",
   "sync",

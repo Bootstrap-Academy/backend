@@ -117,7 +117,7 @@ clap_complete = { version = "4.5.46", default-features = false }
 darling = { version = "0.20.10", default-features = false, features = ["suggestions"] }
 futures = { version = "0.3.31", default-features = false, features = ["std"] }
 hex = { version = "0.4.3", default-features = false, features = ["std"] }
-lettre = { version = "0.11.14", default-features = false, features = [
+lettre = { version = "0.11.15", default-features = false, features = [
   "builder",
   "hostname",
   "pool",

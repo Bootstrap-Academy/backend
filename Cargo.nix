@@ -10665,9 +10665,9 @@ rec {
       };
       "ppv-lite86" = rec {
         crateName = "ppv-lite86";
-        version = "0.2.20";
+        version = "0.2.21";
         edition = "2021";
-        sha256 = "017ax9ssdnpww7nrl1hvqh2lzncpv04nnsibmnw9nxjnaqlpp5bp";
+        sha256 = "1abxx6qz5qnd43br1dd9b2savpihzjza8gb4fbzdql1gxp2f7sl5";
         libName = "ppv_lite86";
         authors = [
           "The CryptoCorrosion Contributors"
@@ -10675,8 +10675,8 @@ rec {
         dependencies = [
           {
             name = "zerocopy";
-            packageId = "zerocopy 0.7.35";
-            features = [ "simd" "derive" ];
+            packageId = "zerocopy 0.8.23";
+            features = [ "simd" ];
           }
         ];
         features = {
@@ -10769,9 +10769,9 @@ rec {
       };
       "proc-macro-crate" = rec {
         crateName = "proc-macro-crate";
-        version = "3.2.0";
+        version = "3.3.0";
         edition = "2021";
-        sha256 = "0yzsqnavb3lmrcsmbrdjfrky9vcbl46v59xi9avn0796rb3likwf";
+        sha256 = "0d9xlymplfi9yv3f5g4bp0d6qh70apnihvqcjllampx4f5lmikpd";
         libName = "proc_macro_crate";
         authors = [
           "Bastian Köcher <git@kchr.de>"
@@ -10780,6 +10780,8 @@ rec {
           {
             name = "toml_edit";
             packageId = "toml_edit";
+            usesDefaultFeatures = false;
+            features = [ "parse" ];
           }
         ];
 
@@ -11246,7 +11248,7 @@ rec {
           }
           {
             name = "zerocopy";
-            packageId = "zerocopy 0.8.22";
+            packageId = "zerocopy 0.8.23";
             usesDefaultFeatures = false;
             features = [ "simd" ];
           }
@@ -12019,10 +12021,10 @@ rec {
       };
       "ring" = rec {
         crateName = "ring";
-        version = "0.17.12";
+        version = "0.17.13";
         edition = "2021";
-        links = "ring_core_0_17_12_";
-        sha256 = "13cjxh0sgvffqfqyh1z25039xck6dsqdch8vcxcilwlvl8zq56zd";
+        links = "ring_core_0_17_13_";
+        sha256 = "1vjhhlmpqqd9lc53ffjj1yk203188n2km27g3myvssm15a1mvb3h";
         dependencies = [
           {
             name = "cfg-if";
@@ -12438,9 +12440,9 @@ rec {
       };
       "rustix" = rec {
         crateName = "rustix";
-        version = "1.0.0";
+        version = "1.0.1";
         edition = "2021";
-        sha256 = "1h2xyk06fdhbnf5q34bw540bdqgd21vrzja51qlm068l9zbdry0p";
+        sha256 = "0mznc6mzxgrm5b9aw0alji956mb2q7cgrrav8w8lff2wvw94ipns";
         authors = [
           "Dan Gohman <dev@sunfishcode.online>"
           "Jakub Konka <kubkon@jakubkonka.com>"
@@ -14262,9 +14264,9 @@ rec {
       };
       "time" = rec {
         crateName = "time";
-        version = "0.3.38";
+        version = "0.3.39";
         edition = "2021";
-        sha256 = "0wplwc57kq7pkd97fyifps1lvmrfghf6gr6vsa7vx3szy8h1215v";
+        sha256 = "1n6dmsj2xpk9jksdg4im5x0chz6vpqypxdl08nn3m8j03aq9ilns";
         authors = [
           "Jacob Pratt <open-source@jhpratt.dev>"
           "Time contributors"
@@ -14897,7 +14899,7 @@ rec {
           "perf" = [ "dep:kstring" ];
           "serde" = [ "dep:serde" "toml_datetime/serde" "dep:serde_spanned" ];
         };
-        resolvedDefaultFeatures = [ "default" "display" "parse" "serde" ];
+        resolvedDefaultFeatures = [ "parse" "serde" ];
       };
       "totp-rs" = rec {
         crateName = "totp-rs";
@@ -18377,12 +18379,6 @@ rec {
         ];
         dependencies = [
           {
-            name = "byteorder";
-            packageId = "byteorder";
-            optional = true;
-            usesDefaultFeatures = false;
-          }
-          {
             name = "zerocopy-derive";
             packageId = "zerocopy-derive 0.7.35";
             optional = true;
@@ -18407,13 +18403,13 @@ rec {
           "simd-nightly" = [ "simd" ];
           "zerocopy-derive" = [ "dep:zerocopy-derive" ];
         };
-        resolvedDefaultFeatures = [ "byteorder" "default" "derive" "simd" "zerocopy-derive" ];
+        resolvedDefaultFeatures = [ "simd" ];
       };
-      "zerocopy 0.8.22" = rec {
+      "zerocopy 0.8.23" = rec {
         crateName = "zerocopy";
-        version = "0.8.22";
+        version = "0.8.23";
         edition = "2021";
-        sha256 = "0wj8i9i0fcl86q7z2ab80v5wvy51wmpr3rgp1agcpxv31gd2yq89";
+        sha256 = "1inbxgqhsxghawsss8x8517g30fpp8s3ll2ywy88ncm40m6l95zx";
         authors = [
           "Joshua Liebow-Feeser <joshlf@google.com>"
           "Jack Wrenn <jswrenn@amazon.com>"
@@ -18421,19 +18417,19 @@ rec {
         dependencies = [
           {
             name = "zerocopy-derive";
-            packageId = "zerocopy-derive 0.8.22";
+            packageId = "zerocopy-derive 0.8.23";
             optional = true;
           }
           {
             name = "zerocopy-derive";
-            packageId = "zerocopy-derive 0.8.22";
+            packageId = "zerocopy-derive 0.8.23";
             target = { target, features }: false;
           }
         ];
         devDependencies = [
           {
             name = "zerocopy-derive";
-            packageId = "zerocopy-derive 0.8.22";
+            packageId = "zerocopy-derive 0.8.23";
           }
         ];
         features = {
@@ -18471,11 +18467,11 @@ rec {
         ];
 
       };
-      "zerocopy-derive 0.8.22" = rec {
+      "zerocopy-derive 0.8.23" = rec {
         crateName = "zerocopy-derive";
-        version = "0.8.22";
+        version = "0.8.23";
         edition = "2021";
-        sha256 = "086mi6yzfnywkpqpqbxsiazzj78iirb2rrily3c55vd2sww1vy3r";
+        sha256 = "0m7iwisxz111sgkski722nyxv0rixbs0a9iylrcvhpfx1qfw0lk3";
         procMacro = true;
         libName = "zerocopy_derive";
         authors = [

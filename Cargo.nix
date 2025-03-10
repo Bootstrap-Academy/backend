@@ -6682,9 +6682,9 @@ rec {
       };
       "email-encoding" = rec {
         crateName = "email-encoding";
-        version = "0.3.1";
+        version = "0.4.0";
         edition = "2021";
-        sha256 = "1k4xkmdm8j8vdaq9c3nx6qx14jzjdgab5yb5n9v48cdbpd5qjgga";
+        sha256 = "13pv902l3xc71n2ndkj3qh19mh5ndphks3s78227b7qzlzkcvf90";
         libName = "email_encoding";
         dependencies = [
           {
@@ -6695,9 +6695,14 @@ rec {
           {
             name = "memchr";
             packageId = "memchr";
+            usesDefaultFeatures = false;
           }
         ];
-
+        features = {
+          "default" = [ "std" ];
+          "std" = [ "base64/std" "memchr/std" ];
+        };
+        resolvedDefaultFeatures = [ "default" "std" ];
       };
       "email_address" = rec {
         crateName = "email_address";
@@ -8996,9 +9001,9 @@ rec {
       };
       "lettre" = rec {
         crateName = "lettre";
-        version = "0.11.14";
+        version = "0.11.15";
         edition = "2021";
-        sha256 = "07whzbvjgjd33ljwa8vmwcki361xsnkpm51lrs9g7657lkknyisx";
+        sha256 = "0dw4kvw53vpgg9sbhrdyijrz8yb4ygvidxyn6nr30smvxawc56vm";
         authors = [
           "Alexis Mousset <contact@amousset.me>"
           "Paolo Barbolini <paolo@paolo565.org>"

@@ -79,10 +79,17 @@ in
 
       systemd.services =
         let
+          httpPort = lib.pipe cfg.settings.http.address [
+            (lib.match ".*:([0-9]+)")
+            lib.head
+            lib.toInt
+          ];
+
           dependencies =
             [ "network-online.target" ]
             ++ (lib.optional cfg.localDatabase "postgresql.service")
             ++ (lib.optional cfg.localCache "redis-academy.service");
+
           baseConfig = {
             wants = dependencies;
             after = dependencies;
@@ -91,11 +98,53 @@ in
               User = "academy";
               Group = "academy";
               StateDirectory = "academy";
+
+              # hardening
+              AmbientCapabilities = "";
+              CapabilityBoundingSet = [ "" ];
+              DevicePolicy = "closed";
+              LockPersonality = true;
+              # MemoryDenyWriteExecute = true; # required by chromium
+              NoNewPrivileges = true;
+              PrivateDevices = true;
+              PrivateTmp = true;
+              PrivateUsers = true;
+              ProcSubset = "pid";
+              ProtectClock = true;
+              ProtectControlGroups = true;
+              ProtectHome = true;
+              ProtectHostname = true;
+              ProtectKernelLogs = true;
+              ProtectKernelModules = true;
+              ProtectKernelTunables = true;
+              ProtectProc = "invisible";
+              ProtectSystem = "strict";
+              RemoveIPC = true;
+              RestrictAddressFamilies = [ "AF_INET AF_INET6 AF_UNIX" ];
+              RestrictNamespaces = true;
+              RestrictRealtime = true;
+              RestrictSUIDSGID = true;
+              SocketBindDeny = "any";
+              SystemCallArchitectures = "native";
+              SystemCallFilter = [
+                "@system-service"
+                "~@privileged"
+                "~@resources"
+
+                # required by chromium
+                "setpriority"
+                "pkey_alloc"
+                "capset"
+                "sched_setaffinity"
+                "pkey_mprotect"
+              ];
+              UMask = "0077";
             };
 
             environment = {
               inherit ACADEMY_CONFIG;
               RUST_LOG = cfg.logLevel;
+              HOME = "/tmp"; # required by chromium
             };
           };
         in
@@ -105,6 +154,9 @@ in
             script = ''
               ${cfg.package}/bin/academy serve
             '';
+            serviceConfig = baseConfig.serviceConfig // {
+              SocketBindAllow = [ "tcp:${toString httpPort}" ];
+            };
           };
         }
         // (lib.mapAttrs' (

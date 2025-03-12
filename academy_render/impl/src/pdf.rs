@@ -29,7 +29,12 @@ impl RenderPdfService for RenderPdfServiceImpl {
 
         tokio::process::Command::new(&*self.config.chrome_bin)
             .arg("--headless")
+            .arg("--no-first-run")
+            .arg("--no-default-browser-check")
+            .arg("--no-sandbox")
+            .arg("--disable-setuid-sandbox")
             .arg("--disable-gpu")
+            .arg("--disable-dev-shm-usage")
             .arg("--no-pdf-header-footer")
             .arg(format!("--print-to-pdf={}", output_path.display()))
             .arg(index_path)

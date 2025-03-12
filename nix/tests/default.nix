@@ -204,6 +204,8 @@ let
         machine.copy_from_host("${./utils.py}", "/root/tests/utils.py")
         machine.copy_from_host("${./${name}}", "/root/tests/${name}")
         machine.succeed("python /root/tests/${name}")
+
+        assert machine.fail("coredumpctl 2>&1").strip() == "No coredumps found."
       '';
     };
 

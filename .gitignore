@@ -8,3 +8,4 @@ repl-result-*
 .lcov*
 .invoices
 .credit_notes
+.nixos-test-history

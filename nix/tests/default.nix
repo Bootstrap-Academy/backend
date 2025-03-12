@@ -176,6 +176,18 @@ let
       };
     };
 
+  interactiveModule = {
+    services.academy.backend.settings.http.address = lib.mkForce "0.0.0.0:8000";
+    networking.firewall.allowedTCPPorts = [ 8000 ];
+    virtualisation.forwardPorts = [
+      {
+        from = "host";
+        host.port = 8000;
+        guest.port = 8000;
+      }
+    ];
+  };
+
   mkPythonTest =
     name:
     testers.runNixOSTest {
@@ -196,6 +208,8 @@ let
           ];
         };
 
+      interactive.nodes.machine = interactiveModule;
+
       testScript = ''
         machine.start()
         machine.wait_for_unit("academy-backend.service")
@@ -209,7 +223,7 @@ let
       '';
     };
 
-  mkNixosTest = name: callPackage ./${name} { inherit defaultModule; };
+  mkNixosTest = name: callPackage ./${name} { inherit defaultModule interactiveModule; };
 
   composite = linkFarm "academy-tests-composite" (builtins.mapAttrs (_: toString) tests);
 in

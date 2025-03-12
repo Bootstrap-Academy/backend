@@ -2,6 +2,7 @@
   lib,
   testers,
   defaultModule,
+  interactiveModule,
   ...
 }:
 testers.runNixOSTest (
@@ -12,6 +13,8 @@ testers.runNixOSTest (
     nodes.machine = {
       imports = [ defaultModule ];
     };
+
+    interactive.nodes.machine = interactiveModule;
 
     testScript = ''
       import json
@@ -68,7 +71,7 @@ testers.runNixOSTest (
         lib.attrNames
         (lib.filter (name: lib.hasPrefix "academy-" name && !lib.hasPrefix "academy-testing-" name))
         (lib.concatMapStringsSep "\n" (name: ''
-          machine.log(machine.succeed("systemd-analyze security ${name}.service --threshold=13 --no-pager"))
+          machine.log(machine.succeed("SYSTEMD_COLORS=1 systemd-analyze security ${name}.service --threshold=13 --no-pager"))
         ''))
       ]}
     '';

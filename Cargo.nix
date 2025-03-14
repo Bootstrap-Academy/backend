@@ -14024,9 +14024,9 @@ rec {
       };
       "tempfile" = rec {
         crateName = "tempfile";
-        version = "3.18.0";
+        version = "3.19.0";
         edition = "2021";
-        sha256 = "0rz5y2qjz3mwpca8j5kg9fr65jmdinf27bdbil6i5rkfa857wc9c";
+        sha256 = "00565dxpsrxl7n7dhnqpvnpyipk14mr5i6m2q9r3vm9z1bs612a8";
         authors = [
           "Steven Allen <steven@stebalien.com>"
           "The Rust Project Developers"
@@ -14034,10 +14034,6 @@ rec {
           "Jason White <me@jasonwhite.io>"
         ];
         dependencies = [
-          {
-            name = "cfg-if";
-            packageId = "cfg-if";
-          }
           {
             name = "fastrand";
             packageId = "fastrand";

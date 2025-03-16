@@ -4233,9 +4233,9 @@ rec {
       };
       "aide" = rec {
         crateName = "aide";
-        version = "0.14.1";
+        version = "0.14.2";
         edition = "2021";
-        sha256 = "1a2a61s4x68p1jm82hsyssf3kvi18la7m3rkgnng3cqrhcadmxrf";
+        sha256 = "00x7s6wj3wlfqg4vjibchxkgfcpw1h82jiwwba0ym2pkxda7aix2";
         authors = [
           "tamasfe"
         ];
@@ -4285,6 +4285,11 @@ rec {
             packageId = "serde_json";
           }
           {
+            name = "serde_qs";
+            packageId = "serde_qs";
+            optional = true;
+          }
+          {
             name = "thiserror";
             packageId = "thiserror 2.0.12";
           }
@@ -4304,7 +4309,7 @@ rec {
           }
         ];
         features = {
-          "axum" = [ "dep:axum" "bytes" "http" "dep:tower-layer" "dep:tower-service" ];
+          "axum" = [ "dep:axum" "bytes" "http" "dep:tower-layer" "dep:tower-service" "serde_qs?/axum" ];
           "axum-extra" = [ "axum" "dep:axum-extra" ];
           "axum-extra-cookie" = [ "axum-extra" "axum-extra/cookie" ];
           "axum-extra-cookie-private" = [ "axum-extra" "axum-extra/cookie-private" ];
@@ -4323,6 +4328,7 @@ rec {
           "bytes" = [ "dep:bytes" ];
           "http" = [ "dep:http" ];
           "macros" = [ "dep:aide-macros" ];
+          "serde_qs" = [ "dep:serde_qs" ];
         };
         resolvedDefaultFeatures = [ "axum" "axum-extra" "axum-json" "axum-query" "bytes" "http" "redoc" ];
       };
@@ -6917,6 +6923,12 @@ rec {
             usesDefaultFeatures = false;
           }
           {
+            name = "futures-executor";
+            packageId = "futures-executor";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+          {
             name = "futures-io";
             packageId = "futures-io";
             usesDefaultFeatures = false;
@@ -6952,7 +6964,7 @@ rec {
           "unstable" = [ "futures-core/unstable" "futures-task/unstable" "futures-channel/unstable" "futures-io/unstable" "futures-util/unstable" ];
           "write-all-vectored" = [ "futures-util/write-all-vectored" ];
         };
-        resolvedDefaultFeatures = [ "alloc" "std" ];
+        resolvedDefaultFeatures = [ "alloc" "async-await" "default" "executor" "futures-executor" "std" ];
       };
       "futures-channel" = rec {
         crateName = "futures-channel";
@@ -6994,6 +7006,37 @@ rec {
           "std" = [ "alloc" ];
         };
         resolvedDefaultFeatures = [ "alloc" "default" "std" ];
+      };
+      "futures-executor" = rec {
+        crateName = "futures-executor";
+        version = "0.3.31";
+        edition = "2018";
+        sha256 = "17vcci6mdfzx4gbk0wx64chr2f13wwwpvyf3xd5fb1gmjzcx2a0y";
+        libName = "futures_executor";
+        dependencies = [
+          {
+            name = "futures-core";
+            packageId = "futures-core";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "futures-task";
+            packageId = "futures-task";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "futures-util";
+            packageId = "futures-util";
+            usesDefaultFeatures = false;
+          }
+        ];
+        features = {
+          "default" = [ "std" ];
+          "num_cpus" = [ "dep:num_cpus" ];
+          "std" = [ "futures-core/std" "futures-task/std" "futures-util/std" ];
+          "thread-pool" = [ "std" "num_cpus" ];
+        };
+        resolvedDefaultFeatures = [ "std" ];
       };
       "futures-io" = rec {
         crateName = "futures-io";
@@ -13480,6 +13523,55 @@ rec {
           }
         ];
 
+      };
+      "serde_qs" = rec {
+        crateName = "serde_qs";
+        version = "0.14.0";
+        edition = "2018";
+        sha256 = "19ha3lk8mdhzjavm09my9c8j96c554nlig5lsvvbvb08q3npnhcb";
+        authors = [
+          "Sam Scott <sam@osohq.com>"
+        ];
+        dependencies = [
+          {
+            name = "axum";
+            packageId = "axum";
+            rename = "axum-framework";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "futures";
+            packageId = "futures";
+            optional = true;
+          }
+          {
+            name = "percent-encoding";
+            packageId = "percent-encoding";
+          }
+          {
+            name = "serde";
+            packageId = "serde";
+            features = [ "derive" ];
+          }
+          {
+            name = "thiserror";
+            packageId = "thiserror 2.0.12";
+          }
+        ];
+        features = {
+          "actix-web3" = [ "dep:actix-web3" ];
+          "actix-web4" = [ "dep:actix-web4" ];
+          "actix3" = [ "actix-web3" "futures" ];
+          "actix4" = [ "actix-web4" "futures" ];
+          "axum" = [ "axum-framework" "futures" ];
+          "axum-framework" = [ "dep:axum-framework" ];
+          "futures" = [ "dep:futures" ];
+          "tracing" = [ "dep:tracing" ];
+          "warp" = [ "futures" "tracing" "warp-framework" ];
+          "warp-framework" = [ "dep:warp-framework" ];
+        };
+        resolvedDefaultFeatures = [ "axum" "axum-framework" "default" "futures" ];
       };
       "serde_spanned" = rec {
         crateName = "serde_spanned";

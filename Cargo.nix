@@ -12425,9 +12425,9 @@ rec {
       };
       "rust_decimal_macros" = rec {
         crateName = "rust_decimal_macros";
-        version = "1.36.0";
+        version = "1.37.0";
         edition = "2021";
-        sha256 = "0b1k94wjpwnnk68rk83vd6nl1rvqcm674jas85l45wv930iiz6fs";
+        sha256 = "139fhg4if7zk3bczap4yr0wb38lwjfnp3ml64ck11f280rj83phd";
         procMacro = true;
         authors = [
           "Paul Mason <paul@form1.co.nz>"
@@ -12438,9 +12438,9 @@ rec {
             packageId = "quote";
           }
           {
-            name = "rust_decimal";
-            packageId = "rust_decimal";
-            usesDefaultFeatures = false;
+            name = "syn";
+            packageId = "syn 2.0.100";
+            features = [ "full" ];
           }
         ];
         features = {

@@ -12310,9 +12310,9 @@ rec {
       };
       "rust_decimal" = rec {
         crateName = "rust_decimal";
-        version = "1.36.0";
+        version = "1.37.0";
         edition = "2021";
-        sha256 = "0mgmplkpawx9kggc4v3qymmdxx71dx1qsf1lsqp2pi9w7q7di0mh";
+        sha256 = "1bvqr4lqpf0ynmnarwfjdhpwxza60afi7laqljl8hg64g9pay92w";
         authors = [
           "Paul Mason <paul@form1.co.nz>"
         ];
@@ -12392,7 +12392,7 @@ rec {
         ];
         features = {
           "borsh" = [ "dep:borsh" "std" ];
-          "db-diesel-mysql" = [ "diesel/mysql" "std" ];
+          "db-diesel-mysql" = [ "diesel/mysql_backend" "std" ];
           "db-diesel-postgres" = [ "diesel/postgres" "std" ];
           "db-diesel2-mysql" = [ "db-diesel-mysql" ];
           "db-diesel2-postgres" = [ "db-diesel-postgres" ];
@@ -12400,13 +12400,15 @@ rec {
           "db-tokio-postgres" = [ "dep:bytes" "dep:postgres-types" "std" ];
           "default" = [ "serde" "std" ];
           "diesel" = [ "dep:diesel" ];
+          "macros" = [ "dep:rust_decimal_macros" ];
           "maths-nopanic" = [ "maths" ];
           "ndarray" = [ "dep:ndarray" ];
           "proptest" = [ "dep:proptest" ];
           "rand" = [ "dep:rand" ];
+          "rand-0_9" = [ "dep:rand-0_9" ];
           "rkyv" = [ "dep:rkyv" ];
           "rkyv-safe" = [ "rkyv/validation" ];
-          "rocket-traits" = [ "dep:rocket" ];
+          "rocket-traits" = [ "dep:rocket" "std" ];
           "rust-fuzz" = [ "dep:arbitrary" ];
           "serde" = [ "dep:serde" ];
           "serde-arbitrary-precision" = [ "serde-with-arbitrary-precision" ];

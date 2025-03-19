@@ -14118,9 +14118,9 @@ rec {
       };
       "tempfile" = rec {
         crateName = "tempfile";
-        version = "3.19.0";
+        version = "3.19.1";
         edition = "2021";
-        sha256 = "00565dxpsrxl7n7dhnqpvnpyipk14mr5i6m2q9r3vm9z1bs612a8";
+        sha256 = "1grmcj8y6rcavndw2dm18ndzdimsq5f8lcrwyg627cdrcdvsqdvl";
         authors = [
           "Steven Allen <steven@stebalien.com>"
           "The Rust Project Developers"

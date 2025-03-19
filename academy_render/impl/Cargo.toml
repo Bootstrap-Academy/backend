@@ -14,6 +14,6 @@ academy_di.workspace = true
 academy_render_contracts.workspace = true
 academy_utils.workspace = true
 anyhow.workspace = true
-tempfile = { version = "3.19.0", default-features = false }
+tempfile = { version = "3.19.1", default-features = false }
 tokio.workspace = true
 tracing.workspace = true

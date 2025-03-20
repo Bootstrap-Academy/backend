@@ -65,7 +65,7 @@ in
         nativeBuildInputs = [ pkgs.makeWrapper ];
         installPhase = ''
           cp -r . $out
-          wrapProgram $out/bin/academy --run "[[ \$USER = academy ]] || exec ${pkgs.sudo}/bin/sudo -u academy \"\$0\" \"\$@\"" --set ACADEMY_CONFIG ${lib.escapeShellArg ACADEMY_CONFIG}
+          wrapProgram $out/bin/academy --run "[[ \$USER = academy ]] || exec ${lib.getExe pkgs.sudo} -u academy \"\$0\" \"\$@\"" --set ACADEMY_CONFIG ${lib.escapeShellArg ACADEMY_CONFIG}
         '';
       };
     in
@@ -152,7 +152,7 @@ in
           academy-backend = baseConfig // {
             wantedBy = [ "multi-user.target" ];
             script = ''
-              ${cfg.package}/bin/academy serve
+              ${lib.getExe cfg.package} serve
             '';
             serviceConfig = baseConfig.serviceConfig // {
               SocketBindAllow = [ "tcp:${toString httpPort}" ];
@@ -167,7 +167,7 @@ in
             value = baseConfig // {
               startAt = schedule;
               script = ''
-                ${cfg.package}/bin/academy task ${task}
+                ${lib.getExe cfg.package} task ${task}
               '';
             };
           }

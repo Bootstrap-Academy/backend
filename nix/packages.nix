@@ -39,6 +39,7 @@ let
       versionCheckProgramArg = "--version";
       doInstallCheck = true;
       passthru.unwrapped = drv;
+      meta = { inherit (drv.meta) mainProgram; };
     };
 
   crateDirs = lib.pipe ../. [

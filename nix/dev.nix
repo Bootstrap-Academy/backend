@@ -48,23 +48,23 @@
   };
 
   processes.smtp4dev.exec = ''
-    ${pkgs.smtp4dev}/bin/smtp4dev --smtpport=2525 --imapport=1143 --user=academy=academy --allowremoteconnections- --authenticationrequired
+    ${lib.getExe pkgs.smtp4dev} --smtpport=2525 --imapport=1143 --user=academy=academy --allowremoteconnections- --authenticationrequired
   '';
 
   processes.testing-recaptcha.exec = ''
-    ${testing}/bin/academy-testing recaptcha --port 8001
+    ${lib.getExe testing} recaptcha --port 8001
   '';
 
   processes.testing-oauth2.exec = ''
-    ${testing}/bin/academy-testing oauth2 --port 8002
+    ${lib.getExe testing} oauth2 --port 8002
   '';
 
   processes.testing-vat.exec = ''
-    ${testing}/bin/academy-testing vat --port 8003
+    ${lib.getExe testing} vat --port 8003
   '';
 
   processes.testing-paypal.exec = ''
-    ${testing}/bin/academy-testing paypal --port 8004
+    ${lib.getExe testing} paypal --port 8004
   '';
 
   env = {

@@ -44,7 +44,7 @@ let
     let
       inherit (pkgs) system;
 
-      testing = "${self.packages.${system}.testing.unwrapped}/bin/academy-testing";
+      testing = lib.getExe self.packages.${system}.testing.unwrapped;
       ports = {
         recaptcha = 8001;
         oauth2 = 8002;

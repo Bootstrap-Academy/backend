@@ -43,6 +43,14 @@ let
     { config, pkgs, ... }:
     let
       inherit (pkgs) system;
+
+      testing = "${self.packages.${system}.testing.unwrapped}/bin/academy-testing";
+      ports = {
+        recaptcha = 8001;
+        oauth2 = 8002;
+        vat = 8003;
+        paypal = 8004;
+      };
     in
     {
       imports = [ self.nixosModules.default ];
@@ -71,14 +79,14 @@ let
           contact.email = "contact@academy";
           recaptcha = {
             enable = lib.mkDefault true;
-            siteverify_endpoint_override = "http://127.0.0.1:8001/recaptcha/api/siteverify";
+            siteverify_endpoint_override = "http://127.0.0.1:${toString ports.recaptcha}/recaptcha/api/siteverify";
             sitekey = "test-sitekey";
             secret = "test-secret";
             min_score = 0.5;
           };
-          vat.validate_endpoint_override = "http://127.0.0.1:8003/validate/";
+          vat.validate_endpoint_override = "http://127.0.0.1:${toString ports.vat}/validate/";
           paypal = {
-            base_url_override = "http://127.0.0.1:8004/";
+            base_url_override = "http://127.0.0.1:${toString ports.paypal}/";
             client_id = "test-client";
             client_secret = "test-secret";
           };
@@ -100,9 +108,9 @@ let
                   name = "Test OAuth2 Provider";
                   client_id = "client-id";
                   client_secret = "client-secret";
-                  auth_url = "http://127.0.0.1:8002/oauth2/authorize";
-                  token_url = "http://127.0.0.1:8002/oauth2/token";
-                  userinfo_url = "http://127.0.0.1:8002/user";
+                  auth_url = "http://127.0.0.1:${toString ports.oauth2}/oauth2/authorize";
+                  token_url = "http://127.0.0.1:${toString ports.oauth2}/oauth2/token";
+                  userinfo_url = "http://127.0.0.1:${toString ports.oauth2}/user";
                   userinfo_id_key = "id";
                   userinfo_name_key = "name";
                   scopes = [ ];
@@ -122,7 +130,7 @@ let
             wantedBy = [ "academy-backend.service" ];
             before = [ "academy-backend.service" ];
             script = ''
-              ${self.packages.${system}.testing.unwrapped}/bin/academy-testing recaptcha
+              ${testing} recaptcha --port ${toString ports.recaptcha}
             '';
           };
 
@@ -132,7 +140,7 @@ let
             wantedBy = [ "academy-backend.service" ];
             before = [ "academy-backend.service" ];
             script = ''
-              ${self.packages.${system}.testing.unwrapped}/bin/academy-testing oauth2
+              ${testing} oauth2 --port ${toString ports.oauth2}
             '';
           };
 
@@ -140,7 +148,7 @@ let
         wantedBy = [ "academy-backend.service" ];
         before = [ "academy-backend.service" ];
         script = ''
-          ${self.packages.${system}.testing.unwrapped}/bin/academy-testing vat
+          ${testing} vat --port ${toString ports.vat}
         '';
       };
 
@@ -148,7 +156,7 @@ let
         wantedBy = [ "academy-backend.service" ];
         before = [ "academy-backend.service" ];
         script = ''
-          ${self.packages.${system}.testing.unwrapped}/bin/academy-testing paypal
+          ${testing} paypal --port ${toString ports.paypal}
         '';
       };
 

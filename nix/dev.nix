@@ -52,19 +52,19 @@
   '';
 
   processes.testing-recaptcha.exec = ''
-    ${testing}/bin/academy-testing recaptcha
+    ${testing}/bin/academy-testing recaptcha --port 8001
   '';
 
   processes.testing-oauth2.exec = ''
-    ${testing}/bin/academy-testing oauth2
+    ${testing}/bin/academy-testing oauth2 --port 8002
   '';
 
   processes.testing-vat.exec = ''
-    ${testing}/bin/academy-testing vat
+    ${testing}/bin/academy-testing vat --port 8003
   '';
 
   processes.testing-paypal.exec = ''
-    ${testing}/bin/academy-testing paypal
+    ${testing}/bin/academy-testing paypal --port 8004
   '';
 
   env = {

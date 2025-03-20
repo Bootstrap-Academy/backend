@@ -104,28 +104,28 @@ jobs:
       - run: cargo build --bin academy-testing
       - name: test recaptcha
         run: |
-          cargo run --bin academy-testing -- recaptcha &
+          cargo run --bin academy-testing -- recaptcha --port 8001 &
           while ! curl -s http://127.0.0.1:8001; do sleep .1; done
           cargo test -p academy_extern_impl --no-fail-fast --all-features --test recaptcha
         env:
           ACADEMY_CONFIG: ${{ github.workspace }}/config.dev.toml
       - name: test oauth2
         run: |
-          cargo run --bin academy-testing -- oauth2 &
+          cargo run --bin academy-testing -- oauth2 --port 8002 &
           while ! curl -s http://127.0.0.1:8002; do sleep .1; done
           cargo test -p academy_extern_impl --no-fail-fast --all-features --test oauth2
         env:
           ACADEMY_CONFIG: ${{ github.workspace }}/config.dev.toml
       - name: test vat
         run: |
-          cargo run --bin academy-testing -- vat &
+          cargo run --bin academy-testing -- vat --port 8003 &
           while ! curl -s http://127.0.0.1:8003; do sleep .1; done
           cargo test -p academy_extern_impl --no-fail-fast --all-features --test vat
         env:
           ACADEMY_CONFIG: ${{ github.workspace }}/config.dev.toml
       - name: test paypal
         run: |
-          cargo run --bin academy-testing -- paypal &
+          cargo run --bin academy-testing -- paypal --port 8004 &
           while ! curl -s http://127.0.0.1:8004; do sleep .1; done
           cargo test -p academy_extern_impl --no-fail-fast --all-features --test paypal
         env:

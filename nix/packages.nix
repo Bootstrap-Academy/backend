@@ -92,9 +92,9 @@ let
     postInstall = ''
       ${attrs.postInstall or ""}
       installShellCompletion --cmd ${bin} \
-        --bash <($out/bin/${bin} completion bash) \
-        --fish <($out/bin/${bin} completion fish) \
-        --zsh <($out/bin/${bin} completion zsh)
+        --bash <(COMPLETE=bash $out/bin/${bin}) \
+        --fish <(COMPLETE=fish $out/bin/${bin}) \
+        --zsh <(COMPLETE=zsh $out/bin/${bin})
     '';
     meta.mainProgram = bin;
   };

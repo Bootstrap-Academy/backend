@@ -1,9 +1,9 @@
 use std::net::IpAddr;
 
 use academy_testing::{oauth2, paypal, recaptcha, vat};
-use academy_utils::academy_version;
+use academy_utils::{academy_version, bin_name};
 use clap::{CommandFactory, Parser, Subcommand};
-use clap_complete::Shell;
+use clap_complete::CompleteEnv;
 use url::Url;
 
 const _: () = {
@@ -13,6 +13,8 @@ const _: () = {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    CompleteEnv::with_factory(Cli::command).complete();
+
     tracing_subscriber::fmt::init();
 
     let cli = Cli::parse();
@@ -35,21 +37,13 @@ async fn main() -> anyhow::Result<()> {
             client_id,
             client_secret,
         } => paypal::start_server(host, port, client_id, client_secret).await?,
-        Command::Completion { shell } => {
-            clap_complete::generate(
-                shell,
-                &mut Cli::command(),
-                env!("CARGO_BIN_NAME"),
-                &mut std::io::stdout(),
-            );
-        }
     }
 
     Ok(())
 }
 
 #[derive(Debug, Parser)]
-#[command(version = academy_version())]
+#[command(name = bin_name!(), version = academy_version())]
 struct Cli {
     #[command(subcommand)]
     command: Command,
@@ -97,11 +91,5 @@ enum Command {
         client_id: String,
         #[arg(long, default_value = "test-secret")]
         client_secret: String,
-    },
-    /// Generate shell completions
-    Completion {
-        /// The shell to generate completions for
-        #[clap(value_enum)]
-        shell: Shell,
     },
 }

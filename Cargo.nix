@@ -797,6 +797,7 @@ rec {
             name = "clap_complete";
             packageId = "clap_complete";
             usesDefaultFeatures = false;
+            features = [ "unstable-dynamic" ];
           }
           {
             name = "futures";
@@ -3968,6 +3969,7 @@ rec {
             name = "clap_complete";
             packageId = "clap_complete";
             usesDefaultFeatures = false;
+            features = [ "unstable-dynamic" ];
           }
           {
             name = "oauth2";
@@ -5809,7 +5811,7 @@ rec {
           "usage" = [ "clap_builder/usage" ];
           "wrap_help" = [ "clap_builder/wrap_help" ];
         };
-        resolvedDefaultFeatures = [ "color" "default" "derive" "env" "error-context" "help" "std" "suggestions" "usage" ];
+        resolvedDefaultFeatures = [ "color" "default" "derive" "env" "error-context" "help" "std" "suggestions" "unstable-ext" "usage" ];
       };
       "clap_builder" = rec {
         crateName = "clap_builder";
@@ -5848,7 +5850,7 @@ rec {
           "unstable-v5" = [ "deprecated" ];
           "wrap_help" = [ "help" "dep:terminal_size" ];
         };
-        resolvedDefaultFeatures = [ "color" "env" "error-context" "help" "std" "suggestions" "usage" ];
+        resolvedDefaultFeatures = [ "color" "env" "error-context" "help" "std" "suggestions" "unstable-ext" "usage" ];
       };
       "clap_complete" = rec {
         crateName = "clap_complete";
@@ -5861,6 +5863,21 @@ rec {
             packageId = "clap";
             usesDefaultFeatures = false;
             features = [ "std" ];
+          }
+          {
+            name = "clap_lex";
+            packageId = "clap_lex";
+            optional = true;
+          }
+          {
+            name = "is_executable";
+            packageId = "is_executable";
+            optional = true;
+          }
+          {
+            name = "shlex";
+            packageId = "shlex";
+            optional = true;
           }
         ];
         devDependencies = [
@@ -5877,6 +5894,7 @@ rec {
           "unstable-dynamic" = [ "dep:clap_lex" "dep:shlex" "dep:is_executable" "clap/unstable-ext" ];
           "unstable-shell-tests" = [ "dep:completest" "dep:completest-pty" ];
         };
+        resolvedDefaultFeatures = [ "unstable-dynamic" ];
       };
       "clap_derive" = rec {
         crateName = "clap_derive";
@@ -8893,6 +8911,24 @@ rec {
           "serde" = [ "dep:serde" ];
         };
         resolvedDefaultFeatures = [ "default" "std" ];
+      };
+      "is_executable" = rec {
+        crateName = "is_executable";
+        version = "1.0.4";
+        edition = "2021";
+        sha256 = "1qlafm7f0zq0kzvbd4fhcfci4g9gxp6g3yqxjqsjj1zrssxbb8fl";
+        authors = [
+          "Nick Fitzgerald <fitzgen@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "winapi";
+            packageId = "winapi";
+            target = { target, features }: ("windows" == target."os" or null);
+            features = [ "winbase" ];
+          }
+        ];
+
       };
       "is_terminal_polyfill" = rec {
         crateName = "is_terminal_polyfill";
@@ -16820,7 +16856,7 @@ rec {
         features = {
           "debug" = [ "impl-debug" ];
         };
-        resolvedDefaultFeatures = [ "consoleapi" "errhandlingapi" "fileapi" "handleapi" "libloaderapi" "memoryapi" "processenv" "processthreadsapi" "psapi" ];
+        resolvedDefaultFeatures = [ "consoleapi" "errhandlingapi" "fileapi" "handleapi" "libloaderapi" "memoryapi" "processenv" "processthreadsapi" "psapi" "winbase" ];
       };
       "winapi-i686-pc-windows-gnu" = rec {
         crateName = "winapi-i686-pc-windows-gnu";

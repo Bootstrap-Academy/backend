@@ -1,4 +1,11 @@
 #[macro_export]
+macro_rules! bin_name {
+    () => {
+        ::core::env!("CARGO_BIN_NAME")
+    };
+}
+
+#[macro_export]
 macro_rules! assert_matches {
     ($expr:expr, $pat:pat) => {
         match ($expr) {

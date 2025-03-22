@@ -2,27 +2,19 @@ use academy::commands::{
     admin::AdminCommand, email::EmailCommand, jwt::JwtCommand, migrate::MigrateCommand,
     serve::serve, tasks::TaskCommand,
 };
-use academy_utils::academy_version;
+use academy_utils::{academy_version, bin_name};
 use anyhow::Context;
 use clap::{CommandFactory, Parser, Subcommand};
-use clap_complete::Shell;
+use clap_complete::CompleteEnv;
 use sentry::integrations::tracing::EventFilter;
 use tracing::Level;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter, Layer};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let cli = Cli::parse();
+    CompleteEnv::with_factory(Cli::command).complete();
 
-    if let Command::Completion { shell } = cli.command {
-        clap_complete::generate(
-            shell,
-            &mut Cli::command(),
-            env!("CARGO_BIN_NAME"),
-            &mut std::io::stdout(),
-        );
-        return Ok(());
-    }
+    let cli = Cli::parse();
 
     init_tracing();
 
@@ -49,14 +41,13 @@ async fn main() -> anyhow::Result<()> {
         Command::CheckConfig { verbose } => {
             verbose.then(|| println!("{config:#?}"));
         }
-        Command::Completion { .. } => unreachable!(),
     }
 
     Ok(())
 }
 
 #[derive(Debug, Parser)]
-#[command(version = academy_version())]
+#[command(name = bin_name!(), version = academy_version())]
 struct Cli {
     #[command(subcommand)]
     command: Command,
@@ -102,12 +93,6 @@ enum Command {
         /// Print a debug representation of the config
         #[arg(short, long)]
         verbose: bool,
-    },
-    /// Generate shell completions
-    Completion {
-        /// The shell to generate completions for
-        #[clap(value_enum)]
-        shell: Shell,
     },
 }
 

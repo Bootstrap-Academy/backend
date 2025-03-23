@@ -34,14 +34,23 @@ pub async fn start_server(
     client_secret: String,
     redirect_url: Url,
 ) -> anyhow::Result<()> {
-    info!("Starting OAuth2 testing server on {host}:{port}");
-    info!("Authorization endpoint: http://{host}:{port}/oauth2/authorize");
-    info!("Token endpoint: http://{host}:{port}/oauth2/token");
-    info!("User info endpoint: http://{host}:{port}/user");
+    let listener = TcpListener::bind((host, port))
+        .await
+        .with_context(|| format!("Failed to bind to {host}:{port}"))?;
+
+    let url = format!("http://{}", listener.local_addr()?);
+    info!("Starting OAuth2 testing server on {url}");
+    info!("Authorization endpoint: {url}/oauth2/authorize");
+    info!("Token endpoint: {url}/oauth2/token");
+    info!("User info endpoint: {url}/user");
     info!("Client ID: {client_id:?}");
     info!("Client secret: {client_secret:?}");
     info!("Redirect url: {redirect_url}");
-    info!("Example authorization URL: http://{host}:{port}/oauth2/authorize?response_type=code&client_id={client_id}&state=test-state&redirect_uri={redirect_url}");
+    info!(
+        "Example authorization URL: \
+         {url}/oauth2/authorize?response_type=code&client_id={client_id}&state=test-state&\
+         redirect_uri={redirect_url}"
+    );
 
     let router = Router::new()
         .route("/oauth2/authorize", routing::get(authorize).post(login))
@@ -55,9 +64,6 @@ pub async fn start_server(
             logins: Default::default(),
         }));
 
-    let listener = TcpListener::bind((host, port))
-        .await
-        .with_context(|| format!("Failed to bind to {host}:{port}"))?;
     axum::serve(listener, router)
         .await
         .context("Failed to start HTTP server")

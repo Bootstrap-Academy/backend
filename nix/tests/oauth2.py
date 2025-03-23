@@ -5,7 +5,7 @@ from utils import c, create_account, discard_auth, get_self, save_auth
 
 def authenticate(id, name):
     resp = c.post(
-        "http://127.0.0.1:8002/oauth2/authorize?response_type=code&client_id=client-id&state=test123&redirect_uri=http://localhost/oauth2/callback",
+        "http://127.0.0.1:8101/oauth2/authorize?response_type=code&client_id=client-id&state=test123&redirect_uri=http://localhost/oauth2/callback",
         data={"id": str(id), "name": name},
         follow_redirects=False,
     )
@@ -24,7 +24,7 @@ assert resp.json() == [
     {
         "id": "test",
         "name": "Test OAuth2 Provider",
-        "authorize_url": "http://127.0.0.1:8002/oauth2/authorize?response_type=code&client_id=client-id",
+        "authorize_url": "http://127.0.0.1:8101/oauth2/authorize?response_type=code&client_id=client-id",
     }
 ]
 

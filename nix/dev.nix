@@ -3,10 +3,14 @@
   fenix,
   lib,
   pkgs,
-  testing,
-  scripts,
+  packages,
   ...
 }:
+
+let
+  inherit (packages) render_daemon testing scripts;
+in
+
 {
   languages.c.enable = true;
   languages.rust = {
@@ -47,24 +51,28 @@
     package = pkgs.valkey;
   };
 
+  processes.render_daemon.exec = ''
+    ${lib.getExe render_daemon} --port 8001
+  '';
+
   processes.smtp4dev.exec = ''
     ${lib.getExe pkgs.smtp4dev} --smtpport=2525 --imapport=1143 --user=academy=academy --allowremoteconnections- --authenticationrequired
   '';
 
   processes.testing-recaptcha.exec = ''
-    ${lib.getExe testing} recaptcha --port 8001
+    ${lib.getExe testing} recaptcha --port 8100
   '';
 
   processes.testing-oauth2.exec = ''
-    ${lib.getExe testing} oauth2 --port 8002
+    ${lib.getExe testing} oauth2 --port 8101
   '';
 
   processes.testing-vat.exec = ''
-    ${lib.getExe testing} vat --port 8003
+    ${lib.getExe testing} vat --port 8102
   '';
 
   processes.testing-paypal.exec = ''
-    ${lib.getExe testing} paypal --port 8004
+    ${lib.getExe testing} paypal --port 8103
   '';
 
   env = {
@@ -82,19 +90,9 @@
 
     PYTHONPATH = "${config.devenv.root}/nix/tests";
 
-    ACADEMY_CONFIG =
-      let
-        chrome = pkgs.ungoogled-chromium;
+    CHROME_BIN = lib.getExe pkgs.ungoogled-chromium;
 
-        renderConfig = (pkgs.formats.toml { }).generate "config.default.toml" {
-          render.chrome_bin = lib.getExe chrome;
-        };
-
-        configs = lib.optional (lib.meta.availableOn { inherit (pkgs) system; } chrome) renderConfig ++ [
-          "${config.devenv.root}/config.dev.toml"
-        ];
-      in
-      builtins.concatStringsSep ":" configs;
+    ACADEMY_CONFIG = "${config.devenv.root}/config.dev.toml";
   };
 
   process.manager.implementation = "hivemind";

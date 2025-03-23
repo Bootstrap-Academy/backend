@@ -1,19 +1,25 @@
 [package]
-name = "academy_render_impl"
+name = "academy_render_daemon"
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
 homepage.workspace = true
 repository.workspace = true
 
+[[bin]]
+name = "academy-render-daemon"
+path = "src/main.rs"
+
 [lints]
 workspace = true
 
 [dependencies]
-academy_di.workspace = true
-academy_render_contracts.workspace = true
 academy_utils.workspace = true
 anyhow.workspace = true
-tempfile = { version = "3.19.1", default-features = false }
+axum.workspace = true
+clap.workspace = true
+clap_complete.workspace = true
+tempfile.workspace = true
 tokio.workspace = true
+tracing-subscriber.workspace = true
 tracing.workspace = true

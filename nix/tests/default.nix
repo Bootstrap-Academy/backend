@@ -46,10 +46,10 @@ let
 
       testing = lib.getExe self.packages.${system}.testing.unwrapped;
       ports = {
-        recaptcha = 8001;
-        oauth2 = 8002;
-        vat = 8003;
-        paypal = 8004;
+        recaptcha = 8100;
+        oauth2 = 8101;
+        vat = 8102;
+        paypal = 8103;
       };
     in
     {
@@ -122,6 +122,7 @@ let
           prune-database.schedule = [ ];
           refresh-premium.schedule = [ ];
         };
+        renderDaemon.package = self.packages.${system}.render_daemon.unwrapped;
       };
 
       systemd.services."academy-testing-recaptcha" =
@@ -222,6 +223,8 @@ let
         machine.start()
         machine.wait_for_unit("academy-backend.service")
         machine.wait_for_open_port(8000)
+        machine.wait_for_unit("academy-render-daemon.service")
+        machine.wait_for_open_port(8001)
 
         machine.copy_from_host("${./utils.py}", "/root/tests/utils.py")
         machine.copy_from_host("${./${name}}", "/root/tests/${name}")

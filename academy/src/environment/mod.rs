@@ -14,10 +14,10 @@ use academy_core_session_impl::SessionFeatureConfig;
 use academy_core_user_impl::UserFeatureConfig;
 use academy_di::provider;
 use academy_extern_impl::{
-    paypal::PaypalApiServiceConfig, recaptcha::RecaptchaApiServiceConfig, vat::VatApiServiceConfig,
+    paypal::PaypalApiServiceConfig, recaptcha::RecaptchaApiServiceConfig,
+    render::RenderApiServiceConfig, vat::VatApiServiceConfig,
 };
 use academy_models::oauth2::OAuth2Provider;
-use academy_render_impl::pdf::RenderPdfServiceConfig;
 use academy_shared_impl::{
     captcha::{CaptchaServiceConfig, RecaptchaCaptchaServiceConfig},
     jwt::JwtServiceConfig,
@@ -41,9 +41,7 @@ provider! {
             RecaptchaApiServiceConfig,
             VatApiServiceConfig,
             PaypalApiServiceConfig,
-
-            // Render
-            RenderPdfServiceConfig,
+            RenderApiServiceConfig,
 
             // Shared
             CaptchaServiceConfig,
@@ -89,9 +87,7 @@ provider! {
         recaptcha_api_service_config: RecaptchaApiServiceConfig,
         vat_api_service_config: VatApiServiceConfig,
         paypal_api_service_config: PaypalApiServiceConfig,
-
-        // Render
-        render_pdf_service_config: RenderPdfServiceConfig,
+        render_api_service_config: RenderApiServiceConfig,
 
         // Shared
         captcha_service_config: CaptchaServiceConfig,
@@ -145,10 +141,8 @@ impl ConfigProvider {
             config.paypal.client_secret.clone(),
         );
 
-        // Render
-        let render_pdf_service_config = RenderPdfServiceConfig {
-            chrome_bin: config.render.chrome_bin.clone().into(),
-        };
+        let render_api_service_config =
+            RenderApiServiceConfig::new(config.render.daemon_url.clone());
 
         // Shared
         let captcha_service_config = match config.recaptcha.as_ref() {
@@ -265,9 +259,7 @@ impl ConfigProvider {
             recaptcha_api_service_config,
             vat_api_service_config,
             paypal_api_service_config,
-
-            // Render
-            render_pdf_service_config,
+            render_api_service_config,
 
             // Shared
             jwt_service_config,

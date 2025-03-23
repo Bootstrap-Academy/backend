@@ -16,7 +16,7 @@ members = [
   "academy_models",
   "academy_persistence/*",
   "academy_persistence/postgres/clorinde",
-  "academy_render/*",
+  "academy_render_daemon",
   "academy_shared/*",
   "academy_templates/*",
   "academy_testing",
@@ -87,8 +87,6 @@ academy_extern_impl.path = "academy_extern/impl"
 academy_models.path = "academy_models"
 academy_persistence_contracts.path = "academy_persistence/contracts"
 academy_persistence_postgres.path = "academy_persistence/postgres"
-academy_render_contracts.path = "academy_render/contracts"
-academy_render_impl.path = "academy_render/impl"
 academy_shared_contracts.path = "academy_shared/contracts"
 academy_shared_impl.path = "academy_shared/impl"
 academy_templates_contracts.path = "academy_templates/contracts"
@@ -151,6 +149,7 @@ syn = { version = "2.0.100", default-features = false, features = [
   "printing",
   "full",
 ] }
+tempfile = { version = "3.19.1", default-features = false }
 thiserror = { version = "2.0.12", default-features = false }
 tokio = { version = "1.44.1", default-features = false, features = [
   "rt-multi-thread",

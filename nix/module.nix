@@ -17,8 +17,6 @@ in
       default = self.packages.${pkgs.system}.default;
     };
 
-    chromePackage = lib.mkPackageOption pkgs "ungoogled-chromium" { };
-
     localDatabase = lib.mkOption {
       type = lib.types.bool;
       default = true;
@@ -50,6 +48,32 @@ in
         default = [ ];
       };
     });
+
+    renderDaemon = {
+      enable = lib.mkEnableOption "Render Daemon" // {
+        default = true;
+      };
+
+      package = lib.mkOption {
+        type = lib.types.package;
+        default = self.packages.${pkgs.system}.render_daemon;
+      };
+
+      chromePackage = lib.mkOption {
+        type = lib.types.package;
+        defaultText = "config.services.academy.backend.renderDaemon.package.passthru.chrome";
+      };
+
+      port = lib.mkOption {
+        type = lib.types.port;
+        default = 8001;
+      };
+
+      extraArgs = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+      };
+    };
   };
 
   config =
@@ -87,64 +111,58 @@ in
 
           dependencies =
             [ "network-online.target" ]
+            ++ (lib.optional cfg.renderDaemon.enable "academy-render-daemon.service")
             ++ (lib.optional cfg.localDatabase "postgresql.service")
             ++ (lib.optional cfg.localCache "redis-academy.service");
+
+          defaultHardening = {
+            AmbientCapabilities = "";
+            CapabilityBoundingSet = [ "" ];
+            DevicePolicy = "closed";
+            LockPersonality = true;
+            MemoryDenyWriteExecute = true;
+            NoNewPrivileges = true;
+            PrivateDevices = true;
+            PrivateTmp = true;
+            PrivateUsers = true;
+            ProcSubset = "pid";
+            ProtectClock = true;
+            ProtectControlGroups = true;
+            ProtectHome = true;
+            ProtectHostname = true;
+            ProtectKernelLogs = true;
+            ProtectKernelModules = true;
+            ProtectKernelTunables = true;
+            ProtectProc = "invisible";
+            ProtectSystem = "strict";
+            RemoveIPC = true;
+            RestrictAddressFamilies = [ "AF_INET AF_INET6 AF_UNIX" ];
+            RestrictNamespaces = true;
+            RestrictRealtime = true;
+            RestrictSUIDSGID = true;
+            SocketBindDeny = "any";
+            SystemCallArchitectures = "native";
+            SystemCallFilter = [
+              "@system-service"
+              "~@privileged"
+              "~@resources"
+            ];
+            UMask = "0077";
+          };
 
           baseConfig = {
             wants = dependencies;
             after = dependencies;
 
-            serviceConfig = {
+            serviceConfig = defaultHardening // {
               User = "academy";
               Group = "academy";
               StateDirectory = "academy";
-
-              # hardening
-              AmbientCapabilities = "";
-              CapabilityBoundingSet = [ "" ];
-              DevicePolicy = "closed";
-              LockPersonality = true;
-              # MemoryDenyWriteExecute = true; # required by chromium
-              NoNewPrivileges = true;
-              PrivateDevices = true;
-              PrivateTmp = true;
-              PrivateUsers = true;
-              ProcSubset = "pid";
-              ProtectClock = true;
-              ProtectControlGroups = true;
-              ProtectHome = true;
-              ProtectHostname = true;
-              ProtectKernelLogs = true;
-              ProtectKernelModules = true;
-              ProtectKernelTunables = true;
-              ProtectProc = "invisible";
-              ProtectSystem = "strict";
-              RemoveIPC = true;
-              RestrictAddressFamilies = [ "AF_INET AF_INET6 AF_UNIX" ];
-              RestrictNamespaces = true;
-              RestrictRealtime = true;
-              RestrictSUIDSGID = true;
-              SocketBindDeny = "any";
-              SystemCallArchitectures = "native";
-              SystemCallFilter = [
-                "@system-service"
-                "~@privileged"
-                "~@resources"
-
-                # required by chromium
-                "setpriority"
-                "pkey_alloc"
-                "capset"
-                "sched_setaffinity"
-                "pkey_mprotect"
-              ];
-              UMask = "0077";
             };
 
             environment = {
               inherit ACADEMY_CONFIG;
               RUST_LOG = cfg.logLevel;
-              HOME = "/tmp"; # required by chromium
             };
           };
         in
@@ -159,6 +177,39 @@ in
             };
           };
         }
+
+        // (lib.optionalAttrs cfg.renderDaemon.enable {
+          academy-render-daemon = {
+            wantedBy = [ "multi-user.target" ];
+            wants = [ "network-online.target" ];
+            after = [ "network-online.target" ];
+
+            script = ''
+              ${lib.getExe cfg.renderDaemon.package} ${
+                lib.escapeShellArgs (
+                  [
+                    "--port=${toString cfg.renderDaemon.port}"
+                    "--chrome-bin=${lib.getExe cfg.renderDaemon.chromePackage}"
+                  ]
+                  ++ cfg.renderDaemon.extraArgs
+                )
+              }
+            '';
+
+            serviceConfig = defaultHardening // {
+              DynamicUser = true;
+              User = "academy-render-daemon";
+              Group = "academy-render-daemon";
+
+              MemoryDenyWriteExecute = false;
+              SystemCallFilter = [ ];
+              SocketBindAllow = [ "tcp:${toString cfg.renderDaemon.port}" ];
+            };
+
+            environment.RUST_LOG = cfg.logLevel;
+          };
+        })
+
         // (lib.mapAttrs' (
           task:
           { schedule }:
@@ -203,9 +254,13 @@ in
         settings = {
           database.url = lib.mkIf cfg.localDatabase "host=/run/postgresql user=academy";
           cache.url = lib.mkIf cfg.localCache "redis+unix://${config.services.redis.servers.academy.unixSocket}";
-          render.chrome_bin = lib.mkDefault (lib.getExe cfg.chromePackage);
+          render.daemon_url = lib.mkIf cfg.renderDaemon.enable "http://127.0.0.1:${toString cfg.renderDaemon.port}/";
           finance.invoices_archive = lib.mkDefault "/var/lib/academy/invoices";
           finance.credit_notes_archive = lib.mkDefault "/var/lib/academy/credit_notes";
+        };
+
+        renderDaemon = {
+          chromePackage = cfg.renderDaemon.package.passthru.chrome;
         };
 
         tasks = {

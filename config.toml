@@ -86,7 +86,7 @@ monthly_price = 1000
 yearly_price = 10000
 
 [render]
-# chrome_bin = ""
+# daemon_url = ""
 
 [finance]
 vat_percent = 19

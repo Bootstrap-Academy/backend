@@ -39,7 +39,7 @@
         }:
         devenv.lib.mkShell {
           inputs = inputs // {
-            inherit (self.packages.${system}) testing scripts;
+            packages = self.packages.${system};
           };
           pkgs = importNixpkgs system;
           modules = [

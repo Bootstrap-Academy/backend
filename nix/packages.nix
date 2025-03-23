@@ -38,7 +38,9 @@ let
       nativeInstallCheckInputs = [ versionCheckHook ];
       versionCheckProgramArg = "--version";
       doInstallCheck = true;
-      passthru.unwrapped = drv;
+      passthru = (drv.passthru or { }) // {
+        unwrapped = drv;
+      };
       meta = { inherit (drv.meta) mainProgram; };
     };
 
@@ -102,6 +104,7 @@ let
 
   crateOverrides = mergeOverrideSets defaultOverrides {
     academy = binOverride "academy";
+    academy_render_daemon = binOverride "academy-render-daemon";
     academy_testing = binOverride "academy-testing";
     academy_assets = attrs: {
       patchPhase = ''
@@ -126,5 +129,8 @@ let
 in
 builtins.mapAttrs (_: setVersion) {
   default = cargoNix.workspaceMembers.academy.build;
+  render_daemon = cargoNix.workspaceMembers.academy_render_daemon.build.overrideAttrs {
+    passthru.chrome = pkgs.ungoogled-chromium;
+  };
   testing = cargoNix.workspaceMembers.academy_testing.build;
 }

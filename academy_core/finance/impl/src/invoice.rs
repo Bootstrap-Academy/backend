@@ -3,11 +3,11 @@ use academy_core_finance_contracts::{
     invoice::FinanceInvoiceService,
 };
 use academy_di::Build;
+use academy_extern_contracts::render::RenderApiService;
 use academy_models::user::UserId;
 use academy_persistence_contracts::{
     coin::CoinRepository, paypal::PaypalRepository, user::UserRepository,
 };
-use academy_render_contracts::pdf::RenderPdfService;
 use academy_shared_contracts::{fs::FsService, time::TimeService};
 use academy_templates_contracts::{InvoiceItem, InvoiceTemplate, TemplateService};
 use anyhow::Context;
@@ -22,7 +22,7 @@ pub struct FinanceInvoiceServiceImpl<
     Time,
     Fs,
     Template,
-    RenderPdf,
+    RenderApi,
     PaypalRepo,
     UserRepo,
     CoinRepo,
@@ -31,7 +31,7 @@ pub struct FinanceInvoiceServiceImpl<
     time: Time,
     fs: Fs,
     template: Template,
-    render_pdf: RenderPdf,
+    render_api: RenderApi,
     paypal_repo: PaypalRepo,
     user_repo: UserRepo,
     coin_repo: CoinRepo,
@@ -39,13 +39,13 @@ pub struct FinanceInvoiceServiceImpl<
     config: FinanceFeatureConfig,
 }
 
-impl<Txn, Time, Fs, Template, RenderPdf, PaypalRepo, UserRepo, CoinRepo, FinanceCoin>
+impl<Txn, Time, Fs, Template, RenderApi, PaypalRepo, UserRepo, CoinRepo, FinanceCoin>
     FinanceInvoiceService<Txn>
     for FinanceInvoiceServiceImpl<
         Time,
         Fs,
         Template,
-        RenderPdf,
+        RenderApi,
         PaypalRepo,
         UserRepo,
         CoinRepo,
@@ -56,7 +56,7 @@ where
     Time: TimeService,
     Fs: FsService,
     Template: TemplateService,
-    RenderPdf: RenderPdfService,
+    RenderApi: RenderApiService,
     PaypalRepo: PaypalRepository<Txn>,
     UserRepo: UserRepository<Txn>,
     CoinRepo: CoinRepository<Txn>,
@@ -138,8 +138,8 @@ where
             .context("Failed to render invoice template")?;
 
         let invoice_pdf = self
-            .render_pdf
-            .render(&invoice_html)
+            .render_api
+            .render_html_to_pdf(invoice_html)
             .await
             .context("Failed to render invoice pdf")?;
 
@@ -229,8 +229,8 @@ where
             .context("Failed to render credit note template")?;
 
         let credit_note_pdf = self
-            .render_pdf
-            .render(&credit_note_html)
+            .render_api
+            .render_html_to_pdf(credit_note_html)
             .await
             .context("Failed to render credit note pdf")?;
 
@@ -258,6 +258,7 @@ mod tests {
         user::{BAR, FOO},
         UUID1,
     };
+    use academy_extern_contracts::render::MockRenderApiService;
     use academy_models::{
         coin::Transaction,
         paypal::{PaypalCoinOrder, PaypalOrderId},
@@ -265,7 +266,6 @@ mod tests {
     use academy_persistence_contracts::{
         coin::MockCoinRepository, paypal::MockPaypalRepository, user::MockUserRepository,
     };
-    use academy_render_contracts::pdf::MockRenderPdfService;
     use academy_shared_contracts::{fs::MockFsService, time::MockTimeService};
     use academy_templates_contracts::MockTemplateService;
     use rust_decimal_macros::dec;
@@ -276,7 +276,7 @@ mod tests {
         MockTimeService,
         MockFsService,
         MockTemplateService,
-        MockRenderPdfService,
+        MockRenderApiService,
         MockPaypalRepository<()>,
         MockUserRepository<()>,
         MockCoinRepository<()>,
@@ -340,14 +340,14 @@ mod tests {
             "invoice-template-html".into(),
         );
 
-        let render_pdf =
-            MockRenderPdfService::new().with_render("invoice-template-html".into(), pdf.clone());
+        let render_api = MockRenderApiService::new()
+            .with_render_html_to_pdf("invoice-template-html".into(), pdf.clone());
 
         let sut = FinanceInvoiceServiceImpl {
             fs,
             paypal_repo,
             user_repo,
-            render_pdf,
+            render_api,
             finance_coin,
             template,
             ..Sut::default()
@@ -577,8 +577,8 @@ mod tests {
             "credit-note-template-html".into(),
         );
 
-        let render_pdf = MockRenderPdfService::new()
-            .with_render("credit-note-template-html".into(), pdf.clone());
+        let render_api = MockRenderApiService::new()
+            .with_render_html_to_pdf("credit-note-template-html".into(), pdf.clone());
 
         let sut = FinanceInvoiceServiceImpl {
             time,
@@ -587,7 +587,7 @@ mod tests {
             coin_repo,
             finance_coin,
             template,
-            render_pdf,
+            render_api,
             ..Sut::default()
         };
 

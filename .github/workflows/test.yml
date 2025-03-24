@@ -104,29 +104,29 @@ jobs:
       - run: cargo build --bin academy-testing
       - name: test recaptcha
         run: |
-          cargo run --bin academy-testing -- recaptcha &
-          while ! curl -s http://127.0.0.1:8001; do sleep .1; done
+          cargo run --bin academy-testing -- recaptcha --port 8100 &
+          while ! curl -s http://127.0.0.1:8100; do sleep .1; done
           cargo test -p academy_extern_impl --no-fail-fast --all-features --test recaptcha
         env:
           ACADEMY_CONFIG: ${{ github.workspace }}/config.dev.toml
       - name: test oauth2
         run: |
-          cargo run --bin academy-testing -- oauth2 &
-          while ! curl -s http://127.0.0.1:8002; do sleep .1; done
+          cargo run --bin academy-testing -- oauth2 --port 8101 &
+          while ! curl -s http://127.0.0.1:8101; do sleep .1; done
           cargo test -p academy_extern_impl --no-fail-fast --all-features --test oauth2
         env:
           ACADEMY_CONFIG: ${{ github.workspace }}/config.dev.toml
       - name: test vat
         run: |
-          cargo run --bin academy-testing -- vat &
-          while ! curl -s http://127.0.0.1:8003; do sleep .1; done
+          cargo run --bin academy-testing -- vat --port 8102 &
+          while ! curl -s http://127.0.0.1:8102; do sleep .1; done
           cargo test -p academy_extern_impl --no-fail-fast --all-features --test vat
         env:
           ACADEMY_CONFIG: ${{ github.workspace }}/config.dev.toml
       - name: test paypal
         run: |
-          cargo run --bin academy-testing -- paypal &
-          while ! curl -s http://127.0.0.1:8004; do sleep .1; done
+          cargo run --bin academy-testing -- paypal --port 8103 &
+          while ! curl -s http://127.0.0.1:8103; do sleep .1; done
           cargo test -p academy_extern_impl --no-fail-fast --all-features --test paypal
         env:
           ACADEMY_CONFIG: ${{ github.workspace }}/config.dev.toml

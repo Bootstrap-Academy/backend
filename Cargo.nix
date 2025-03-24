@@ -477,20 +477,10 @@ rec {
       # File a bug if you depend on any for non-debug work!
       debug = internal.debugCrate { inherit packageId; };
     };
-    "academy_render_contracts" = rec {
-      packageId = "academy_render_contracts";
+    "academy_render_daemon" = rec {
+      packageId = "academy_render_daemon";
       build = internal.buildRustCrateWithFeatures {
-        packageId = "academy_render_contracts";
-      };
-
-      # Debug support which might change between releases.
-      # File a bug if you depend on any for non-debug work!
-      debug = internal.debugCrate { inherit packageId; };
-    };
-    "academy_render_impl" = rec {
-      packageId = "academy_render_impl";
-      build = internal.buildRustCrateWithFeatures {
-        packageId = "academy_render_impl";
+        packageId = "academy_render_daemon";
       };
 
       # Debug support which might change between releases.
@@ -735,14 +725,6 @@ rec {
           {
             name = "academy_persistence_postgres";
             packageId = "academy_persistence_postgres";
-          }
-          {
-            name = "academy_render_contracts";
-            packageId = "academy_render_contracts";
-          }
-          {
-            name = "academy_render_impl";
-            packageId = "academy_render_impl";
           }
           {
             name = "academy_shared_contracts";
@@ -1670,16 +1652,16 @@ rec {
             packageId = "academy_di";
           }
           {
+            name = "academy_extern_contracts";
+            packageId = "academy_extern_contracts";
+          }
+          {
             name = "academy_models";
             packageId = "academy_models";
           }
           {
             name = "academy_persistence_contracts";
             packageId = "academy_persistence_contracts";
-          }
-          {
-            name = "academy_render_contracts";
-            packageId = "academy_render_contracts";
           }
           {
             name = "academy_shared_contracts";
@@ -1740,13 +1722,13 @@ rec {
             packageId = "academy_demo";
           }
           {
-            name = "academy_persistence_contracts";
-            packageId = "academy_persistence_contracts";
+            name = "academy_extern_contracts";
+            packageId = "academy_extern_contracts";
             features = [ "mock" ];
           }
           {
-            name = "academy_render_contracts";
-            packageId = "academy_render_contracts";
+            name = "academy_persistence_contracts";
+            packageId = "academy_persistence_contracts";
             features = [ "mock" ];
           }
           {
@@ -3564,44 +3546,19 @@ rec {
         };
         resolvedDefaultFeatures = [ "dummy" ];
       };
-      "academy_render_contracts" = rec {
-        crateName = "academy_render_contracts";
+      "academy_render_daemon" = rec {
+        crateName = "academy_render_daemon";
         version = "0.0.0";
         edition = "2021";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_render/contracts; };
-        dependencies = [
+        crateBin = [
           {
-            name = "anyhow";
-            packageId = "anyhow";
-            usesDefaultFeatures = false;
-            features = [ "std" ];
-          }
-          {
-            name = "mockall";
-            packageId = "mockall";
-            optional = true;
-            usesDefaultFeatures = false;
+            name = "academy-render-daemon";
+            path = "src/main.rs";
+            requiredFeatures = [ ];
           }
         ];
-        features = {
-          "mock" = [ "dep:mockall" ];
-        };
-        resolvedDefaultFeatures = [ "mock" ];
-      };
-      "academy_render_impl" = rec {
-        crateName = "academy_render_impl";
-        version = "0.0.0";
-        edition = "2021";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_render/impl; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_render_daemon; };
         dependencies = [
-          {
-            name = "academy_di";
-            packageId = "academy_di";
-          }
-          {
-            name = "academy_render_contracts";
-            packageId = "academy_render_contracts";
-          }
           {
             name = "academy_utils";
             packageId = "academy_utils";
@@ -3611,6 +3568,23 @@ rec {
             packageId = "anyhow";
             usesDefaultFeatures = false;
             features = [ "std" ];
+          }
+          {
+            name = "axum";
+            packageId = "axum";
+            usesDefaultFeatures = false;
+            features = [ "http1" "http2" "tokio" "json" "query" "form" "original-uri" "matched-path" ];
+          }
+          {
+            name = "clap";
+            packageId = "clap";
+            features = [ "derive" "env" ];
+          }
+          {
+            name = "clap_complete";
+            packageId = "clap_complete";
+            usesDefaultFeatures = false;
+            features = [ "unstable-dynamic" ];
           }
           {
             name = "tempfile";
@@ -3628,6 +3602,12 @@ rec {
             packageId = "tracing";
             usesDefaultFeatures = false;
             features = [ "attributes" ];
+          }
+          {
+            name = "tracing-subscriber";
+            packageId = "tracing-subscriber";
+            usesDefaultFeatures = false;
+            features = [ "ansi" "fmt" "env-filter" ];
           }
         ];
 

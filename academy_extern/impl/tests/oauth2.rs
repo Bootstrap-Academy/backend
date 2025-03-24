@@ -70,7 +70,7 @@ async fn oauth2() {
 }
 
 fn get_provider() -> OAuth2Provider {
-    let base_url = Url::from_str("http://localhost:8002").unwrap();
+    let base_url = Url::from_str("http://localhost:8101").unwrap();
 
     OAuth2Provider {
         name: "test".into(),

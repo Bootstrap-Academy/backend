@@ -239,7 +239,7 @@ pub struct PremiumConfig {
 
 #[derive(Debug, Deserialize)]
 pub struct RenderConfig {
-    pub chrome_bin: PathBuf,
+    pub daemon_url: Url,
 }
 
 #[derive(Debug, Deserialize)]
@@ -285,31 +285,42 @@ mod tests {
 
     #[test]
     fn load_minimal_config() {
-        super::load_paths(
-            &[] as &[&str],
-            &[
-                "http.address = \"0.0.0.0:8000\"",
-                "database.url = \"\"",
-                "cache.url = \"\"",
-                "email.smtp_url = \"\"",
-                "email.from = \"Test <test@example.com>\"",
-                "jwt.secret = \"\"",
-                "contact.email = \"test@example.com\"",
-                "recaptcha.sitekey = \"\"",
-                "recaptcha.secret = \"\"",
-                "paypal.client_id = \"\"",
-                "paypal.client_secret = \"\"",
-                "render.chrome_bin = \"\"",
-                "finance.invoices_archive = \"\"",
-                "finance.credit_notes_archive = \"\"",
-                "oauth2.providers.github.client_id = \"\"",
-                "oauth2.providers.github.client_secret = \"\"",
-                "oauth2.providers.discord.client_id = \"\"",
-                "oauth2.providers.discord.client_secret = \"\"",
-                "oauth2.providers.google.client_id = \"\"",
-                "oauth2.providers.google.client_secret = \"\"",
-            ],
-        )
-        .unwrap();
+        let overrides = [
+            "http.address = \"0.0.0.0:8000\"",
+            "database.url = \"\"",
+            "cache.url = \"\"",
+            "email.smtp_url = \"\"",
+            "email.from = \"Test <test@example.com>\"",
+            "jwt.secret = \"\"",
+            "contact.email = \"test@example.com\"",
+            "recaptcha.sitekey = \"\"",
+            "recaptcha.secret = \"\"",
+            "paypal.client_id = \"\"",
+            "paypal.client_secret = \"\"",
+            "render.daemon_url = \"http://localhost:8001\"",
+            "finance.invoices_archive = \"\"",
+            "finance.credit_notes_archive = \"\"",
+            "oauth2.providers.github.client_id = \"\"",
+            "oauth2.providers.github.client_secret = \"\"",
+            "oauth2.providers.discord.client_id = \"\"",
+            "oauth2.providers.discord.client_secret = \"\"",
+            "oauth2.providers.google.client_id = \"\"",
+            "oauth2.providers.google.client_secret = \"\"",
+        ];
+
+        super::load_paths(&[] as &[&str], &overrides).unwrap();
+
+        for i in 0..overrides.len() {
+            let filtered_overrides = overrides
+                .into_iter()
+                .take(i)
+                .chain(overrides.into_iter().skip(i + 1))
+                .collect::<Vec<_>>();
+            assert!(
+                super::load_paths(&[] as &[&str], &filtered_overrides).is_err(),
+                "override \"{}\" is not needed",
+                overrides[i]
+            );
+        }
     }
 }

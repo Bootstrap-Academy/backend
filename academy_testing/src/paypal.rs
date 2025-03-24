@@ -25,11 +25,16 @@ pub async fn start_server(
     client_id: String,
     client_secret: String,
 ) -> anyhow::Result<()> {
-    info!("Starting PayPal testing server on {host}:{port}");
-    info!("Create order endpoint: http://{host}:{port}/v2/checkout/orders");
-    info!("Get order endpoint: http://{host}:{port}/v2/checkout/orders/{{id}}");
-    info!("Confirm order endpoint: http://{host}:{port}/v2/checkout/orders/{{id}}/confirm-payment-source");
-    info!("Capture order endpoint: http://{host}:{port}/v2/checkout/orders/{{id}}/capture");
+    let listener = TcpListener::bind((host, port))
+        .await
+        .with_context(|| format!("Failed to bind to {host}:{port}"))?;
+
+    let url = format!("http://{}", listener.local_addr()?);
+    info!("Starting PayPal testing server on {url}");
+    info!("Create order endpoint: {url}/v2/checkout/orders");
+    info!("Get order endpoint: {url}/v2/checkout/orders/{{id}}");
+    info!("Confirm order endpoint: {url}/v2/checkout/orders/{{id}}/confirm-payment-source");
+    info!("Capture order endpoint: {url}/v2/checkout/orders/{{id}}/capture");
     info!("Client ID: {client_id:?}");
     info!("Client secret: {client_secret:?}");
 
@@ -50,9 +55,6 @@ pub async fn start_server(
             orders: Default::default(),
         }));
 
-    let listener = TcpListener::bind((host, port))
-        .await
-        .with_context(|| format!("Failed to bind to {host}:{port}"))?;
     axum::serve(listener, router)
         .await
         .context("Failed to start HTTP server")

@@ -43,6 +43,14 @@ let
     { config, pkgs, ... }:
     let
       inherit (pkgs) system;
+
+      testing = lib.getExe self.packages.${system}.testing.unwrapped;
+      ports = {
+        recaptcha = 8100;
+        oauth2 = 8101;
+        vat = 8102;
+        paypal = 8103;
+      };
     in
     {
       imports = [ self.nixosModules.default ];
@@ -71,14 +79,14 @@ let
           contact.email = "contact@academy";
           recaptcha = {
             enable = lib.mkDefault true;
-            siteverify_endpoint_override = "http://127.0.0.1:8001/recaptcha/api/siteverify";
+            siteverify_endpoint_override = "http://127.0.0.1:${toString ports.recaptcha}/recaptcha/api/siteverify";
             sitekey = "test-sitekey";
             secret = "test-secret";
             min_score = 0.5;
           };
-          vat.validate_endpoint_override = "http://127.0.0.1:8003/validate/";
+          vat.validate_endpoint_override = "http://127.0.0.1:${toString ports.vat}/validate/";
           paypal = {
-            base_url_override = "http://127.0.0.1:8004/";
+            base_url_override = "http://127.0.0.1:${toString ports.paypal}/";
             client_id = "test-client";
             client_secret = "test-secret";
           };
@@ -100,9 +108,9 @@ let
                   name = "Test OAuth2 Provider";
                   client_id = "client-id";
                   client_secret = "client-secret";
-                  auth_url = "http://127.0.0.1:8002/oauth2/authorize";
-                  token_url = "http://127.0.0.1:8002/oauth2/token";
-                  userinfo_url = "http://127.0.0.1:8002/user";
+                  auth_url = "http://127.0.0.1:${toString ports.oauth2}/oauth2/authorize";
+                  token_url = "http://127.0.0.1:${toString ports.oauth2}/oauth2/token";
+                  userinfo_url = "http://127.0.0.1:${toString ports.oauth2}/user";
                   userinfo_id_key = "id";
                   userinfo_name_key = "name";
                   scopes = [ ];
@@ -114,6 +122,7 @@ let
           prune-database.schedule = [ ];
           refresh-premium.schedule = [ ];
         };
+        renderDaemon.package = self.packages.${system}.render_daemon.unwrapped;
       };
 
       systemd.services."academy-testing-recaptcha" =
@@ -122,7 +131,7 @@ let
             wantedBy = [ "academy-backend.service" ];
             before = [ "academy-backend.service" ];
             script = ''
-              ${self.packages.${system}.testing.unwrapped}/bin/academy-testing recaptcha
+              ${testing} recaptcha --port ${toString ports.recaptcha}
             '';
           };
 
@@ -132,7 +141,7 @@ let
             wantedBy = [ "academy-backend.service" ];
             before = [ "academy-backend.service" ];
             script = ''
-              ${self.packages.${system}.testing.unwrapped}/bin/academy-testing oauth2
+              ${testing} oauth2 --port ${toString ports.oauth2}
             '';
           };
 
@@ -140,7 +149,7 @@ let
         wantedBy = [ "academy-backend.service" ];
         before = [ "academy-backend.service" ];
         script = ''
-          ${self.packages.${system}.testing.unwrapped}/bin/academy-testing vat
+          ${testing} vat --port ${toString ports.vat}
         '';
       };
 
@@ -148,7 +157,7 @@ let
         wantedBy = [ "academy-backend.service" ];
         before = [ "academy-backend.service" ];
         script = ''
-          ${self.packages.${system}.testing.unwrapped}/bin/academy-testing paypal
+          ${testing} paypal --port ${toString ports.paypal}
         '';
       };
 
@@ -214,6 +223,8 @@ let
         machine.start()
         machine.wait_for_unit("academy-backend.service")
         machine.wait_for_open_port(8000)
+        machine.wait_for_unit("academy-render-daemon.service")
+        machine.wait_for_open_port(8001)
 
         machine.copy_from_host("${./utils.py}", "/root/tests/utils.py")
         machine.copy_from_host("${./${name}}", "/root/tests/${name}")

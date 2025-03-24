@@ -24,6 +24,8 @@ testers.runNixOSTest (
 
       machine.wait_for_unit("academy-backend.service")
       machine.wait_for_open_port(8000)
+      machine.wait_for_unit("academy-render-daemon.service")
+      machine.wait_for_open_port(8001)
 
       machine.wait_for_unit("postfix.service")
       machine.wait_for_open_port(25)
@@ -70,9 +72,15 @@ testers.runNixOSTest (
       ${lib.pipe config.nodes.machine.systemd.services [
         lib.attrNames
         (lib.filter (name: lib.hasPrefix "academy-" name && !lib.hasPrefix "academy-testing-" name))
-        (lib.concatMapStringsSep "\n" (name: ''
-          machine.log(machine.succeed("SYSTEMD_COLORS=1 systemd-analyze security ${name}.service --threshold=13 --no-pager"))
-        ''))
+        (lib.concatMapStringsSep "\n" (
+          name:
+          let
+            threshold = { academy-render-daemon = 27; }.${name} or 11;
+          in
+          ''
+            machine.log(machine.succeed("SYSTEMD_COLORS=1 systemd-analyze security ${name}.service --threshold=${toString threshold} --no-pager"))
+          ''
+        ))
       ]}
     '';
   }

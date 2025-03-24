@@ -9,8 +9,13 @@ use tracing::info;
 const SITEVERIFY_ROUTE: &str = "/recaptcha/api/siteverify";
 
 pub async fn start_server(host: IpAddr, port: u16, secret: String) -> anyhow::Result<()> {
-    info!("Starting recaptcha testing server on {host}:{port}");
-    info!("Recaptcha siteverify endpoint: http://{host}:{port}{SITEVERIFY_ROUTE}");
+    let listener = TcpListener::bind((host, port))
+        .await
+        .with_context(|| format!("Failed to bind to {host}:{port}"))?;
+
+    let url = format!("http://{}", listener.local_addr()?);
+    info!("Starting recaptcha testing server on {url}");
+    info!("Recaptcha siteverify endpoint: {url}{SITEVERIFY_ROUTE}");
     info!("Secret: {secret:?}");
     info!(
         "Valid recaptcha responses are \"success\" and \"success-SCORE\", where SCORE is a \
@@ -21,9 +26,6 @@ pub async fn start_server(host: IpAddr, port: u16, secret: String) -> anyhow::Re
         .route(SITEVERIFY_ROUTE, routing::post(siteverify))
         .with_state(secret.into());
 
-    let listener = TcpListener::bind((host, port))
-        .await
-        .with_context(|| format!("Failed to bind to {host}:{port}"))?;
     axum::serve(listener, router)
         .await
         .context("Failed to start HTTP server")

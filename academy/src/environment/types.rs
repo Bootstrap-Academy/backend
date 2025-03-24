@@ -38,7 +38,7 @@ use academy_core_user_impl::{
 use academy_email_impl::{template::TemplateEmailServiceImpl, EmailServiceImpl};
 use academy_extern_impl::{
     oauth2::OAuth2ApiServiceImpl, paypal::PaypalApiServiceImpl, recaptcha::RecaptchaApiServiceImpl,
-    vat::VatApiServiceImpl,
+    render::RenderApiServiceImpl, vat::VatApiServiceImpl,
 };
 use academy_persistence_postgres::{
     coin::PostgresCoinRepository, heart::PostgresHeartRepository, mfa::PostgresMfaRepository,
@@ -46,7 +46,6 @@ use academy_persistence_postgres::{
     premium::PostgresPremiumRepository, session::PostgresSessionRepository,
     user::PostgresUserRepository, PostgresDatabase,
 };
-use academy_render_impl::pdf::RenderPdfServiceImpl;
 use academy_shared_impl::{
     captcha::CaptchaServiceImpl, fs::FsServiceImpl, hash::HashServiceImpl, id::IdServiceImpl,
     jwt::JwtServiceImpl, password::PasswordServiceImpl, secret::SecretServiceImpl,
@@ -86,12 +85,10 @@ pub type RecaptchaApi = RecaptchaApiServiceImpl;
 pub type OAuth2Api = OAuth2ApiServiceImpl;
 pub type VatApi = VatApiServiceImpl;
 pub type PaypalApi = PaypalApiServiceImpl;
+pub type RenderApi = RenderApiServiceImpl;
 
 // Template
 pub type Template = TemplateServiceImpl;
-
-// Render
-pub type RenderPdf = RenderPdfServiceImpl;
 
 // Shared
 pub type Captcha = CaptchaServiceImpl<RecaptchaApi>;
@@ -209,7 +206,7 @@ pub type FinanceInvoice = FinanceInvoiceServiceImpl<
     Time,
     Fs,
     Template,
-    RenderPdf,
+    RenderApi,
     PaypalRepo,
     UserRepo,
     CoinRepo,

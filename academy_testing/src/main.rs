@@ -55,7 +55,7 @@ enum Command {
     Recaptcha {
         #[arg(long, default_value = "127.0.0.1")]
         host: IpAddr,
-        #[arg(long, default_value = "8001")]
+        #[arg(long)]
         port: u16,
         #[arg(long, default_value = "test-secret")]
         secret: String,
@@ -65,7 +65,7 @@ enum Command {
     OAuth2 {
         #[arg(long, default_value = "127.0.0.1")]
         host: IpAddr,
-        #[arg(long, default_value = "8002")]
+        #[arg(long)]
         port: u16,
         #[arg(long, default_value = "client-id")]
         client_id: String,
@@ -78,14 +78,14 @@ enum Command {
     Vat {
         #[arg(long, default_value = "127.0.0.1")]
         host: IpAddr,
-        #[arg(long, default_value = "8003")]
+        #[arg(long)]
         port: u16,
     },
     /// Start the paypal testing server
     Paypal {
         #[arg(long, default_value = "127.0.0.1")]
         host: IpAddr,
-        #[arg(long, default_value = "8004")]
+        #[arg(long)]
         port: u16,
         #[arg(long, default_value = "test-client")]
         client_id: String,

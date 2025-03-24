@@ -23,20 +23,20 @@ email = "Contact <contact@example.com>"
 
 [recaptcha]
 enable = false
-siteverify_endpoint_override = "http://127.0.0.1:8001/recaptcha/api/siteverify"
+siteverify_endpoint_override = "http://127.0.0.1:8100/recaptcha/api/siteverify"
 sitekey = "test-sitekey"
 secret = "test-secret"
 
 [vat]
-validate_endpoint_override = "http://127.0.0.1:8003/validate/"
+validate_endpoint_override = "http://127.0.0.1:8102/validate/"
 
 [paypal]
-base_url_override = "http://127.0.0.1:8004/"
+base_url_override = "http://127.0.0.1:8103/"
 client_id = "test-client"
 client_secret = "test-secret"
 
 [render]
-chrome_bin = "/usr/bin/chromium"
+daemon_url = "http://127.0.0.1:8001/"
 
 [finance]
 invoices_archive = ".invoices"
@@ -47,9 +47,9 @@ enable = true
 name = "Test"
 client_id = "client-id"
 client_secret = "client-secret"
-auth_url = "http://127.0.0.1:8002/oauth2/authorize"
-token_url = "http://127.0.0.1:8002/oauth2/token"
-userinfo_url = "http://127.0.0.1:8002/user"
+auth_url = "http://127.0.0.1:8101/oauth2/authorize"
+token_url = "http://127.0.0.1:8101/oauth2/token"
+userinfo_url = "http://127.0.0.1:8101/user"
 userinfo_id_key = "id"
 userinfo_name_key = "name"
 scopes = []

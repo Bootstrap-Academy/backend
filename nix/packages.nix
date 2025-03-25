@@ -130,7 +130,7 @@ in
 builtins.mapAttrs (_: setVersion) {
   default = cargoNix.workspaceMembers.academy.build;
   render_daemon = cargoNix.workspaceMembers.academy_render_daemon.build.overrideAttrs {
-    passthru.chrome = pkgs.ungoogled-chromium;
+    passthru.chrome = self.inputs.nixpkgs-chromium.legacyPackages.${system}.ungoogled-chromium;
   };
   testing = cargoNix.workspaceMembers.academy_testing.build;
 }

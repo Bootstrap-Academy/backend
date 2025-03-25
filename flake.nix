@@ -1,6 +1,7 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs-chromium.url = "github:NixOS/nixpkgs/e3e32b642a31e6714ec1b712de8c91a3352ce7e1";
     fenix.url = "github:nix-community/fenix";
     devenv = {
       url = "github:cachix/devenv";

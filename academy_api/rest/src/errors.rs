@@ -12,7 +12,7 @@ use crate::{docs::TransformOperationExt, error_code};
 /// Handle an internal server error
 pub fn internal_server_error(err: impl Into<anyhow::Error>) -> Response {
     let err = err.into();
-    tracing::error!("internal server error: {err}");
+    tracing::error!("internal server error: {err:#}");
     InternalServerError.into_response()
 }
 

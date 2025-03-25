@@ -60,7 +60,7 @@ where
                 self.db
                     .ping()
                     .await
-                    .inspect_err(|err| error!("Failed to ping database: {err}"))
+                    .inspect_err(|err| error!("Failed to ping database: {err:#}"))
                     .is_ok()
             },
         );
@@ -73,7 +73,7 @@ where
                 self.cache
                     .ping()
                     .await
-                    .inspect_err(|err| error!("Failed to ping cache: {err}"))
+                    .inspect_err(|err| error!("Failed to ping cache: {err:#}"))
                     .is_ok()
             },
         );
@@ -86,7 +86,7 @@ where
                 self.email
                     .ping()
                     .await
-                    .inspect_err(|err| error!("Failed to ping smtp server: {err}"))
+                    .inspect_err(|err| error!("Failed to ping smtp server: {err:#}"))
                     .is_ok()
             },
         );

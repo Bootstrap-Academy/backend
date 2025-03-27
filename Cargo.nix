@@ -5328,10 +5328,10 @@ rec {
       };
       "borsh" = rec {
         crateName = "borsh";
-        version = "1.5.6";
+        version = "1.5.7";
         edition = "2018";
         crateBin = [];
-        sha256 = "09h1h8xbz5h7474lq3qfixd0x4508cfgsy9vhblzh2pwl1klvdxj";
+        sha256 = "1kikljm5yr3l9qsw5xvdccragxj4445s4s3fqsgy6hmmipwld1md";
         authors = [
           "Near Inc <hello@near.org>"
         ];
@@ -5363,9 +5363,9 @@ rec {
       };
       "borsh-derive" = rec {
         crateName = "borsh-derive";
-        version = "1.5.6";
+        version = "1.5.7";
         edition = "2018";
-        sha256 = "17nzd3iaic0q07xirfpy5kndccli6kcgdd5030944y4v5hdysdrd";
+        sha256 = "1hwsznww7d01bh1fzpndzmcpyp00xpl2y9bg70i3z0zmqb0d7lgx";
         procMacro = true;
         libName = "borsh_derive";
         authors = [
@@ -6885,9 +6885,9 @@ rec {
       };
       "fragile" = rec {
         crateName = "fragile";
-        version = "2.0.0";
+        version = "2.0.1";
         edition = "2018";
-        sha256 = "1ajfdnwdn921bhjlzyvsqvdgci8ab40ln6w9ly422lf8svb428bc";
+        sha256 = "06g69s9w3hmdnjp5b60ph15v367278mgxy1shijrllarc2pnrp98";
         authors = [
           "Armin Ronacher <armin.ronacher@active-4.com>"
         ];
@@ -8409,9 +8409,9 @@ rec {
       };
       "icu_locid_transform_data" = rec {
         crateName = "icu_locid_transform_data";
-        version = "1.5.0";
+        version = "1.5.1";
         edition = "2021";
-        sha256 = "0vkgjixm0wzp2n3v5mw4j89ly05bg3lx96jpdggbwlpqi0rzzj7x";
+        sha256 = "07gignya9gzynnyds88bmra4blq9jxzgrcss43vzk2q9h7byc5bm";
         authors = [
           "The ICU4X Project Developers"
         ];
@@ -8499,9 +8499,9 @@ rec {
       };
       "icu_normalizer_data" = rec {
         crateName = "icu_normalizer_data";
-        version = "1.5.0";
+        version = "1.5.1";
         edition = "2021";
-        sha256 = "05lmk0zf0q7nzjnj5kbmsigj3qgr0rwicnn5pqi9n7krmbvzpjpq";
+        sha256 = "1dqcm86spcqcs4jnra81yqq3g5bpw6bvf5iz621spj5x52137s65";
         authors = [
           "The ICU4X Project Developers"
         ];
@@ -8570,9 +8570,9 @@ rec {
       };
       "icu_properties_data" = rec {
         crateName = "icu_properties_data";
-        version = "1.5.0";
+        version = "1.5.1";
         edition = "2021";
-        sha256 = "0scms7pd5a7yxx9hfl167f5qdf44as6r3bd8myhlngnxqgxyza37";
+        sha256 = "1qm5vf17nyiwb87s3g9x9fsj32gkv4a7q7d2sblawx9vfncqgyw5";
         authors = [
           "The ICU4X Project Developers"
         ];
@@ -10261,9 +10261,9 @@ rec {
       };
       "pest" = rec {
         crateName = "pest";
-        version = "2.7.15";
+        version = "2.8.0";
         edition = "2021";
-        sha256 = "1p4rq45xprw9cx0pb8mmbfa0ih49l0baablv3cpfdy3c1pkayz4b";
+        sha256 = "1dp741bxqiracvvwl66mfvlr29byvvph28n4c6ip136m652vg38r";
         authors = [
           "Dragoș Tiselice <dragostiselice@gmail.com>"
         ];
@@ -10295,9 +10295,9 @@ rec {
       };
       "pest_derive" = rec {
         crateName = "pest_derive";
-        version = "2.7.15";
+        version = "2.8.0";
         edition = "2021";
-        sha256 = "0zpmcd1jv1c53agad5b3jb66ylxlzyv43x1bssh8fs7w3i11hrc1";
+        sha256 = "1icp5i01mgpbgwbkrcy4d0ykbxmns4wyz8j1jg6dr1wysz7xj9fp";
         procMacro = true;
         authors = [
           "Dragoș Tiselice <dragostiselice@gmail.com>"
@@ -10324,9 +10324,9 @@ rec {
       };
       "pest_generator" = rec {
         crateName = "pest_generator";
-        version = "2.7.15";
+        version = "2.8.0";
         edition = "2021";
-        sha256 = "0yrpk5ymc56pffv7gqr5rkv92p3dc6s73lb8hy1wf3w77byrc4vx";
+        sha256 = "0hgqngsxfr8y5p47bgjvd038j55ix1x4dpzr6amndaz8ddr02zfv";
         authors = [
           "Dragoș Tiselice <dragostiselice@gmail.com>"
         ];
@@ -10363,9 +10363,9 @@ rec {
       };
       "pest_meta" = rec {
         crateName = "pest_meta";
-        version = "2.7.15";
+        version = "2.8.0";
         edition = "2021";
-        sha256 = "1skx7gm932bp77if63f7d72jrk5gygj39d8zsfzigmr5xa4q1rg1";
+        sha256 = "182w5fyiqm7zbn0p8313xc5wc73rnn59ycm5zk8hcja9f0j877vz";
         authors = [
           "Dragoș Tiselice <dragostiselice@gmail.com>"
         ];
@@ -11192,9 +11192,9 @@ rec {
       };
       "quinn-udp" = rec {
         crateName = "quinn-udp";
-        version = "0.5.10";
+        version = "0.5.11";
         edition = "2021";
-        sha256 = "0i2rkq8lrkr89csw00mhnhp8zjh2prv4n5n65fwzd1b7hrak0vz4";
+        sha256 = "1daa7c1hws33395zzw62i879dxr168fp8llaff87lx7cqrbhy7al";
         libName = "quinn_udp";
         dependencies = [
           {
@@ -12777,9 +12777,9 @@ rec {
       };
       "rustls-webpki" = rec {
         crateName = "rustls-webpki";
-        version = "0.103.0";
+        version = "0.103.1";
         edition = "2021";
-        sha256 = "0brvz1j2q8qcbrs5555wgrdzpibiz6ryk9ypx4izzzw84nnfx90a";
+        sha256 = "00rcdz0rb9ia2ivrq7412ry9qkvbh78pra2phl4p7kxck9vbiy7y";
         libName = "webpki";
         dependencies = [
           {

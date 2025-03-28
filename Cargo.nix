@@ -4640,9 +4640,9 @@ rec {
       };
       "axum" = rec {
         crateName = "axum";
-        version = "0.8.1";
+        version = "0.8.3";
         edition = "2021";
-        sha256 = "1f78gc3sp2vx2dll147fm9yl697y38mz9jmrqssb662yqwjdcvvd";
+        sha256 = "1222spmyw5s2dfggwn62474jkh72ld52abkz5wjbkyg1024i0ify";
         dependencies = [
           {
             name = "axum-core";
@@ -4819,9 +4819,9 @@ rec {
       };
       "axum-core" = rec {
         crateName = "axum-core";
-        version = "0.5.0";
+        version = "0.5.2";
         edition = "2021";
-        sha256 = "0cxpk0vbqd77zq49hjzrbszn35lgx469ghcrw55045pxcbrn44yz";
+        sha256 = "19kwzksb4hwr3qfbrhjbqf83z6fjyng14wrkzck6fj1g8784qik8";
         libName = "axum_core";
         dependencies = [
           {
@@ -4829,10 +4829,8 @@ rec {
             packageId = "bytes";
           }
           {
-            name = "futures-util";
-            packageId = "futures-util";
-            usesDefaultFeatures = false;
-            features = [ "alloc" ];
+            name = "futures-core";
+            packageId = "futures-core";
           }
           {
             name = "http";
@@ -4877,14 +4875,6 @@ rec {
             usesDefaultFeatures = false;
           }
         ];
-        devDependencies = [
-          {
-            name = "futures-util";
-            packageId = "futures-util";
-            usesDefaultFeatures = false;
-            features = [ "alloc" ];
-          }
-        ];
         features = {
           "__private_docs" = [ "dep:tower-http" ];
           "tracing" = [ "dep:tracing" ];
@@ -4893,9 +4883,9 @@ rec {
       };
       "axum-extra" = rec {
         crateName = "axum-extra";
-        version = "0.10.0";
+        version = "0.10.1";
         edition = "2021";
-        sha256 = "0yszf5y1gv5f3c8kh74bk1l4dscl0w3hsbgndif71xx14pvcc3s6";
+        sha256 = "0gbi6p5944rfm545cml8ns2i23yl0nrjarbm7iyin4zm64w4dgs5";
         libName = "axum_extra";
         dependencies = [
           {
@@ -4944,6 +4934,10 @@ rec {
             packageId = "pin-project-lite";
           }
           {
+            name = "rustversion";
+            packageId = "rustversion";
+          }
+          {
             name = "serde";
             packageId = "serde";
           }
@@ -4975,8 +4969,8 @@ rec {
           }
         ];
         features = {
+          "__private_docs" = [ "axum/json" ];
           "async-read-body" = [ "dep:tokio-util" "tokio-util?/io" "dep:tokio" ];
-          "async-stream" = [ "dep:async-stream" ];
           "attachment" = [ "dep:tracing" ];
           "cookie" = [ "dep:cookie" ];
           "cookie-key-expansion" = [ "cookie" "cookie?/key-expansion" ];

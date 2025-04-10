@@ -175,11 +175,11 @@ let
         virtualMapType = "pcre";
       };
 
-      systemd.tmpfiles.settings.academy-secrets."/run/academy-backend/secrets.toml".f = {
+      systemd.tmpfiles.settings.academy-secrets."/run/academy-backend/secrets.toml".C = {
         user = "academy";
         group = "academy";
         mode = "0400";
-        argument = ''
+        argument = builtins.toFile "secrets.toml" ''
           jwt.secret = "changeme"
         '';
       };

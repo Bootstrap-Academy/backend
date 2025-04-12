@@ -750,7 +750,7 @@ rec {
           }
           {
             name = "base32";
-            packageId = "base32 0.5.1";
+            packageId = "base32";
             usesDefaultFeatures = false;
           }
           {
@@ -3014,7 +3014,7 @@ rec {
           }
           {
             name = "base32";
-            packageId = "base32 0.5.1";
+            packageId = "base32";
             usesDefaultFeatures = false;
           }
           {
@@ -5048,18 +5048,7 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" "std" ];
       };
-      "base32 0.4.0" = rec {
-        crateName = "base32";
-        version = "0.4.0";
-        edition = "2015";
-        sha256 = "1ykwx8jhksqxghfgyw2pzikzjf4n9wqm1x2ww5wqyn68ssf6dki3";
-        authors = [
-          "Andreas Ots <qrpth@qrpth.eu>"
-          "Tim Dumol <tim@timdumol.com>"
-        ];
-
-      };
-      "base32 0.5.1" = rec {
+      "base32" = rec {
         crateName = "base32";
         version = "0.5.1";
         edition = "2015";
@@ -6135,9 +6124,9 @@ rec {
       };
       "constant_time_eq" = rec {
         crateName = "constant_time_eq";
-        version = "0.2.6";
+        version = "0.3.1";
         edition = "2021";
-        sha256 = "1mhshq5qzdbqq5d8sp695kf5rnh47kydqlsv87kpg0r89l53r991";
+        sha256 = "19nwwczii762pwlsm7bpizgjg8hkg1kqi32b2g4rglijklsbhx3w";
         authors = [
           "Cesar Eduardo Barros <cesarb@cesarb.eti.br>"
         ];
@@ -15068,9 +15057,9 @@ rec {
       };
       "totp-rs" = rec {
         crateName = "totp-rs";
-        version = "5.6.0";
+        version = "5.7.0";
         edition = "2021";
-        sha256 = "143s5262pvh657kmf6ynsqwfi1x4ibrmax2fdg18c94rmmyz5chp";
+        sha256 = "0wmz0ri3d9ml04wrd5qk5a6xq70g8zlzc2g9k61gi3pm10hka97i";
         libName = "totp_rs";
         authors = [
           "Cleo Rebert <cleo.rebert@gmail.com>"
@@ -15078,7 +15067,7 @@ rec {
         dependencies = [
           {
             name = "base32";
-            packageId = "base32 0.4.0";
+            packageId = "base32";
           }
           {
             name = "constant_time_eq";

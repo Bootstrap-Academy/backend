@@ -3729,7 +3729,7 @@ rec {
           }
           {
             name = "rand";
-            packageId = "rand 0.9.0";
+            packageId = "rand 0.9.1";
             usesDefaultFeatures = false;
             features = [ "thread_rng" ];
           }
@@ -3959,7 +3959,7 @@ rec {
           }
           {
             name = "rand";
-            packageId = "rand 0.9.0";
+            packageId = "rand 0.9.1";
             usesDefaultFeatures = false;
             features = [ "thread_rng" ];
           }
@@ -10627,7 +10627,7 @@ rec {
           }
           {
             name = "rand";
-            packageId = "rand 0.9.0";
+            packageId = "rand 0.9.1";
           }
           {
             name = "sha2";
@@ -11105,7 +11105,7 @@ rec {
           }
           {
             name = "rand";
-            packageId = "rand 0.9.0";
+            packageId = "rand 0.9.1";
           }
           {
             name = "ring";
@@ -11327,11 +11327,11 @@ rec {
         };
         resolvedDefaultFeatures = [ "alloc" "default" "getrandom" "libc" "rand_chacha" "small_rng" "std" "std_rng" ];
       };
-      "rand 0.9.0" = rec {
+      "rand 0.9.1" = rec {
         crateName = "rand";
-        version = "0.9.0";
+        version = "0.9.1";
         edition = "2021";
-        sha256 = "156dyvsfa6fjnv6nx5vzczay1scy5183dvjchd7bvs47xd5bjy9p";
+        sha256 = "15yxfcxbgmwba5cv7mjg9bhc1r5c9483dfcdfspg62x4jk8dkgwz";
         authors = [
           "The Rand Project Developers"
           "The Rust Project Developers"
@@ -11348,19 +11348,12 @@ rec {
             packageId = "rand_core 0.9.3";
             usesDefaultFeatures = false;
           }
-          {
-            name = "zerocopy";
-            packageId = "zerocopy 0.8.24";
-            usesDefaultFeatures = false;
-            features = [ "simd" ];
-          }
         ];
         features = {
           "default" = [ "std" "std_rng" "os_rng" "small_rng" "thread_rng" ];
           "log" = [ "dep:log" ];
           "os_rng" = [ "rand_core/os_rng" ];
           "serde" = [ "dep:serde" "rand_core/serde" ];
-          "simd_support" = [ "zerocopy/simd-nightly" ];
           "std" = [ "rand_core/std" "rand_chacha?/std" "alloc" ];
           "std_rng" = [ "dep:rand_chacha" ];
           "thread_rng" = [ "std" "std_rng" "os_rng" ];
@@ -14800,7 +14793,7 @@ rec {
           }
           {
             name = "rand";
-            packageId = "rand 0.9.0";
+            packageId = "rand 0.9.1";
           }
           {
             name = "socket2";

@@ -15,7 +15,7 @@ jobs:
     if: ${{ !(github.event_name == 'push' && github.actor == 'github-merge-queue[bot]') }}
     steps:
       - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@v16
+      - uses: DeterminateSystems/nix-installer-action@v17
       - run: nix fmt -- --ci
 
   clippy:

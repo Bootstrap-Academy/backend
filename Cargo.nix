@@ -5195,9 +5195,9 @@ rec {
       };
       "bb8-redis" = rec {
         crateName = "bb8-redis";
-        version = "0.21.0";
+        version = "0.22.0";
         edition = "2021";
-        sha256 = "0l8k2b2afw99pcygkhk4ppm2yj3jrmy3jyh2xp7xqmy4frf22s4a";
+        sha256 = "11zxky9x3019a9i4dij1ndr18nkpfcq56x1z2qcn7kscfrymlhsg";
         libName = "bb8_redis";
         dependencies = [
           {
@@ -11476,9 +11476,9 @@ rec {
       };
       "redis" = rec {
         crateName = "redis";
-        version = "0.29.5";
+        version = "0.30.0";
         edition = "2021";
-        sha256 = "0pv9aj8dlzs4q28nap6k7da4x4la0ikyzvyqck70hi7x28x2zi0v";
+        sha256 = "05ycbygy02r2vp250ys1bxyv7w8v8iw6jvb6ygb4d8lsirglx2j3";
         dependencies = [
           {
             name = "arc-swap";
@@ -11487,6 +11487,11 @@ rec {
           {
             name = "bytes";
             packageId = "bytes";
+            optional = true;
+          }
+          {
+            name = "cfg-if";
+            packageId = "cfg-if";
             optional = true;
           }
           {
@@ -11553,7 +11558,7 @@ rec {
         ];
         features = {
           "ahash" = [ "dep:ahash" ];
-          "aio" = [ "bytes" "dep:pin-project-lite" "dep:futures-util" "dep:tokio" "tokio/io-util" "dep:tokio-util" "tokio-util/codec" "combine/tokio" ];
+          "aio" = [ "bytes" "dep:pin-project-lite" "dep:futures-util" "dep:tokio" "tokio/io-util" "dep:tokio-util" "tokio-util/codec" "combine/tokio" "dep:cfg-if" ];
           "async-std-comp" = [ "aio" "dep:async-std" ];
           "async-std-native-tls-comp" = [ "async-std-comp" "dep:async-native-tls" "tls-native-tls" ];
           "async-std-rustls-comp" = [ "async-std-comp" "dep:futures-rustls" "tls-rustls" ];
@@ -11572,6 +11577,9 @@ rec {
           "rust_decimal" = [ "dep:rust_decimal" ];
           "script" = [ "dep:sha1_smol" ];
           "sentinel" = [ "dep:rand" ];
+          "smol-comp" = [ "aio" "dep:smol" "dep:smol-timeout" "dep:async-io" ];
+          "smol-native-tls-comp" = [ "smol-comp" "dep:async-native-tls" "tls-native-tls" ];
+          "smol-rustls-comp" = [ "smol-comp" "dep:futures-rustls" "tls-rustls" ];
           "tls" = [ "tls-native-tls" ];
           "tls-native-tls" = [ "dep:native-tls" ];
           "tls-rustls" = [ "dep:rustls" "rustls/std" "rustls/ring" "dep:rustls-native-certs" ];

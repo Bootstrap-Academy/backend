@@ -1162,9 +1162,9 @@ dependencies = [
 
 [[package]]
 name = "bb8-redis"
-version = "0.21.0"
+version = "0.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8a68215c76c457dccfed027a397ccd72482feabd64c2f93cbb2971a7c4121351"
+checksum = "4f435a7d764ccf6319163f74533073775a1472b341c64662522980d1939ffd87"
 dependencies = [
  "bb8",
  "redis",
@@ -3224,12 +3224,13 @@ dependencies = [
 
 [[package]]
 name = "redis"
-version = "0.29.5"
+version = "0.30.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1bc42f3a12fd4408ce64d8efef67048a924e543bd35c6591c0447fda9054695f"
+checksum = "438a4e5f8e9aa246d6f3666d6978441bf1b37d5f417b50c4dd220be09f5fcc17"
 dependencies = [
  "arc-swap",
  "bytes",
+ "cfg-if",
  "combine",
  "futures-util",
  "itoa",

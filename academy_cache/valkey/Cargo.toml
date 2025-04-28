@@ -16,7 +16,7 @@ dummy = []
 academy_cache_contracts.workspace = true
 academy_utils.workspace = true
 anyhow.workspace = true
-bb8-redis = { version = "0.21.0", default-features = false }
+bb8-redis = { version = "0.22.0", default-features = false }
 rmp-serde = { version = "1.3.0", default-features = false }
 serde.workspace = true
 tracing.workspace = true

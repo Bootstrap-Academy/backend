@@ -5568,9 +5568,9 @@ rec {
       };
       "chrono" = rec {
         crateName = "chrono";
-        version = "0.4.40";
+        version = "0.4.41";
         edition = "2021";
-        sha256 = "0z334kqnvq5zx6xsq1k6zk8g9z14fgk2w3vkn4n13pvi3mhn8y8s";
+        sha256 = "0k8wy2mph0mgipq28vv3wirivhb31pqs7jyid0dzjivz0i9djsf4";
         dependencies = [
           {
             name = "android-tzdata";

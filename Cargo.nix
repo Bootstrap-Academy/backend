@@ -4640,9 +4640,9 @@ rec {
       };
       "axum" = rec {
         crateName = "axum";
-        version = "0.8.3";
+        version = "0.8.4";
         edition = "2021";
-        sha256 = "1222spmyw5s2dfggwn62474jkh72ld52abkz5wjbkyg1024i0ify";
+        sha256 = "1d99kb3vcjnhbgrf6hysllf25hzagw7m1i1nidjpgsaa30n8c7h2";
         dependencies = [
           {
             name = "axum-core";

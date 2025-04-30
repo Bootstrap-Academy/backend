@@ -96,7 +96,7 @@ academy_utils_derive.path = "academy_utils_derive"
 
 anyhow = { version = "1.0.98", default-features = false, features = ["std"] }
 argon2 = { version = "0.5.3", default-features = false, features = ["std", "password-hash"] }
-axum = { version = "0.8.3", default-features = false, features = [
+axum = { version = "0.8.4", default-features = false, features = [
   "http1",
   "http2",
   "tokio",

@@ -13721,9 +13721,9 @@ rec {
       };
       "sha2" = rec {
         crateName = "sha2";
-        version = "0.10.8";
+        version = "0.10.9";
         edition = "2018";
-        sha256 = "1j1x78zk9il95w9iv46dh9wm73r6xrgj32y6lzzw7bxws9dbfgbr";
+        sha256 = "10xjj843v31ghsksd9sl9y12qfc48157j1xpb8v1ml39jy0psl57";
         authors = [
           "RustCrypto Developers"
         ];

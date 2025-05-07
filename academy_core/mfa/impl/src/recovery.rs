@@ -37,7 +37,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use academy_demo::{user::FOO, SHA256HASH1};
+    use academy_demo::{SHA256HASH1, user::FOO};
     use academy_persistence_contracts::mfa::MockMfaRepository;
     use academy_shared_contracts::{hash::MockHashService, secret::MockSecretService};
 

@@ -9,14 +9,14 @@ use academy_models::{
     session::DeviceName,
 };
 use aide::{
-    axum::{routing, ApiRouter},
+    axum::{ApiRouter, routing},
     transform::TransformOperation,
 };
 use axum::{
+    Json,
     extract::{Path, State},
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -28,10 +28,10 @@ use crate::{
     errors::{auth_error, auth_error_docs, internal_server_error, internal_server_error_docs},
     extractors::{auth::ApiToken, user_agent::UserAgent},
     models::{
+        OkResponse,
         oauth2::{ApiOAuth2Link, ApiOAuth2Login, ApiOAuth2ProviderSummary},
         session::ApiLogin,
         user::{ApiUserIdOrSelf, PathUserIdOrSelf},
-        OkResponse,
     },
 };
 

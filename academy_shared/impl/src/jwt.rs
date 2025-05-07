@@ -7,9 +7,9 @@ use academy_shared_contracts::{
 };
 use academy_utils::trace_instrument;
 use anyhow::Context;
-use hmac::{digest::KeyInit, Hmac};
+use hmac::{Hmac, digest::KeyInit};
 use jwt::{SignWithKey, VerifyWithKey};
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use sha2::Sha256;
 
 #[derive(Debug, Clone, Build)]

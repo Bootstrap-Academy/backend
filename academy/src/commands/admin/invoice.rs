@@ -1,14 +1,14 @@
 use academy_config::Config;
 use academy_core_finance_contracts::invoice::FinanceInvoiceService;
 use academy_di::Provide;
-use academy_persistence_contracts::{paypal::PaypalRepository, Database};
+use academy_persistence_contracts::{Database, paypal::PaypalRepository};
 use clap::Subcommand;
 use futures::TryStreamExt;
 use indicatif::ProgressBar;
 
 use crate::{
     cache, database, email,
-    environment::{types, ConfigProvider, Provider},
+    environment::{ConfigProvider, Provider, types},
 };
 
 #[derive(Debug, Subcommand)]

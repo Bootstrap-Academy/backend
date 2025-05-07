@@ -1,8 +1,8 @@
 use academy_persistence_contracts::{Database, Transaction};
 use academy_persistence_postgres::{
-    mfa::PostgresMfaRepository, oauth2::PostgresOAuth2Repository,
-    session::PostgresSessionRepository, user::PostgresUserRepository, PostgresDatabase,
-    PostgresDatabaseConfig,
+    PostgresDatabase, PostgresDatabaseConfig, mfa::PostgresMfaRepository,
+    oauth2::PostgresOAuth2Repository, session::PostgresSessionRepository,
+    user::PostgresUserRepository,
 };
 
 pub type Db = PostgresDatabase;

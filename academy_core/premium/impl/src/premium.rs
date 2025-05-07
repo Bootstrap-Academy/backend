@@ -56,7 +56,7 @@ where
 #[cfg(test)]
 mod tests {
     use academy_core_premium_contracts::purchase::MockPremiumPurchaseService;
-    use academy_demo::{user::FOO, UUID1};
+    use academy_demo::{UUID1, user::FOO};
     use academy_models::premium::PremiumPlan;
     use academy_persistence_contracts::premium::MockPremiumRepository;
     use academy_shared_contracts::time::MockTimeService;

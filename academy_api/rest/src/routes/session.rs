@@ -6,21 +6,21 @@ use academy_core_session_contracts::{
     SessionListByUserError, SessionRefreshError,
 };
 use academy_models::{
+    RecaptchaResponse,
     auth::RefreshToken,
     mfa::{MfaAuthentication, MfaRecoveryCode, TotpCode},
     session::{DeviceName, SessionId},
     user::{UserNameOrEmailAddress, UserPassword},
-    RecaptchaResponse,
 };
 use aide::{
-    axum::{routing, ApiRouter},
+    axum::{ApiRouter, routing},
     transform::TransformOperation,
 };
 use axum::{
+    Json,
     extract::{Path, State},
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
 };
 use schemars::JsonSchema;
 use serde::Deserialize;
@@ -33,14 +33,14 @@ use crate::{
     docs::TransformOperationExt,
     error_code,
     errors::{
-        auth_error, auth_error_docs, internal_server_error, internal_server_error_docs,
-        RecaptchaFailedError,
+        RecaptchaFailedError, auth_error, auth_error_docs, internal_server_error,
+        internal_server_error_docs,
     },
     extractors::{auth::ApiToken, user_agent::UserAgent},
     models::{
+        OkResponse, StringOption,
         session::{ApiLogin, ApiSession},
         user::{ApiUserIdOrSelf, PathUserId, PathUserIdOrSelf},
-        OkResponse, StringOption,
     },
 };
 

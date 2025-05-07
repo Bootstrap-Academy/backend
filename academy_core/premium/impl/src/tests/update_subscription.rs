@@ -1,20 +1,20 @@
 use academy_auth_contracts::MockAuthService;
 use academy_core_premium_contracts::{
-    premium::MockPremiumService, PremiumFeatureService, PremiumUpdateSubscriptionError,
+    PremiumFeatureService, PremiumUpdateSubscriptionError, premium::MockPremiumService,
 };
 use academy_demo::{
+    UUID1,
     session::{BAR_1, FOO_1},
     user::{BAR, FOO},
-    UUID1,
 };
 use academy_models::{
     auth::{AuthError, AuthenticateError, AuthorizeError},
     premium::{Premium, PremiumPlan},
 };
-use academy_persistence_contracts::{premium::MockPremiumRepository, MockDatabase};
+use academy_persistence_contracts::{MockDatabase, premium::MockPremiumRepository};
 use academy_utils::assert_matches;
 
-use crate::{tests::Sut, PremiumFeatureServiceImpl};
+use crate::{PremiumFeatureServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn unauthenticated() {

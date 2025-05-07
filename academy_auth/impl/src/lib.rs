@@ -1,8 +1,8 @@
 use std::time::Duration;
 
 use academy_auth_contracts::{
-    access_token::AuthAccessTokenService, refresh_token::AuthRefreshTokenService, AuthService,
-    AuthenticateByPasswordError, AuthenticateByRefreshTokenError, Authentication, Tokens,
+    AuthService, AuthenticateByPasswordError, AuthenticateByRefreshTokenError, Authentication,
+    Tokens, access_token::AuthAccessTokenService, refresh_token::AuthRefreshTokenService,
 };
 use academy_di::Build;
 use academy_models::{

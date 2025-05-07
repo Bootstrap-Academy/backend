@@ -1,6 +1,6 @@
 use std::{fmt::Debug, time::Duration};
 
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 use thiserror::Error;
 
 #[cfg_attr(feature = "mock", mockall::automock)]

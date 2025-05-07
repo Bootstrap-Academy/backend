@@ -9,7 +9,7 @@ use academy_core_user_contracts::{
 };
 use academy_extern_contracts::vat::MockVatApiService;
 use academy_persistence_contracts::{
-    coin::MockCoinRepository, user::MockUserRepository, MockDatabase, MockTransaction,
+    MockDatabase, MockTransaction, coin::MockCoinRepository, user::MockUserRepository,
 };
 use academy_shared_contracts::captcha::MockCaptchaService;
 

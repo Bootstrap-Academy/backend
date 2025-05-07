@@ -5,14 +5,14 @@ use academy_core_mfa_contracts::{
 };
 use academy_models::mfa::TotpCode;
 use aide::{
-    axum::{routing, ApiRouter},
+    axum::{ApiRouter, routing},
     transform::TransformOperation,
 };
 use axum::{
+    Json,
     extract::{Path, State},
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
 };
 use schemars::JsonSchema;
 use serde::Deserialize;
@@ -23,7 +23,7 @@ use crate::{
     error_code,
     errors::{auth_error, auth_error_docs, internal_server_error, internal_server_error_docs},
     extractors::auth::ApiToken,
-    models::{user::PathUserIdOrSelf, OkResponse},
+    models::{OkResponse, user::PathUserIdOrSelf},
 };
 
 pub const TAG: &str = "MFA";

@@ -76,11 +76,7 @@ pub trait Apply: Sized {
     /// assert_eq!(maybe_add_two(1, true), 3);
     /// ```
     fn apply_if(self, apply: bool, f: impl FnOnce(Self) -> Self) -> Self {
-        if apply {
-            f(self)
-        } else {
-            self
-        }
+        if apply { f(self) } else { self }
     }
 }
 

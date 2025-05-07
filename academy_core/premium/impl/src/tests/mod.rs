@@ -3,7 +3,7 @@ use academy_core_premium_contracts::{
     plan::MockPremiumPlanService, premium::MockPremiumService, purchase::MockPremiumPurchaseService,
 };
 use academy_persistence_contracts::{
-    premium::MockPremiumRepository, user::MockUserRepository, MockDatabase, MockTransaction,
+    MockDatabase, MockTransaction, premium::MockPremiumRepository, user::MockUserRepository,
 };
 
 use crate::{PremiumFeatureConfig, PremiumFeatureServiceImpl};

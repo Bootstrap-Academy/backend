@@ -2,11 +2,11 @@ use std::{collections::HashMap, sync::Arc, time::Duration};
 
 use academy_auth_contracts::{AuthResultExt, AuthService};
 use academy_core_oauth2_contracts::{
+    OAuth2CreateLinkError, OAuth2CreateSessionError, OAuth2CreateSessionResponse,
+    OAuth2DeleteLinkError, OAuth2FeatureService, OAuth2ListLinksError,
     link::{OAuth2LinkService, OAuth2LinkServiceError},
     login::{OAuth2LoginService, OAuth2LoginServiceError},
     registration::OAuth2RegistrationService,
-    OAuth2CreateLinkError, OAuth2CreateSessionError, OAuth2CreateSessionResponse,
-    OAuth2DeleteLinkError, OAuth2FeatureService, OAuth2ListLinksError,
 };
 use academy_core_session_contracts::session::SessionService;
 use academy_di::Build;
@@ -21,7 +21,7 @@ use academy_models::{
     user::UserIdOrSelf,
 };
 use academy_persistence_contracts::{
-    oauth2::OAuth2Repository, user::UserRepository, Database, Transaction,
+    Database, Transaction, oauth2::OAuth2Repository, user::UserRepository,
 };
 use academy_utils::trace_instrument;
 use anyhow::Context;
@@ -65,16 +65,16 @@ pub struct OAuth2FeatureConfig {
 }
 
 impl<
-        Db,
-        Auth,
-        OAuth2Api,
-        UserRepo,
-        OAuth2Repo,
-        OAuth2LinkS,
-        OAuth2LoginS,
-        OAuth2RegistrationS,
-        Session,
-    > OAuth2FeatureService
+    Db,
+    Auth,
+    OAuth2Api,
+    UserRepo,
+    OAuth2Repo,
+    OAuth2LinkS,
+    OAuth2LoginS,
+    OAuth2RegistrationS,
+    Session,
+> OAuth2FeatureService
     for OAuth2FeatureServiceImpl<
         Db,
         Auth,

@@ -6,11 +6,11 @@ use academy_models::{
     oauth2::{OAuth2AuthorizationCode, OAuth2Provider, OAuth2UserInfo},
     url::Url,
 };
-use academy_utils::{trace_instrument, Apply};
-use anyhow::{anyhow, Context};
+use academy_utils::{Apply, trace_instrument};
+use anyhow::{Context, anyhow};
 use oauth2::{
-    basic::BasicClient, AuthUrl, AuthorizationCode, ClientId, ClientSecret, RedirectUrl,
-    RequestTokenError, TokenResponse, TokenUrl,
+    AuthUrl, AuthorizationCode, ClientId, ClientSecret, RedirectUrl, RequestTokenError,
+    TokenResponse, TokenUrl, basic::BasicClient,
 };
 use tracing::trace;
 
@@ -143,7 +143,10 @@ mod tests {
         let result = sut.generate_auth_url(&provider);
 
         // Assert
-        assert_eq!(result.as_str(), "https://oauth2.provider/auth?response_type=code&client_id=the-client-id&scope=foo+bar+baz");
+        assert_eq!(
+            result.as_str(),
+            "https://oauth2.provider/auth?response_type=code&client_id=the-client-id&scope=foo+bar+baz"
+        );
     }
 
     #[test]

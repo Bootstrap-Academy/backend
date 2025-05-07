@@ -5,9 +5,9 @@ use academy_demo::{
     user::{ADMIN, FOO},
 };
 use academy_models::user::UserIdOrSelf;
-use academy_persistence_contracts::{user::MockUserRepository, MockDatabase};
+use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
 
-use crate::{tests::Sut, UserFeatureServiceImpl};
+use crate::{UserFeatureServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn no_op_self() {

@@ -1,17 +1,17 @@
 use academy_auth_contracts::MockAuthService;
 use academy_core_user_contracts::{
-    email_confirmation::MockUserEmailConfirmationService, UserFeatureService, UserUpdateError,
-    UserUpdateRequest, UserUpdateUserRequest,
+    UserFeatureService, UserUpdateError, UserUpdateRequest, UserUpdateUserRequest,
+    email_confirmation::MockUserEmailConfirmationService,
 };
 use academy_demo::{
     session::{ADMIN_1, BAR_1, FOO_1},
     user::{ADMIN, BAR, FOO},
 };
 use academy_models::user::{User, UserComposite, UserIdOrSelf, UserPatch};
-use academy_persistence_contracts::{user::MockUserRepository, MockDatabase};
+use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
 use academy_utils::assert_matches;
 
-use crate::{tests::Sut, UserFeatureServiceImpl};
+use crate::{UserFeatureServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn enable_self() {

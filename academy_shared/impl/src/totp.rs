@@ -132,7 +132,7 @@ mod tests {
             MockTimeService::new().with_now(DateTime::from_timestamp(1724949831, 0).unwrap());
         let hash = MockHashService::new().with_sha256(secret.clone().into_inner(), *SHA256HASH1);
 
-        let cache_key = format!("totp_code_used:{}:{}", SHA256HASH1_HEX, code);
+        let cache_key = format!("totp_code_used:{SHA256HASH1_HEX}:{code}");
         let cache = MockCacheService::new()
             .with_get(cache_key.clone(), None::<()>)
             .with_set(cache_key, (), Some(Duration::from_secs(90)));
@@ -186,7 +186,7 @@ mod tests {
             MockTimeService::new().with_now(DateTime::from_timestamp(1724949831, 0).unwrap());
         let hash = MockHashService::new().with_sha256(secret.clone().into_inner(), *SHA256HASH1);
 
-        let cache_key = format!("totp_code_used:{}:{}", SHA256HASH1_HEX, code);
+        let cache_key = format!("totp_code_used:{SHA256HASH1_HEX}:{code}");
         let cache = MockCacheService::new().with_get(cache_key.clone(), Some(()));
 
         let sut = TotpServiceImpl {

@@ -14,7 +14,7 @@ use clorinde::{
 };
 use futures::{StreamExt, TryStreamExt};
 
-use crate::{decode_sha256hash, PostgresTransaction};
+use crate::{PostgresTransaction, decode_sha256hash};
 
 #[derive(Debug, Clone, Build)]
 pub struct PostgresMfaRepository;

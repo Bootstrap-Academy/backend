@@ -5,24 +5,24 @@ use academy_core_mfa_contracts::authenticate::{
     MfaAuthenticateError, MfaAuthenticateResult, MfaAuthenticateService,
 };
 use academy_core_session_contracts::{
-    failed_auth_count::SessionFailedAuthCountService, session::SessionService,
     SessionCreateCommand, SessionCreateError, SessionDeleteByUserError, SessionDeleteCurrentError,
     SessionDeleteError, SessionFeatureService, SessionGetCurrentError, SessionImpersonateError,
-    SessionListByUserError, SessionRefreshError,
+    SessionListByUserError, SessionRefreshError, failed_auth_count::SessionFailedAuthCountService,
+    session::SessionService,
 };
 use academy_di::Build;
 use academy_models::{
+    RecaptchaResponse,
     auth::{AccessToken, Login, RefreshToken},
     session::{Session, SessionId},
     user::{UserId, UserIdOrSelf, UserNameOrEmailAddress},
-    RecaptchaResponse,
 };
 use academy_persistence_contracts::{
-    session::SessionRepository, user::UserRepository, Database, Transaction,
+    Database, Transaction, session::SessionRepository, user::UserRepository,
 };
 use academy_shared_contracts::captcha::{CaptchaCheckError, CaptchaService};
 use academy_utils::trace_instrument;
-use anyhow::{anyhow, Context};
+use anyhow::{Context, anyhow};
 
 pub mod failed_auth_count;
 pub mod session;
@@ -58,16 +58,8 @@ pub struct SessionFeatureConfig {
     pub login_fails_before_captcha: u64,
 }
 
-impl<
-        Db,
-        Auth,
-        Captcha,
-        SessionS,
-        SessionFailedAuthCount,
-        MfaAuthenticate,
-        UserRepo,
-        SessionRepo,
-    > SessionFeatureService
+impl<Db, Auth, Captcha, SessionS, SessionFailedAuthCount, MfaAuthenticate, UserRepo, SessionRepo>
+    SessionFeatureService
     for SessionFeatureServiceImpl<
         Db,
         Auth,
@@ -191,7 +183,7 @@ where
             Err(AuthenticateByPasswordError::Other(err)) => {
                 return Err(err
                     .context("Failed to perform password authentication")
-                    .into())
+                    .into());
             }
         };
 
@@ -208,7 +200,7 @@ where
                     return Err(SessionCreateError::MfaFailed);
                 }
                 Err(MfaAuthenticateError::Other(err)) => {
-                    return Err(err.context("Failed to perform MFA").into())
+                    return Err(err.context("Failed to perform MFA").into());
                 }
             }
         }
@@ -284,7 +276,7 @@ where
         {
             Ok(session_id) => session_id,
             Err(AuthenticateByRefreshTokenError::Invalid) => {
-                return Err(SessionRefreshError::InvalidRefreshToken)
+                return Err(SessionRefreshError::InvalidRefreshToken);
             }
             Err(AuthenticateByRefreshTokenError::Expired(session_id)) => {
                 self.session
@@ -296,7 +288,7 @@ where
             Err(AuthenticateByRefreshTokenError::Other(err)) => {
                 return Err(err
                     .context("Failed to authenticate by refresh token")
-                    .into())
+                    .into());
             }
         };
 

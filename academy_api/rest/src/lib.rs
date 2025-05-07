@@ -18,16 +18,16 @@ use academy_core_session_contracts::SessionFeatureService;
 use academy_core_user_contracts::UserFeatureService;
 use academy_di::Build;
 use academy_models::auth::{AccessToken, InternalToken};
-use academy_utils::{academy_version, Apply};
+use academy_utils::{Apply, academy_version};
 use aide::{
     axum::ApiRouter,
     openapi::{Components, Info, OpenApi, ReferenceOr, SecurityScheme, Tag},
 };
 use anyhow::Context;
 use axum::{
-    http::{request::Parts, HeaderValue},
-    response::{IntoResponse, Response},
     Extension, Json,
+    http::{HeaderValue, request::Parts},
+    response::{IntoResponse, Response},
 };
 use extractors::auth::ApiTokenType;
 use regex::bytes::RegexSet;
@@ -89,20 +89,20 @@ pub struct RestServerRealIpConfig {
 }
 
 impl<
-        Health,
-        Config,
-        User,
-        Session,
-        Contact,
-        Mfa,
-        OAuth2,
-        Coin,
-        Paypal,
-        Finance,
-        Heart,
-        Premium,
-        Internal,
-    >
+    Health,
+    Config,
+    User,
+    Session,
+    Contact,
+    Mfa,
+    OAuth2,
+    Coin,
+    Paypal,
+    Finance,
+    Heart,
+    Premium,
+    Internal,
+>
     RestServer<
         Health,
         Config,

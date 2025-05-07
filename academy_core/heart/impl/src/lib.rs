@@ -1,7 +1,7 @@
 use academy_auth_contracts::{AuthResultExt, AuthService};
 use academy_core_coin_contracts::coin::{CoinAddCoinsError, CoinService};
 use academy_core_heart_contracts::{
-    heart::HeartService, HeartFeatureService, HeartGetError, HeartRefillError,
+    HeartFeatureService, HeartGetError, HeartRefillError, heart::HeartService,
 };
 use academy_di::Build;
 use academy_models::{
@@ -9,7 +9,7 @@ use academy_models::{
     heart::{HeartConfig, Hearts},
     user::UserIdOrSelf,
 };
-use academy_persistence_contracts::{user::UserRepository, Database, Transaction};
+use academy_persistence_contracts::{Database, Transaction, user::UserRepository};
 use academy_utils::trace_instrument;
 use chrono::NaiveTime;
 

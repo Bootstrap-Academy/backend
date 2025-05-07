@@ -5,7 +5,7 @@ use academy_persistence_contracts::{
     mfa::MfaRepository, oauth2::OAuth2Repository, session::SessionRepository, user::UserRepository,
 };
 use anyhow::Context;
-use uuid::{uuid, Uuid};
+use uuid::{Uuid, uuid};
 
 pub mod mfa;
 pub mod oauth2;

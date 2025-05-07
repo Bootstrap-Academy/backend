@@ -7,7 +7,7 @@ use academy_models::user::{User, UserComposite, UserDetails, UserInvoiceInfo, Us
 use academy_persistence_contracts::user::{UserRepoError, UserRepository};
 use academy_shared_contracts::{id::IdService, password::PasswordService, time::TimeService};
 use academy_utils::trace_instrument;
-use anyhow::{anyhow, Context};
+use anyhow::{Context, anyhow};
 
 #[derive(Debug, Clone, Copy, Build, Default)]
 pub struct UserServiceImpl<Id, Time, Password, UserRepo, OAuth2CreateLink> {

@@ -121,7 +121,7 @@ mod tests {
     use academy_shared_contracts::{
         id::MockIdService, time::MockTimeService, totp::MockTotpService,
     };
-    use academy_utils::{assert_matches, Apply};
+    use academy_utils::{Apply, assert_matches};
 
     use super::*;
 

@@ -22,9 +22,9 @@ macro_rules! id {
             }
 
             fn json_schema(
-                gen: &mut ::schemars::gen::SchemaGenerator,
+                generator: &mut ::schemars::r#gen::SchemaGenerator,
             ) -> ::schemars::schema::Schema {
-                <::uuid::Uuid as ::schemars::JsonSchema>::json_schema(gen)
+                <::uuid::Uuid as ::schemars::JsonSchema>::json_schema(generator)
             }
         }
     };

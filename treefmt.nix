@@ -23,6 +23,7 @@
   programs.prettier.enable = true;
 
   programs.rustfmt.enable = true;
+  programs.rustfmt.edition = "2024";
 
   programs.taplo.enable = true;
   settings.formatter.taplo.options = [

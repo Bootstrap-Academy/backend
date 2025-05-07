@@ -1,6 +1,6 @@
 use academy_demo::user::FOO;
 use academy_models::paypal::PaypalCoinOrder;
-use academy_persistence_contracts::{paypal::PaypalRepository, Database, Transaction};
+use academy_persistence_contracts::{Database, Transaction, paypal::PaypalRepository};
 use academy_persistence_postgres::paypal::PostgresPaypalRepository;
 use futures::StreamExt;
 

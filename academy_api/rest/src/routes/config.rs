@@ -2,14 +2,14 @@ use std::sync::Arc;
 
 use academy_core_config_contracts::ConfigFeatureService;
 use aide::{
-    axum::{routing, ApiRouter},
+    axum::{ApiRouter, routing},
     transform::TransformOperation,
 };
 use axum::{
+    Json,
     extract::State,
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
 };
 
 use crate::docs::TransformOperationExt;

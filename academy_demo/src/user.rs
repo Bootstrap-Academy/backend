@@ -5,8 +5,8 @@ use academy_models::user::{
 };
 use academy_persistence_contracts::user::UserRepository;
 use argon2::{
-    password_hash::{rand_core::OsRng, SaltString},
     Argon2, PasswordHasher,
+    password_hash::{SaltString, rand_core::OsRng},
 };
 use chrono::{TimeZone, Utc};
 use uuid::uuid;

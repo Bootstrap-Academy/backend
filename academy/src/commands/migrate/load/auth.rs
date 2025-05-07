@@ -1,17 +1,17 @@
 use academy_models::{
+    Sha256Hash,
     mfa::{MfaRecoveryCodeHash, TotpDevice, TotpSecret},
     oauth2::{OAuth2Link, OAuth2UserInfo},
     session::{Session, SessionRefreshTokenHash},
     user::{User, UserInvoiceInfo, UserProfile},
-    Sha256Hash,
 };
 use academy_persistence_contracts::{
-    mfa::MfaRepository, oauth2::OAuth2Repository, session::SessionRepository, user::UserRepository,
-    Database, Transaction,
+    Database, Transaction, mfa::MfaRepository, oauth2::OAuth2Repository,
+    session::SessionRepository, user::UserRepository,
 };
 use academy_persistence_postgres::{
-    mfa::PostgresMfaRepository, oauth2::PostgresOAuth2Repository,
-    session::PostgresSessionRepository, user::PostgresUserRepository, PostgresDatabase,
+    PostgresDatabase, mfa::PostgresMfaRepository, oauth2::PostgresOAuth2Repository,
+    session::PostgresSessionRepository, user::PostgresUserRepository,
 };
 use academy_shared_contracts::hash::HashService;
 use academy_shared_impl::hash::HashServiceImpl;

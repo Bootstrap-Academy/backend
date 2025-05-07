@@ -1,7 +1,7 @@
 use academy_core_oauth2_contracts::{
+    OAuth2CreateSessionError, OAuth2CreateSessionResponse, OAuth2FeatureService,
     login::{MockOAuth2LoginService, OAuth2LoginServiceError},
     registration::MockOAuth2RegistrationService,
-    OAuth2CreateSessionError, OAuth2CreateSessionResponse, OAuth2FeatureService,
 };
 use academy_core_session_contracts::session::MockSessionService;
 use academy_demo::{
@@ -13,10 +13,10 @@ use academy_models::{
     auth::Login,
     oauth2::{OAuth2Login, OAuth2RegistrationToken},
 };
-use academy_persistence_contracts::{user::MockUserRepository, MockDatabase};
-use academy_utils::{assert_matches, Apply};
+use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
+use academy_utils::{Apply, assert_matches};
 
-use crate::{tests::Sut, OAuth2FeatureServiceImpl, OAuth2Registration};
+use crate::{OAuth2FeatureServiceImpl, OAuth2Registration, tests::Sut};
 
 #[tokio::test]
 async fn ok() {

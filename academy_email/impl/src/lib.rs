@@ -1,10 +1,10 @@
 use academy_email_contracts::{AttachmentContentType, ContentType, Email, EmailService};
 use academy_models::email_address::EmailAddressWithName;
-use academy_utils::{trace_instrument, Apply};
-use anyhow::{anyhow, Context};
+use academy_utils::{Apply, trace_instrument};
+use anyhow::{Context, anyhow};
 use lettre::{
-    message::{header, Attachment, MessageBuilder, MultiPart, SinglePart},
     AsyncSmtpTransport, AsyncTransport, Message, Tokio1Executor,
+    message::{Attachment, MessageBuilder, MultiPart, SinglePart, header},
 };
 
 pub mod template;

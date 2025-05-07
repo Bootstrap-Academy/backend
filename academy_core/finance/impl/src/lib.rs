@@ -2,8 +2,8 @@ use std::{path::Path, sync::Arc, time::Duration};
 
 use academy_auth_contracts::{AuthResultExt, AuthService};
 use academy_core_finance_contracts::{
-    invoice::FinanceInvoiceService, FinanceDownloadError, FinanceFeatureService,
-    FinanceGetDownloadTokenError,
+    FinanceDownloadError, FinanceFeatureService, FinanceGetDownloadTokenError,
+    invoice::FinanceInvoiceService,
 };
 use academy_di::Build;
 use academy_models::{auth::AccessToken, user::UserId};

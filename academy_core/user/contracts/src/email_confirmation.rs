@@ -1,9 +1,9 @@
 use std::future::Future;
 
 use academy_models::{
+    VerificationCode,
     email_address::EmailAddressWithName,
     user::{UserComposite, UserId, UserPassword},
-    VerificationCode,
 };
 use thiserror::Error;
 

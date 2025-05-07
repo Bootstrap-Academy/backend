@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput, Field, Ident, ItemFn};
+use syn::{DeriveInput, Field, Ident, ItemFn, parse_macro_input};
 
 #[proc_macro_derive(Patch, attributes(no_patch))]
 pub fn derive_patch(input: TokenStream) -> TokenStream {

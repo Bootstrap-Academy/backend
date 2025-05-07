@@ -3,14 +3,14 @@ use std::sync::Arc;
 use academy_core_coin_contracts::{CoinAddCoinsError, CoinFeatureService, CoinGetBalanceError};
 use academy_models::coin::TransactionDescription;
 use aide::{
-    axum::{routing, ApiRouter},
+    axum::{ApiRouter, routing},
     transform::TransformOperation,
 };
 use axum::{
+    Json,
     extract::{Path, State},
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
 };
 use schemars::JsonSchema;
 use serde::Deserialize;
@@ -21,7 +21,7 @@ use crate::{
     error_code,
     errors::{auth_error, auth_error_docs, internal_server_error, internal_server_error_docs},
     extractors::auth::ApiToken,
-    models::{coin::ApiBalance, user::PathUserIdOrSelf, OkResponse, StringOption},
+    models::{OkResponse, StringOption, coin::ApiBalance, user::PathUserIdOrSelf},
 };
 
 pub const TAG: &str = "Coins";

@@ -17,7 +17,7 @@ use academy_utils::{
     patch::{Patch, PatchValue},
     trace_instrument,
 };
-use anyhow::{anyhow, Context};
+use anyhow::{Context, anyhow};
 
 use crate::UserFeatureConfig;
 
@@ -213,7 +213,7 @@ mod tests {
     use academy_models::user::UserPatch;
     use academy_persistence_contracts::user::MockUserRepository;
     use academy_shared_contracts::{password::MockPasswordService, time::MockTimeService};
-    use academy_utils::{assert_matches, patch::Patch, Apply};
+    use academy_utils::{Apply, assert_matches, patch::Patch};
 
     use super::*;
 

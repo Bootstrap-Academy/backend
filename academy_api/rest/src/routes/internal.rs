@@ -9,14 +9,14 @@ use academy_models::{
     auth::InternalToken, coin::TransactionDescription, email_address::EmailAddress,
 };
 use aide::{
-    axum::{routing, ApiRouter},
+    axum::{ApiRouter, routing},
     transform::TransformOperation,
 };
 use axum::{
+    Json,
     extract::{Path, State},
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
 };
 use schemars::JsonSchema;
 use serde::Deserialize;

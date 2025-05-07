@@ -1,8 +1,8 @@
 use academy_auth_contracts::MockAuthService;
 use academy_core_mfa_contracts::{
+    MfaEnableError, MfaFeatureService,
     recovery::MockMfaRecoveryService,
     totp_device::{MfaTotpDeviceConfirmError, MockMfaTotpDeviceService},
-    MfaEnableError, MfaFeatureService,
 };
 use academy_demo::{
     mfa::FOO_TOTP_1,
@@ -15,11 +15,11 @@ use academy_models::{
     user::UserIdOrSelf,
 };
 use academy_persistence_contracts::{
-    mfa::MockMfaRepository, user::MockUserRepository, MockDatabase,
+    MockDatabase, mfa::MockMfaRepository, user::MockUserRepository,
 };
-use academy_utils::{assert_matches, Apply};
+use academy_utils::{Apply, assert_matches};
 
-use crate::{tests::Sut, MfaFeatureServiceImpl};
+use crate::{MfaFeatureServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn ok() {

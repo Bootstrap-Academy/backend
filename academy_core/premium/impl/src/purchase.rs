@@ -88,7 +88,7 @@ where
 mod tests {
     use academy_core_coin_contracts::coin::MockCoinService;
     use academy_core_premium_contracts::plan::MockPremiumPlanService;
-    use academy_demo::{user::FOO, UUID1, UUID2};
+    use academy_demo::{UUID1, UUID2, user::FOO};
     use academy_models::{coin::Balance, premium::PremiumPlanDetails};
     use academy_persistence_contracts::premium::MockPremiumRepository;
     use academy_shared_contracts::{id::MockIdService, time::MockTimeService};

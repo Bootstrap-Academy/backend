@@ -1,4 +1,4 @@
-use academy_core_premium_contracts::{plan::MockPremiumPlanService, PremiumFeatureService};
+use academy_core_premium_contracts::{PremiumFeatureService, plan::MockPremiumPlanService};
 use academy_models::premium::{PremiumPlan, PremiumPlanDetails};
 
 use super::Sut;

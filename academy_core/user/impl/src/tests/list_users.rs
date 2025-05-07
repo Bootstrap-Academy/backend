@@ -1,7 +1,7 @@
 use academy_auth_contracts::MockAuthService;
 use academy_core_user_contracts::{
-    user::{MockUserService, UserListQuery, UserListResult},
     UserFeatureService, UserListError,
+    user::{MockUserService, UserListQuery, UserListResult},
 };
 use academy_demo::{
     session::{ADMIN_1, FOO_1},
@@ -15,7 +15,7 @@ use academy_models::{
 use academy_persistence_contracts::MockDatabase;
 use academy_utils::assert_matches;
 
-use crate::{tests::Sut, UserFeatureServiceImpl};
+use crate::{UserFeatureServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn ok() {

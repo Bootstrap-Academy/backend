@@ -4,7 +4,7 @@ use academy_persistence_contracts::user::MockUserRepository;
 use academy_shared_contracts::password::MockPasswordService;
 use academy_utils::assert_matches;
 
-use crate::{tests::Sut, AuthServiceImpl};
+use crate::{AuthServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn ok() {

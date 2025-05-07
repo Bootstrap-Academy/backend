@@ -1,9 +1,9 @@
 use academy_auth_contracts::{AuthResultExt, AuthService};
 use academy_core_mfa_contracts::{
+    MfaDisableError, MfaEnableError, MfaFeatureService, MfaInitializeError,
     disable::MfaDisableService,
     recovery::MfaRecoveryService,
     totp_device::{MfaTotpDeviceConfirmError, MfaTotpDeviceService},
-    MfaDisableError, MfaEnableError, MfaFeatureService, MfaInitializeError,
 };
 use academy_di::Build;
 use academy_models::{
@@ -12,7 +12,7 @@ use academy_models::{
     user::UserIdOrSelf,
 };
 use academy_persistence_contracts::{
-    mfa::MfaRepository, user::UserRepository, Database, Transaction,
+    Database, Transaction, mfa::MfaRepository, user::UserRepository,
 };
 use academy_utils::trace_instrument;
 use anyhow::Context;

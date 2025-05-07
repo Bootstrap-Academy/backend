@@ -9,7 +9,7 @@ macro_rules! const_schema {
         impl ::schemars::JsonSchema for $ident {
             fn schema_name() -> ::std::string::String { ::core::stringify!($ident).into() }
             fn is_referenceable() -> ::core::primitive::bool { false }
-            fn json_schema(_gen: &mut ::schemars::gen::SchemaGenerator) -> ::schemars::schema::Schema {
+            fn json_schema(_gen: &mut ::schemars::r#gen::SchemaGenerator) -> ::schemars::schema::Schema {
                 ::schemars::schema::SchemaObject {
                     const_value: ::core::option::Option::Some(Self::value()),
                     ..::core::default::Default::default()

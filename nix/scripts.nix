@@ -43,6 +43,7 @@ in
       ${lib.getExe pkgs.gnused} -i '/^#\[cfg(feature = "time")\]$/,/^}$/d' clorinde/src/types.rs
       ${lib.getExe pkgs.gnused} -i '/^#\[cfg/d' clorinde/src/{lib,types,client/async_}.rs
       ${lib.getExe pkgs.gnused} -i 's/use fallible_iterator/use postgres::fallible_iterator/' clorinde/src/array_iterator.rs
+      ${lib.getExe pkgs.gnused} -i "s/+ 'c/+ use<'c, C, T, N>/" clorinde/src/queries/*.rs
     '';
 
   update-swagger-ui =

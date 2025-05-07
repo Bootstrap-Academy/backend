@@ -1,5 +1,5 @@
 use academy_config::RecaptchaConfig;
-use academy_di::{provider, Provide};
+use academy_di::{Provide, provider};
 use academy_extern_contracts::recaptcha::{RecaptchaApiService, RecaptchaSiteverifyResponse};
 use academy_extern_impl::recaptcha::{RecaptchaApiServiceConfig, RecaptchaApiServiceImpl};
 

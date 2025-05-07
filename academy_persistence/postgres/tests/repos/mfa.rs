@@ -1,10 +1,10 @@
 use academy_demo::{
+    SHA256HASH1, UUID1,
     mfa::{ADMIN2_TOTP_1, FOO_TOTP_1},
     user::{ADMIN2, BAR, FOO},
-    SHA256HASH1, UUID1,
 };
 use academy_models::mfa::{MfaRecoveryCodeHash, TotpDevice, TotpDevicePatchRef, TotpSecret};
-use academy_persistence_contracts::{mfa::MfaRepository, Database, Transaction};
+use academy_persistence_contracts::{Database, Transaction, mfa::MfaRepository};
 use academy_persistence_postgres::mfa::PostgresMfaRepository;
 use academy_utils::Apply;
 

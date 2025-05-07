@@ -1,4 +1,4 @@
-use academy_di::{provider, Provide};
+use academy_di::{Provide, provider};
 use academy_extern_contracts::paypal::{PaypalApiService, PaypalCaptureOrderError};
 use academy_extern_impl::paypal::{PaypalApiServiceConfig, PaypalApiServiceImpl};
 use academy_models::{paypal::PaypalOrderId, url::Url};

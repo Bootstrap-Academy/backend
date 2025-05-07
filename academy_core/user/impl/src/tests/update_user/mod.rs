@@ -7,10 +7,10 @@ use academy_demo::{
     user::{ADMIN, BAR, FOO},
 };
 use academy_models::auth::{AuthError, AuthenticateError, AuthorizeError};
-use academy_persistence_contracts::{user::MockUserRepository, MockDatabase};
+use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
 use academy_utils::assert_matches;
 
-use crate::{tests::Sut, UserFeatureServiceImpl};
+use crate::{UserFeatureServiceImpl, tests::Sut};
 
 mod admin;
 mod email;

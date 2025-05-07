@@ -1,4 +1,4 @@
-use academy_di::{provider, Provide};
+use academy_di::{Provide, provider};
 use academy_extern_contracts::vat::VatApiService;
 use academy_extern_impl::vat::{VatApiServiceConfig, VatApiServiceImpl};
 

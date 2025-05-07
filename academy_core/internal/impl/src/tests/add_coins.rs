@@ -3,10 +3,10 @@ use academy_core_coin_contracts::coin::{CoinAddCoinsError, MockCoinService};
 use academy_core_internal_contracts::{InternalAddCoinsError, InternalService};
 use academy_demo::user::FOO;
 use academy_models::coin::{Balance, TransactionDescription};
-use academy_persistence_contracts::{user::MockUserRepository, MockDatabase};
-use academy_utils::{assert_matches, Apply};
+use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
+use academy_utils::{Apply, assert_matches};
 
-use crate::{tests::Sut, InternalServiceImpl};
+use crate::{InternalServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn ok() {

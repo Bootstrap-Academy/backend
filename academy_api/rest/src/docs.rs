@@ -1,15 +1,15 @@
 use std::fmt::Write;
 
 use aide::{
+    OperationOutput,
     generate::in_context,
     openapi::{ReferenceOr, Response, Responses},
     transform::{TransformOperation, TransformResponse},
-    OperationOutput,
 };
-use axum::{http::StatusCode, Json, Router};
+use axum::{Json, Router, http::StatusCode};
 use schemars::{
-    schema::{Metadata, Schema, SchemaObject, SubschemaValidation},
     JsonSchema,
+    schema::{Metadata, Schema, SchemaObject, SubschemaValidation},
 };
 
 use crate::errors::{ApiError, ApiErrorCode};

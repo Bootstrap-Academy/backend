@@ -1,7 +1,7 @@
 use std::convert::Infallible;
 
 use academy_models::auth::{AccessToken, InternalToken};
-use aide::{generate::GenContext, openapi::Operation, OperationInput};
+use aide::{OperationInput, generate::GenContext, openapi::Operation};
 use axum::{
     extract::FromRequestParts,
     http::{header::AUTHORIZATION, request::Parts},

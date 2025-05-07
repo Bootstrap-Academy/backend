@@ -3,10 +3,10 @@ use academy_core_heart_contracts::heart::{HeartAddError, MockHeartService};
 use academy_core_internal_contracts::{InternalAddHeartsError, InternalService};
 use academy_demo::user::FOO;
 use academy_models::heart::Hearts;
-use academy_persistence_contracts::{user::MockUserRepository, MockDatabase};
+use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
 use academy_utils::assert_matches;
 
-use crate::{tests::Sut, InternalServiceImpl};
+use crate::{InternalServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn ok() {

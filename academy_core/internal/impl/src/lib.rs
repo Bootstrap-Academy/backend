@@ -14,7 +14,7 @@ use academy_models::{
     heart::Hearts,
     user::{UserComposite, UserId},
 };
-use academy_persistence_contracts::{user::UserRepository, Database, Transaction};
+use academy_persistence_contracts::{Database, Transaction, user::UserRepository};
 use academy_utils::trace_instrument;
 use anyhow::Context;
 

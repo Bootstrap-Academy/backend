@@ -1,8 +1,8 @@
 use academy_assets::email::{ALLGEMEINE_GESCHAEFTSBEDINGUNGEN_PDF, WIDERRUFSBELEHRUNG_PDF};
 use academy_di::Build;
 use academy_email_contracts::{
-    template::TemplateEmailService, AttachmentContentType, ContentType, Email, EmailAttachment,
-    EmailService,
+    AttachmentContentType, ContentType, Email, EmailAttachment, EmailService,
+    template::TemplateEmailService,
 };
 use academy_models::email_address::EmailAddressWithName;
 use academy_templates_contracts::{

@@ -1,12 +1,12 @@
 use academy_core_finance_contracts::{
-    invoice::MockFinanceInvoiceService, FinanceDownloadError, FinanceFeatureService,
+    FinanceDownloadError, FinanceFeatureService, invoice::MockFinanceInvoiceService,
 };
 use academy_demo::user::FOO;
 use academy_persistence_contracts::MockDatabase;
 use academy_shared_contracts::jwt::{MockJwtService, VerifyJwtError};
 use academy_utils::assert_matches;
 
-use crate::{tests::Sut, DownloadToken, FinanceFeatureServiceImpl};
+use crate::{DownloadToken, FinanceFeatureServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn ok() {

@@ -1,6 +1,6 @@
 use academy_auth_contracts::MockAuthService;
 use academy_core_user_contracts::{
-    update::MockUserUpdateService, UserFeatureService, UserUpdateError, UserUpdateRequest,
+    UserFeatureService, UserUpdateError, UserUpdateRequest, update::MockUserUpdateService,
 };
 use academy_demo::{
     session::BAR_1,
@@ -9,11 +9,11 @@ use academy_demo::{
 use academy_extern_contracts::vat::MockVatApiService;
 use academy_models::user::{UserComposite, UserIdOrSelf, UserInvoiceInfo};
 use academy_persistence_contracts::{
-    coin::MockCoinRepository, user::MockUserRepository, MockDatabase,
+    MockDatabase, coin::MockCoinRepository, user::MockUserRepository,
 };
-use academy_utils::{assert_matches, patch::Patch, Apply};
+use academy_utils::{Apply, assert_matches, patch::Patch};
 
-use crate::{tests::Sut, UserFeatureServiceImpl};
+use crate::{UserFeatureServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn ok() {

@@ -2,9 +2,10 @@ use std::net::IpAddr;
 
 use anyhow::Context;
 use axum::{
+    Json, Router,
     extract::Path,
     response::{IntoResponse, Response},
-    routing, Json, Router,
+    routing,
 };
 use serde::Serialize;
 use tokio::net::TcpListener;

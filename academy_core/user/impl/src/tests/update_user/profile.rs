@@ -5,10 +5,10 @@ use academy_demo::{
     user::{BAR, FOO},
 };
 use academy_models::user::{UserComposite, UserIdOrSelf};
-use academy_persistence_contracts::{user::MockUserRepository, MockDatabase};
+use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
 use academy_utils::patch::Patch;
 
-use crate::{tests::Sut, UserFeatureServiceImpl};
+use crate::{UserFeatureServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn update_profile() {

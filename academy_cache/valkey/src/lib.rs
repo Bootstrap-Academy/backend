@@ -4,11 +4,11 @@ use academy_cache_contracts::CacheService;
 use academy_utils::trace_instrument;
 use anyhow::Context;
 use bb8_redis::{
+    RedisConnectionManager,
     bb8::Pool,
     redis::{self, AsyncCommands},
-    RedisConnectionManager,
 };
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 
 #[derive(Debug, Clone)]
 pub struct ValkeyCache {

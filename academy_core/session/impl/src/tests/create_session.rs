@@ -3,19 +3,19 @@ use academy_core_mfa_contracts::authenticate::{
     MfaAuthenticateError, MfaAuthenticateResult, MockMfaAuthenticateService,
 };
 use academy_core_session_contracts::{
-    failed_auth_count::MockSessionFailedAuthCountService, session::MockSessionService,
     SessionCreateCommand, SessionCreateError, SessionFeatureService,
+    failed_auth_count::MockSessionFailedAuthCountService, session::MockSessionService,
 };
 use academy_demo::{
     session::{BAR_1, FOO_1},
     user::{BAR, BAR_PASSWORD, FOO, FOO_PASSWORD},
 };
 use academy_models::{auth::Login, mfa::MfaAuthentication, user::UserNameOrEmailAddress};
-use academy_persistence_contracts::{user::MockUserRepository, MockDatabase};
+use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
 use academy_shared_contracts::captcha::{CaptchaCheckError, MockCaptchaService};
-use academy_utils::{assert_matches, Apply};
+use academy_utils::{Apply, assert_matches};
 
-use crate::{tests::Sut, SessionFeatureServiceImpl};
+use crate::{SessionFeatureServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn ok() {

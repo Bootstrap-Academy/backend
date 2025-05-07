@@ -1,7 +1,7 @@
 use academy_auth_contracts::MockAuthService;
 use academy_core_coin_contracts::coin::MockCoinService;
 use academy_persistence_contracts::{
-    coin::MockCoinRepository, user::MockUserRepository, MockDatabase, MockTransaction,
+    MockDatabase, MockTransaction, coin::MockCoinRepository, user::MockUserRepository,
 };
 
 use crate::CoinFeatureServiceImpl;

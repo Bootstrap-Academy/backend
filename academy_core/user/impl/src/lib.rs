@@ -4,6 +4,10 @@ use academy_auth_contracts::{AuthResultExt, AuthService};
 use academy_core_oauth2_contracts::registration::OAuth2RegistrationService;
 use academy_core_session_contracts::session::SessionService;
 use academy_core_user_contracts::{
+    PasswordUpdate, UserCreateError, UserCreateRequest, UserDeleteError, UserFeatureService,
+    UserGetError, UserListError, UserRequestPasswordResetError, UserRequestVerificationEmailError,
+    UserResetPasswordError, UserUpdateError, UserUpdateRequest, UserUpdateUserRequest,
+    UserVerifyEmailError, UserVerifyNewsletterSubscriptionError,
     email_confirmation::{
         UserEmailConfirmationResetPasswordError, UserEmailConfirmationService,
         UserEmailConfirmationSubscribeToNewsletterError, UserEmailConfirmationVerifyEmailError,
@@ -12,29 +16,25 @@ use academy_core_user_contracts::{
         UserUpdateEmailError, UserUpdateNameError, UserUpdateNameRateLimitPolicy, UserUpdateService,
     },
     user::{UserCreateCommand, UserListQuery, UserListResult, UserService},
-    PasswordUpdate, UserCreateError, UserCreateRequest, UserDeleteError, UserFeatureService,
-    UserGetError, UserListError, UserRequestPasswordResetError, UserRequestVerificationEmailError,
-    UserResetPasswordError, UserUpdateError, UserUpdateRequest, UserUpdateUserRequest,
-    UserVerifyEmailError, UserVerifyNewsletterSubscriptionError,
 };
 use academy_di::Build;
 use academy_extern_contracts::vat::VatApiService;
 use academy_models::{
+    RecaptchaResponse, VerificationCode,
     auth::{AccessToken, Login},
     email_address::EmailAddress,
     session::DeviceName,
     user::{UserComposite, UserIdOrSelf, UserInvoiceInfoPatch, UserPassword, UserPatchRef},
-    RecaptchaResponse, VerificationCode,
 };
 use academy_persistence_contracts::{
-    coin::CoinRepository, user::UserRepository, Database, Transaction,
+    Database, Transaction, coin::CoinRepository, user::UserRepository,
 };
 use academy_shared_contracts::captcha::{CaptchaCheckError, CaptchaService};
 use academy_utils::{
     patch::{Patch, PatchValue},
     trace_instrument,
 };
-use anyhow::{anyhow, Context};
+use anyhow::{Context, anyhow};
 
 pub mod email_confirmation;
 pub mod update;
@@ -82,18 +82,18 @@ pub struct UserFeatureConfig {
 }
 
 impl<
-        Db,
-        Auth,
-        Captcha,
-        VatApi,
-        UserS,
-        UserEmailConfirmation,
-        UserUpdate,
-        Session,
-        OAuth2RegistrationS,
-        UserRepo,
-        CoinRepo,
-    > UserFeatureService
+    Db,
+    Auth,
+    Captcha,
+    VatApi,
+    UserS,
+    UserEmailConfirmation,
+    UserUpdate,
+    Session,
+    OAuth2RegistrationS,
+    UserRepo,
+    CoinRepo,
+> UserFeatureService
     for UserFeatureServiceImpl<
         Db,
         Auth,

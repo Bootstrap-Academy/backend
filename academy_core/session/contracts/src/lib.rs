@@ -1,11 +1,11 @@
 use std::future::Future;
 
 use academy_models::{
+    RecaptchaResponse,
     auth::{AccessToken, AuthError, Login, RefreshToken},
     mfa::MfaAuthentication,
     session::{DeviceName, Session, SessionId},
     user::{UserId, UserIdOrSelf, UserNameOrEmailAddress, UserPassword},
-    RecaptchaResponse,
 };
 use thiserror::Error;
 

@@ -1,4 +1,4 @@
-use academy_models::{mfa::MfaRecoveryCode, Sensitive, VerificationCode};
+use academy_models::{Sensitive, VerificationCode, mfa::MfaRecoveryCode};
 
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait SecretService: Send + Sync + 'static {

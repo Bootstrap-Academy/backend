@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use aide::axum::ApiRouter;
 use axum::{extract::Request, response::Response};
-use tracing::{debug, Span};
+use tracing::{Span, debug};
 
 use super::request_id::RequestId;
 use crate::middlewares::client_ip::ClientIp;

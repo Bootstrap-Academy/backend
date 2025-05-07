@@ -1,12 +1,12 @@
 use academy_auth_contracts::internal::{AuthInternalAuthenticateError, MockAuthInternalService};
 use academy_core_internal_contracts::{InternalHasPremiumError, InternalService};
 use academy_core_premium_contracts::premium::MockPremiumService;
-use academy_demo::{user::FOO, UUID1};
+use academy_demo::{UUID1, user::FOO};
 use academy_models::premium::Premium;
-use academy_persistence_contracts::{user::MockUserRepository, MockDatabase};
+use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
 use academy_utils::assert_matches;
 
-use crate::{tests::Sut, InternalServiceImpl};
+use crate::{InternalServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn ok_true() {

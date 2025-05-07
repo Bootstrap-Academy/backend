@@ -1,13 +1,14 @@
 use std::sync::Arc;
 
 use academy_core_user_contracts::{
-    user::{UserListQuery, UserListResult},
     PasswordUpdate, UserCreateError, UserCreateRequest, UserDeleteError, UserFeatureService,
     UserGetError, UserListError, UserRequestPasswordResetError, UserRequestVerificationEmailError,
     UserResetPasswordError, UserUpdateError, UserUpdateRequest, UserUpdateUserRequest,
     UserVerifyEmailError, UserVerifyNewsletterSubscriptionError,
+    user::{UserListQuery, UserListResult},
 };
 use academy_models::{
+    RecaptchaResponse, VerificationCode,
     email_address::EmailAddress,
     oauth2::OAuth2RegistrationToken,
     session::DeviceName,
@@ -16,17 +17,16 @@ use academy_models::{
         UserLastName, UserName, UserPassword, UserProfilePatch, UserStreet, UserTags, UserVatId,
         UserZipCode,
     },
-    RecaptchaResponse, VerificationCode,
 };
 use aide::{
-    axum::{routing, ApiRouter},
+    axum::{ApiRouter, routing},
     transform::TransformOperation,
 };
 use axum::{
+    Json,
     extract::{Path, Query, State},
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -36,14 +36,14 @@ use crate::{
     docs::TransformOperationExt,
     error_code,
     errors::{
-        auth_error, auth_error_docs, internal_server_error, internal_server_error_docs,
-        PermissionDeniedError, RecaptchaFailedError,
+        PermissionDeniedError, RecaptchaFailedError, auth_error, auth_error_docs,
+        internal_server_error, internal_server_error_docs,
     },
     extractors::{auth::ApiToken, user_agent::UserAgent},
     models::{
+        ApiPaginationSlice, OkResponse, StringOption,
         session::ApiLogin,
         user::{ApiUser, ApiUserFilter, ApiUserIdOrSelf, ApiUserPasswordOrEmpty, PathUserIdOrSelf},
-        ApiPaginationSlice, OkResponse, StringOption,
     },
 };
 

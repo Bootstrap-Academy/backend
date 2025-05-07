@@ -1,10 +1,11 @@
 use academy_di::Build;
-use academy_models::{mfa::MfaRecoveryCode, Sensitive, VerificationCode};
+use academy_models::{Sensitive, VerificationCode, mfa::MfaRecoveryCode};
 use academy_shared_contracts::secret::SecretService;
 use academy_utils::trace_instrument;
 use rand::{
+    CryptoRng, Rng, RngCore,
     distr::{Alphanumeric, Distribution, SampleString, Uniform},
-    rng, CryptoRng, Rng, RngCore,
+    rng,
 };
 
 #[derive(Debug, Clone, Copy, Build)]
@@ -97,9 +98,11 @@ mod tests {
 
         // Assert
         assert_eq!(result.len(), n);
-        assert!(result
-            .chars()
-            .all(|c| matches!(c, 'a'..='z' | 'A'..='Z' | '0'..='9')));
+        assert!(
+            result
+                .chars()
+                .all(|c| matches!(c, 'a'..='z' | 'A'..='Z' | '0'..='9'))
+        );
     }
 
     #[test]

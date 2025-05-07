@@ -1,50 +1,51 @@
 //! Type aliases for production implementations of all service traits
 
 use academy_auth_impl::{
-    access_token::AuthAccessTokenServiceImpl, internal::AuthInternalServiceImpl,
-    refresh_token::AuthRefreshTokenServiceImpl, AuthServiceImpl,
+    AuthServiceImpl, access_token::AuthAccessTokenServiceImpl, internal::AuthInternalServiceImpl,
+    refresh_token::AuthRefreshTokenServiceImpl,
 };
 use academy_cache_valkey::ValkeyCache;
-use academy_core_coin_impl::{coin::CoinServiceImpl, CoinFeatureServiceImpl};
+use academy_core_coin_impl::{CoinFeatureServiceImpl, coin::CoinServiceImpl};
 use academy_core_config_impl::ConfigFeatureServiceImpl;
 use academy_core_contact_impl::ContactFeatureServiceImpl;
 use academy_core_finance_impl::{
-    coin::FinanceCoinServiceImpl, invoice::FinanceInvoiceServiceImpl, FinanceFeatureServiceImpl,
+    FinanceFeatureServiceImpl, coin::FinanceCoinServiceImpl, invoice::FinanceInvoiceServiceImpl,
 };
 use academy_core_health_impl::HealthFeatureServiceImpl;
-use academy_core_heart_impl::{heart::HeartServiceImpl, HeartFeatureServiceImpl};
+use academy_core_heart_impl::{HeartFeatureServiceImpl, heart::HeartServiceImpl};
 use academy_core_internal_impl::InternalServiceImpl;
 use academy_core_mfa_impl::{
-    authenticate::MfaAuthenticateServiceImpl, disable::MfaDisableServiceImpl,
-    recovery::MfaRecoveryServiceImpl, totp_device::MfaTotpDeviceServiceImpl, MfaFeatureServiceImpl,
+    MfaFeatureServiceImpl, authenticate::MfaAuthenticateServiceImpl,
+    disable::MfaDisableServiceImpl, recovery::MfaRecoveryServiceImpl,
+    totp_device::MfaTotpDeviceServiceImpl,
 };
 use academy_core_oauth2_impl::{
-    link::OAuth2LinkServiceImpl, login::OAuth2LoginServiceImpl,
-    registration::OAuth2RegistrationServiceImpl, OAuth2FeatureServiceImpl,
+    OAuth2FeatureServiceImpl, link::OAuth2LinkServiceImpl, login::OAuth2LoginServiceImpl,
+    registration::OAuth2RegistrationServiceImpl,
 };
-use academy_core_paypal_impl::{coin_order::PaypalCoinOrderServiceImpl, PaypalFeatureServiceImpl};
+use academy_core_paypal_impl::{PaypalFeatureServiceImpl, coin_order::PaypalCoinOrderServiceImpl};
 use academy_core_premium_impl::{
-    plan::PremiumPlanServiceImpl, premium::PremiumServiceImpl,
-    purchase::PremiumPurchaseServiceImpl, PremiumFeatureServiceImpl,
+    PremiumFeatureServiceImpl, plan::PremiumPlanServiceImpl, premium::PremiumServiceImpl,
+    purchase::PremiumPurchaseServiceImpl,
 };
 use academy_core_session_impl::{
-    failed_auth_count::SessionFailedAuthCountServiceImpl, session::SessionServiceImpl,
-    SessionFeatureServiceImpl,
+    SessionFeatureServiceImpl, failed_auth_count::SessionFailedAuthCountServiceImpl,
+    session::SessionServiceImpl,
 };
 use academy_core_user_impl::{
-    email_confirmation::UserEmailConfirmationServiceImpl, update::UserUpdateServiceImpl,
-    user::UserServiceImpl, UserFeatureServiceImpl,
+    UserFeatureServiceImpl, email_confirmation::UserEmailConfirmationServiceImpl,
+    update::UserUpdateServiceImpl, user::UserServiceImpl,
 };
-use academy_email_impl::{template::TemplateEmailServiceImpl, EmailServiceImpl};
+use academy_email_impl::{EmailServiceImpl, template::TemplateEmailServiceImpl};
 use academy_extern_impl::{
     oauth2::OAuth2ApiServiceImpl, paypal::PaypalApiServiceImpl, recaptcha::RecaptchaApiServiceImpl,
     render::RenderApiServiceImpl, vat::VatApiServiceImpl,
 };
 use academy_persistence_postgres::{
-    coin::PostgresCoinRepository, heart::PostgresHeartRepository, mfa::PostgresMfaRepository,
-    oauth2::PostgresOAuth2Repository, paypal::PostgresPaypalRepository,
+    PostgresDatabase, coin::PostgresCoinRepository, heart::PostgresHeartRepository,
+    mfa::PostgresMfaRepository, oauth2::PostgresOAuth2Repository, paypal::PostgresPaypalRepository,
     premium::PostgresPremiumRepository, session::PostgresSessionRepository,
-    user::PostgresUserRepository, PostgresDatabase,
+    user::PostgresUserRepository,
 };
 use academy_shared_impl::{
     captcha::CaptchaServiceImpl, fs::FsServiceImpl, hash::HashServiceImpl, id::IdServiceImpl,

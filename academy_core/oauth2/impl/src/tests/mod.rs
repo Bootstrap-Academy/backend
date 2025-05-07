@@ -9,7 +9,7 @@ use academy_core_session_contracts::session::MockSessionService;
 use academy_demo::oauth2::{TEST_OAUTH2_PROVIDER, TEST_OAUTH2_PROVIDER_ID};
 use academy_extern_contracts::oauth2::MockOAuth2ApiService;
 use academy_persistence_contracts::{
-    oauth2::MockOAuth2Repository, user::MockUserRepository, MockDatabase, MockTransaction,
+    MockDatabase, MockTransaction, oauth2::MockOAuth2Repository, user::MockUserRepository,
 };
 
 use crate::{OAuth2FeatureConfig, OAuth2FeatureServiceImpl};

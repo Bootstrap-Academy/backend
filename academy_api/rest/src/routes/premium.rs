@@ -5,14 +5,14 @@ use academy_core_premium_contracts::{
     PremiumUpdateSubscriptionError,
 };
 use aide::{
-    axum::{routing, ApiRouter},
+    axum::{ApiRouter, routing},
     transform::TransformOperation,
 };
 use axum::{
+    Json,
     extract::{Path, State},
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
 };
 use schemars::JsonSchema;
 use serde::Deserialize;
@@ -24,9 +24,9 @@ use crate::{
     errors::{auth_error, auth_error_docs, internal_server_error, internal_server_error_docs},
     extractors::auth::ApiToken,
     models::{
+        OkResponse,
         premium::{ApiPremiumPlan, ApiPremiumPlanDetails, ApiPremiumStatus},
         user::PathUserIdOrSelf,
-        OkResponse,
     },
 };
 

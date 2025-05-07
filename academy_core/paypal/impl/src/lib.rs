@@ -6,8 +6,8 @@ use academy_core_finance_contracts::{
     invoice::FinanceInvoiceService,
 };
 use academy_core_paypal_contracts::{
-    coin_order::PaypalCoinOrderService, PaypalCaptureCoinOrderError, PaypalCreateCoinOrderError,
-    PaypalFeatureService,
+    PaypalCaptureCoinOrderError, PaypalCreateCoinOrderError, PaypalFeatureService,
+    coin_order::PaypalCoinOrderService,
 };
 use academy_di::Build;
 use academy_email_contracts::template::TemplateEmailService;
@@ -16,11 +16,11 @@ use academy_extern_contracts::paypal::{
 };
 use academy_models::{auth::AccessToken, coin::Balance, paypal::PaypalOrderId};
 use academy_persistence_contracts::{
-    paypal::PaypalRepository, user::UserRepository, Database, Transaction,
+    Database, Transaction, paypal::PaypalRepository, user::UserRepository,
 };
 use academy_templates_contracts::PurchaseConfirmationTemplate;
 use academy_utils::trace_instrument;
-use anyhow::{anyhow, Context};
+use anyhow::{Context, anyhow};
 
 pub mod coin_order;
 
@@ -58,16 +58,16 @@ pub struct PaypalFeatureConfig {
 }
 
 impl<
-        Db,
-        Auth,
-        PaypalApi,
-        UserRepo,
-        PaypalRepo,
-        PaypalCoinOrder,
-        TemplateEmail,
-        FinanceInvoice,
-        FinanceCoin,
-    > PaypalFeatureService
+    Db,
+    Auth,
+    PaypalApi,
+    UserRepo,
+    PaypalRepo,
+    PaypalCoinOrder,
+    TemplateEmail,
+    FinanceInvoice,
+    FinanceCoin,
+> PaypalFeatureService
     for PaypalFeatureServiceImpl<
         Db,
         Auth,

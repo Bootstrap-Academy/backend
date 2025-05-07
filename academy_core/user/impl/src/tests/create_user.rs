@@ -1,8 +1,8 @@
 use academy_core_oauth2_contracts::registration::MockOAuth2RegistrationService;
 use academy_core_session_contracts::session::MockSessionService;
 use academy_core_user_contracts::{
-    user::{MockUserService, UserCreateCommand},
     UserCreateError, UserCreateRequest, UserFeatureService,
+    user::{MockUserService, UserCreateCommand},
 };
 use academy_demo::{
     oauth2::{FOO_OAUTH2_LINK_1, TEST_OAUTH2_PROVIDER_ID},
@@ -17,7 +17,7 @@ use academy_persistence_contracts::MockDatabase;
 use academy_shared_contracts::captcha::{CaptchaCheckError, MockCaptchaService};
 use academy_utils::assert_matches;
 
-use crate::{tests::Sut, UserFeatureServiceImpl};
+use crate::{UserFeatureServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn ok() {

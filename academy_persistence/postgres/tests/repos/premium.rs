@@ -1,6 +1,6 @@
-use academy_demo::{user::FOO, UUID1, UUID2};
+use academy_demo::{UUID1, UUID2, user::FOO};
 use academy_models::premium::{Premium, PremiumPlan};
-use academy_persistence_contracts::{premium::PremiumRepository, Database, Transaction};
+use academy_persistence_contracts::{Database, Transaction, premium::PremiumRepository};
 use academy_persistence_postgres::premium::PostgresPremiumRepository;
 use chrono::{TimeZone, Utc};
 

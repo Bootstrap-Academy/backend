@@ -7,7 +7,6 @@
       url = "github:cachix/devenv";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    treefmt-nix.url = "github:numtide/treefmt-nix";
   };
 
   outputs =
@@ -16,7 +15,6 @@
       nixpkgs,
       fenix,
       devenv,
-      treefmt-nix,
       ...
     }@inputs:
     let
@@ -87,10 +85,14 @@
       formatter = eachDefaultSystem (
         system:
         let
-          pkgs = nixpkgs.legacyPackages.${system};
-          treefmtEval = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
+          pkgs = inputs.nixpkgs.legacyPackages.${system};
         in
-        treefmtEval.config.build.wrapper
+        pkgs.treefmt.withConfig {
+          settings = [
+            ./treefmt.nix
+            { _module.args = { inherit pkgs; }; }
+          ];
+        }
       );
     };
 

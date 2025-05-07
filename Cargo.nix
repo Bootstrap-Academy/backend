@@ -4120,7 +4120,7 @@ rec {
         dependencies = [
           {
             name = "getrandom";
-            packageId = "getrandom 0.2.15";
+            packageId = "getrandom 0.2.16";
             target = { target, features }: (("linux" == target."os" or null) || ("android" == target."os" or null) || ("windows" == target."os" or null) || ("macos" == target."os" or null) || ("ios" == target."os" or null) || ("freebsd" == target."os" or null) || ("openbsd" == target."os" or null) || ("netbsd" == target."os" or null) || ("dragonfly" == target."os" or null) || ("solaris" == target."os" or null) || ("illumos" == target."os" or null) || ("fuchsia" == target."os" or null) || ("redox" == target."os" or null) || ("cloudabi" == target."os" or null) || ("haiku" == target."os" or null) || ("vxworks" == target."os" or null) || ("emscripten" == target."os" or null) || ("wasi" == target."os" or null));
           }
           {
@@ -4994,9 +4994,9 @@ rec {
       };
       "backtrace" = rec {
         crateName = "backtrace";
-        version = "0.3.74";
+        version = "0.3.75";
         edition = "2021";
-        sha256 = "06pfif7nwx66qf2zaanc2fcq7m64i91ki9imw9xd3bnz5hrwp0ld";
+        sha256 = "00hhizz29mvd7cdqyz5wrj98vqkihgcxmv2vl7z0d0f53qrac1k8";
         authors = [
           "The Rust Project Developers"
         ];
@@ -5037,12 +5037,13 @@ rec {
           {
             name = "windows-targets";
             packageId = "windows-targets 0.52.6";
-            target = { target, features }: (target."windows" or false);
+            target = { target, features }: ((target."windows" or false) || ("cygwin" == target."os" or null));
           }
         ];
         features = {
           "cpp_demangle" = [ "dep:cpp_demangle" ];
           "default" = [ "std" ];
+          "ruzstd" = [ "dep:ruzstd" ];
           "serde" = [ "dep:serde" ];
           "serialize-serde" = [ "serde" ];
         };
@@ -5525,9 +5526,9 @@ rec {
       };
       "cc" = rec {
         crateName = "cc";
-        version = "1.2.18";
+        version = "1.2.21";
         edition = "2018";
-        sha256 = "0p6d2pfyrjgqpf2w399wzj4hmyffj6g0gyzg3pdy6xl3gmhlcl2j";
+        sha256 = "1h5kgcmnhwi9v8y7gvsprdhlz0b3pr6qgi2274w1q7258llpi4c6";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -6438,7 +6439,7 @@ rec {
           }
           {
             name = "getrandom";
-            packageId = "getrandom 0.2.15";
+            packageId = "getrandom 0.2.16";
             target = { target, features }: ("wasm32" == target."arch" or null);
             features = [ "js" ];
           }
@@ -6558,9 +6559,9 @@ rec {
       };
       "deunicode" = rec {
         crateName = "deunicode";
-        version = "1.6.1";
+        version = "1.6.2";
         edition = "2021";
-        sha256 = "0z8f993xdc2gk913fpmpw2ib36wrq03v3j1fayapa43c3w6zwmfw";
+        sha256 = "013biy7hhy59jcbry4dqn2pf4qhaw083ksn8xxiw373wjc37imdb";
         authors = [
           "Kornel Lesinski <kornel@geekhood.net>"
           "Amit Chowdhury <amitc97@gmail.com>"
@@ -6673,9 +6674,9 @@ rec {
       };
       "email-encoding" = rec {
         crateName = "email-encoding";
-        version = "0.4.0";
+        version = "0.4.1";
         edition = "2021";
-        sha256 = "13pv902l3xc71n2ndkj3qh19mh5ndphks3s78227b7qzlzkcvf90";
+        sha256 = "1dkhcqmhgc25m437fzxhkvhd135yc4xd9pzpsc77i7lv9m8fd64j";
         libName = "email_encoding";
         dependencies = [
           {
@@ -7197,11 +7198,11 @@ rec {
         };
         resolvedDefaultFeatures = [ "more_lengths" ];
       };
-      "getrandom 0.2.15" = rec {
+      "getrandom 0.2.16" = rec {
         crateName = "getrandom";
-        version = "0.2.15";
+        version = "0.2.16";
         edition = "2018";
-        sha256 = "1mzlnrb3dgyd1fb84gvw10pyr8wdqdl4ry4sr64i1s8an66pqmn4";
+        sha256 = "14l5aaia20cc6cc08xdlhrzmfcylmrnprwnna20lqf746pqzjprk";
         authors = [
           "The Rand Project Developers"
         ];
@@ -7428,9 +7429,9 @@ rec {
       };
       "h2" = rec {
         crateName = "h2";
-        version = "0.4.8";
+        version = "0.4.10";
         edition = "2021";
-        sha256 = "1hp3lijg1br982kzgglb5ks2ibg68a76z3rl052r8c5vyi7jj5sh";
+        sha256 = "19f0va87lhzrc0lmwkgcz1z0haf6glajb4icp0b7n50vdmkilhm9";
         authors = [
           "Carl Lerche <me@carllerche.com>"
           "Sean McArthur <sean@seanmonstar.com>"
@@ -7567,11 +7568,11 @@ rec {
         };
         resolvedDefaultFeatures = [ "ahash" "allocator-api2" "default" "inline-more" ];
       };
-      "hashbrown 0.15.2" = rec {
+      "hashbrown 0.15.3" = rec {
         crateName = "hashbrown";
-        version = "0.15.2";
+        version = "0.15.3";
         edition = "2021";
-        sha256 = "12dj0yfn59p3kh3679ac0w1fagvzf4z2zp87a13gbbqbzw0185dz";
+        sha256 = "1cwfw1yzkvsqkhmkg5igdvgsl8a0wyi716cn83k2j8h09ma6rcl4";
         authors = [
           "Amanieu d'Antras <amanieu@gmail.com>"
         ];
@@ -7583,9 +7584,9 @@ rec {
           "default" = [ "default-hasher" "inline-more" "allocator-api2" "equivalent" "raw-entry" ];
           "default-hasher" = [ "dep:foldhash" ];
           "equivalent" = [ "dep:equivalent" ];
-          "nightly" = [ "allocator-api2?/nightly" "bumpalo/allocator_api" ];
+          "nightly" = [ "bumpalo/allocator_api" ];
           "rayon" = [ "dep:rayon" ];
-          "rustc-dep-of-std" = [ "nightly" "core" "compiler_builtins" "alloc" "rustc-internal-api" "raw-entry" ];
+          "rustc-dep-of-std" = [ "nightly" "core" "compiler_builtins" "alloc" "rustc-internal-api" ];
           "serde" = [ "dep:serde" ];
         };
       };
@@ -8043,7 +8044,7 @@ rec {
           }
           {
             name = "webpki-roots";
-            packageId = "webpki-roots";
+            packageId = "webpki-roots 0.26.11";
             optional = true;
           }
         ];
@@ -8819,7 +8820,7 @@ rec {
           }
           {
             name = "hashbrown";
-            packageId = "hashbrown 0.15.2";
+            packageId = "hashbrown 0.15.3";
             usesDefaultFeatures = false;
           }
           {
@@ -9201,7 +9202,7 @@ rec {
           }
           {
             name = "webpki-roots";
-            packageId = "webpki-roots";
+            packageId = "webpki-roots 0.26.11";
             optional = true;
           }
         ];
@@ -9255,9 +9256,9 @@ rec {
       };
       "libc" = rec {
         crateName = "libc";
-        version = "0.2.171";
+        version = "0.2.172";
         edition = "2021";
-        sha256 = "1mipla3dy3l59pfa9xy4iw2vdgn8n30dzf4vdnasjflxdqhkg6f1";
+        sha256 = "1ykz4skj7gac14znljm5clbnrhini38jkq3d60jggx3y5w2ayl6p";
         authors = [
           "The Rust Project Developers"
         ];
@@ -9271,15 +9272,17 @@ rec {
       };
       "libm" = rec {
         crateName = "libm";
-        version = "0.2.11";
+        version = "0.2.15";
         edition = "2021";
-        sha256 = "1yjgk18rk71rjbqcw9l1zaqna89p9s603k7n327nqs8dn88vwmc3";
+        sha256 = "1plpzf0p829viazdj57yw5dhmlr8ywf3apayxc2f2bq5a6mvryzr";
         authors = [
           "Jorge Aparicio <jorge@japaric.io>"
         ];
         features = {
+          "default" = [ "arch" ];
+          "unstable" = [ "unstable-intrinsics" "unstable-float" ];
         };
-        resolvedDefaultFeatures = [ "default" ];
+        resolvedDefaultFeatures = [ "arch" "default" ];
       };
       "linux-raw-sys" = rec {
         crateName = "linux-raw-sys";
@@ -9875,7 +9878,7 @@ rec {
           }
           {
             name = "getrandom";
-            packageId = "getrandom 0.2.15";
+            packageId = "getrandom 0.2.16";
             target = { target, features }: ("wasm32" == target."arch" or null);
             features = [ "js" ];
           }
@@ -10752,7 +10755,7 @@ rec {
         dependencies = [
           {
             name = "zerocopy";
-            packageId = "zerocopy 0.8.24";
+            packageId = "zerocopy 0.8.25";
             features = [ "simd" ];
           }
         ];
@@ -10927,9 +10930,9 @@ rec {
       };
       "psm" = rec {
         crateName = "psm";
-        version = "0.1.25";
+        version = "0.1.26";
         edition = "2021";
-        sha256 = "125y7h40mkwb64j4v2v7s6f69ilk745kg60w1s2cq62cw8im93pm";
+        sha256 = "07xfl8gpz8v9qz2zvnpcy9r3nppbhxlxkgqbxcdwsdl5xij4953f";
         authors = [
           "Simonas Kazlauskas <psm@kazlauskas.me>"
         ];
@@ -11087,9 +11090,9 @@ rec {
       };
       "quinn-proto" = rec {
         crateName = "quinn-proto";
-        version = "0.11.10";
+        version = "0.11.11";
         edition = "2021";
-        sha256 = "1k12m8y3k8dszv9ysb3hxp92cnhva6f670w176img6ywni77885q";
+        sha256 = "0as7j6rkjcy84qr609fbf38a3a3pkxrmcg2zygiqyqqgpfyzpfmw";
         libName = "quinn_proto";
         dependencies = [
           {
@@ -11178,9 +11181,9 @@ rec {
       };
       "quinn-udp" = rec {
         crateName = "quinn-udp";
-        version = "0.5.11";
+        version = "0.5.12";
         edition = "2021";
-        sha256 = "1daa7c1hws33395zzw62i879dxr168fp8llaff87lx7cqrbhy7al";
+        sha256 = "0hm89bv7mm383lv2c8z5r9512pdgp1q26lsmazicajgrj6cm4kpf";
         libName = "quinn_udp";
         dependencies = [
           {
@@ -11439,7 +11442,7 @@ rec {
         dependencies = [
           {
             name = "getrandom";
-            packageId = "getrandom 0.2.15";
+            packageId = "getrandom 0.2.16";
             optional = true;
           }
         ];
@@ -11594,9 +11597,9 @@ rec {
       };
       "redox_syscall" = rec {
         crateName = "redox_syscall";
-        version = "0.5.11";
+        version = "0.5.12";
         edition = "2021";
-        sha256 = "18qijn18r10haiglv4261wb0yh1agqqlvs0nxfy8yjbpsb307wfj";
+        sha256 = "1by5k76jr4kjy37287ifn56dzw6jh6nrwnrjm29j615ayafcm3wj";
         libName = "syscall";
         authors = [
           "Jeremy Soller <jackpot51@gmail.com>"
@@ -12023,7 +12026,7 @@ rec {
           }
           {
             name = "webpki-roots";
-            packageId = "webpki-roots";
+            packageId = "webpki-roots 0.26.11";
             optional = true;
             target = { target, features }: (!("wasm32" == target."arch" or null));
           }
@@ -12137,7 +12140,7 @@ rec {
           }
           {
             name = "getrandom";
-            packageId = "getrandom 0.2.15";
+            packageId = "getrandom 0.2.16";
           }
           {
             name = "libc";
@@ -12546,9 +12549,9 @@ rec {
       };
       "rustix" = rec {
         crateName = "rustix";
-        version = "1.0.5";
+        version = "1.0.7";
         edition = "2021";
-        sha256 = "1gsqrw9cp762ps9dl1d13n8mk5r0b6r2s002l1njxfylilwify6r";
+        sha256 = "0rhjh16bnxi86nrn9qwcnw5632mvd5m1vdy61s4n9zz7mzb867n7";
         authors = [
           "Dan Gohman <dev@sunfishcode.online>"
           "Jakub Konka <kubkon@jakubkonka.com>"
@@ -12654,9 +12657,9 @@ rec {
       };
       "rustls" = rec {
         crateName = "rustls";
-        version = "0.23.25";
+        version = "0.23.27";
         edition = "2021";
-        sha256 = "0g5idwxm04i71k3n66ml30zyfbgv6p85a7jky2i09v64i8cfjbl2";
+        sha256 = "08d3nipyhmy4apksjyrb98s9k91wjyg1k7y0flx2671w135482bk";
         dependencies = [
           {
             name = "log";
@@ -12707,7 +12710,7 @@ rec {
           "aws-lc-rs" = [ "aws_lc_rs" ];
           "aws_lc_rs" = [ "dep:aws-lc-rs" "webpki/aws-lc-rs" "aws-lc-rs/aws-lc-sys" "aws-lc-rs/prebuilt-nasm" ];
           "brotli" = [ "dep:brotli" "dep:brotli-decompressor" "std" ];
-          "default" = [ "aws_lc_rs" "logging" "std" "tls12" ];
+          "default" = [ "aws_lc_rs" "logging" "prefer-post-quantum" "std" "tls12" ];
           "fips" = [ "aws_lc_rs" "aws-lc-rs?/fips" "webpki/aws-lc-rs-fips" ];
           "hashbrown" = [ "dep:hashbrown" ];
           "log" = [ "dep:log" ];
@@ -12742,9 +12745,9 @@ rec {
       };
       "rustls-pki-types" = rec {
         crateName = "rustls-pki-types";
-        version = "1.11.0";
+        version = "1.12.0";
         edition = "2021";
-        sha256 = "0755isc0x5iymm3wsn59s0ad1pm9zidw7p34qfqlsjsac9jf4z4i";
+        sha256 = "0yawbdpix8jif6s8zj1p2hbyb7y3bj66fhx0y7hyf4qh4964m6i2";
         libName = "rustls_pki_types";
         dependencies = [
           {
@@ -12753,8 +12756,14 @@ rec {
             optional = true;
             target = { target, features }: ((builtins.elem "wasm" target."family") && ("unknown" == target."os" or null));
           }
+          {
+            name = "zeroize";
+            packageId = "zeroize";
+            optional = true;
+          }
         ];
         features = {
+          "alloc" = [ "dep:zeroize" ];
           "default" = [ "alloc" ];
           "std" = [ "alloc" ];
           "web" = [ "web-time" ];
@@ -12764,9 +12773,9 @@ rec {
       };
       "rustls-webpki" = rec {
         crateName = "rustls-webpki";
-        version = "0.103.1";
+        version = "0.103.2";
         edition = "2021";
-        sha256 = "00rcdz0rb9ia2ivrq7412ry9qkvbh78pra2phl4p7kxck9vbiy7y";
+        sha256 = "0dxlrywm50hqlynig58nfqx0vj6ccbpi0q145f1v7azi95c9fjbi";
         libName = "webpki";
         dependencies = [
           {
@@ -13069,7 +13078,7 @@ rec {
           }
           {
             name = "webpki-roots";
-            packageId = "webpki-roots";
+            packageId = "webpki-roots 0.26.11";
             optional = true;
           }
         ];
@@ -13798,9 +13807,9 @@ rec {
       };
       "signal-hook-registry" = rec {
         crateName = "signal-hook-registry";
-        version = "1.4.2";
+        version = "1.4.5";
         edition = "2015";
-        sha256 = "1cb5akgq8ajnd5spyn587srvs4n26ryq0p78nswffwhv46sf1sd9";
+        sha256 = "042lkqrpnlrgvrrcirgigxyp1zk70d8v0fsr5w7a18k3bw2vh0wj";
         libName = "signal_hook_registry";
         authors = [
           "Michal 'vorner' Vaner <vorner@vorner.cz>"
@@ -13947,9 +13956,9 @@ rec {
       };
       "stacker" = rec {
         crateName = "stacker";
-        version = "0.1.20";
+        version = "0.1.21";
         edition = "2021";
-        sha256 = "1ab039lan55s3vrb5vcldfdfzfajk52vyy344q09rc5rzq0r47v0";
+        sha256 = "0syhx9fiydyd901v464saqd6z8f31a6is24iv94hfxyv5pihgnyd";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
           "Simonas Kazlauskas <stacker@kazlauskas.me>"
@@ -14132,9 +14141,9 @@ rec {
       };
       "synstructure" = rec {
         crateName = "synstructure";
-        version = "0.13.1";
+        version = "0.13.2";
         edition = "2018";
-        sha256 = "0wc9f002ia2zqcbj0q2id5x6n7g1zjqba7qkg2mr0qvvmdk7dby8";
+        sha256 = "1lh9lx3r3jb18f8sbj29am5hm9jymvbwh6jb1izsnnxgvgrp12kj";
         authors = [
           "Nika Layzell <nika@thelayzells.com>"
         ];
@@ -14892,9 +14901,9 @@ rec {
       };
       "tokio-util" = rec {
         crateName = "tokio-util";
-        version = "0.7.14";
+        version = "0.7.15";
         edition = "2021";
-        sha256 = "0d7hm1jrwpzryvni72fy5dg9blqs776wq5w38lwigk3g7swr15bb";
+        sha256 = "1pypd9lm1fdnpw0779pqvc16qqrxjy63dgfm20ajhpbdmnlkk9b6";
         libName = "tokio_util";
         authors = [
           "Tokio Contributors <team@tokio.rs>"
@@ -14947,9 +14956,9 @@ rec {
       };
       "toml" = rec {
         crateName = "toml";
-        version = "0.8.20";
+        version = "0.8.22";
         edition = "2021";
-        sha256 = "0j012b37iz1mihksr6a928s6dzszxvblzg3l5wxp7azzsv6sb1yd";
+        sha256 = "1bjsrmi9w88v4sik8bd6chp0d7bnb9dzzmxyb5xd3i083yfk5bh5";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -14989,14 +14998,15 @@ rec {
           "indexmap" = [ "dep:indexmap" ];
           "parse" = [ "dep:toml_edit" "toml_edit?/parse" ];
           "preserve_order" = [ "indexmap" ];
+          "unbounded" = [ "toml_edit?/unbounded" ];
         };
         resolvedDefaultFeatures = [ "parse" ];
       };
       "toml_datetime" = rec {
         crateName = "toml_datetime";
-        version = "0.6.8";
+        version = "0.6.9";
         edition = "2021";
-        sha256 = "0hgv7v9g35d7y9r2afic58jvlwnf73vgd1mz2k8gihlgrf73bmqd";
+        sha256 = "18q9ix4isxw2n4mij3v6x0pb4jw1hbxbc5wbprlbq91yjrddp99x";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -15014,9 +15024,9 @@ rec {
       };
       "toml_edit" = rec {
         crateName = "toml_edit";
-        version = "0.22.24";
+        version = "0.22.26";
         edition = "2021";
-        sha256 = "0x0lgp70x5cl9nla03xqs5vwwwlrwmd0djkdrp3h3lpdymgpkd0p";
+        sha256 = "0zhk135y6rn6jxik7knia3xblpc545fw6b4xcpkv7idj7n3nh01i";
         authors = [
           "Andronik Ordian <write@reusable.software>"
           "Ed Page <eopage@gmail.com>"
@@ -15048,8 +15058,16 @@ rec {
             optional = true;
           }
         ];
+        devDependencies = [
+          {
+            name = "serde";
+            packageId = "serde";
+            features = [ "derive" ];
+          }
+        ];
         features = {
           "default" = [ "parse" "display" ];
+          "display" = [ "dep:toml_write" ];
           "parse" = [ "dep:winnow" ];
           "perf" = [ "dep:kstring" ];
           "serde" = [ "dep:serde" "toml_datetime/serde" "dep:serde_spanned" ];
@@ -15812,7 +15830,7 @@ rec {
           }
           {
             name = "webpki-roots";
-            packageId = "webpki-roots";
+            packageId = "webpki-roots 0.26.11";
             optional = true;
           }
         ];
@@ -16807,11 +16825,26 @@ rec {
           "serde" = [ "dep:serde" ];
         };
       };
-      "webpki-roots" = rec {
+      "webpki-roots 0.26.11" = rec {
         crateName = "webpki-roots";
-        version = "0.26.8";
-        edition = "2018";
-        sha256 = "1jf54brni9lk4ak5pkma2pn18hli22gr7i7wp9zn2lzayy8v4412";
+        version = "0.26.11";
+        edition = "2021";
+        sha256 = "1agpayg5zzf7m1a01q30jahlgmn5nwggbabdhq0in008pf5c66sj";
+        libName = "webpki_roots";
+        dependencies = [
+          {
+            name = "webpki-roots";
+            packageId = "webpki-roots 1.0.0";
+            rename = "parent";
+          }
+        ];
+
+      };
+      "webpki-roots 1.0.0" = rec {
+        crateName = "webpki-roots";
+        version = "1.0.0";
+        edition = "2021";
+        sha256 = "1nyg365shpxkbazrsvh9c4cv7ar16xnfq62w48xdmwn43j6p6lr8";
         libName = "webpki_roots";
         dependencies = [
           {
@@ -17901,9 +17934,9 @@ rec {
       };
       "winnow" = rec {
         crateName = "winnow";
-        version = "0.7.6";
+        version = "0.7.10";
         edition = "2021";
-        sha256 = "047abhm7qqgc32pf9a2arini5wsrx7p9wsbx3s106jx4pgczrlv3";
+        sha256 = "1v69byry8fyarzl83wij6f1h3zxnw69assp9kdfb10cdfk42hsf0";
         dependencies = [
           {
             name = "memchr";
@@ -18119,11 +18152,11 @@ rec {
         };
         resolvedDefaultFeatures = [ "simd" ];
       };
-      "zerocopy 0.8.24" = rec {
+      "zerocopy 0.8.25" = rec {
         crateName = "zerocopy";
-        version = "0.8.24";
+        version = "0.8.25";
         edition = "2021";
-        sha256 = "0yb8hyzfnwzr2wg4p7cnqmjps8fsw8xqnprafgpmfs8qisigx1i5";
+        sha256 = "1jx07cd3b3456c9al9zjqqdzpf1abb0vf6z0fj8xnb93hfajsw51";
         authors = [
           "Joshua Liebow-Feeser <joshlf@google.com>"
           "Jack Wrenn <jswrenn@amazon.com>"
@@ -18131,19 +18164,19 @@ rec {
         dependencies = [
           {
             name = "zerocopy-derive";
-            packageId = "zerocopy-derive 0.8.24";
+            packageId = "zerocopy-derive 0.8.25";
             optional = true;
           }
           {
             name = "zerocopy-derive";
-            packageId = "zerocopy-derive 0.8.24";
+            packageId = "zerocopy-derive 0.8.25";
             target = { target, features }: false;
           }
         ];
         devDependencies = [
           {
             name = "zerocopy-derive";
-            packageId = "zerocopy-derive 0.8.24";
+            packageId = "zerocopy-derive 0.8.25";
           }
         ];
         features = {
@@ -18181,11 +18214,11 @@ rec {
         ];
 
       };
-      "zerocopy-derive 0.8.24" = rec {
+      "zerocopy-derive 0.8.25" = rec {
         crateName = "zerocopy-derive";
-        version = "0.8.24";
+        version = "0.8.25";
         edition = "2021";
-        sha256 = "1gk9047pbq1yjj2jyiv0s37nqc53maqbmhcsjp6lhi2w7kvai5m9";
+        sha256 = "1vsmpq0hp61xpqj9yk8b5jihkqkff05q1wv3l2568mhifl6y59i8";
         procMacro = true;
         libName = "zerocopy_derive";
         authors = [

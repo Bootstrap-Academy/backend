@@ -252,7 +252,7 @@ pub struct I64Query<'c, 'a, 's, C: GenericClient, T, const N: usize> {
     client: &'c C,
     params: [&'a (dyn postgres_types::ToSql + Sync); N],
     stmt: &'s mut crate::client::async_::Stmt,
-    extractor: fn(&tokio_postgres::Row) -> i64,
+    extractor: fn(&tokio_postgres::Row) -> Result<i64, tokio_postgres::Error>,
     mapper: fn(i64) -> T,
 }
 impl<'c, 'a, 's, C, T: 'c, const N: usize> I64Query<'c, 'a, 's, C, T, N>
@@ -271,7 +271,7 @@ where
     pub async fn one(self) -> Result<T, tokio_postgres::Error> {
         let stmt = self.stmt.prepare(self.client).await?;
         let row = self.client.query_one(stmt, &self.params).await?;
-        Ok((self.mapper)((self.extractor)(&row)))
+        Ok((self.mapper)((self.extractor)(&row)?))
     }
     pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
         self.iter().await?.try_collect().await
@@ -282,7 +282,11 @@ where
             .client
             .query_opt(stmt, &self.params)
             .await?
-            .map(|row| (self.mapper)((self.extractor)(&row))))
+            .map(|row| {
+                let extracted = (self.extractor)(&row)?;
+                Ok((self.mapper)(extracted))
+            })
+            .transpose()?)
     }
     pub async fn iter(
         self,
@@ -295,7 +299,12 @@ where
             .client
             .query_raw(stmt, crate::slice_iter(&self.params))
             .await?
-            .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))))
+            .map(move |res| {
+                res.and_then(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+            })
             .into_stream();
         Ok(it)
     }
@@ -304,7 +313,7 @@ pub struct UserCompositeQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
     client: &'c C,
     params: [&'a (dyn postgres_types::ToSql + Sync); N],
     stmt: &'s mut crate::client::async_::Stmt,
-    extractor: fn(&tokio_postgres::Row) -> UserCompositeBorrowed,
+    extractor: fn(&tokio_postgres::Row) -> Result<UserCompositeBorrowed, tokio_postgres::Error>,
     mapper: fn(UserCompositeBorrowed) -> T,
 }
 impl<'c, 'a, 's, C, T: 'c, const N: usize> UserCompositeQuery<'c, 'a, 's, C, T, N>
@@ -326,7 +335,7 @@ where
     pub async fn one(self) -> Result<T, tokio_postgres::Error> {
         let stmt = self.stmt.prepare(self.client).await?;
         let row = self.client.query_one(stmt, &self.params).await?;
-        Ok((self.mapper)((self.extractor)(&row)))
+        Ok((self.mapper)((self.extractor)(&row)?))
     }
     pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
         self.iter().await?.try_collect().await
@@ -337,7 +346,11 @@ where
             .client
             .query_opt(stmt, &self.params)
             .await?
-            .map(|row| (self.mapper)((self.extractor)(&row))))
+            .map(|row| {
+                let extracted = (self.extractor)(&row)?;
+                Ok((self.mapper)(extracted))
+            })
+            .transpose()?)
     }
     pub async fn iter(
         self,
@@ -350,7 +363,12 @@ where
             .client
             .query_raw(stmt, crate::slice_iter(&self.params))
             .await?
-            .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))))
+            .map(move |res| {
+                res.and_then(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+            })
             .into_stream();
         Ok(it)
     }
@@ -359,7 +377,7 @@ pub struct BoolQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
     client: &'c C,
     params: [&'a (dyn postgres_types::ToSql + Sync); N],
     stmt: &'s mut crate::client::async_::Stmt,
-    extractor: fn(&tokio_postgres::Row) -> bool,
+    extractor: fn(&tokio_postgres::Row) -> Result<bool, tokio_postgres::Error>,
     mapper: fn(bool) -> T,
 }
 impl<'c, 'a, 's, C, T: 'c, const N: usize> BoolQuery<'c, 'a, 's, C, T, N>
@@ -378,7 +396,7 @@ where
     pub async fn one(self) -> Result<T, tokio_postgres::Error> {
         let stmt = self.stmt.prepare(self.client).await?;
         let row = self.client.query_one(stmt, &self.params).await?;
-        Ok((self.mapper)((self.extractor)(&row)))
+        Ok((self.mapper)((self.extractor)(&row)?))
     }
     pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
         self.iter().await?.try_collect().await
@@ -389,7 +407,11 @@ where
             .client
             .query_opt(stmt, &self.params)
             .await?
-            .map(|row| (self.mapper)((self.extractor)(&row))))
+            .map(|row| {
+                let extracted = (self.extractor)(&row)?;
+                Ok((self.mapper)(extracted))
+            })
+            .transpose()?)
     }
     pub async fn iter(
         self,
@@ -402,7 +424,12 @@ where
             .client
             .query_raw(stmt, crate::slice_iter(&self.params))
             .await?
-            .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))))
+            .map(move |res| {
+                res.and_then(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+            })
             .into_stream();
         Ok(it)
     }
@@ -411,7 +438,7 @@ pub struct StringQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
     client: &'c C,
     params: [&'a (dyn postgres_types::ToSql + Sync); N],
     stmt: &'s mut crate::client::async_::Stmt,
-    extractor: fn(&tokio_postgres::Row) -> &str,
+    extractor: fn(&tokio_postgres::Row) -> Result<&str, tokio_postgres::Error>,
     mapper: fn(&str) -> T,
 }
 impl<'c, 'a, 's, C, T: 'c, const N: usize> StringQuery<'c, 'a, 's, C, T, N>
@@ -430,7 +457,7 @@ where
     pub async fn one(self) -> Result<T, tokio_postgres::Error> {
         let stmt = self.stmt.prepare(self.client).await?;
         let row = self.client.query_one(stmt, &self.params).await?;
-        Ok((self.mapper)((self.extractor)(&row)))
+        Ok((self.mapper)((self.extractor)(&row)?))
     }
     pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
         self.iter().await?.try_collect().await
@@ -441,7 +468,11 @@ where
             .client
             .query_opt(stmt, &self.params)
             .await?
-            .map(|row| (self.mapper)((self.extractor)(&row))))
+            .map(|row| {
+                let extracted = (self.extractor)(&row)?;
+                Ok((self.mapper)(extracted))
+            })
+            .transpose()?)
     }
     pub async fn iter(
         self,
@@ -454,7 +485,12 @@ where
             .client
             .query_raw(stmt, crate::slice_iter(&self.params))
             .await?
-            .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))))
+            .map(move |res| {
+                res.and_then(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+            })
             .into_stream();
         Ok(it)
     }
@@ -489,7 +525,7 @@ impl CountCompositesStmt {
                 newsletter,
             ],
             stmt: &mut self.0,
-            extractor: |row| row.get(0),
+            extractor: |row| Ok(row.try_get(0)?),
             mapper: |it| it,
         }
     }
@@ -555,33 +591,36 @@ impl ListCompositesStmt {
                 offset,
             ],
             stmt: &mut self.0,
-            extractor: |row| UserCompositeBorrowed {
-                user_id: row.get(0),
-                id: row.get(1),
-                name: row.get(2),
-                email: row.get(3),
-                email_verified: row.get(4),
-                created_at: row.get(5),
-                last_login: row.get(6),
-                last_name_change: row.get(7),
-                enabled: row.get(8),
-                admin: row.get(9),
-                newsletter: row.get(10),
-                display_name: row.get(11),
-                bio: row.get(12),
-                tags: row.get(13),
-                mfa_enabled: row.get(14),
-                password_login: row.get(15),
-                oauth2_login: row.get(16),
-                business: row.get(17),
-                first_name: row.get(18),
-                last_name: row.get(19),
-                street: row.get(20),
-                zip_code: row.get(21),
-                city: row.get(22),
-                country: row.get(23),
-                vat_id: row.get(24),
-            },
+            extractor:
+                |row: &tokio_postgres::Row| -> Result<UserCompositeBorrowed, tokio_postgres::Error> {
+                    Ok(UserCompositeBorrowed {
+                        user_id: row.try_get(0)?,
+                        id: row.try_get(1)?,
+                        name: row.try_get(2)?,
+                        email: row.try_get(3)?,
+                        email_verified: row.try_get(4)?,
+                        created_at: row.try_get(5)?,
+                        last_login: row.try_get(6)?,
+                        last_name_change: row.try_get(7)?,
+                        enabled: row.try_get(8)?,
+                        admin: row.try_get(9)?,
+                        newsletter: row.try_get(10)?,
+                        display_name: row.try_get(11)?,
+                        bio: row.try_get(12)?,
+                        tags: row.try_get(13)?,
+                        mfa_enabled: row.try_get(14)?,
+                        password_login: row.try_get(15)?,
+                        oauth2_login: row.try_get(16)?,
+                        business: row.try_get(17)?,
+                        first_name: row.try_get(18)?,
+                        last_name: row.try_get(19)?,
+                        street: row.try_get(20)?,
+                        zip_code: row.try_get(21)?,
+                        city: row.try_get(22)?,
+                        country: row.try_get(23)?,
+                        vat_id: row.try_get(24)?,
+                    })
+                },
             mapper: |it| UserComposite::from(it),
         }
     }
@@ -631,7 +670,7 @@ impl ExistsStmt {
             client,
             params: [id],
             stmt: &mut self.0,
-            extractor: |row| row.get(0),
+            extractor: |row| Ok(row.try_get(0)?),
             mapper: |it| it,
         }
     }
@@ -652,33 +691,36 @@ impl GetCompositeStmt {
             client,
             params: [id],
             stmt: &mut self.0,
-            extractor: |row| UserCompositeBorrowed {
-                user_id: row.get(0),
-                id: row.get(1),
-                name: row.get(2),
-                email: row.get(3),
-                email_verified: row.get(4),
-                created_at: row.get(5),
-                last_login: row.get(6),
-                last_name_change: row.get(7),
-                enabled: row.get(8),
-                admin: row.get(9),
-                newsletter: row.get(10),
-                display_name: row.get(11),
-                bio: row.get(12),
-                tags: row.get(13),
-                mfa_enabled: row.get(14),
-                password_login: row.get(15),
-                oauth2_login: row.get(16),
-                business: row.get(17),
-                first_name: row.get(18),
-                last_name: row.get(19),
-                street: row.get(20),
-                zip_code: row.get(21),
-                city: row.get(22),
-                country: row.get(23),
-                vat_id: row.get(24),
-            },
+            extractor:
+                |row: &tokio_postgres::Row| -> Result<UserCompositeBorrowed, tokio_postgres::Error> {
+                    Ok(UserCompositeBorrowed {
+                        user_id: row.try_get(0)?,
+                        id: row.try_get(1)?,
+                        name: row.try_get(2)?,
+                        email: row.try_get(3)?,
+                        email_verified: row.try_get(4)?,
+                        created_at: row.try_get(5)?,
+                        last_login: row.try_get(6)?,
+                        last_name_change: row.try_get(7)?,
+                        enabled: row.try_get(8)?,
+                        admin: row.try_get(9)?,
+                        newsletter: row.try_get(10)?,
+                        display_name: row.try_get(11)?,
+                        bio: row.try_get(12)?,
+                        tags: row.try_get(13)?,
+                        mfa_enabled: row.try_get(14)?,
+                        password_login: row.try_get(15)?,
+                        oauth2_login: row.try_get(16)?,
+                        business: row.try_get(17)?,
+                        first_name: row.try_get(18)?,
+                        last_name: row.try_get(19)?,
+                        street: row.try_get(20)?,
+                        zip_code: row.try_get(21)?,
+                        city: row.try_get(22)?,
+                        country: row.try_get(23)?,
+                        vat_id: row.try_get(24)?,
+                    })
+                },
             mapper: |it| UserComposite::from(it),
         }
     }
@@ -699,33 +741,36 @@ impl GetCompositeByNameStmt {
             client,
             params: [name],
             stmt: &mut self.0,
-            extractor: |row| UserCompositeBorrowed {
-                user_id: row.get(0),
-                id: row.get(1),
-                name: row.get(2),
-                email: row.get(3),
-                email_verified: row.get(4),
-                created_at: row.get(5),
-                last_login: row.get(6),
-                last_name_change: row.get(7),
-                enabled: row.get(8),
-                admin: row.get(9),
-                newsletter: row.get(10),
-                display_name: row.get(11),
-                bio: row.get(12),
-                tags: row.get(13),
-                mfa_enabled: row.get(14),
-                password_login: row.get(15),
-                oauth2_login: row.get(16),
-                business: row.get(17),
-                first_name: row.get(18),
-                last_name: row.get(19),
-                street: row.get(20),
-                zip_code: row.get(21),
-                city: row.get(22),
-                country: row.get(23),
-                vat_id: row.get(24),
-            },
+            extractor:
+                |row: &tokio_postgres::Row| -> Result<UserCompositeBorrowed, tokio_postgres::Error> {
+                    Ok(UserCompositeBorrowed {
+                        user_id: row.try_get(0)?,
+                        id: row.try_get(1)?,
+                        name: row.try_get(2)?,
+                        email: row.try_get(3)?,
+                        email_verified: row.try_get(4)?,
+                        created_at: row.try_get(5)?,
+                        last_login: row.try_get(6)?,
+                        last_name_change: row.try_get(7)?,
+                        enabled: row.try_get(8)?,
+                        admin: row.try_get(9)?,
+                        newsletter: row.try_get(10)?,
+                        display_name: row.try_get(11)?,
+                        bio: row.try_get(12)?,
+                        tags: row.try_get(13)?,
+                        mfa_enabled: row.try_get(14)?,
+                        password_login: row.try_get(15)?,
+                        oauth2_login: row.try_get(16)?,
+                        business: row.try_get(17)?,
+                        first_name: row.try_get(18)?,
+                        last_name: row.try_get(19)?,
+                        street: row.try_get(20)?,
+                        zip_code: row.try_get(21)?,
+                        city: row.try_get(22)?,
+                        country: row.try_get(23)?,
+                        vat_id: row.try_get(24)?,
+                    })
+                },
             mapper: |it| UserComposite::from(it),
         }
     }
@@ -746,33 +791,36 @@ impl GetCompositeByEmailStmt {
             client,
             params: [email],
             stmt: &mut self.0,
-            extractor: |row| UserCompositeBorrowed {
-                user_id: row.get(0),
-                id: row.get(1),
-                name: row.get(2),
-                email: row.get(3),
-                email_verified: row.get(4),
-                created_at: row.get(5),
-                last_login: row.get(6),
-                last_name_change: row.get(7),
-                enabled: row.get(8),
-                admin: row.get(9),
-                newsletter: row.get(10),
-                display_name: row.get(11),
-                bio: row.get(12),
-                tags: row.get(13),
-                mfa_enabled: row.get(14),
-                password_login: row.get(15),
-                oauth2_login: row.get(16),
-                business: row.get(17),
-                first_name: row.get(18),
-                last_name: row.get(19),
-                street: row.get(20),
-                zip_code: row.get(21),
-                city: row.get(22),
-                country: row.get(23),
-                vat_id: row.get(24),
-            },
+            extractor:
+                |row: &tokio_postgres::Row| -> Result<UserCompositeBorrowed, tokio_postgres::Error> {
+                    Ok(UserCompositeBorrowed {
+                        user_id: row.try_get(0)?,
+                        id: row.try_get(1)?,
+                        name: row.try_get(2)?,
+                        email: row.try_get(3)?,
+                        email_verified: row.try_get(4)?,
+                        created_at: row.try_get(5)?,
+                        last_login: row.try_get(6)?,
+                        last_name_change: row.try_get(7)?,
+                        enabled: row.try_get(8)?,
+                        admin: row.try_get(9)?,
+                        newsletter: row.try_get(10)?,
+                        display_name: row.try_get(11)?,
+                        bio: row.try_get(12)?,
+                        tags: row.try_get(13)?,
+                        mfa_enabled: row.try_get(14)?,
+                        password_login: row.try_get(15)?,
+                        oauth2_login: row.try_get(16)?,
+                        business: row.try_get(17)?,
+                        first_name: row.try_get(18)?,
+                        last_name: row.try_get(19)?,
+                        street: row.try_get(20)?,
+                        zip_code: row.try_get(21)?,
+                        city: row.try_get(22)?,
+                        country: row.try_get(23)?,
+                        vat_id: row.try_get(24)?,
+                    })
+                },
             mapper: |it| UserComposite::from(it),
         }
     }
@@ -795,33 +843,36 @@ impl GetCompositeByOauth2ProviderIdAndRemoteUserIdStmt {
             client,
             params: [provider_id, remote_user_id],
             stmt: &mut self.0,
-            extractor: |row| UserCompositeBorrowed {
-                user_id: row.get(1),
-                id: row.get(0),
-                name: row.get(2),
-                email: row.get(3),
-                email_verified: row.get(4),
-                created_at: row.get(5),
-                last_login: row.get(6),
-                last_name_change: row.get(7),
-                enabled: row.get(8),
-                admin: row.get(9),
-                newsletter: row.get(10),
-                display_name: row.get(11),
-                bio: row.get(12),
-                tags: row.get(13),
-                mfa_enabled: row.get(14),
-                password_login: row.get(15),
-                oauth2_login: row.get(16),
-                business: row.get(17),
-                first_name: row.get(18),
-                last_name: row.get(19),
-                street: row.get(20),
-                zip_code: row.get(21),
-                city: row.get(22),
-                country: row.get(23),
-                vat_id: row.get(24),
-            },
+            extractor:
+                |row: &tokio_postgres::Row| -> Result<UserCompositeBorrowed, tokio_postgres::Error> {
+                    Ok(UserCompositeBorrowed {
+                        user_id: row.try_get(1)?,
+                        id: row.try_get(0)?,
+                        name: row.try_get(2)?,
+                        email: row.try_get(3)?,
+                        email_verified: row.try_get(4)?,
+                        created_at: row.try_get(5)?,
+                        last_login: row.try_get(6)?,
+                        last_name_change: row.try_get(7)?,
+                        enabled: row.try_get(8)?,
+                        admin: row.try_get(9)?,
+                        newsletter: row.try_get(10)?,
+                        display_name: row.try_get(11)?,
+                        bio: row.try_get(12)?,
+                        tags: row.try_get(13)?,
+                        mfa_enabled: row.try_get(14)?,
+                        password_login: row.try_get(15)?,
+                        oauth2_login: row.try_get(16)?,
+                        business: row.try_get(17)?,
+                        first_name: row.try_get(18)?,
+                        last_name: row.try_get(19)?,
+                        street: row.try_get(20)?,
+                        zip_code: row.try_get(21)?,
+                        city: row.try_get(22)?,
+                        country: row.try_get(23)?,
+                        vat_id: row.try_get(24)?,
+                    })
+                },
             mapper: |it| UserComposite::from(it),
         }
     }
@@ -1358,7 +1409,7 @@ impl GetPasswordHashStmt {
             client,
             params: [user_id],
             stmt: &mut self.0,
-            extractor: |row| row.get(0),
+            extractor: |row| Ok(row.try_get(0)?),
             mapper: |it| it.into(),
         }
     }
@@ -1434,7 +1485,7 @@ impl GetNumberStmt {
             client,
             params: [user_id],
             stmt: &mut self.0,
-            extractor: |row| row.get(0),
+            extractor: |row| Ok(row.try_get(0)?),
             mapper: |it| it,
         }
     }

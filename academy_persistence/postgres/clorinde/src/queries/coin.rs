@@ -70,7 +70,7 @@ pub struct BalanceQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
     client: &'c C,
     params: [&'a (dyn postgres_types::ToSql + Sync); N],
     stmt: &'s mut crate::client::async_::Stmt,
-    extractor: fn(&tokio_postgres::Row) -> Balance,
+    extractor: fn(&tokio_postgres::Row) -> Result<Balance, tokio_postgres::Error>,
     mapper: fn(Balance) -> T,
 }
 impl<'c, 'a, 's, C, T: 'c, const N: usize> BalanceQuery<'c, 'a, 's, C, T, N>
@@ -89,7 +89,7 @@ where
     pub async fn one(self) -> Result<T, tokio_postgres::Error> {
         let stmt = self.stmt.prepare(self.client).await?;
         let row = self.client.query_one(stmt, &self.params).await?;
-        Ok((self.mapper)((self.extractor)(&row)))
+        Ok((self.mapper)((self.extractor)(&row)?))
     }
     pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
         self.iter().await?.try_collect().await
@@ -100,7 +100,11 @@ where
             .client
             .query_opt(stmt, &self.params)
             .await?
-            .map(|row| (self.mapper)((self.extractor)(&row))))
+            .map(|row| {
+                let extracted = (self.extractor)(&row)?;
+                Ok((self.mapper)(extracted))
+            })
+            .transpose()?)
     }
     pub async fn iter(
         self,
@@ -113,7 +117,12 @@ where
             .client
             .query_raw(stmt, crate::slice_iter(&self.params))
             .await?
-            .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))))
+            .map(move |res| {
+                res.and_then(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+            })
             .into_stream();
         Ok(it)
     }
@@ -122,7 +131,7 @@ pub struct TransactionQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
     client: &'c C,
     params: [&'a (dyn postgres_types::ToSql + Sync); N],
     stmt: &'s mut crate::client::async_::Stmt,
-    extractor: fn(&tokio_postgres::Row) -> TransactionBorrowed,
+    extractor: fn(&tokio_postgres::Row) -> Result<TransactionBorrowed, tokio_postgres::Error>,
     mapper: fn(TransactionBorrowed) -> T,
 }
 impl<'c, 'a, 's, C, T: 'c, const N: usize> TransactionQuery<'c, 'a, 's, C, T, N>
@@ -144,7 +153,7 @@ where
     pub async fn one(self) -> Result<T, tokio_postgres::Error> {
         let stmt = self.stmt.prepare(self.client).await?;
         let row = self.client.query_one(stmt, &self.params).await?;
-        Ok((self.mapper)((self.extractor)(&row)))
+        Ok((self.mapper)((self.extractor)(&row)?))
     }
     pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
         self.iter().await?.try_collect().await
@@ -155,7 +164,11 @@ where
             .client
             .query_opt(stmt, &self.params)
             .await?
-            .map(|row| (self.mapper)((self.extractor)(&row))))
+            .map(|row| {
+                let extracted = (self.extractor)(&row)?;
+                Ok((self.mapper)(extracted))
+            })
+            .transpose()?)
     }
     pub async fn iter(
         self,
@@ -168,7 +181,12 @@ where
             .client
             .query_raw(stmt, crate::slice_iter(&self.params))
             .await?
-            .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))))
+            .map(move |res| {
+                res.and_then(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+            })
             .into_stream();
         Ok(it)
     }
@@ -189,9 +207,11 @@ impl GetBalanceStmt {
             client,
             params: [user_id],
             stmt: &mut self.0,
-            extractor: |row| Balance {
-                coins: row.get(0),
-                withheld_coins: row.get(1),
+            extractor: |row: &tokio_postgres::Row| -> Result<Balance, tokio_postgres::Error> {
+                Ok(Balance {
+                    coins: row.try_get(0)?,
+                    withheld_coins: row.try_get(1)?,
+                })
             },
             mapper: |it| Balance::from(it),
         }
@@ -215,9 +235,11 @@ impl AddCoinsStmt {
             client,
             params: [user_id, coins, withheld_coins],
             stmt: &mut self.0,
-            extractor: |row| Balance {
-                coins: row.get(0),
-                withheld_coins: row.get(1),
+            extractor: |row: &tokio_postgres::Row| -> Result<Balance, tokio_postgres::Error> {
+                Ok(Balance {
+                    coins: row.try_get(0)?,
+                    withheld_coins: row.try_get(1)?,
+                })
             },
             mapper: |it| Balance::from(it),
         }
@@ -280,14 +302,17 @@ impl ListTransactionsStmt {
             client,
             params: [user_id, start, end],
             stmt: &mut self.0,
-            extractor: |row| TransactionBorrowed {
-                id: row.get(0),
-                user_id: row.get(1),
-                created_at: row.get(2),
-                coins: row.get(3),
-                description: row.get(4),
-                include_in_credit_note: row.get(5),
-            },
+            extractor:
+                |row: &tokio_postgres::Row| -> Result<TransactionBorrowed, tokio_postgres::Error> {
+                    Ok(TransactionBorrowed {
+                        id: row.try_get(0)?,
+                        user_id: row.try_get(1)?,
+                        created_at: row.try_get(2)?,
+                        coins: row.try_get(3)?,
+                        description: row.try_get(4)?,
+                        include_in_credit_note: row.try_get(5)?,
+                    })
+                },
             mapper: |it| Transaction::from(it),
         }
     }

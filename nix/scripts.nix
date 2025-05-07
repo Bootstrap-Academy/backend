@@ -22,28 +22,39 @@ in
           ''
             makeWrapper ${lib.getExe' toolchain.toolchain "rustfmt"} $out/bin/rustfmt --add-flags --config-path=/dev/null
           '';
+      runtimeDependencies = lib.attrValues {
+        inherit (pkgs)
+          coreutils
+          gnused
+          git
+          clorinde
+          ;
+        inherit (toolchain) toolchain;
+      };
     in
     pkgs.writeShellScriptBin "generate-clorinde" ''
+      export PATH=${lib.makeBinPath runtimeDependencies}
+
       set -e
 
-      cd "$(${lib.getExe pkgs.git} rev-parse --show-toplevel)/academy_persistence/postgres"
+      cd "$(git rev-parse --show-toplevel)/academy_persistence/postgres"
 
-      static=(Cargo.toml)
+      PATH="${rustfmtWrapper}/bin:$PATH" clorinde live "postgres://academy@127.0.0.1:5432/academy"
+
       if [[ "$1" != "-f" ]]; then
-        mkdir -p .clorinde.bak
-        for f in "''${static[@]}"; do mkdir -p "$(dirname ".clorinde.bak/$f")"; cp -f "clorinde/$f" ".clorinde.bak/$f"; done
+        git restore clorinde/{Cargo.toml,src/lib.rs}
       fi
-      PATH="${rustfmtWrapper}/bin:$PATH" ${lib.getExe pkgs.clorinde} live "postgres://academy@127.0.0.1:5432/academy"
-      if [[ "$1" != "-f" ]]; then
-        for f in "''${static[@]}"; do cp ".clorinde.bak/$f" "clorinde/$f"; done
-        rm -rf .clorinde.bak
-      fi
-      ${lib.getExe' toolchain.toolchain "cargo"} fmt -p clorinde -- --config-path /dev/null
-      ${lib.getExe pkgs.gnused} -i '/use postgres;/d' clorinde/src/lib.rs
-      ${lib.getExe pkgs.gnused} -i '/^#\[cfg(feature = "time")\]$/,/^}$/d' clorinde/src/types.rs
-      ${lib.getExe pkgs.gnused} -i '/^#\[cfg/d' clorinde/src/{lib,types,client/async_}.rs
-      ${lib.getExe pkgs.gnused} -i 's/use fallible_iterator/use postgres::fallible_iterator/' clorinde/src/array_iterator.rs
-      ${lib.getExe pkgs.gnused} -i "s/+ 'c/+ use<'c, C, T, N>/" clorinde/src/queries/*.rs
+
+      cargo fmt -p clorinde -- --config-path /dev/null
+
+      sed -i "s/+ 'c/+ use<'c, C, T, N>/" clorinde/src/queries/*.rs
+
+      sed -i -E '/^#\[cfg\(all\(feature = "chrono".*\)\]$/d' clorinde/src/types.rs
+      sed -i -E '/^#\[cfg\(all\(feature = "time".*\)\]$/,/^}$/d' clorinde/src/types.rs
+
+      sed -i '/^#\[cfg/d' clorinde/src/{lib,types,client/async_}.rs
+      sed -i '/^mod deadpool;$/d' clorinde/src/client/async_.rs
+      rm clorinde/src/client/async_/deadpool.rs
     '';
 
   update-swagger-ui =

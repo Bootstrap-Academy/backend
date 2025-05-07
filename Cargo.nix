@@ -5913,10 +5913,6 @@ rec {
             features = [ "serde" "clock" ];
           }
           {
-            name = "deadpool-postgres";
-            packageId = "deadpool-postgres";
-          }
-          {
             name = "futures";
             packageId = "futures";
             usesDefaultFeatures = false;
@@ -6378,130 +6374,6 @@ rec {
           }
         ];
 
-      };
-      "deadpool" = rec {
-        crateName = "deadpool";
-        version = "0.12.2";
-        edition = "2021";
-        sha256 = "0bwf8qpi2k0p0pily20dqp1x5hrmg2hngcaslvvsss1pz5zrbmay";
-        authors = [
-          "Michael P. Jung <michael.jung@terreon.de>"
-        ];
-        dependencies = [
-          {
-            name = "deadpool-runtime";
-            packageId = "deadpool-runtime";
-          }
-          {
-            name = "num_cpus";
-            packageId = "num_cpus";
-          }
-          {
-            name = "tokio";
-            packageId = "tokio";
-            features = [ "sync" ];
-          }
-        ];
-        devDependencies = [
-          {
-            name = "tokio";
-            packageId = "tokio";
-            features = [ "macros" "rt" "rt-multi-thread" "time" ];
-          }
-        ];
-        features = {
-          "default" = [ "managed" "unmanaged" ];
-          "rt_async-std_1" = [ "deadpool-runtime/async-std_1" ];
-          "rt_tokio_1" = [ "deadpool-runtime/tokio_1" ];
-          "serde" = [ "dep:serde" ];
-        };
-        resolvedDefaultFeatures = [ "managed" "rt_tokio_1" ];
-      };
-      "deadpool-postgres" = rec {
-        crateName = "deadpool-postgres";
-        version = "0.14.1";
-        edition = "2021";
-        sha256 = "1ydyw2khdjx3v7l39h580v4xjgc8s4gspjml7v11i85zdhvpss9x";
-        libName = "deadpool_postgres";
-        authors = [
-          "Michael P. Jung <michael.jung@terreon.de>"
-        ];
-        dependencies = [
-          {
-            name = "async-trait";
-            packageId = "async-trait";
-          }
-          {
-            name = "deadpool";
-            packageId = "deadpool";
-            usesDefaultFeatures = false;
-            features = [ "managed" ];
-          }
-          {
-            name = "getrandom";
-            packageId = "getrandom 0.2.16";
-            target = { target, features }: ("wasm32" == target."arch" or null);
-            features = [ "js" ];
-          }
-          {
-            name = "tokio";
-            packageId = "tokio";
-            features = [ "rt" ];
-          }
-          {
-            name = "tokio-postgres";
-            packageId = "tokio-postgres";
-            target = { target, features }: (!("wasm32" == target."arch" or null));
-          }
-          {
-            name = "tokio-postgres";
-            packageId = "tokio-postgres";
-            usesDefaultFeatures = false;
-            target = { target, features }: ("wasm32" == target."arch" or null);
-          }
-          {
-            name = "tracing";
-            packageId = "tracing";
-          }
-        ];
-        devDependencies = [
-          {
-            name = "tokio";
-            packageId = "tokio";
-            features = [ "macros" "rt-multi-thread" ];
-          }
-        ];
-        features = {
-          "default" = [ "rt_tokio_1" ];
-          "rt_async-std_1" = [ "deadpool/rt_async-std_1" ];
-          "rt_tokio_1" = [ "deadpool/rt_tokio_1" ];
-          "serde" = [ "deadpool/serde" "dep:serde" ];
-        };
-        resolvedDefaultFeatures = [ "default" "rt_tokio_1" ];
-      };
-      "deadpool-runtime" = rec {
-        crateName = "deadpool-runtime";
-        version = "0.1.4";
-        edition = "2021";
-        sha256 = "0arbchl5j887hcfvjy4gq38d32055s5cf7pkpmwn0lfw3ss6ca89";
-        libName = "deadpool_runtime";
-        authors = [
-          "Michael P. Jung <michael.jung@terreon.de>"
-        ];
-        dependencies = [
-          {
-            name = "tokio";
-            packageId = "tokio";
-            rename = "tokio_1";
-            optional = true;
-            features = [ "time" "rt" ];
-          }
-        ];
-        features = {
-          "async-std_1" = [ "dep:async-std_1" ];
-          "tokio_1" = [ "dep:tokio_1" ];
-        };
-        resolvedDefaultFeatures = [ "tokio_1" ];
       };
       "debugid" = rec {
         crateName = "debugid";
@@ -7668,23 +7540,6 @@ rec {
         edition = "2021";
         sha256 = "1sjmpsdl8czyh9ywl3qcsfsq9a307dg4ni2vnlwgnzzqhc4y0113";
 
-      };
-      "hermit-abi" = rec {
-        crateName = "hermit-abi";
-        version = "0.3.9";
-        edition = "2021";
-        sha256 = "092hxjbjnq5fmz66grd9plxd0sh6ssg5fhgwwwqbrzgzkjwdycfj";
-        libName = "hermit_abi";
-        authors = [
-          "Stefan Lankes"
-        ];
-        features = {
-          "alloc" = [ "dep:alloc" ];
-          "compiler_builtins" = [ "dep:compiler_builtins" ];
-          "core" = [ "dep:core" ];
-          "rustc-dep-of-std" = [ "core" "alloc" "compiler_builtins/rustc-dep-of-std" ];
-        };
-        resolvedDefaultFeatures = [ "default" ];
       };
       "hex" = rec {
         crateName = "hex";
@@ -9742,28 +9597,6 @@ rec {
           "libm" = [ "dep:libm" ];
         };
         resolvedDefaultFeatures = [ "i128" "std" ];
-      };
-      "num_cpus" = rec {
-        crateName = "num_cpus";
-        version = "1.16.0";
-        edition = "2015";
-        sha256 = "0hra6ihpnh06dvfvz9ipscys0xfqa9ca9hzp384d5m02ssvgqqa1";
-        authors = [
-          "Sean McArthur <sean@seanmonstar.com>"
-        ];
-        dependencies = [
-          {
-            name = "hermit-abi";
-            packageId = "hermit-abi";
-            target = { target, features }: ("hermit" == target."os" or null);
-          }
-          {
-            name = "libc";
-            packageId = "libc";
-            target = { target, features }: (!(target."windows" or false));
-          }
-        ];
-
       };
       "number_prefix" = rec {
         crateName = "number_prefix";

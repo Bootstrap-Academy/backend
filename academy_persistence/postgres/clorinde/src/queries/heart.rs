@@ -17,7 +17,7 @@ pub struct GetQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
     client: &'c C,
     params: [&'a (dyn postgres_types::ToSql + Sync); N],
     stmt: &'s mut crate::client::async_::Stmt,
-    extractor: fn(&tokio_postgres::Row) -> Get,
+    extractor: fn(&tokio_postgres::Row) -> Result<Get, tokio_postgres::Error>,
     mapper: fn(Get) -> T,
 }
 impl<'c, 'a, 's, C, T: 'c, const N: usize> GetQuery<'c, 'a, 's, C, T, N>
@@ -36,7 +36,7 @@ where
     pub async fn one(self) -> Result<T, tokio_postgres::Error> {
         let stmt = self.stmt.prepare(self.client).await?;
         let row = self.client.query_one(stmt, &self.params).await?;
-        Ok((self.mapper)((self.extractor)(&row)))
+        Ok((self.mapper)((self.extractor)(&row)?))
     }
     pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
         self.iter().await?.try_collect().await
@@ -47,7 +47,11 @@ where
             .client
             .query_opt(stmt, &self.params)
             .await?
-            .map(|row| (self.mapper)((self.extractor)(&row))))
+            .map(|row| {
+                let extracted = (self.extractor)(&row)?;
+                Ok((self.mapper)(extracted))
+            })
+            .transpose()?)
     }
     pub async fn iter(
         self,
@@ -60,7 +64,12 @@ where
             .client
             .query_raw(stmt, crate::slice_iter(&self.params))
             .await?
-            .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))))
+            .map(move |res| {
+                res.and_then(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+            })
             .into_stream();
         Ok(it)
     }
@@ -81,9 +90,11 @@ impl GetStmt {
             client,
             params: [user_id],
             stmt: &mut self.0,
-            extractor: |row| Get {
-                hearts: row.get(0),
-                last_refill: row.get(1),
+            extractor: |row: &tokio_postgres::Row| -> Result<Get, tokio_postgres::Error> {
+                Ok(Get {
+                    hearts: row.try_get(0)?,
+                    last_refill: row.try_get(1)?,
+                })
             },
             mapper: |it| Get::from(it),
         }

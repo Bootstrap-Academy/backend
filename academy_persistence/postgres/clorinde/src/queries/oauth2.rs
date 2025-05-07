@@ -53,7 +53,7 @@ pub struct OAuth2LinkQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
     client: &'c C,
     params: [&'a (dyn postgres_types::ToSql + Sync); N],
     stmt: &'s mut crate::client::async_::Stmt,
-    extractor: fn(&tokio_postgres::Row) -> OAuth2LinkBorrowed,
+    extractor: fn(&tokio_postgres::Row) -> Result<OAuth2LinkBorrowed, tokio_postgres::Error>,
     mapper: fn(OAuth2LinkBorrowed) -> T,
 }
 impl<'c, 'a, 's, C, T: 'c, const N: usize> OAuth2LinkQuery<'c, 'a, 's, C, T, N>
@@ -75,7 +75,7 @@ where
     pub async fn one(self) -> Result<T, tokio_postgres::Error> {
         let stmt = self.stmt.prepare(self.client).await?;
         let row = self.client.query_one(stmt, &self.params).await?;
-        Ok((self.mapper)((self.extractor)(&row)))
+        Ok((self.mapper)((self.extractor)(&row)?))
     }
     pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
         self.iter().await?.try_collect().await
@@ -86,7 +86,11 @@ where
             .client
             .query_opt(stmt, &self.params)
             .await?
-            .map(|row| (self.mapper)((self.extractor)(&row))))
+            .map(|row| {
+                let extracted = (self.extractor)(&row)?;
+                Ok((self.mapper)(extracted))
+            })
+            .transpose()?)
     }
     pub async fn iter(
         self,
@@ -99,7 +103,12 @@ where
             .client
             .query_raw(stmt, crate::slice_iter(&self.params))
             .await?
-            .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))))
+            .map(move |res| {
+                res.and_then(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+            })
             .into_stream();
         Ok(it)
     }
@@ -120,14 +129,17 @@ impl ListLinksByUserStmt {
             client,
             params: [user_id],
             stmt: &mut self.0,
-            extractor: |row| OAuth2LinkBorrowed {
-                id: row.get(0),
-                user_id: row.get(1),
-                provider_id: row.get(2),
-                created_at: row.get(3),
-                remote_user_id: row.get(4),
-                remote_user_name: row.get(5),
-            },
+            extractor:
+                |row: &tokio_postgres::Row| -> Result<OAuth2LinkBorrowed, tokio_postgres::Error> {
+                    Ok(OAuth2LinkBorrowed {
+                        id: row.try_get(0)?,
+                        user_id: row.try_get(1)?,
+                        provider_id: row.try_get(2)?,
+                        created_at: row.try_get(3)?,
+                        remote_user_id: row.try_get(4)?,
+                        remote_user_name: row.try_get(5)?,
+                    })
+                },
             mapper: |it| OAuth2Link::from(it),
         }
     }
@@ -148,14 +160,17 @@ impl GetLinkStmt {
             client,
             params: [id],
             stmt: &mut self.0,
-            extractor: |row| OAuth2LinkBorrowed {
-                id: row.get(0),
-                user_id: row.get(1),
-                provider_id: row.get(2),
-                created_at: row.get(3),
-                remote_user_id: row.get(4),
-                remote_user_name: row.get(5),
-            },
+            extractor:
+                |row: &tokio_postgres::Row| -> Result<OAuth2LinkBorrowed, tokio_postgres::Error> {
+                    Ok(OAuth2LinkBorrowed {
+                        id: row.try_get(0)?,
+                        user_id: row.try_get(1)?,
+                        provider_id: row.try_get(2)?,
+                        created_at: row.try_get(3)?,
+                        remote_user_id: row.try_get(4)?,
+                        remote_user_name: row.try_get(5)?,
+                    })
+                },
             mapper: |it| OAuth2Link::from(it),
         }
     }

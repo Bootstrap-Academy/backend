@@ -60,7 +60,7 @@ pub struct SessionQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
     client: &'c C,
     params: [&'a (dyn postgres_types::ToSql + Sync); N],
     stmt: &'s mut crate::client::async_::Stmt,
-    extractor: fn(&tokio_postgres::Row) -> SessionBorrowed,
+    extractor: fn(&tokio_postgres::Row) -> Result<SessionBorrowed, tokio_postgres::Error>,
     mapper: fn(SessionBorrowed) -> T,
 }
 impl<'c, 'a, 's, C, T: 'c, const N: usize> SessionQuery<'c, 'a, 's, C, T, N>
@@ -79,7 +79,7 @@ where
     pub async fn one(self) -> Result<T, tokio_postgres::Error> {
         let stmt = self.stmt.prepare(self.client).await?;
         let row = self.client.query_one(stmt, &self.params).await?;
-        Ok((self.mapper)((self.extractor)(&row)))
+        Ok((self.mapper)((self.extractor)(&row)?))
     }
     pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
         self.iter().await?.try_collect().await
@@ -90,7 +90,11 @@ where
             .client
             .query_opt(stmt, &self.params)
             .await?
-            .map(|row| (self.mapper)((self.extractor)(&row))))
+            .map(|row| {
+                let extracted = (self.extractor)(&row)?;
+                Ok((self.mapper)(extracted))
+            })
+            .transpose()?)
     }
     pub async fn iter(
         self,
@@ -103,7 +107,12 @@ where
             .client
             .query_raw(stmt, crate::slice_iter(&self.params))
             .await?
-            .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))))
+            .map(move |res| {
+                res.and_then(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+            })
             .into_stream();
         Ok(it)
     }
@@ -112,7 +121,7 @@ pub struct Vecu8Query<'c, 'a, 's, C: GenericClient, T, const N: usize> {
     client: &'c C,
     params: [&'a (dyn postgres_types::ToSql + Sync); N],
     stmt: &'s mut crate::client::async_::Stmt,
-    extractor: fn(&tokio_postgres::Row) -> &[u8],
+    extractor: fn(&tokio_postgres::Row) -> Result<&[u8], tokio_postgres::Error>,
     mapper: fn(&[u8]) -> T,
 }
 impl<'c, 'a, 's, C, T: 'c, const N: usize> Vecu8Query<'c, 'a, 's, C, T, N>
@@ -131,7 +140,7 @@ where
     pub async fn one(self) -> Result<T, tokio_postgres::Error> {
         let stmt = self.stmt.prepare(self.client).await?;
         let row = self.client.query_one(stmt, &self.params).await?;
-        Ok((self.mapper)((self.extractor)(&row)))
+        Ok((self.mapper)((self.extractor)(&row)?))
     }
     pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
         self.iter().await?.try_collect().await
@@ -142,7 +151,11 @@ where
             .client
             .query_opt(stmt, &self.params)
             .await?
-            .map(|row| (self.mapper)((self.extractor)(&row))))
+            .map(|row| {
+                let extracted = (self.extractor)(&row)?;
+                Ok((self.mapper)(extracted))
+            })
+            .transpose()?)
     }
     pub async fn iter(
         self,
@@ -155,7 +168,12 @@ where
             .client
             .query_raw(stmt, crate::slice_iter(&self.params))
             .await?
-            .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))))
+            .map(move |res| {
+                res.and_then(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+            })
             .into_stream();
         Ok(it)
     }
@@ -176,13 +194,16 @@ impl GetStmt {
             client,
             params: [id],
             stmt: &mut self.0,
-            extractor: |row| SessionBorrowed {
-                id: row.get(0),
-                user_id: row.get(1),
-                device_name: row.get(2),
-                created_at: row.get(3),
-                updated_at: row.get(4),
-            },
+            extractor:
+                |row: &tokio_postgres::Row| -> Result<SessionBorrowed, tokio_postgres::Error> {
+                    Ok(SessionBorrowed {
+                        id: row.try_get(0)?,
+                        user_id: row.try_get(1)?,
+                        device_name: row.try_get(2)?,
+                        created_at: row.try_get(3)?,
+                        updated_at: row.try_get(4)?,
+                    })
+                },
             mapper: |it| Session::from(it),
         }
     }
@@ -203,13 +224,16 @@ impl GetByRefreshTokenHashStmt {
             client,
             params: [refresh_token_hash],
             stmt: &mut self.0,
-            extractor: |row| SessionBorrowed {
-                id: row.get(0),
-                user_id: row.get(1),
-                device_name: row.get(2),
-                created_at: row.get(3),
-                updated_at: row.get(4),
-            },
+            extractor:
+                |row: &tokio_postgres::Row| -> Result<SessionBorrowed, tokio_postgres::Error> {
+                    Ok(SessionBorrowed {
+                        id: row.try_get(0)?,
+                        user_id: row.try_get(1)?,
+                        device_name: row.try_get(2)?,
+                        created_at: row.try_get(3)?,
+                        updated_at: row.try_get(4)?,
+                    })
+                },
             mapper: |it| Session::from(it),
         }
     }
@@ -230,13 +254,16 @@ impl ListByUserStmt {
             client,
             params: [user_id],
             stmt: &mut self.0,
-            extractor: |row| SessionBorrowed {
-                id: row.get(0),
-                user_id: row.get(1),
-                device_name: row.get(2),
-                created_at: row.get(3),
-                updated_at: row.get(4),
-            },
+            extractor:
+                |row: &tokio_postgres::Row| -> Result<SessionBorrowed, tokio_postgres::Error> {
+                    Ok(SessionBorrowed {
+                        id: row.try_get(0)?,
+                        user_id: row.try_get(1)?,
+                        device_name: row.try_get(2)?,
+                        created_at: row.try_get(3)?,
+                        updated_at: row.try_get(4)?,
+                    })
+                },
             mapper: |it| Session::from(it),
         }
     }
@@ -405,7 +432,7 @@ impl ListRefreshTokenHashesByUserStmt {
             client,
             params: [user_id],
             stmt: &mut self.0,
-            extractor: |row| row.get(0),
+            extractor: |row| Ok(row.try_get(0)?),
             mapper: |it| it.into(),
         }
     }
@@ -426,7 +453,7 @@ impl GetRefreshTokenHashStmt {
             client,
             params: [session_id],
             stmt: &mut self.0,
-            extractor: |row| row.get(0),
+            extractor: |row| Ok(row.try_get(0)?),
             mapper: |it| it.into(),
         }
     }

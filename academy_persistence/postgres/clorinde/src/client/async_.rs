@@ -2,7 +2,6 @@
 
 pub use generic_client::GenericClient;
 use tokio_postgres::{Error, Statement};
-mod deadpool;
 mod generic_client;
 /// This trait allows you to bind parameters to a query using a single
 /// struct, rather than passing each bind parameter as a function parameter.

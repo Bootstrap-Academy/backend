@@ -99,9 +99,9 @@ coverage-extern *args:
 [private]
 alias cove := coverage-extern
 
-# Run cargo fmt, cargo clippy and cargo test
+# Run nix fmt, cargo clippy and cargo test
 check: && test
-    cargo fmt --check
+    nix fmt -- --ci
     cargo clippy --all-targets -- -D warnings
 [private]
 alias c := check

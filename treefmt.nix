@@ -1,33 +1,61 @@
+{ lib, pkgs, ... }:
+
 {
-  settings.global.excludes = [
+  tree-root-file = ".git/config";
+  on-unmatched = "error";
+
+  excludes = [
     "academy_assets/assets/*"
     "Cargo.nix"
     ".envrc"
     ".gitattributes"
+    ".gitignore"
     "justfile"
+    "*.lock"
     "*.md"
-    "*.pdf"
-    "*.png"
     "*.sql"
   ];
 
-  programs.black.enable = true;
-  settings.formatter.black.options = [
-    "--line-length=120"
-    "--skip-magic-trailing-comma"
-  ];
+  formatter.black = {
+    command = lib.getExe pkgs.black;
+    includes = [ "*.py" ];
+    options = [
+      "--line-length=120"
+      "--skip-magic-trailing-comma"
+    ];
+  };
 
-  programs.nixfmt.enable = true;
-  programs.nixfmt.strict = true;
+  formatter.nixfmt = {
+    command = lib.getExe pkgs.nixfmt-rfc-style;
+    includes = [ "*.nix" ];
+    options = [ "--strict" ];
+  };
 
-  programs.prettier.enable = true;
+  formatter.prettier = {
+    command = lib.getExe pkgs.nodePackages.prettier;
+    includes = [
+      "*.json"
+      "*.yml"
+    ];
+    options = [ "--write" ];
+  };
 
-  programs.rustfmt.enable = true;
-  programs.rustfmt.edition = "2024";
+  formatter.rustfmt = {
+    command = lib.getExe pkgs.rustfmt;
+    includes = [ "*.rs" ];
+    options = [
+      "--config=skip_children=true"
+      "--edition=2024"
+    ];
+  };
 
-  programs.taplo.enable = true;
-  settings.formatter.taplo.options = [
-    "--option=column_width=120"
-    "--option=align_comments=false"
-  ];
+  formatter.taplo = {
+    command = lib.getExe pkgs.taplo;
+    includes = [ "*.toml" ];
+    options = [
+      "format"
+      "--option=column_width=120"
+      "--option=align_comments=false"
+    ];
+  };
 }

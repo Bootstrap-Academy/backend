@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use academy_models::pagination::{PaginationLimit, PaginationSlice};
-use schemars::{gen::SchemaGenerator, schema::Schema, JsonSchema};
+use schemars::{JsonSchema, r#gen::SchemaGenerator, schema::Schema};
 use serde::Deserialize;
 
 use crate::const_schema;

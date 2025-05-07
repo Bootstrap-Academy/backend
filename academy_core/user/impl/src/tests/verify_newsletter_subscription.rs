@@ -1,23 +1,23 @@
 use academy_auth_contracts::MockAuthService;
 use academy_core_user_contracts::{
+    UserFeatureService, UserVerifyNewsletterSubscriptionError,
     email_confirmation::{
         MockUserEmailConfirmationService, UserEmailConfirmationSubscribeToNewsletterError,
     },
-    UserFeatureService, UserVerifyNewsletterSubscriptionError,
 };
 use academy_demo::{
+    VERIFICATION_CODE_1,
     session::{BAR_1, FOO_1},
     user::{BAR, FOO},
-    VERIFICATION_CODE_1,
 };
 use academy_models::{
     auth::{AuthError, AuthenticateError, AuthorizeError},
     user::UserIdOrSelf,
 };
-use academy_persistence_contracts::{user::MockUserRepository, MockDatabase};
-use academy_utils::{assert_matches, Apply};
+use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
+use academy_utils::{Apply, assert_matches};
 
-use crate::{tests::Sut, UserFeatureServiceImpl};
+use crate::{UserFeatureServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn ok() {

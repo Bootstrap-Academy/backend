@@ -9,8 +9,8 @@ use tracing::info;
 use crate::{
     cache, database, email,
     environment::{
-        types::{self, Database},
         ConfigProvider, Provider,
+        types::{self, Database},
     },
 };
 

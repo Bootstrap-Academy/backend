@@ -2,8 +2,9 @@ use std::sync::LazyLock;
 
 use academy_assets::swagger_ui::{SWAGGER_UI_BUNDLE_JS, SWAGGER_UI_CSS};
 use axum::{
+    Router,
     response::{Html, IntoResponse, Response},
-    routing, Router,
+    routing,
 };
 
 static SWAGGER_UI_HTML: LazyLock<String> = LazyLock::new(|| {

@@ -1,14 +1,14 @@
 use academy_auth_contracts::MockAuthService;
 use academy_core_user_contracts::{
-    update::MockUserUpdateService, PasswordUpdate, UserFeatureService, UserUpdateError,
-    UserUpdateRequest, UserUpdateUserRequest,
+    PasswordUpdate, UserFeatureService, UserUpdateError, UserUpdateRequest, UserUpdateUserRequest,
+    update::MockUserUpdateService,
 };
 use academy_demo::{session::FOO_1, user::FOO};
 use academy_models::user::{UserIdOrSelf, UserPassword};
-use academy_persistence_contracts::{user::MockUserRepository, MockDatabase};
-use academy_utils::{assert_matches, patch::PatchValue, Apply};
+use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
+use academy_utils::{Apply, assert_matches, patch::PatchValue};
 
-use crate::{tests::Sut, UserFeatureServiceImpl};
+use crate::{UserFeatureServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn update_password() {

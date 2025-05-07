@@ -1,9 +1,9 @@
 use std::str::FromStr;
 
 use schemars::{
-    gen::SchemaGenerator,
-    schema::{Schema, SchemaObject},
     JsonSchema,
+    r#gen::SchemaGenerator,
+    schema::{Schema, SchemaObject},
 };
 use serde::{Deserialize, Serialize};
 

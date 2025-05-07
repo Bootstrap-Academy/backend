@@ -1,13 +1,13 @@
 use academy_core_user_contracts::{
-    email_confirmation::MockUserEmailConfirmationService, UserFeatureService,
-    UserRequestPasswordResetError,
+    UserFeatureService, UserRequestPasswordResetError,
+    email_confirmation::MockUserEmailConfirmationService,
 };
 use academy_demo::user::FOO;
-use academy_persistence_contracts::{user::MockUserRepository, MockDatabase};
+use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
 use academy_shared_contracts::captcha::{CaptchaCheckError, MockCaptchaService};
 use academy_utils::assert_matches;
 
-use crate::{tests::Sut, UserFeatureServiceImpl};
+use crate::{UserFeatureServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn ok() {

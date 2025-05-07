@@ -596,7 +596,7 @@ rec {
       "academy" = rec {
         crateName = "academy";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         crateBin = [
           {
             name = "academy";
@@ -856,7 +856,7 @@ rec {
       "academy_api_rest" = rec {
         crateName = "academy_api_rest";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_api/rest; };
         dependencies = [
           {
@@ -1037,14 +1037,14 @@ rec {
       "academy_assets" = rec {
         crateName = "academy_assets";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_assets; };
 
       };
       "academy_auth_contracts" = rec {
         crateName = "academy_auth_contracts";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_auth/contracts; };
         dependencies = [
           {
@@ -1077,7 +1077,7 @@ rec {
       "academy_auth_impl" = rec {
         crateName = "academy_auth_impl";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_auth/impl; };
         dependencies = [
           {
@@ -1174,7 +1174,7 @@ rec {
       "academy_cache_contracts" = rec {
         crateName = "academy_cache_contracts";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_cache/contracts; };
         dependencies = [
           {
@@ -1204,7 +1204,7 @@ rec {
       "academy_cache_valkey" = rec {
         crateName = "academy_cache_valkey";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_cache/valkey; };
         dependencies = [
           {
@@ -1277,7 +1277,7 @@ rec {
       "academy_config" = rec {
         crateName = "academy_config";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_config; };
         dependencies = [
           {
@@ -1337,7 +1337,7 @@ rec {
       "academy_core_coin_contracts" = rec {
         crateName = "academy_core_coin_contracts";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/coin/contracts; };
         dependencies = [
           {
@@ -1370,7 +1370,7 @@ rec {
       "academy_core_coin_impl" = rec {
         crateName = "academy_core_coin_impl";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/coin/impl; };
         dependencies = [
           {
@@ -1440,7 +1440,7 @@ rec {
       "academy_core_config_contracts" = rec {
         crateName = "academy_core_config_contracts";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/config/contracts; };
         dependencies = [
           {
@@ -1458,7 +1458,7 @@ rec {
       "academy_core_config_impl" = rec {
         crateName = "academy_core_config_impl";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/config/impl; };
         dependencies = [
           {
@@ -1496,7 +1496,7 @@ rec {
       "academy_core_contact_contracts" = rec {
         crateName = "academy_core_contact_contracts";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/contact/contracts; };
         dependencies = [
           {
@@ -1529,7 +1529,7 @@ rec {
       "academy_core_contact_impl" = rec {
         crateName = "academy_core_contact_impl";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/contact/impl; };
         dependencies = [
           {
@@ -1597,7 +1597,7 @@ rec {
       "academy_core_finance_contracts" = rec {
         crateName = "academy_core_finance_contracts";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/finance/contracts; };
         dependencies = [
           {
@@ -1636,7 +1636,7 @@ rec {
       "academy_core_finance_impl" = rec {
         crateName = "academy_core_finance_impl";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/finance/impl; };
         dependencies = [
           {
@@ -1753,14 +1753,14 @@ rec {
       "academy_core_health_contracts" = rec {
         crateName = "academy_core_health_contracts";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/health/contracts; };
 
       };
       "academy_core_health_impl" = rec {
         crateName = "academy_core_health_impl";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/health/impl; };
         dependencies = [
           {
@@ -1815,7 +1815,7 @@ rec {
       "academy_core_heart_contracts" = rec {
         crateName = "academy_core_heart_contracts";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/heart/contracts; };
         dependencies = [
           {
@@ -1848,7 +1848,7 @@ rec {
       "academy_core_heart_impl" = rec {
         crateName = "academy_core_heart_impl";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/heart/impl; };
         dependencies = [
           {
@@ -1944,7 +1944,7 @@ rec {
       "academy_core_internal_contracts" = rec {
         crateName = "academy_core_internal_contracts";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/internal/contracts; };
         dependencies = [
           {
@@ -1981,7 +1981,7 @@ rec {
       "academy_core_internal_impl" = rec {
         crateName = "academy_core_internal_impl";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/internal/impl; };
         dependencies = [
           {
@@ -2090,7 +2090,7 @@ rec {
       "academy_core_mfa_contracts" = rec {
         crateName = "academy_core_mfa_contracts";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/mfa/contracts; };
         dependencies = [
           {
@@ -2123,7 +2123,7 @@ rec {
       "academy_core_mfa_impl" = rec {
         crateName = "academy_core_mfa_impl";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/mfa/impl; };
         dependencies = [
           {
@@ -2204,7 +2204,7 @@ rec {
       "academy_core_oauth2_contracts" = rec {
         crateName = "academy_core_oauth2_contracts";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/oauth2/contracts; };
         dependencies = [
           {
@@ -2237,7 +2237,7 @@ rec {
       "academy_core_oauth2_impl" = rec {
         crateName = "academy_core_oauth2_impl";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/oauth2/impl; };
         dependencies = [
           {
@@ -2345,7 +2345,7 @@ rec {
       "academy_core_paypal_contracts" = rec {
         crateName = "academy_core_paypal_contracts";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/paypal/contracts; };
         dependencies = [
           {
@@ -2378,7 +2378,7 @@ rec {
       "academy_core_paypal_impl" = rec {
         crateName = "academy_core_paypal_impl";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/paypal/impl; };
         dependencies = [
           {
@@ -2515,7 +2515,7 @@ rec {
       "academy_core_premium_contracts" = rec {
         crateName = "academy_core_premium_contracts";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/premium/contracts; };
         dependencies = [
           {
@@ -2548,7 +2548,7 @@ rec {
       "academy_core_premium_impl" = rec {
         crateName = "academy_core_premium_impl";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/premium/impl; };
         dependencies = [
           {
@@ -2644,7 +2644,7 @@ rec {
       "academy_core_session_contracts" = rec {
         crateName = "academy_core_session_contracts";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/session/contracts; };
         dependencies = [
           {
@@ -2677,7 +2677,7 @@ rec {
       "academy_core_session_impl" = rec {
         crateName = "academy_core_session_impl";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/session/impl; };
         dependencies = [
           {
@@ -2791,7 +2791,7 @@ rec {
       "academy_core_user_contracts" = rec {
         crateName = "academy_core_user_contracts";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/user/contracts; };
         dependencies = [
           {
@@ -2838,7 +2838,7 @@ rec {
       "academy_core_user_impl" = rec {
         crateName = "academy_core_user_impl";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/user/impl; };
         dependencies = [
           {
@@ -2989,7 +2989,7 @@ rec {
       "academy_demo" = rec {
         crateName = "academy_demo";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_demo; };
         dependencies = [
           {
@@ -3041,7 +3041,7 @@ rec {
       "academy_di" = rec {
         crateName = "academy_di";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_di; };
         dependencies = [
           {
@@ -3054,7 +3054,7 @@ rec {
       "academy_di_derive" = rec {
         crateName = "academy_di_derive";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_di_derive; };
         procMacro = true;
         dependencies = [
@@ -3082,7 +3082,7 @@ rec {
       "academy_email_contracts" = rec {
         crateName = "academy_email_contracts";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_email/contracts; };
         dependencies = [
           {
@@ -3114,7 +3114,7 @@ rec {
       "academy_email_impl" = rec {
         crateName = "academy_email_impl";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_email/impl; };
         dependencies = [
           {
@@ -3197,7 +3197,7 @@ rec {
       "academy_extern_contracts" = rec {
         crateName = "academy_extern_contracts";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_extern/contracts; };
         dependencies = [
           {
@@ -3230,7 +3230,7 @@ rec {
       "academy_extern_impl" = rec {
         crateName = "academy_extern_impl";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_extern/impl; };
         dependencies = [
           {
@@ -3320,7 +3320,7 @@ rec {
       "academy_models" = rec {
         crateName = "academy_models";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_models; };
         dependencies = [
           {
@@ -3405,7 +3405,7 @@ rec {
       "academy_persistence_contracts" = rec {
         crateName = "academy_persistence_contracts";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_persistence/contracts; };
         dependencies = [
           {
@@ -3450,7 +3450,7 @@ rec {
       "academy_persistence_postgres" = rec {
         crateName = "academy_persistence_postgres";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_persistence/postgres; };
         dependencies = [
           {
@@ -3549,7 +3549,7 @@ rec {
       "academy_render_daemon" = rec {
         crateName = "academy_render_daemon";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         crateBin = [
           {
             name = "academy-render-daemon";
@@ -3615,7 +3615,7 @@ rec {
       "academy_shared_contracts" = rec {
         crateName = "academy_shared_contracts";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_shared/contracts; };
         dependencies = [
           {
@@ -3666,7 +3666,7 @@ rec {
       "academy_shared_impl" = rec {
         crateName = "academy_shared_impl";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_shared/impl; };
         dependencies = [
           {
@@ -3804,7 +3804,7 @@ rec {
       "academy_templates_contracts" = rec {
         crateName = "academy_templates_contracts";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_templates/contracts; };
         dependencies = [
           {
@@ -3859,7 +3859,7 @@ rec {
       "academy_templates_impl" = rec {
         crateName = "academy_templates_impl";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_templates/impl; };
         dependencies = [
           {
@@ -3908,7 +3908,7 @@ rec {
       "academy_testing" = rec {
         crateName = "academy_testing";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         crateBin = [
           {
             name = "academy-testing";
@@ -4005,7 +4005,7 @@ rec {
       "academy_utils" = rec {
         crateName = "academy_utils";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_utils; };
         dependencies = [
           {
@@ -4038,7 +4038,7 @@ rec {
       "academy_utils_derive" = rec {
         crateName = "academy_utils_derive";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_utils_derive; };
         procMacro = true;
         dependencies = [
@@ -5902,7 +5902,7 @@ rec {
       "clorinde" = rec {
         crateName = "clorinde";
         version = "0.0.0";
-        edition = "2021";
+        edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_persistence/postgres/clorinde; };
         dependencies = [
           {

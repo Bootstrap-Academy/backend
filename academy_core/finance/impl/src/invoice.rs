@@ -255,8 +255,8 @@ mod tests {
 
     use academy_core_finance_contracts::coin::MockFinanceCoinService;
     use academy_demo::{
-        user::{BAR, FOO},
         UUID1,
+        user::{BAR, FOO},
     };
     use academy_extern_contracts::render::MockRenderApiService;
     use academy_models::{

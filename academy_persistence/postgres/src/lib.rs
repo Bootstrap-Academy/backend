@@ -3,11 +3,11 @@ use std::{collections::HashSet, future::Future, time::Duration};
 use academy_models::Sha256Hash;
 use academy_persistence_contracts::{Database, Transaction};
 use academy_utils::trace_instrument;
-use anyhow::{anyhow, Context};
+use anyhow::{Context, anyhow};
 use bb8::{Pool, PooledConnection};
 use bb8_postgres::{
-    tokio_postgres::{self, NoTls},
     PostgresConnectionManager,
+    tokio_postgres::{self, NoTls},
 };
 use ouroboros::self_referencing;
 use tracing::trace;

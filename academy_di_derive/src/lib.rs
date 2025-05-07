@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
-use darling::{util::Flag, FromField};
+use darling::{FromField, util::Flag};
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput, Field};
+use syn::{DeriveInput, Field, parse_macro_input};
 
 #[derive(Debug, FromField)]
 #[darling(attributes(di))]

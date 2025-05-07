@@ -4,10 +4,10 @@ use academy_di::Build;
 use academy_models::Sensitive;
 use academy_shared_contracts::password::{PasswordService, PasswordVerifyError};
 use academy_utils::trace_instrument;
-use anyhow::{anyhow, Context};
+use anyhow::{Context, anyhow};
 use argon2::{
-    password_hash::{self, rand_core::OsRng, SaltString},
     Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
+    password_hash::{self, SaltString, rand_core::OsRng},
 };
 
 #[derive(Debug, Clone, Default, Build)]

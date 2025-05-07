@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use academy_demo::user::FOO;
 use academy_models::heart::Hearts;
-use academy_persistence_contracts::{heart::HeartRepository, Database, Transaction};
+use academy_persistence_contracts::{Database, Transaction, heart::HeartRepository};
 use academy_persistence_postgres::heart::PostgresHeartRepository;
 
 use crate::common::setup;

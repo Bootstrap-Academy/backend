@@ -11,7 +11,7 @@ use std::{
 use aide::axum::ApiRouter;
 use axum::{
     extract::{ConnectInfo, Request},
-    middleware::{from_fn, Next},
+    middleware::{Next, from_fn},
 };
 use tracing::{debug, error, warn};
 

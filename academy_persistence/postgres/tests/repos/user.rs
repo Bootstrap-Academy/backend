@@ -1,14 +1,14 @@
 use std::sync::LazyLock;
 
 use academy_demo::{
+    UUID1,
     oauth2::FOO_OAUTH2_LINK_1,
     user::{ADMIN, ADMIN2, ALL_USERS, BAR, FOO},
-    UUID1,
 };
 use academy_models::user::{User, UserComposite, UserDetails, UserFilter};
 use academy_persistence_contracts::{
-    user::{UserRepoError, UserRepository},
     Database, Transaction,
+    user::{UserRepoError, UserRepository},
 };
 use academy_persistence_postgres::user::PostgresUserRepository;
 use academy_utils::{assert_matches, patch::Patch};

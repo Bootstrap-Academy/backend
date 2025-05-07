@@ -1,6 +1,6 @@
 use std::future::Future;
 
-use academy_models::{contact::ContactMessage, RecaptchaResponse};
+use academy_models::{RecaptchaResponse, contact::ContactMessage};
 use thiserror::Error;
 
 pub trait ContactFeatureService: Send + Sync + 'static {

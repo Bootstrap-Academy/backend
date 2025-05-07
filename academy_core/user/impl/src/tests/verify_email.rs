@@ -1,12 +1,12 @@
 use academy_core_user_contracts::{
-    email_confirmation::{MockUserEmailConfirmationService, UserEmailConfirmationVerifyEmailError},
     UserFeatureService, UserVerifyEmailError,
+    email_confirmation::{MockUserEmailConfirmationService, UserEmailConfirmationVerifyEmailError},
 };
-use academy_demo::{user::FOO, VERIFICATION_CODE_1};
+use academy_demo::{VERIFICATION_CODE_1, user::FOO};
 use academy_persistence_contracts::MockDatabase;
 use academy_utils::assert_matches;
 
-use crate::{tests::Sut, UserFeatureServiceImpl};
+use crate::{UserFeatureServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn ok() {

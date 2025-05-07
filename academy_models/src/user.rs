@@ -4,13 +4,13 @@ use academy_utils::patch::Patch;
 use chrono::{DateTime, Utc};
 use nutype::nutype;
 use regex::Regex;
-use schemars::{gen::SchemaGenerator, schema::Schema, JsonSchema};
+use schemars::{JsonSchema, r#gen::SchemaGenerator, schema::Schema};
 use serde::{Deserialize, Serialize};
 
 use crate::{
+    SearchTerm,
     email_address::EmailAddress,
     macros::{id, nutype_string},
-    SearchTerm,
 };
 
 pub static USER_NAME_REGEX: LazyLock<Regex> =

@@ -2,7 +2,7 @@ use academy_config::Config;
 use academy_email_contracts::{ContentType, Email, EmailService};
 use academy_email_impl::EmailServiceImpl;
 use academy_models::email_address::EmailAddressWithName;
-use anyhow::{anyhow, Context};
+use anyhow::{Context, anyhow};
 use clap::Subcommand;
 
 #[derive(Debug, Subcommand)]

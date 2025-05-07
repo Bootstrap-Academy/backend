@@ -2,9 +2,9 @@ use std::collections::HashMap;
 
 use academy_auth_contracts::{AuthResultExt, AuthService};
 use academy_core_premium_contracts::{
-    plan::PremiumPlanService, premium::PremiumService, purchase::PremiumPurchaseService,
     PremiumFeatureService, PremiumGetStatusError, PremiumPurchaseError,
-    PremiumUpdateSubscriptionError,
+    PremiumUpdateSubscriptionError, plan::PremiumPlanService, premium::PremiumService,
+    purchase::PremiumPurchaseService,
 };
 use academy_di::Build;
 use academy_models::{
@@ -13,7 +13,7 @@ use academy_models::{
     user::UserIdOrSelf,
 };
 use academy_persistence_contracts::{
-    premium::PremiumRepository, user::UserRepository, Database, Transaction,
+    Database, Transaction, premium::PremiumRepository, user::UserRepository,
 };
 use academy_utils::trace_instrument;
 

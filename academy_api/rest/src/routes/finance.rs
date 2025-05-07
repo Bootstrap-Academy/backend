@@ -4,16 +4,16 @@ use academy_core_finance_contracts::{
     FinanceDownloadError, FinanceFeatureService, FinanceGetDownloadTokenError,
 };
 use aide::{
-    axum::{routing, ApiRouter},
+    axum::{ApiRouter, routing},
     transform::TransformOperation,
 };
 use axum::{
+    Json,
     extract::{Path, State},
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
 };
-use axum_extra::{headers::ContentType, TypedHeader};
+use axum_extra::{TypedHeader, headers::ContentType};
 use mime::APPLICATION_PDF;
 use schemars::JsonSchema;
 use serde::Deserialize;
@@ -22,8 +22,8 @@ use crate::{
     docs::TransformOperationExt,
     error_code,
     errors::{
-        auth_error, auth_error_docs, internal_server_error, internal_server_error_docs,
-        InvalidTokenError,
+        InvalidTokenError, auth_error, auth_error_docs, internal_server_error,
+        internal_server_error_docs,
     },
     extractors::auth::ApiToken,
 };

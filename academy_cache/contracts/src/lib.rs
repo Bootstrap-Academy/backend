@@ -1,6 +1,6 @@
 use std::{fmt::Debug, future::Future, time::Duration};
 
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait CacheService: Sized + Send + Sync + 'static {

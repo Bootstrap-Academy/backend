@@ -8,7 +8,7 @@ use tracing::{info, warn};
 
 use crate::{
     cache, database, email,
-    environment::{types::RestServer, ConfigProvider, Provider},
+    environment::{ConfigProvider, Provider, types::RestServer},
 };
 
 pub async fn serve(config: Config) -> anyhow::Result<()> {

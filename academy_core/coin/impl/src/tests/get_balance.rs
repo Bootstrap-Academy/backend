@@ -10,11 +10,11 @@ use academy_models::{
     user::UserIdOrSelf,
 };
 use academy_persistence_contracts::{
-    coin::MockCoinRepository, user::MockUserRepository, MockDatabase,
+    MockDatabase, coin::MockCoinRepository, user::MockUserRepository,
 };
 use academy_utils::assert_matches;
 
-use crate::{tests::Sut, CoinFeatureServiceImpl};
+use crate::{CoinFeatureServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn ok() {

@@ -2,14 +2,14 @@ use std::sync::Arc;
 
 use academy_core_health_contracts::HealthFeatureService;
 use aide::{
-    axum::{routing, ApiRouter},
+    axum::{ApiRouter, routing},
     transform::TransformOperation,
 };
 use axum::{
+    Json,
     extract::State,
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
 };
 use schemars::JsonSchema;
 use serde::Serialize;

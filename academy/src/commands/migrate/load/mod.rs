@@ -1,6 +1,6 @@
 use academy_persistence_postgres::PostgresDatabase;
 use bb8::{Pool, PooledConnection};
-use bb8_postgres::{tokio_postgres::NoTls, PostgresConnectionManager};
+use bb8_postgres::{PostgresConnectionManager, tokio_postgres::NoTls};
 use clap::Subcommand;
 
 use super::migration_logs;

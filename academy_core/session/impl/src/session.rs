@@ -1,4 +1,4 @@
-use academy_auth_contracts::{access_token::AuthAccessTokenService, AuthService};
+use academy_auth_contracts::{AuthService, access_token::AuthAccessTokenService};
 use academy_core_session_contracts::session::{SessionRefreshError, SessionService};
 use academy_di::Build;
 use academy_models::{
@@ -184,9 +184,9 @@ mod tests {
     use std::time::Duration;
 
     use academy_auth_contracts::{
-        access_token::MockAuthAccessTokenService, MockAuthService, Tokens,
+        MockAuthService, Tokens, access_token::MockAuthAccessTokenService,
     };
-    use academy_demo::{session::FOO_1, user::FOO, SHA256HASH1, SHA256HASH2};
+    use academy_demo::{SHA256HASH1, SHA256HASH2, session::FOO_1, user::FOO};
     use academy_models::user::{User, UserPatch};
     use academy_persistence_contracts::{session::MockSessionRepository, user::MockUserRepository};
     use academy_shared_contracts::{id::MockIdService, time::MockTimeService};

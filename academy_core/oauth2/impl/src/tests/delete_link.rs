@@ -7,11 +7,11 @@ use academy_demo::{
 };
 use academy_models::auth::{AuthError, AuthenticateError, AuthorizeError};
 use academy_persistence_contracts::{
-    oauth2::MockOAuth2Repository, user::MockUserRepository, MockDatabase,
+    MockDatabase, oauth2::MockOAuth2Repository, user::MockUserRepository,
 };
-use academy_utils::{assert_matches, Apply};
+use academy_utils::{Apply, assert_matches};
 
-use crate::{tests::Sut, OAuth2FeatureServiceImpl};
+use crate::{OAuth2FeatureServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn ok() {

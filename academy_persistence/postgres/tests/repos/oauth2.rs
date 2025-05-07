@@ -1,15 +1,15 @@
 use academy_demo::{
+    UUID1, UUID2,
     oauth2::FOO_OAUTH2_LINK_1,
     user::{BAR, FOO},
-    UUID1, UUID2,
 };
 use academy_models::oauth2::{OAuth2Link, OAuth2UserInfo};
 use academy_persistence_contracts::{
-    oauth2::{OAuth2RepoError, OAuth2Repository},
     Database, Transaction,
+    oauth2::{OAuth2RepoError, OAuth2Repository},
 };
 use academy_persistence_postgres::oauth2::PostgresOAuth2Repository;
-use academy_utils::{assert_matches, Apply};
+use academy_utils::{Apply, assert_matches};
 
 use crate::common::setup;
 

@@ -1,11 +1,11 @@
 use academy_auth_contracts::{
-    access_token::MockAuthAccessTokenService, AuthService, Authentication,
+    AuthService, Authentication, access_token::MockAuthAccessTokenService,
 };
-use academy_demo::{user::FOO, SHA256HASH1, UUID1};
+use academy_demo::{SHA256HASH1, UUID1, user::FOO};
 use academy_models::auth::AuthenticateError;
 use academy_utils::assert_matches;
 
-use crate::{tests::Sut, AuthServiceImpl};
+use crate::{AuthServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn ok() {

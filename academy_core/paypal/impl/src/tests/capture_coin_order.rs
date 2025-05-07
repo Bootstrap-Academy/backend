@@ -4,7 +4,7 @@ use academy_core_finance_contracts::{
     invoice::MockFinanceInvoiceService,
 };
 use academy_core_paypal_contracts::{
-    coin_order::MockPaypalCoinOrderService, PaypalCaptureCoinOrderError, PaypalFeatureService,
+    PaypalCaptureCoinOrderError, PaypalFeatureService, coin_order::MockPaypalCoinOrderService,
 };
 use academy_demo::{
     session::{BAR_1, FOO_1},
@@ -18,13 +18,13 @@ use academy_models::{
     paypal::{PaypalCoinOrder, PaypalOrderId},
 };
 use academy_persistence_contracts::{
-    paypal::MockPaypalRepository, user::MockUserRepository, MockDatabase,
+    MockDatabase, paypal::MockPaypalRepository, user::MockUserRepository,
 };
 use academy_templates_contracts::PurchaseConfirmationTemplate;
-use academy_utils::{assert_matches, Apply};
+use academy_utils::{Apply, assert_matches};
 use rust_decimal_macros::dec;
 
-use crate::{tests::Sut, PaypalFeatureServiceImpl};
+use crate::{PaypalFeatureServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn ok() {

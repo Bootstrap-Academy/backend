@@ -1,7 +1,7 @@
 use academy_auth_contracts::MockAuthService;
 use academy_core_coin_contracts::coin::{CoinAddCoinsError, MockCoinService};
 use academy_core_heart_contracts::{
-    heart::MockHeartService, HeartFeatureService, HeartRefillError,
+    HeartFeatureService, HeartRefillError, heart::MockHeartService,
 };
 use academy_demo::{session::FOO_1, user::FOO};
 use academy_models::{
@@ -10,9 +10,9 @@ use academy_models::{
     heart::Hearts,
 };
 use academy_persistence_contracts::MockDatabase;
-use academy_utils::{assert_matches, Apply};
+use academy_utils::{Apply, assert_matches};
 
-use crate::{tests::Sut, HeartFeatureServiceImpl};
+use crate::{HeartFeatureServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn ok() {

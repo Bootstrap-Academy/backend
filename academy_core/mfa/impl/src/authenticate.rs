@@ -80,7 +80,7 @@ where
                     }
                     Err(TotpCheckError::InvalidCode | TotpCheckError::RecentlyUsed) => (),
                     Err(TotpCheckError::Other(err)) => {
-                        return Err(err.context("Failed to check totp code").into())
+                        return Err(err.context("Failed to check totp code").into());
                     }
                 }
             }
@@ -95,7 +95,7 @@ where
 #[cfg(test)]
 mod tests {
     use academy_core_mfa_contracts::disable::MockMfaDisableService;
-    use academy_demo::{user::FOO, SHA256HASH1, SHA256HASH2};
+    use academy_demo::{SHA256HASH1, SHA256HASH2, user::FOO};
     use academy_models::mfa::TotpSecret;
     use academy_persistence_contracts::mfa::MockMfaRepository;
     use academy_shared_contracts::{

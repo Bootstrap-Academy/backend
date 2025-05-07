@@ -1,7 +1,7 @@
 use academy_auth_contracts::MockAuthService;
 use academy_core_coin_contracts::coin::MockCoinService;
 use academy_core_heart_contracts::heart::MockHeartService;
-use academy_persistence_contracts::{user::MockUserRepository, MockDatabase, MockTransaction};
+use academy_persistence_contracts::{MockDatabase, MockTransaction, user::MockUserRepository};
 use chrono::NaiveTime;
 
 use crate::{HeartFeatureConfig, HeartFeatureServiceImpl};

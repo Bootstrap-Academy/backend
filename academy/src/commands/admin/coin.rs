@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 use crate::{
     cache, database, email,
-    environment::{types, ConfigProvider, Provider},
+    environment::{ConfigProvider, Provider, types},
 };
 
 #[derive(Debug, Subcommand)]

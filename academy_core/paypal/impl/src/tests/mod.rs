@@ -6,7 +6,7 @@ use academy_core_paypal_contracts::coin_order::MockPaypalCoinOrderService;
 use academy_email_contracts::template::MockTemplateEmailService;
 use academy_extern_contracts::paypal::MockPaypalApiService;
 use academy_persistence_contracts::{
-    paypal::MockPaypalRepository, user::MockUserRepository, MockDatabase, MockTransaction,
+    MockDatabase, MockTransaction, paypal::MockPaypalRepository, user::MockUserRepository,
 };
 
 use crate::{PaypalFeatureConfig, PaypalFeatureServiceImpl};

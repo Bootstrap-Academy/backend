@@ -1,4 +1,5 @@
 use academy_models::{
+    SearchTerm,
     email_address::EmailAddress,
     url::Url,
     user::{
@@ -6,12 +7,11 @@ use academy_models::{
         UserId, UserIdOrSelf, UserLastName, UserName, UserPassword, UserStreet, UserTags,
         UserVatId, UserZipCode,
     },
-    SearchTerm,
 };
 use schemars::{
-    gen::SchemaGenerator,
-    schema::{Schema, SchemaObject, SubschemaValidation},
     JsonSchema,
+    r#gen::SchemaGenerator,
+    schema::{Schema, SchemaObject, SubschemaValidation},
 };
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -307,6 +307,9 @@ mod tests {
     #[test]
     fn get_avatar_url() {
         let result = super::get_avatar_url(&"Test@Example.com".parse().unwrap());
-        assert_eq!(result.as_str(), "https://gravatar.com/avatar/973dfe463ec85785f5f95af5ba3906eedb2d931c24e69824a89ea65dba4e813b");
+        assert_eq!(
+            result.as_str(),
+            "https://gravatar.com/avatar/973dfe463ec85785f5f95af5ba3906eedb2d931c24e69824a89ea65dba4e813b"
+        );
     }
 }

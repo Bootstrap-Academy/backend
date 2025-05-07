@@ -57,7 +57,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use academy_demo::{user::FOO, UUID1};
+    use academy_demo::{UUID1, user::FOO};
     use academy_models::coin::TransactionId;
     use academy_persistence_contracts::coin::MockCoinRepository;
     use academy_shared_contracts::{id::MockIdService, time::MockTimeService};

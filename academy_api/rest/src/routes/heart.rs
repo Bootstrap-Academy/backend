@@ -2,14 +2,14 @@ use std::sync::Arc;
 
 use academy_core_heart_contracts::{HeartFeatureService, HeartGetError, HeartRefillError};
 use aide::{
-    axum::{routing, ApiRouter},
+    axum::{ApiRouter, routing},
     transform::TransformOperation,
 };
 use axum::{
+    Json,
     extract::{Path, State},
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
 };
 
 use super::{coin::NotEnoughCoinsError, user::UserNotFoundError};

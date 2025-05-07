@@ -1,6 +1,6 @@
 use academy_auth_contracts::MockAuthService;
 use academy_core_session_contracts::{
-    session::MockSessionService, SessionDeleteError, SessionFeatureService,
+    SessionDeleteError, SessionFeatureService, session::MockSessionService,
 };
 use academy_demo::{
     session::{ADMIN_1, BAR_1, FOO_1, FOO_2},
@@ -10,10 +10,10 @@ use academy_models::{
     auth::{AuthError, AuthenticateError, AuthorizeError},
     user::UserIdOrSelf,
 };
-use academy_persistence_contracts::{session::MockSessionRepository, MockDatabase};
+use academy_persistence_contracts::{MockDatabase, session::MockSessionRepository};
 use academy_utils::assert_matches;
 
-use crate::{tests::Sut, SessionFeatureServiceImpl};
+use crate::{SessionFeatureServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn ok_current() {

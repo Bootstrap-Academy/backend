@@ -4,7 +4,7 @@ use academy_core_mfa_contracts::{
     totp_device::MockMfaTotpDeviceService,
 };
 use academy_persistence_contracts::{
-    mfa::MockMfaRepository, user::MockUserRepository, MockDatabase, MockTransaction,
+    MockDatabase, MockTransaction, mfa::MockMfaRepository, user::MockUserRepository,
 };
 
 use crate::MfaFeatureServiceImpl;

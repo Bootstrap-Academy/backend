@@ -1,8 +1,8 @@
 use academy_auth_contracts::MockAuthService;
 use academy_core_oauth2_contracts::{
+    OAuth2CreateLinkError, OAuth2FeatureService,
     link::{MockOAuth2LinkService, OAuth2LinkServiceError},
     login::{MockOAuth2LoginService, OAuth2LoginServiceError},
-    OAuth2CreateLinkError, OAuth2FeatureService,
 };
 use academy_demo::{
     oauth2::{FOO_OAUTH2_LINK_1, TEST_OAUTH2_PROVIDER_ID},
@@ -14,10 +14,10 @@ use academy_models::{
     oauth2::OAuth2Login,
     user::UserIdOrSelf,
 };
-use academy_persistence_contracts::{user::MockUserRepository, MockDatabase};
+use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
 use academy_utils::assert_matches;
 
-use crate::{tests::Sut, OAuth2FeatureServiceImpl};
+use crate::{OAuth2FeatureServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn ok() {

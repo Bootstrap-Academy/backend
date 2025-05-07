@@ -8,10 +8,10 @@ use academy_models::{
     auth::{AuthError, AuthenticateError, AuthorizeError},
     user::UserIdOrSelf,
 };
-use academy_persistence_contracts::{session::MockSessionRepository, MockDatabase};
+use academy_persistence_contracts::{MockDatabase, session::MockSessionRepository};
 use academy_utils::assert_matches;
 
-use crate::{tests::Sut, SessionFeatureServiceImpl};
+use crate::{SessionFeatureServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn ok_self() {

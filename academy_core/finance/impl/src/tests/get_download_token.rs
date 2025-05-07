@@ -5,7 +5,7 @@ use academy_models::auth::{AuthError, AuthenticateError};
 use academy_shared_contracts::jwt::MockJwtService;
 use academy_utils::assert_matches;
 
-use crate::{tests::Sut, DownloadToken, FinanceFeatureConfig, FinanceFeatureServiceImpl};
+use crate::{DownloadToken, FinanceFeatureConfig, FinanceFeatureServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn ok() {

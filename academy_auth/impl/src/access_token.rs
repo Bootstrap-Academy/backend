@@ -1,4 +1,4 @@
-use academy_auth_contracts::{access_token::AuthAccessTokenService, Authentication};
+use academy_auth_contracts::{Authentication, access_token::AuthAccessTokenService};
 use academy_cache_contracts::CacheService;
 use academy_di::Build;
 use academy_models::{
@@ -136,7 +136,7 @@ fn access_token_invalidated_key(refresh_token_hash: SessionRefreshTokenHash) -> 
 #[cfg(test)]
 mod tests {
     use academy_cache_contracts::MockCacheService;
-    use academy_demo::{user::FOO, SHA256HASH1, SHA256HASH1_HEX, UUID1};
+    use academy_demo::{SHA256HASH1, SHA256HASH1_HEX, UUID1, user::FOO};
     use academy_shared_contracts::jwt::{MockJwtService, VerifyJwtError};
 
     use super::*;

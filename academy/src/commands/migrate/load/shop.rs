@@ -5,12 +5,13 @@ use academy_models::{
     premium::{Premium, PremiumPlan},
 };
 use academy_persistence_contracts::{
-    coin::CoinRepository, heart::HeartRepository, paypal::PaypalRepository,
-    premium::PremiumRepository, user::UserRepository, Database, Transaction as _,
+    Database, Transaction as _, coin::CoinRepository, heart::HeartRepository,
+    paypal::PaypalRepository, premium::PremiumRepository, user::UserRepository,
 };
 use academy_persistence_postgres::{
-    coin::PostgresCoinRepository, heart::PostgresHeartRepository, paypal::PostgresPaypalRepository,
-    premium::PostgresPremiumRepository, user::PostgresUserRepository, PostgresDatabase,
+    PostgresDatabase, coin::PostgresCoinRepository, heart::PostgresHeartRepository,
+    paypal::PostgresPaypalRepository, premium::PostgresPremiumRepository,
+    user::PostgresUserRepository,
 };
 use chrono::NaiveDateTime;
 use indicatif::ProgressIterator;

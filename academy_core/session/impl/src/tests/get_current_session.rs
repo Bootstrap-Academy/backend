@@ -2,10 +2,10 @@ use academy_auth_contracts::MockAuthService;
 use academy_core_session_contracts::{SessionFeatureService, SessionGetCurrentError};
 use academy_demo::{session::FOO_1, user::FOO};
 use academy_models::auth::{AuthError, AuthenticateError};
-use academy_persistence_contracts::{session::MockSessionRepository, MockDatabase};
+use academy_persistence_contracts::{MockDatabase, session::MockSessionRepository};
 use academy_utils::assert_matches;
 
-use crate::{tests::Sut, SessionFeatureServiceImpl};
+use crate::{SessionFeatureServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn ok() {

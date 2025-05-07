@@ -2,17 +2,18 @@ use std::{collections::HashMap, net::IpAddr, sync::Arc};
 
 use anyhow::Context;
 use axum::{
+    Form, Json, Router,
     extract::Query,
     http::StatusCode,
     response::{Html, IntoResponse, Redirect, Response},
-    routing, Form, Json, Router,
+    routing,
 };
 use axum_extra::{
-    headers::{
-        authorization::{Basic, Bearer},
-        Authorization,
-    },
     TypedHeader,
+    headers::{
+        Authorization,
+        authorization::{Basic, Bearer},
+    },
 };
 use oauth2::{PkceCodeChallenge, PkceCodeVerifier};
 use rand::{
@@ -219,7 +220,7 @@ async fn token(
                 StatusCode::BAD_REQUEST,
                 "pkce challenge and verifier must be either both set or unset",
             )
-                .into_response()
+                .into_response();
         }
     }
 

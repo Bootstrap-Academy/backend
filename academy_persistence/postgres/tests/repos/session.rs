@@ -1,12 +1,12 @@
 use std::time::Duration;
 
 use academy_demo::{
+    SHA256HASH1, SHA256HASH2, UUID1,
     session::{ADMIN_1, ALL_SESSIONS, FOO_1, FOO_2},
     user::{ADMIN, ALL_USERS, FOO},
-    SHA256HASH1, SHA256HASH2, UUID1,
 };
 use academy_models::session::{Session, SessionRefreshTokenHash};
-use academy_persistence_contracts::{session::SessionRepository, Database, Transaction};
+use academy_persistence_contracts::{Database, Transaction, session::SessionRepository};
 use academy_persistence_postgres::session::PostgresSessionRepository;
 use academy_utils::patch::Patch;
 use pretty_assertions::assert_eq;

@@ -3,7 +3,7 @@ use std::time::Duration;
 use academy_cache_contracts::CacheService;
 use academy_cache_valkey::{ValkeyCache, ValkeyCacheConfig};
 use academy_demo::SHA256HASH1;
-use academy_models::{email_address::EmailAddress, Sha256Hash};
+use academy_models::{Sha256Hash, email_address::EmailAddress};
 use serde::{Deserialize, Serialize};
 
 #[tokio::test]

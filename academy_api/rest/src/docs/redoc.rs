@@ -2,8 +2,9 @@ use std::sync::LazyLock;
 
 use aide::redoc::Redoc;
 use axum::{
+    Router,
     response::{Html, IntoResponse, Response},
-    routing, Router,
+    routing,
 };
 
 static REDOC_HTML: LazyLock<String> = LazyLock::new(|| {

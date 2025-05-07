@@ -1,18 +1,18 @@
 use academy_auth_contracts::MockAuthService;
 use academy_core_user_contracts::{
-    update::MockUserUpdateService, UserFeatureService, UserUpdateError, UserUpdateRequest,
-    UserUpdateUserRequest,
+    UserFeatureService, UserUpdateError, UserUpdateRequest, UserUpdateUserRequest,
+    update::MockUserUpdateService,
 };
 use academy_demo::{
+    UUID1,
     session::ADMIN_1,
     user::{ADMIN, FOO},
-    UUID1,
 };
 use academy_models::user::{User, UserComposite, UserIdOrSelf};
-use academy_persistence_contracts::{user::MockUserRepository, MockDatabase};
+use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
 use academy_utils::assert_matches;
 
-use crate::{tests::Sut, UserFeatureServiceImpl};
+use crate::{UserFeatureServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn update_admin() {

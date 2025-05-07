@@ -6,7 +6,7 @@ use academy_shared_contracts::jwt::JwtService;
 use anyhow::Context;
 use clap::Subcommand;
 
-use crate::environment::{types::Jwt, ConfigProvider};
+use crate::environment::{ConfigProvider, types::Jwt};
 
 #[derive(Debug, Subcommand)]
 pub enum JwtCommand {

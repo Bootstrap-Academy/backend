@@ -3,14 +3,14 @@ use std::sync::Arc;
 use academy_core_contact_contracts::{ContactFeatureService, ContactSendMessageError};
 use academy_models::RecaptchaResponse;
 use aide::{
-    axum::{routing, ApiRouter},
+    axum::{ApiRouter, routing},
     transform::TransformOperation,
 };
 use axum::{
+    Json,
     extract::State,
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
 };
 use schemars::JsonSchema;
 use serde::Deserialize;
@@ -18,8 +18,8 @@ use serde::Deserialize;
 use crate::{
     docs::TransformOperationExt,
     error_code,
-    errors::{internal_server_error, internal_server_error_docs, RecaptchaFailedError},
-    models::{contact::ApiContactMessage, OkResponse, StringOption},
+    errors::{RecaptchaFailedError, internal_server_error, internal_server_error_docs},
+    models::{OkResponse, StringOption, contact::ApiContactMessage},
 };
 
 pub const TAG: &str = "Contact";

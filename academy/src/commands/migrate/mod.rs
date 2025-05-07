@@ -1,9 +1,9 @@
 use academy_config::Config;
 use academy_persistence_contracts::{Database, Transaction};
 use academy_persistence_postgres::{
-    mfa::PostgresMfaRepository, oauth2::PostgresOAuth2Repository,
-    session::PostgresSessionRepository, user::PostgresUserRepository, MigrationStatus,
-    PostgresDatabase,
+    MigrationStatus, PostgresDatabase, mfa::PostgresMfaRepository,
+    oauth2::PostgresOAuth2Repository, session::PostgresSessionRepository,
+    user::PostgresUserRepository,
 };
 use anyhow::Context;
 use clap::Subcommand;

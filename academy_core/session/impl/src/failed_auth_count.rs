@@ -71,7 +71,7 @@ where
 #[cfg(test)]
 mod tests {
     use academy_cache_contracts::MockCacheService;
-    use academy_demo::{user::FOO, SHA256HASH1, SHA256HASH1_HEX};
+    use academy_demo::{SHA256HASH1, SHA256HASH1_HEX, user::FOO};
     use academy_shared_contracts::hash::MockHashService;
 
     use super::*;
@@ -83,7 +83,7 @@ mod tests {
             MockHashService::new().with_sha256(FOO.user.name.clone().into_inner(), *SHA256HASH1);
 
         let cache = MockCacheService::new().with_get(
-            format!("failed_auth_attempts:{}", SHA256HASH1_HEX),
+            format!("failed_auth_attempts:{SHA256HASH1_HEX}"),
             Some(3u64),
         );
 
@@ -106,7 +106,7 @@ mod tests {
             *SHA256HASH1,
         );
 
-        let cache_key = format!("failed_auth_attempts:{}", SHA256HASH1_HEX);
+        let cache_key = format!("failed_auth_attempts:{SHA256HASH1_HEX}");
         let cache = MockCacheService::new()
             .with_get(cache_key.clone(), Some(3u64))
             .with_set(cache_key, 4u64, None);
@@ -130,8 +130,8 @@ mod tests {
         let hash =
             MockHashService::new().with_sha256(FOO.user.name.clone().into_inner(), *SHA256HASH1);
 
-        let cache = MockCacheService::new()
-            .with_remove(format!("failed_auth_attempts:{}", SHA256HASH1_HEX));
+        let cache =
+            MockCacheService::new().with_remove(format!("failed_auth_attempts:{SHA256HASH1_HEX}"));
 
         let sut = SessionFailedAuthCountServiceImpl { hash, cache };
 

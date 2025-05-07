@@ -1,8 +1,8 @@
-use academy_demo::{user::FOO, UUID1, UUID2};
+use academy_demo::{UUID1, UUID2, user::FOO};
 use academy_models::coin::{Balance, Transaction};
 use academy_persistence_contracts::{
-    coin::{CoinRepoAddCoinsError, CoinRepository},
     Database, Transaction as _,
+    coin::{CoinRepoAddCoinsError, CoinRepository},
 };
 use academy_persistence_postgres::coin::PostgresCoinRepository;
 use academy_utils::assert_matches;

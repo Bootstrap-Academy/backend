@@ -1,9 +1,9 @@
-use academy_auth_contracts::{access_token::MockAuthAccessTokenService, AuthService};
-use academy_demo::{user::FOO, SHA256HASH1, SHA256HASH2};
+use academy_auth_contracts::{AuthService, access_token::MockAuthAccessTokenService};
+use academy_demo::{SHA256HASH1, SHA256HASH2, user::FOO};
 use academy_models::session::SessionRefreshTokenHash;
 use academy_persistence_contracts::session::MockSessionRepository;
 
-use crate::{tests::Sut, AuthServiceImpl};
+use crate::{AuthServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn ok() {

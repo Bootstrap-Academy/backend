@@ -4,7 +4,7 @@ use academy_core_contact_contracts::{ContactFeatureService, ContactSendMessageEr
 use academy_di::Build;
 use academy_email_contracts::{ContentType, Email, EmailService};
 use academy_models::{
-    contact::ContactMessage, email_address::EmailAddressWithName, RecaptchaResponse,
+    RecaptchaResponse, contact::ContactMessage, email_address::EmailAddressWithName,
 };
 use academy_shared_contracts::captcha::{CaptchaCheckError, CaptchaService};
 use academy_utils::trace_instrument;

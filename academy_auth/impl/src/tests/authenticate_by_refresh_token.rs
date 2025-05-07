@@ -1,14 +1,14 @@
 use std::time::Duration;
 
 use academy_auth_contracts::{
-    refresh_token::MockAuthRefreshTokenService, AuthService, AuthenticateByRefreshTokenError,
+    AuthService, AuthenticateByRefreshTokenError, refresh_token::MockAuthRefreshTokenService,
 };
-use academy_demo::{session::FOO_1, SHA256HASH1};
+use academy_demo::{SHA256HASH1, session::FOO_1};
 use academy_persistence_contracts::session::MockSessionRepository;
 use academy_shared_contracts::time::MockTimeService;
 use academy_utils::assert_matches;
 
-use crate::{tests::Sut, AuthServiceConfig, AuthServiceImpl};
+use crate::{AuthServiceConfig, AuthServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn authenticate_by_refresh_token_ok() {

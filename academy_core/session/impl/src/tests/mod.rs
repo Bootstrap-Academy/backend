@@ -4,7 +4,7 @@ use academy_core_session_contracts::{
     failed_auth_count::MockSessionFailedAuthCountService, session::MockSessionService,
 };
 use academy_persistence_contracts::{
-    session::MockSessionRepository, user::MockUserRepository, MockDatabase, MockTransaction,
+    MockDatabase, MockTransaction, session::MockSessionRepository, user::MockUserRepository,
 };
 use academy_shared_contracts::captcha::MockCaptchaService;
 

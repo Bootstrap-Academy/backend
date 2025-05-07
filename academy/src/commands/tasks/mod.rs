@@ -2,7 +2,7 @@ use academy_config::Config;
 use academy_core_premium_contracts::premium::PremiumService;
 use academy_di::Provide;
 use academy_persistence_contracts::{
-    premium::PremiumRepository, session::SessionRepository, Database, Transaction,
+    Database, Transaction, premium::PremiumRepository, session::SessionRepository,
 };
 use academy_persistence_postgres::session::PostgresSessionRepository;
 use anyhow::Context;
@@ -12,7 +12,7 @@ use tracing::info;
 
 use crate::{
     cache, database, email,
-    environment::{types, ConfigProvider, Provider},
+    environment::{ConfigProvider, Provider, types},
 };
 
 #[derive(Debug, Subcommand)]

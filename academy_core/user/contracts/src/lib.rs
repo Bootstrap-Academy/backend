@@ -1,6 +1,7 @@
 use std::future::Future;
 
 use academy_models::{
+    RecaptchaResponse, VerificationCode,
     auth::{AccessToken, AuthError, Login},
     email_address::EmailAddress,
     oauth2::OAuth2RegistrationToken,
@@ -9,7 +10,6 @@ use academy_models::{
         UserComposite, UserDisplayName, UserIdOrSelf, UserInvoiceInfo, UserName, UserPassword,
         UserProfilePatch,
     },
-    RecaptchaResponse, VerificationCode,
 };
 use academy_utils::patch::PatchValue;
 use chrono::{DateTime, Utc};

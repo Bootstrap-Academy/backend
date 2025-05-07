@@ -2,7 +2,7 @@ use std::{fmt::Debug, sync::Arc};
 
 use academy_assets::templates;
 use academy_di::Build;
-use academy_templates_contracts::{Template, TemplateService, TEMPLATES};
+use academy_templates_contracts::{TEMPLATES, Template, TemplateService};
 use anyhow::Context;
 use tera::Tera;
 use tracing::instrument;

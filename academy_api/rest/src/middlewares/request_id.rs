@@ -3,7 +3,7 @@
 use aide::axum::ApiRouter;
 use axum::{
     extract::Request,
-    middleware::{from_fn, Next},
+    middleware::{Next, from_fn},
     response::{IntoResponse, Response},
 };
 use base64::{display::Base64Display, engine::general_purpose::STANDARD_NO_PAD};

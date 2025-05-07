@@ -6,7 +6,7 @@ use aide::axum::ApiRouter;
 use anyhow::anyhow;
 use axum::{
     extract::Request,
-    middleware::{from_fn, Next},
+    middleware::{Next, from_fn},
     response::Response,
 };
 use futures::FutureExt;

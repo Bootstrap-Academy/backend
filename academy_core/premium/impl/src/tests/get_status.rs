@@ -1,11 +1,11 @@
 use academy_auth_contracts::MockAuthService;
 use academy_core_premium_contracts::{
-    premium::MockPremiumService, PremiumFeatureService, PremiumGetStatusError,
+    PremiumFeatureService, PremiumGetStatusError, premium::MockPremiumService,
 };
 use academy_demo::{
+    UUID1,
     session::{ADMIN_1, BAR_1, FOO_1},
     user::{ADMIN, BAR, FOO},
-    UUID1,
 };
 use academy_models::{
     auth::{AuthError, AuthenticateError, AuthorizeError},
@@ -13,12 +13,12 @@ use academy_models::{
     user::UserIdOrSelf,
 };
 use academy_persistence_contracts::{
-    premium::MockPremiumRepository, user::MockUserRepository, MockDatabase,
+    MockDatabase, premium::MockPremiumRepository, user::MockUserRepository,
 };
 use academy_utils::assert_matches;
 use chrono::{TimeZone, Utc};
 
-use crate::{tests::Sut, PremiumFeatureServiceImpl};
+use crate::{PremiumFeatureServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn unauthenticated() {

@@ -6,12 +6,13 @@ use std::{
 };
 
 use academy_utils::{academy_version, bin_name};
-use anyhow::{anyhow, Context};
+use anyhow::{Context, anyhow};
 use axum::{
+    Router,
     extract::State,
-    http::{header::CONTENT_TYPE, StatusCode},
+    http::{StatusCode, header::CONTENT_TYPE},
     response::{IntoResponse, Response},
-    routing, Router,
+    routing,
 };
 use clap::{CommandFactory, Parser};
 use clap_complete::CompleteEnv;

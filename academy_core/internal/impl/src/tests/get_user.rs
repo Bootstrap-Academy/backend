@@ -1,10 +1,10 @@
 use academy_auth_contracts::internal::{AuthInternalAuthenticateError, MockAuthInternalService};
 use academy_core_internal_contracts::{InternalGetUserError, InternalService};
 use academy_demo::user::FOO;
-use academy_persistence_contracts::{user::MockUserRepository, MockDatabase};
+use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
 use academy_utils::assert_matches;
 
-use crate::{tests::Sut, InternalServiceImpl};
+use crate::{InternalServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn ok() {

@@ -1,6 +1,6 @@
 use academy_auth_contracts::MockAuthService;
 use academy_core_paypal_contracts::{
-    coin_order::MockPaypalCoinOrderService, PaypalCreateCoinOrderError, PaypalFeatureService,
+    PaypalCreateCoinOrderError, PaypalFeatureService, coin_order::MockPaypalCoinOrderService,
 };
 use academy_demo::{
     session::{BAR_1, FOO_1},
@@ -11,10 +11,10 @@ use academy_models::{
     auth::{AuthError, AuthenticateError, AuthorizeError},
     paypal::PaypalCoinOrder,
 };
-use academy_persistence_contracts::{user::MockUserRepository, MockDatabase};
-use academy_utils::{assert_matches, Apply};
+use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
+use academy_utils::{Apply, assert_matches};
 
-use crate::{tests::Sut, PaypalFeatureServiceImpl};
+use crate::{PaypalFeatureServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn ok() {

@@ -2,14 +2,15 @@ use std::{collections::HashMap, net::IpAddr, sync::Arc};
 
 use anyhow::Context;
 use axum::{
+    Json, Router,
     extract::Path,
     http::StatusCode,
     response::{IntoResponse, Response},
-    routing, Json, Router,
+    routing,
 };
 use axum_extra::{
-    headers::{authorization::Basic, Authorization},
     TypedHeader,
+    headers::{Authorization, authorization::Basic},
 };
 use rand::{
     distr::{Alphanumeric, SampleString},

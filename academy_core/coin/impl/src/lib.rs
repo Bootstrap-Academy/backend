@@ -1,6 +1,6 @@
 use academy_auth_contracts::{AuthResultExt, AuthService};
 use academy_core_coin_contracts::{
-    coin::CoinService, CoinAddCoinsError, CoinFeatureService, CoinGetBalanceError,
+    CoinAddCoinsError, CoinFeatureService, CoinGetBalanceError, coin::CoinService,
 };
 use academy_di::Build;
 use academy_models::{
@@ -9,7 +9,7 @@ use academy_models::{
     user::UserIdOrSelf,
 };
 use academy_persistence_contracts::{
-    coin::CoinRepository, user::UserRepository, Database, Transaction,
+    Database, Transaction, coin::CoinRepository, user::UserRepository,
 };
 use academy_utils::trace_instrument;
 

@@ -7,9 +7,9 @@ use academy_core_user_contracts::email_confirmation::{
 use academy_di::Build;
 use academy_email_contracts::template::TemplateEmailService;
 use academy_models::{
+    VerificationCode,
     email_address::EmailAddressWithName,
     user::{UserComposite, UserId, UserPassword, UserPatchRef},
-    VerificationCode,
 };
 use academy_persistence_contracts::user::UserRepository;
 use academy_shared_contracts::{password::PasswordService, secret::SecretService};
@@ -17,7 +17,7 @@ use academy_templates_contracts::{
     ResetPasswordTemplate, SubscribeNewsletterTemplate, VerifyEmailTemplate,
 };
 use academy_utils::trace_instrument;
-use anyhow::{anyhow, Context};
+use anyhow::{Context, anyhow};
 
 use crate::UserFeatureConfig;
 
@@ -275,14 +275,14 @@ mod tests {
     use academy_auth_contracts::MockAuthService;
     use academy_cache_contracts::MockCacheService;
     use academy_demo::{
-        user::{FOO, FOO_PASSWORD},
         VERIFICATION_CODE_1, VERIFICATION_CODE_2,
+        user::{FOO, FOO_PASSWORD},
     };
     use academy_email_contracts::template::MockTemplateEmailService;
     use academy_models::{email_address::EmailAddress, user::UserPatch};
     use academy_persistence_contracts::user::MockUserRepository;
     use academy_shared_contracts::{password::MockPasswordService, secret::MockSecretService};
-    use academy_utils::{assert_matches, Apply};
+    use academy_utils::{Apply, assert_matches};
 
     use super::*;
 

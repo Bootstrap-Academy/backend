@@ -1,5 +1,5 @@
 use academy_auth_contracts::MockAuthService;
-use academy_core_coin_contracts::{coin::MockCoinService, CoinAddCoinsError, CoinFeatureService};
+use academy_core_coin_contracts::{CoinAddCoinsError, CoinFeatureService, coin::MockCoinService};
 use academy_demo::{
     session::{ADMIN_1, FOO_1},
     user::{ADMIN, FOO},
@@ -8,10 +8,10 @@ use academy_models::{
     auth::{AuthError, AuthenticateError, AuthorizeError},
     coin::Balance,
 };
-use academy_persistence_contracts::{user::MockUserRepository, MockDatabase};
+use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
 use academy_utils::assert_matches;
 
-use crate::{tests::Sut, CoinFeatureServiceImpl};
+use crate::{CoinFeatureServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn ok() {

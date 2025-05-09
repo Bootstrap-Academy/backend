@@ -106,8 +106,7 @@ fn init_tracing() {
         .with(fmt_layer.with_filter(EnvFilter::from_default_env()))
         .with(
             sentry::integrations::tracing::layer().event_filter(|meta| match *meta.level() {
-                Level::ERROR => EventFilter::Exception,
-                Level::WARN => EventFilter::Event,
+                Level::ERROR | Level::WARN => EventFilter::Event,
                 Level::INFO | Level::DEBUG => EventFilter::Breadcrumb,
                 Level::TRACE => EventFilter::Ignore,
             }),

@@ -8928,9 +8928,9 @@ rec {
       };
       "lettre" = rec {
         crateName = "lettre";
-        version = "0.11.15";
+        version = "0.11.16";
         edition = "2021";
-        sha256 = "0dw4kvw53vpgg9sbhrdyijrz8yb4ygvidxyn6nr30smvxawc56vm";
+        sha256 = "1hj7j7h10x5vfqh8zhvff7z5cgb03z1zvplfsqx0www9l97x3zw7";
         authors = [
           "Alexis Mousset <contact@amousset.me>"
           "Paolo Barbolini <paolo@paolo565.org>"
@@ -9057,7 +9057,7 @@ rec {
           }
           {
             name = "webpki-roots";
-            packageId = "webpki-roots 0.26.11";
+            packageId = "webpki-roots 1.0.0";
             optional = true;
           }
         ];

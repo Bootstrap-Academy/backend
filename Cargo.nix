@@ -4510,19 +4510,6 @@ rec {
         };
         resolvedDefaultFeatures = [ "backtrace" "default" "std" ];
       };
-      "arc-swap" = rec {
-        crateName = "arc-swap";
-        version = "1.7.1";
-        edition = "2018";
-        sha256 = "0mrl9a9r9p9bln74q6aszvf22q1ijiw089jkrmabfqkbj31zixv9";
-        libName = "arc_swap";
-        authors = [
-          "Michal 'vorner' Vaner <vorner@vorner.cz>"
-        ];
-        features = {
-          "serde" = [ "dep:serde" ];
-        };
-      };
       "argon2" = rec {
         crateName = "argon2";
         version = "0.5.3";
@@ -5196,9 +5183,9 @@ rec {
       };
       "bb8-redis" = rec {
         crateName = "bb8-redis";
-        version = "0.22.0";
+        version = "0.23.0";
         edition = "2021";
-        sha256 = "11zxky9x3019a9i4dij1ndr18nkpfcq56x1z2qcn7kscfrymlhsg";
+        sha256 = "19j8qyj5lds95fs3l1ygqn6x39v0l72zxiqbq7b5rpw0h32abvmp";
         libName = "bb8_redis";
         dependencies = [
           {
@@ -11312,14 +11299,10 @@ rec {
       };
       "redis" = rec {
         crateName = "redis";
-        version = "0.30.0";
+        version = "0.31.0";
         edition = "2021";
-        sha256 = "05ycbygy02r2vp250ys1bxyv7w8v8iw6jvb6ygb4d8lsirglx2j3";
+        sha256 = "0zvasd2iv31h1arnc7q4p0h9ccxyg3vbgdgbndyhjbhb7rjymh8b";
         dependencies = [
-          {
-            name = "arc-swap";
-            packageId = "arc-swap";
-          }
           {
             name = "bytes";
             packageId = "bytes";
@@ -11405,8 +11388,8 @@ rec {
           "cache-aio" = [ "aio" "dep:lru" ];
           "cluster" = [ "dep:crc16" "dep:rand" ];
           "cluster-async" = [ "aio" "cluster" "dep:futures-sink" "dep:log" ];
-          "connection-manager" = [ "dep:futures-channel" "aio" "dep:backon" ];
-          "default" = [ "acl" "streams" "geospatial" "script" "keep-alive" ];
+          "connection-manager" = [ "dep:arc-swap" "dep:futures-channel" "aio" "dep:backon" ];
+          "default" = [ "acl" "streams" "geospatial" "script" "keep-alive" "num-bigint" ];
           "hashbrown" = [ "dep:hashbrown" ];
           "json" = [ "dep:serde" "serde/derive" "dep:serde_json" ];
           "r2d2" = [ "dep:r2d2" ];
@@ -11418,7 +11401,7 @@ rec {
           "smol-rustls-comp" = [ "smol-comp" "dep:futures-rustls" "tls-rustls" ];
           "tls" = [ "tls-native-tls" ];
           "tls-native-tls" = [ "dep:native-tls" ];
-          "tls-rustls" = [ "dep:rustls" "rustls/std" "rustls/ring" "dep:rustls-native-certs" ];
+          "tls-rustls" = [ "dep:rustls" "rustls/std" "dep:rustls-native-certs" ];
           "tls-rustls-insecure" = [ "tls-rustls" ];
           "tls-rustls-webpki-roots" = [ "tls-rustls" "dep:webpki-roots" ];
           "tokio-comp" = [ "aio" "tokio/net" ];

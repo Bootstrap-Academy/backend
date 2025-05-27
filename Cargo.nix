@@ -5806,9 +5806,9 @@ rec {
       };
       "clap_complete" = rec {
         crateName = "clap_complete";
-        version = "4.5.50";
+        version = "4.5.51";
         edition = "2021";
-        sha256 = "1qac34cwa0d8v2k3mf2s4byq9cx04r0qfa7gwrh9v26d7fm3n7f9";
+        sha256 = "0pimprv1gml2mdb2vzxz77fzlkax4fjpx238hbip93iwgzgnf8ld";
         dependencies = [
           {
             name = "clap";

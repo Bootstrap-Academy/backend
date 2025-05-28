@@ -11697,9 +11697,9 @@ rec {
       };
       "reqwest" = rec {
         crateName = "reqwest";
-        version = "0.12.16";
+        version = "0.12.17";
         edition = "2021";
-        sha256 = "0w8wzxff817dy1w44np9kswh2kc0karkjk4v4sr1q85y2fqrgx9b";
+        sha256 = "0fvj7hk0rq9p2qqw4yrfr99kk5vlv25r12jjh6id56apzjc7dwn3";
         authors = [
           "Sean McArthur <sean@seanmonstar.com>"
         ];

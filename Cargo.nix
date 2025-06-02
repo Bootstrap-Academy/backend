@@ -15044,9 +15044,9 @@ rec {
       };
       "tower-http" = rec {
         crateName = "tower-http";
-        version = "0.6.4";
+        version = "0.6.5";
         edition = "2018";
-        sha256 = "0bladfcd75dkh3ikmf2m4f971nc0zn8b5pb9mdbryym27hhhrnqg";
+        sha256 = "18hdkgznns83jhd98adkcsj9jfhjr0hza9j3718s84m4hvhdkhjw";
         libName = "tower_http";
         authors = [
           "Tower Maintainers <team@tower-rs.com>"

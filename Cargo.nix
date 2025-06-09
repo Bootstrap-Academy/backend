@@ -8976,9 +8976,9 @@ rec {
       };
       "lettre" = rec {
         crateName = "lettre";
-        version = "0.11.16";
+        version = "0.11.17";
         edition = "2021";
-        sha256 = "1hj7j7h10x5vfqh8zhvff7z5cgb03z1zvplfsqx0www9l97x3zw7";
+        sha256 = "0y9ifm56r8lg0pmni0141h6271z5dmzl2lzsz7fgrqpcx5a06anb";
         authors = [
           "Alexis Mousset <contact@amousset.me>"
           "Paolo Barbolini <paolo@paolo565.org>"
@@ -9142,6 +9142,7 @@ rec {
           "ring" = [ "rustls?/ring" ];
           "rustls" = [ "dep:rustls" ];
           "rustls-native-certs" = [ "dep:rustls-native-certs" ];
+          "rustls-platform-verifier" = [ "dep:rustls-platform-verifier" ];
           "rustls-tls" = [ "webpki-roots" "rustls" "ring" ];
           "sendmail-transport" = [ "tokio1_crate?/process" "tokio1_crate?/io-util" "async-std?/unstable" ];
           "serde" = [ "dep:serde" ];

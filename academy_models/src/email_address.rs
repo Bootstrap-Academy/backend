@@ -1,10 +1,6 @@
-use std::str::FromStr;
+use std::{borrow::Cow, str::FromStr};
 
-use schemars::{
-    JsonSchema,
-    r#gen::SchemaGenerator,
-    schema::{Schema, SchemaObject},
-};
+use schemars::{JsonSchema, Schema, SchemaGenerator, json_schema};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -79,15 +75,11 @@ impl TryFrom<&str> for EmailAddress {
 }
 
 impl JsonSchema for EmailAddress {
-    fn schema_name() -> String {
-        "EmailAddress".into()
+    fn schema_name() -> Cow<'static, str> {
+        Cow::Borrowed("EmailAddress")
     }
 
     fn json_schema(_gen: &mut SchemaGenerator) -> Schema {
-        SchemaObject {
-            format: Some("email".into()),
-            ..Default::default()
-        }
-        .into()
+        json_schema!({"format": "email"})
     }
 }

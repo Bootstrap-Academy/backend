@@ -17,13 +17,11 @@ macro_rules! id {
         pub struct $ident(::uuid::Uuid);
 
         impl ::schemars::JsonSchema for $ident {
-            fn schema_name() -> ::std::string::String {
-                ::core::stringify!($ident).into()
+            fn schema_name() -> ::std::borrow::Cow<'static, str> {
+                ::std::borrow::Cow::Borrowed(::core::stringify!($ident))
             }
 
-            fn json_schema(
-                generator: &mut ::schemars::r#gen::SchemaGenerator,
-            ) -> ::schemars::schema::Schema {
+            fn json_schema(generator: &mut ::schemars::SchemaGenerator) -> ::schemars::Schema {
                 <::uuid::Uuid as ::schemars::JsonSchema>::json_schema(generator)
             }
         }

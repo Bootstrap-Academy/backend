@@ -1,10 +1,10 @@
-use std::sync::LazyLock;
+use std::{borrow::Cow, sync::LazyLock};
 
 use academy_utils::patch::Patch;
 use chrono::{DateTime, Utc};
 use nutype::nutype;
 use regex::Regex;
-use schemars::{JsonSchema, r#gen::SchemaGenerator, schema::Schema};
+use schemars::{JsonSchema, Schema, SchemaGenerator};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -179,8 +179,8 @@ nutype_string!(UserTag(validate(len_char_min = 1, len_char_max = 64)));
 pub struct UserTags(Vec<UserTag>);
 
 impl JsonSchema for UserTags {
-    fn schema_name() -> String {
-        stringify!(UserTags).into()
+    fn schema_name() -> Cow<'static, str> {
+        Cow::Borrowed("UserTags")
     }
 
     fn json_schema(generator: &mut SchemaGenerator) -> Schema {

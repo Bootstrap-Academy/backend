@@ -1,5 +1,6 @@
 use std::fmt::Write;
 
+use academy_utils::Apply;
 use aide::{
     OperationOutput,
     generate::in_context,
@@ -7,10 +8,7 @@ use aide::{
     transform::{TransformOperation, TransformResponse},
 };
 use axum::{Json, Router, http::StatusCode};
-use schemars::{
-    JsonSchema,
-    schema::{Metadata, Schema, SchemaObject, SubschemaValidation},
-};
+use schemars::{JsonSchema, Schema, json_schema};
 
 use crate::errors::{ApiError, ApiErrorCode};
 
@@ -112,32 +110,32 @@ fn merge_into_responses(code: StatusCode, src: Response, dst: &mut Responses) {
         match dst_media_type.schema.take() {
             // the media type already exists on `dst`, so merging is necessary
             Some(schema) => {
-                // convert the aide SchemaObject into a schemars SchemaObject
-                let schema = schema.json_schema.into_object();
-
                 // extract the schemas that already exist in `dst`
-                let mut schemas = if schema
-                    .subschemas
-                    .as_ref()
-                    .and_then(|s| s.any_of.as_ref())
-                    .is_some_and(|s| !s.is_empty())
-                {
-                    // `dst` already contains multiple schemas
-                    schema.subschemas.unwrap().any_of.unwrap()
-                } else {
-                    // `dst` is a single schema
-                    vec![schema_with_description(schema, dst.description.clone())]
-                };
+                let mut schemas = schema
+                    .json_schema
+                    .as_object()
+                    .and_then(|schema| schema.get("anyOf"))
+                    .and_then(|subschemas| subschemas.as_array())
+                    .filter(|subschemas| !subschemas.is_empty())
+                    .map(|subschemas| {
+                        subschemas
+                            .iter()
+                            .map(|subschema| Schema::try_from(subschema.clone()).unwrap())
+                            .collect::<Vec<_>>()
+                    })
+                    .unwrap_or_else(|| {
+                        let mut schema = schema.json_schema;
+                        set_description(&mut schema, dst.description.clone());
+                        vec![schema]
+                    });
 
                 // add the schema from `src` if `dst` does not already contain it
                 schemas.extend(
                     src_media_type
                         .schema
                         .map(|v| {
-                            schema_with_description(
-                                v.json_schema.into_object(),
-                                src.description.clone(),
-                            )
+                            v.json_schema
+                                .with(|s| set_description(s, src.description.clone()))
                         })
                         .filter(|v| !schemas.contains(v)),
                 );
@@ -146,12 +144,9 @@ fn merge_into_responses(code: StatusCode, src: Response, dst: &mut Responses) {
                 let descriptions = schemas
                     .iter()
                     .map(|s| {
-                        match s {
-                            Schema::Bool(_) => None,
-                            Schema::Object(obj) => obj.metadata.as_ref(),
-                        }
-                        .and_then(|m| m.title.as_deref())
-                        .unwrap_or_default()
+                        s.as_object()
+                            .and_then(|s| s.get("title")?.as_str())
+                            .unwrap_or_default()
                     })
                     .collect::<Vec<_>>();
                 if descriptions.len() == 1 {
@@ -165,17 +160,7 @@ fn merge_into_responses(code: StatusCode, src: Response, dst: &mut Responses) {
                 }
 
                 dst_media_type.schema = Some(aide::openapi::SchemaObject {
-                    json_schema: SchemaObject {
-                        subschemas: Some(
-                            SubschemaValidation {
-                                any_of: Some(schemas),
-                                ..Default::default()
-                            }
-                            .into(),
-                        ),
-                        ..Default::default()
-                    }
-                    .into(),
+                    json_schema: json_schema!({"anyOf": schemas}),
                     external_docs: None,
                     example: None,
                 });
@@ -186,17 +171,9 @@ fn merge_into_responses(code: StatusCode, src: Response, dst: &mut Responses) {
     }
 }
 
-/// Convert a [`SchemaObject`] into a [`Schema`] with the given `description`
-fn schema_with_description(schema_object: SchemaObject, description: String) -> Schema {
-    SchemaObject {
-        metadata: Some(
-            Metadata {
-                title: Some(description),
-                ..Default::default()
-            }
-            .into(),
-        ),
-        ..schema_object
-    }
-    .into()
+/// Set the description of a [`Schema`].
+fn set_description(schema: &mut Schema, description: String) {
+    schema
+        .ensure_object()
+        .insert("title".into(), description.into());
 }

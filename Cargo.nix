@@ -980,7 +980,7 @@ rec {
             name = "schemars";
             packageId = "schemars";
             usesDefaultFeatures = false;
-            features = [ "derive" "preserve_order" "uuid1" "url" ];
+            features = [ "derive" "preserve_order" "uuid1" "url2" ];
           }
           {
             name = "serde";
@@ -3366,7 +3366,7 @@ rec {
             name = "schemars";
             packageId = "schemars";
             usesDefaultFeatures = false;
-            features = [ "derive" "preserve_order" "uuid1" "url" ];
+            features = [ "derive" "preserve_order" "uuid1" "url2" ];
           }
           {
             name = "serde";
@@ -4215,9 +4215,9 @@ rec {
       };
       "aide" = rec {
         crateName = "aide";
-        version = "0.14.2";
+        version = "0.15.0";
         edition = "2021";
-        sha256 = "00x7s6wj3wlfqg4vjibchxkgfcpw1h82jiwwba0ym2pkxda7aix2";
+        sha256 = "0jznh0s43lh5d13rwkp119qbl5zj29kflzly5yzn1d45rvvg0d2d";
         authors = [
           "tamasfe"
         ];
@@ -4249,13 +4249,13 @@ rec {
           }
           {
             name = "indexmap";
-            packageId = "indexmap 2.9.0";
+            packageId = "indexmap";
             features = [ "serde" ];
           }
           {
             name = "schemars";
             packageId = "schemars";
-            features = [ "impl_json_schema" "indexmap2" ];
+            features = [ "indexmap2" ];
           }
           {
             name = "serde";
@@ -4299,6 +4299,7 @@ rec {
           "axum-extra-headers" = [ "axum-extra/typed-header" ];
           "axum-extra-json-deserializer" = [ "axum-extra" "axum-extra/json-deserializer" ];
           "axum-extra-query" = [ "axum-extra" "axum-extra/query" ];
+          "axum-extra-typed-routing" = [ "axum-extra" "axum-extra/typed-routing" "aide-macros?/axum-extra-typed-routing" ];
           "axum-form" = [ "axum" "axum/form" ];
           "axum-json" = [ "axum" "axum/json" ];
           "axum-matched-path" = [ "axum" "axum/matched-path" ];
@@ -7324,7 +7325,7 @@ rec {
           }
           {
             name = "indexmap";
-            packageId = "indexmap 2.9.0";
+            packageId = "indexmap";
             features = [ "std" ];
           }
           {
@@ -7386,7 +7387,7 @@ rec {
           "rustc-dep-of-std" = [ "nightly" "core" "compiler_builtins" "alloc" "rustc-internal-api" ];
           "serde" = [ "dep:serde" ];
         };
-        resolvedDefaultFeatures = [ "ahash" "default" "inline-more" "raw" ];
+        resolvedDefaultFeatures = [ "ahash" "default" "inline-more" ];
       };
       "hashbrown 0.14.5" = rec {
         crateName = "hashbrown";
@@ -8642,42 +8643,7 @@ rec {
         features = {
         };
       };
-      "indexmap 1.9.3" = rec {
-        crateName = "indexmap";
-        version = "1.9.3";
-        edition = "2021";
-        sha256 = "16dxmy7yvk51wvnih3a3im6fp5lmx0wx76i03n06wyak6cwhw1xx";
-        dependencies = [
-          {
-            name = "hashbrown";
-            packageId = "hashbrown 0.12.3";
-            usesDefaultFeatures = false;
-            features = [ "raw" ];
-          }
-          {
-            name = "serde";
-            packageId = "serde";
-            optional = true;
-            usesDefaultFeatures = false;
-          }
-        ];
-        buildDependencies = [
-          {
-            name = "autocfg";
-            packageId = "autocfg";
-          }
-        ];
-        features = {
-          "arbitrary" = [ "dep:arbitrary" ];
-          "quickcheck" = [ "dep:quickcheck" ];
-          "rayon" = [ "dep:rayon" ];
-          "rustc-rayon" = [ "dep:rustc-rayon" ];
-          "serde" = [ "dep:serde" ];
-          "serde-1" = [ "serde" ];
-        };
-        resolvedDefaultFeatures = [ "serde" "serde-1" ];
-      };
-      "indexmap 2.9.0" = rec {
+      "indexmap" = rec {
         crateName = "indexmap";
         version = "2.9.0";
         edition = "2021";
@@ -11495,6 +11461,49 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" "userspace" ];
       };
+      "ref-cast" = rec {
+        crateName = "ref-cast";
+        version = "1.0.24";
+        edition = "2021";
+        sha256 = "1kx57g118vs9sqi6d2dcxy6vp8jbx8n5hilmv1sacip9vc8y82ja";
+        libName = "ref_cast";
+        authors = [
+          "David Tolnay <dtolnay@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "ref-cast-impl";
+            packageId = "ref-cast-impl";
+          }
+        ];
+
+      };
+      "ref-cast-impl" = rec {
+        crateName = "ref-cast-impl";
+        version = "1.0.24";
+        edition = "2021";
+        sha256 = "1ir7dm7hpqqdgg60hlspsc1ck6wli7wa3xcqrsxz7wdz45f24r8i";
+        procMacro = true;
+        libName = "ref_cast_impl";
+        authors = [
+          "David Tolnay <dtolnay@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "proc-macro2";
+            packageId = "proc-macro2";
+          }
+          {
+            name = "quote";
+            packageId = "quote";
+          }
+          {
+            name = "syn";
+            packageId = "syn 2.0.102";
+          }
+        ];
+
+      };
       "regex" = rec {
         crateName = "regex";
         version = "1.11.1";
@@ -12699,9 +12708,9 @@ rec {
       };
       "schemars" = rec {
         crateName = "schemars";
-        version = "0.8.22";
+        version = "0.9.0";
         edition = "2021";
-        sha256 = "05an9nbi18ynyxv1rjmwbg6j08j0496hd64mjggh53mwp3hjmgrz";
+        sha256 = "0pqncln5hqbzbl2r3yayyr4a82jjf93h2cfxrn0xamvx77wr3lac";
         authors = [
           "Graham Esau <gesau@hotmail.co.uk>"
         ];
@@ -12712,16 +12721,14 @@ rec {
           }
           {
             name = "indexmap";
-            packageId = "indexmap 1.9.3";
-            optional = true;
-            features = [ "serde-1" ];
-          }
-          {
-            name = "indexmap";
-            packageId = "indexmap 2.9.0";
+            packageId = "indexmap";
             rename = "indexmap2";
             optional = true;
-            features = [ "serde" ];
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "ref-cast";
+            packageId = "ref-cast";
           }
           {
             name = "schemars_derive";
@@ -12731,15 +12738,19 @@ rec {
           {
             name = "serde";
             packageId = "serde";
-            features = [ "derive" ];
+            usesDefaultFeatures = false;
+            features = [ "alloc" ];
           }
           {
             name = "serde_json";
             packageId = "serde_json";
+            usesDefaultFeatures = false;
+            features = [ "alloc" ];
           }
           {
             name = "url";
             packageId = "url";
+            rename = "url2";
             optional = true;
             usesDefaultFeatures = false;
           }
@@ -12751,43 +12762,61 @@ rec {
             usesDefaultFeatures = false;
           }
         ];
+        devDependencies = [
+          {
+            name = "indexmap";
+            packageId = "indexmap";
+            rename = "indexmap2";
+            usesDefaultFeatures = false;
+            features = [ "serde" ];
+          }
+          {
+            name = "serde";
+            packageId = "serde";
+            features = [ "derive" ];
+          }
+          {
+            name = "url";
+            packageId = "url";
+            rename = "url2";
+            usesDefaultFeatures = false;
+            features = [ "serde" "std" ];
+          }
+          {
+            name = "uuid";
+            packageId = "uuid";
+            rename = "uuid1";
+            usesDefaultFeatures = false;
+            features = [ "serde" ];
+          }
+        ];
         features = {
-          "arrayvec" = [ "arrayvec05" ];
-          "arrayvec05" = [ "dep:arrayvec05" ];
           "arrayvec07" = [ "dep:arrayvec07" ];
-          "bigdecimal" = [ "bigdecimal03" ];
-          "bigdecimal03" = [ "dep:bigdecimal03" ];
           "bigdecimal04" = [ "dep:bigdecimal04" ];
-          "bytes" = [ "dep:bytes" ];
-          "chrono" = [ "dep:chrono" ];
-          "default" = [ "derive" ];
+          "bytes1" = [ "dep:bytes1" ];
+          "chrono04" = [ "dep:chrono04" ];
+          "default" = [ "derive" "std" ];
           "derive" = [ "schemars_derive" ];
-          "derive_json_schema" = [ "impl_json_schema" ];
-          "either" = [ "dep:either" ];
-          "enumset" = [ "dep:enumset" ];
-          "impl_json_schema" = [ "derive" ];
-          "indexmap" = [ "dep:indexmap" ];
-          "indexmap1" = [ "indexmap" ];
+          "either1" = [ "dep:either1" ];
           "indexmap2" = [ "dep:indexmap2" ];
-          "preserve_order" = [ "indexmap" ];
+          "jiff02" = [ "dep:jiff02" ];
+          "preserve_order" = [ "serde_json/preserve_order" ];
           "raw_value" = [ "serde_json/raw_value" ];
-          "rust_decimal" = [ "dep:rust_decimal" ];
+          "rust_decimal1" = [ "dep:rust_decimal1" ];
           "schemars_derive" = [ "dep:schemars_derive" ];
-          "semver" = [ "dep:semver" ];
-          "smallvec" = [ "dep:smallvec" ];
-          "smol_str" = [ "dep:smol_str" ];
-          "url" = [ "dep:url" ];
-          "uuid" = [ "uuid08" ];
-          "uuid08" = [ "dep:uuid08" ];
+          "semver1" = [ "dep:semver1" ];
+          "smallvec1" = [ "dep:smallvec1" ];
+          "smol_str02" = [ "dep:smol_str02" ];
+          "url2" = [ "dep:url2" ];
           "uuid1" = [ "dep:uuid1" ];
         };
-        resolvedDefaultFeatures = [ "default" "derive" "impl_json_schema" "indexmap" "indexmap2" "preserve_order" "schemars_derive" "url" "uuid1" ];
+        resolvedDefaultFeatures = [ "default" "derive" "indexmap2" "preserve_order" "schemars_derive" "std" "url2" "uuid1" ];
       };
       "schemars_derive" = rec {
         crateName = "schemars_derive";
-        version = "0.8.22";
+        version = "0.9.0";
         edition = "2021";
-        sha256 = "0kakyzrp5801s4i043l4ilv96lzimnlh01pap958h66n99w6bqij";
+        sha256 = "1ziqhh5c2yw0q8n4fxsfgl0c544avkvq3dq8iq5jzly6fx6dj5jh";
         procMacro = true;
         authors = [
           "Graham Esau <gesau@hotmail.co.uk>"
@@ -13368,6 +13397,11 @@ rec {
         ];
         dependencies = [
           {
+            name = "indexmap";
+            packageId = "indexmap";
+            optional = true;
+          }
+          {
             name = "itoa";
             packageId = "itoa";
           }
@@ -13400,7 +13434,7 @@ rec {
           "preserve_order" = [ "indexmap" "std" ];
           "std" = [ "memchr/std" "serde/std" ];
         };
-        resolvedDefaultFeatures = [ "default" "raw_value" "std" ];
+        resolvedDefaultFeatures = [ "alloc" "default" "indexmap" "preserve_order" "raw_value" "std" ];
       };
       "serde_path_to_error" = rec {
         crateName = "serde_path_to_error";
@@ -14867,7 +14901,7 @@ rec {
         dependencies = [
           {
             name = "indexmap";
-            packageId = "indexmap 2.9.0";
+            packageId = "indexmap";
             features = [ "std" ];
           }
           {

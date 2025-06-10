@@ -7,14 +7,13 @@ macro_rules! const_schema {
             pub fn value() -> ::serde_json::Value { ($expr).into() }
         }
         impl ::schemars::JsonSchema for $ident {
-            fn schema_name() -> ::std::string::String { ::core::stringify!($ident).into() }
-            fn is_referenceable() -> ::core::primitive::bool { false }
-            fn json_schema(_gen: &mut ::schemars::r#gen::SchemaGenerator) -> ::schemars::schema::Schema {
-                ::schemars::schema::SchemaObject {
-                    const_value: ::core::option::Option::Some(Self::value()),
-                    ..::core::default::Default::default()
-                }.into()
+            fn schema_name() -> ::std::borrow::Cow<'static, str> {
+                ::std::borrow::Cow::Borrowed(::core::stringify!($ident))
             }
+            fn json_schema(_gen: &mut ::schemars::SchemaGenerator) -> ::schemars::Schema {
+                ::schemars::json_schema!({"const": Self::value()})
+            }
+            fn inline_schema() -> bool { true }
         }
         impl ::serde::Serialize for $ident {
             fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>

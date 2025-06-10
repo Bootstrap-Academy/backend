@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use academy_models::{
     SearchTerm,
     email_address::EmailAddress,
@@ -8,11 +10,7 @@ use academy_models::{
         UserVatId, UserZipCode,
     },
 };
-use schemars::{
-    JsonSchema,
-    r#gen::SchemaGenerator,
-    schema::{Schema, SchemaObject, SubschemaValidation},
-};
+use schemars::{JsonSchema, Schema, SchemaGenerator, json_schema};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
@@ -187,8 +185,8 @@ impl<'de> Deserialize<'de> for ApiUserIdOrSelf {
 }
 
 impl JsonSchema for ApiUserIdOrSelf {
-    fn schema_name() -> String {
-        "UserIdOrSelf".into()
+    fn schema_name() -> Cow<'static, str> {
+        Cow::Borrowed("UserIdOrSelf")
     }
 
     fn json_schema(generator: &mut SchemaGenerator) -> Schema {
@@ -197,21 +195,13 @@ impl JsonSchema for ApiUserIdOrSelf {
             Slf("self");
         }
 
-        SchemaObject {
-            subschemas: Some(
-                SubschemaValidation {
-                    one_of: Some(vec![
-                        Me::json_schema(generator),
-                        Slf::json_schema(generator),
-                        UserId::json_schema(generator),
-                    ]),
-                    ..Default::default()
-                }
-                .into(),
-            ),
-            ..Default::default()
-        }
-        .into()
+        json_schema!({
+            "oneOf": [
+                Me::json_schema(generator),
+                Slf::json_schema(generator),
+                UserId::json_schema(generator),
+            ],
+        })
     }
 }
 

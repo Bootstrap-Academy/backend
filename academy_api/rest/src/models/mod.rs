@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use academy_models::pagination::{PaginationLimit, PaginationSlice};
-use schemars::{JsonSchema, r#gen::SchemaGenerator, schema::Schema};
+use schemars::{JsonSchema, Schema, SchemaGenerator};
 use serde::Deserialize;
 
 use crate::const_schema;
@@ -71,16 +71,12 @@ impl<'de, T: Deserialize<'de>> Deserialize<'de> for StringOption<T> {
 }
 
 impl<T: JsonSchema> JsonSchema for StringOption<T> {
-    fn schema_name() -> String {
+    fn schema_name() -> Cow<'static, str> {
         <Option<T> as JsonSchema>::schema_name()
     }
 
     fn json_schema(generator: &mut SchemaGenerator) -> Schema {
         <Option<T> as JsonSchema>::json_schema(generator)
-    }
-
-    fn is_referenceable() -> bool {
-        <Option<T> as JsonSchema>::is_referenceable()
     }
 
     fn schema_id() -> Cow<'static, str> {

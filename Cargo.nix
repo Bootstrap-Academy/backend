@@ -978,7 +978,7 @@ rec {
           }
           {
             name = "schemars";
-            packageId = "schemars";
+            packageId = "schemars 0.8.22";
             usesDefaultFeatures = false;
             features = [ "derive" "preserve_order" "uuid1" "url" ];
           }
@@ -3364,7 +3364,7 @@ rec {
           }
           {
             name = "schemars";
-            packageId = "schemars";
+            packageId = "schemars 0.8.22";
             usesDefaultFeatures = false;
             features = [ "derive" "preserve_order" "uuid1" "url" ];
           }
@@ -4215,9 +4215,9 @@ rec {
       };
       "aide" = rec {
         crateName = "aide";
-        version = "0.14.2";
+        version = "0.15.0";
         edition = "2021";
-        sha256 = "00x7s6wj3wlfqg4vjibchxkgfcpw1h82jiwwba0ym2pkxda7aix2";
+        sha256 = "0jznh0s43lh5d13rwkp119qbl5zj29kflzly5yzn1d45rvvg0d2d";
         authors = [
           "tamasfe"
         ];
@@ -4254,8 +4254,8 @@ rec {
           }
           {
             name = "schemars";
-            packageId = "schemars";
-            features = [ "impl_json_schema" "indexmap2" ];
+            packageId = "schemars 0.9.0";
+            features = [ "indexmap2" ];
           }
           {
             name = "serde";
@@ -4299,6 +4299,7 @@ rec {
           "axum-extra-headers" = [ "axum-extra/typed-header" ];
           "axum-extra-json-deserializer" = [ "axum-extra" "axum-extra/json-deserializer" ];
           "axum-extra-query" = [ "axum-extra" "axum-extra/query" ];
+          "axum-extra-typed-routing" = [ "axum-extra" "axum-extra/typed-routing" "aide-macros?/axum-extra-typed-routing" ];
           "axum-form" = [ "axum" "axum/form" ];
           "axum-json" = [ "axum" "axum/json" ];
           "axum-matched-path" = [ "axum" "axum/matched-path" ];
@@ -11495,6 +11496,49 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" "userspace" ];
       };
+      "ref-cast" = rec {
+        crateName = "ref-cast";
+        version = "1.0.24";
+        edition = "2021";
+        sha256 = "1kx57g118vs9sqi6d2dcxy6vp8jbx8n5hilmv1sacip9vc8y82ja";
+        libName = "ref_cast";
+        authors = [
+          "David Tolnay <dtolnay@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "ref-cast-impl";
+            packageId = "ref-cast-impl";
+          }
+        ];
+
+      };
+      "ref-cast-impl" = rec {
+        crateName = "ref-cast-impl";
+        version = "1.0.24";
+        edition = "2021";
+        sha256 = "1ir7dm7hpqqdgg60hlspsc1ck6wli7wa3xcqrsxz7wdz45f24r8i";
+        procMacro = true;
+        libName = "ref_cast_impl";
+        authors = [
+          "David Tolnay <dtolnay@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "proc-macro2";
+            packageId = "proc-macro2";
+          }
+          {
+            name = "quote";
+            packageId = "quote";
+          }
+          {
+            name = "syn";
+            packageId = "syn 2.0.102";
+          }
+        ];
+
+      };
       "regex" = rec {
         crateName = "regex";
         version = "1.11.1";
@@ -12697,7 +12741,7 @@ rec {
         ];
 
       };
-      "schemars" = rec {
+      "schemars 0.8.22" = rec {
         crateName = "schemars";
         version = "0.8.22";
         edition = "2021";
@@ -12717,15 +12761,8 @@ rec {
             features = [ "serde-1" ];
           }
           {
-            name = "indexmap";
-            packageId = "indexmap 2.9.0";
-            rename = "indexmap2";
-            optional = true;
-            features = [ "serde" ];
-          }
-          {
             name = "schemars_derive";
-            packageId = "schemars_derive";
+            packageId = "schemars_derive 0.8.22";
             optional = true;
           }
           {
@@ -12781,13 +12818,121 @@ rec {
           "uuid08" = [ "dep:uuid08" ];
           "uuid1" = [ "dep:uuid1" ];
         };
-        resolvedDefaultFeatures = [ "default" "derive" "impl_json_schema" "indexmap" "indexmap2" "preserve_order" "schemars_derive" "url" "uuid1" ];
+        resolvedDefaultFeatures = [ "derive" "indexmap" "preserve_order" "schemars_derive" "url" "uuid1" ];
       };
-      "schemars_derive" = rec {
+      "schemars 0.9.0" = rec {
+        crateName = "schemars";
+        version = "0.9.0";
+        edition = "2021";
+        sha256 = "0pqncln5hqbzbl2r3yayyr4a82jjf93h2cfxrn0xamvx77wr3lac";
+        authors = [
+          "Graham Esau <gesau@hotmail.co.uk>"
+        ];
+        dependencies = [
+          {
+            name = "dyn-clone";
+            packageId = "dyn-clone";
+          }
+          {
+            name = "indexmap";
+            packageId = "indexmap 2.9.0";
+            rename = "indexmap2";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "ref-cast";
+            packageId = "ref-cast";
+          }
+          {
+            name = "schemars_derive";
+            packageId = "schemars_derive 0.9.0";
+            optional = true;
+          }
+          {
+            name = "serde";
+            packageId = "serde";
+            usesDefaultFeatures = false;
+            features = [ "alloc" ];
+          }
+          {
+            name = "serde_json";
+            packageId = "serde_json";
+            usesDefaultFeatures = false;
+            features = [ "alloc" ];
+          }
+        ];
+        devDependencies = [
+          {
+            name = "indexmap";
+            packageId = "indexmap 2.9.0";
+            rename = "indexmap2";
+            usesDefaultFeatures = false;
+            features = [ "serde" ];
+          }
+          {
+            name = "serde";
+            packageId = "serde";
+            features = [ "derive" ];
+          }
+        ];
+        features = {
+          "arrayvec07" = [ "dep:arrayvec07" ];
+          "bigdecimal04" = [ "dep:bigdecimal04" ];
+          "bytes1" = [ "dep:bytes1" ];
+          "chrono04" = [ "dep:chrono04" ];
+          "default" = [ "derive" "std" ];
+          "derive" = [ "schemars_derive" ];
+          "either1" = [ "dep:either1" ];
+          "indexmap2" = [ "dep:indexmap2" ];
+          "jiff02" = [ "dep:jiff02" ];
+          "preserve_order" = [ "serde_json/preserve_order" ];
+          "raw_value" = [ "serde_json/raw_value" ];
+          "rust_decimal1" = [ "dep:rust_decimal1" ];
+          "schemars_derive" = [ "dep:schemars_derive" ];
+          "semver1" = [ "dep:semver1" ];
+          "smallvec1" = [ "dep:smallvec1" ];
+          "smol_str02" = [ "dep:smol_str02" ];
+          "url2" = [ "dep:url2" ];
+          "uuid1" = [ "dep:uuid1" ];
+        };
+        resolvedDefaultFeatures = [ "default" "derive" "indexmap2" "schemars_derive" "std" ];
+      };
+      "schemars_derive 0.8.22" = rec {
         crateName = "schemars_derive";
         version = "0.8.22";
         edition = "2021";
         sha256 = "0kakyzrp5801s4i043l4ilv96lzimnlh01pap958h66n99w6bqij";
+        procMacro = true;
+        authors = [
+          "Graham Esau <gesau@hotmail.co.uk>"
+        ];
+        dependencies = [
+          {
+            name = "proc-macro2";
+            packageId = "proc-macro2";
+          }
+          {
+            name = "quote";
+            packageId = "quote";
+          }
+          {
+            name = "serde_derive_internals";
+            packageId = "serde_derive_internals";
+          }
+          {
+            name = "syn";
+            packageId = "syn 2.0.102";
+            features = [ "extra-traits" ];
+          }
+        ];
+
+      };
+      "schemars_derive 0.9.0" = rec {
+        crateName = "schemars_derive";
+        version = "0.9.0";
+        edition = "2021";
+        sha256 = "1ziqhh5c2yw0q8n4fxsfgl0c544avkvq3dq8iq5jzly6fx6dj5jh";
         procMacro = true;
         authors = [
           "Graham Esau <gesau@hotmail.co.uk>"
@@ -13400,7 +13545,7 @@ rec {
           "preserve_order" = [ "indexmap" "std" ];
           "std" = [ "memchr/std" "serde/std" ];
         };
-        resolvedDefaultFeatures = [ "default" "raw_value" "std" ];
+        resolvedDefaultFeatures = [ "alloc" "default" "raw_value" "std" ];
       };
       "serde_path_to_error" = rec {
         crateName = "serde_path_to_error";

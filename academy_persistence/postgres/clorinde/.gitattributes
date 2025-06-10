@@ -1,0 +1,4 @@
+* linguist-generated
+.gitattributes -linguist-generated
+Cargo.toml -linguist-generated
+src/lib.rs -linguist-generated

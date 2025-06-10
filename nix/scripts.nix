@@ -42,7 +42,7 @@ in
       PATH="${rustfmtWrapper}/bin:$PATH" clorinde live "postgres://academy@127.0.0.1:5432/academy"
 
       if [[ "$1" != "-f" ]]; then
-        git restore clorinde/{Cargo.toml,src/lib.rs}
+        git restore clorinde/{.gitattributes,Cargo.toml,src/lib.rs}
       fi
 
       cargo fmt -p clorinde -- --config-path /dev/null

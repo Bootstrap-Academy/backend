@@ -1,3 +1,5 @@
+use std::slice;
+
 use academy_demo::{
     SHA256HASH1, UUID1,
     mfa::{ADMIN2_TOTP_1, FOO_TOTP_1},
@@ -21,13 +23,13 @@ async fn list_totp_devices_by_user() {
         .list_totp_devices_by_user(&mut txn, ADMIN2.user.id)
         .await
         .unwrap();
-    assert_eq!(result, [ADMIN2_TOTP_1.clone()]);
+    assert_eq!(result, slice::from_ref(&*ADMIN2_TOTP_1));
 
     let result = REPO
         .list_totp_devices_by_user(&mut txn, FOO.user.id)
         .await
         .unwrap();
-    assert_eq!(result, [FOO_TOTP_1.clone()]);
+    assert_eq!(result, slice::from_ref(&*FOO_TOTP_1));
 
     let result = REPO
         .list_totp_devices_by_user(&mut txn, BAR.user.id)

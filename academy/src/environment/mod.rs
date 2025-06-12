@@ -12,6 +12,7 @@ use academy_core_paypal_impl::PaypalFeatureConfig;
 use academy_core_premium_impl::PremiumFeatureConfig;
 use academy_core_session_impl::SessionFeatureConfig;
 use academy_core_user_impl::UserFeatureConfig;
+use academy_data::course::CourseDataRepository;
 use academy_di::provider;
 use academy_extern_impl::{
     paypal::PaypalApiServiceConfig, recaptcha::RecaptchaApiServiceConfig,
@@ -34,6 +35,7 @@ provider! {
         database: Database,
         cache: Cache,
         email: Email,
+        course_repository: CourseDataRepository,
         ..config: ConfigProvider {
             // API
             RestServerConfig,
@@ -67,13 +69,20 @@ provider! {
 }
 
 impl Provider {
-    pub fn new(config: ConfigProvider, database: Database, cache: Cache, email: Email) -> Self {
+    pub fn new(
+        config: ConfigProvider,
+        database: Database,
+        cache: Cache,
+        email: Email,
+        course_repository: CourseDataRepository,
+    ) -> Self {
         Self {
             _cache: Default::default(),
             database,
             cache,
             email,
             config,
+            course_repository,
         }
     }
 
@@ -89,8 +98,16 @@ impl Provider {
         let email = crate::email::connect(&config.email)
             .await
             .context("Failed to connect to email server")?;
+        let course_repository = CourseDataRepository::load(&config.course.course_dir)
+            .context("Failed to load course repository")?;
 
-        Ok(Self::new(config_provider, database, cache, email))
+        Ok(Self::new(
+            config_provider,
+            database,
+            cache,
+            email,
+            course_repository,
+        ))
     }
 }
 
@@ -318,8 +335,10 @@ mod tests {
         let database = PostgresDatabase::dummy().await;
         let cache = ValkeyCache::dummy().await;
         let email = EmailServiceImpl::dummy().await;
+        let course_repository = CourseDataRepository::default();
 
-        let mut provider = Provider::new(config_provider, database, cache, email);
+        let mut provider =
+            Provider::new(config_provider, database, cache, email, course_repository);
         let _: RestServer = provider.provide();
     }
 }

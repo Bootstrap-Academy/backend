@@ -377,6 +377,16 @@ rec {
       # File a bug if you depend on any for non-debug work!
       debug = internal.debugCrate { inherit packageId; };
     };
+    "academy_data" = rec {
+      packageId = "academy_data";
+      build = internal.buildRustCrateWithFeatures {
+        packageId = "academy_data";
+      };
+
+      # Debug support which might change between releases.
+      # File a bug if you depend on any for non-debug work!
+      debug = internal.debugCrate { inherit packageId; };
+    };
     "academy_demo" = rec {
       packageId = "academy_demo";
       build = internal.buildRustCrateWithFeatures {
@@ -697,6 +707,10 @@ rec {
           {
             name = "academy_core_user_impl";
             packageId = "academy_core_user_impl";
+          }
+          {
+            name = "academy_data";
+            packageId = "academy_data";
           }
           {
             name = "academy_demo";
@@ -2986,6 +3000,48 @@ rec {
             packageId = "tokio";
             usesDefaultFeatures = false;
             features = [ "rt-multi-thread" "macros" "sync" "fs" "process" ];
+          }
+        ];
+
+      };
+      "academy_data" = rec {
+        crateName = "academy_data";
+        version = "0.0.0";
+        edition = "2024";
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_data; };
+        dependencies = [
+          {
+            name = "academy_models";
+            packageId = "academy_models";
+          }
+          {
+            name = "anyhow";
+            packageId = "anyhow";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "chrono";
+            packageId = "chrono";
+            usesDefaultFeatures = false;
+            features = [ "serde" "clock" ];
+          }
+          {
+            name = "serde";
+            packageId = "serde";
+            usesDefaultFeatures = false;
+            features = [ "derive" "std" ];
+          }
+          {
+            name = "serde_yaml";
+            packageId = "serde_yaml";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "tracing";
+            packageId = "tracing";
+            usesDefaultFeatures = false;
+            features = [ "attributes" ];
           }
         ];
 
@@ -13570,6 +13626,38 @@ rec {
         ];
 
       };
+      "serde_yaml" = rec {
+        crateName = "serde_yaml";
+        version = "0.9.34+deprecated";
+        edition = "2021";
+        sha256 = "0isba1fjyg3l6rxk156k600ilzr8fp7crv82rhal0rxz5qd1m2va";
+        authors = [
+          "David Tolnay <dtolnay@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "indexmap";
+            packageId = "indexmap";
+          }
+          {
+            name = "itoa";
+            packageId = "itoa";
+          }
+          {
+            name = "ryu";
+            packageId = "ryu";
+          }
+          {
+            name = "serde";
+            packageId = "serde";
+          }
+          {
+            name = "unsafe-libyaml";
+            packageId = "unsafe-libyaml";
+          }
+        ];
+
+      };
       "sha1" = rec {
         crateName = "sha1";
         version = "0.10.6";
@@ -15732,6 +15820,18 @@ rec {
           "default" = [ "std" ];
         };
         resolvedDefaultFeatures = [ "default" "std" ];
+      };
+      "unsafe-libyaml" = rec {
+        crateName = "unsafe-libyaml";
+        version = "0.2.11";
+        edition = "2021";
+        crateBin = [];
+        sha256 = "0qdq69ffl3v5pzx9kzxbghzn0fzn266i1xn70y88maybz9csqfk7";
+        libName = "unsafe_libyaml";
+        authors = [
+          "David Tolnay <dtolnay@gmail.com>"
+        ];
+
       };
       "untrusted" = rec {
         crateName = "untrusted";

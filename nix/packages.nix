@@ -10,6 +10,7 @@
   makeWrapper,
   versionCheckHook,
 }:
+
 let
   toolchain = fenix.packages.${system}.stable;
 
@@ -112,6 +113,12 @@ let
         ${attrs.patchPhase or ""}
       '';
     };
+    academy_data = _: {
+      src = lib.fileset.toSource {
+        root = ../academy_data;
+        fileset = ../academy_data/src;
+      };
+    };
   };
 
   cargoNix = callPackage ../Cargo.nix {
@@ -127,6 +134,7 @@ let
     defaultCrateOverrides = mergeOverrideSets pkgs.defaultCrateOverrides crateOverrides;
   };
 in
+
 builtins.mapAttrs (_: setVersion) {
   default = cargoNix.workspaceMembers.academy.build;
   render_daemon = cargoNix.workspaceMembers.academy_render_daemon.build.overrideAttrs {

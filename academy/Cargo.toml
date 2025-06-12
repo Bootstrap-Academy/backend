@@ -34,6 +34,7 @@ academy_core_session_contracts.workspace = true
 academy_core_session_impl.workspace = true
 academy_core_user_contracts.workspace = true
 academy_core_user_impl.workspace = true
+academy_data.workspace = true
 academy_demo.workspace = true
 academy_di.workspace = true
 academy_email_contracts.workspace = true

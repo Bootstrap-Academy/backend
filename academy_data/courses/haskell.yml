@@ -1,0 +1,78 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7pFIXDN1NLw6jMExuK-wN8I
+title: "Haskell Programmierung"
+description: "Die Programmiersprache gilt wohl als das, was funktionale Programmierung mit am meisten beeinflusst hat. Mittlerweile finden sich Züge hiervon in Python, JavaScript, Kotlin und C++. Doch Haskell zwingt euch als einzige dazu, wirklich anders zu DENKEN - und das macht sie ideal, um funktionale Programmierung besser zu verstehen."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/haskell.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665506672
+sections:
+  - id: section
+    title: "Haskell"
+    description:
+    lectures:
+      - id: "-KIXPpdnAZs"
+        title: "Einleitung"
+        description:
+        type: youtube
+        video_id: "-KIXPpdnAZs"
+        duration: 827
+      - id: "Q5baqnT6jLw"
+        title: "Rekursionen und Akkumulator"
+        description:
+        type: youtube
+        video_id: "Q5baqnT6jLw"
+        duration: 492
+      - id: "JxygG74puB0"
+        title: "Listen und Pattern Matching"
+        description:
+        type: youtube
+        video_id: "JxygG74puB0"
+        duration: 805
+      - id: "3vVWHpMHVaY"
+        title: "Mehr zu Listen"
+        description:
+        type: youtube
+        video_id: "3vVWHpMHVaY"
+        duration: 444
+      - id: "LUQhVtRucys"
+        title: "Lambda-Funktionen und Map"
+        description:
+        type: youtube
+        video_id: "LUQhVtRucys"
+        duration: 620
+      - id: "-lYXNObDzdk"
+        title: "Filter und Unterversorgen von Funktionen"
+        description:
+        type: youtube
+        video_id: "-lYXNObDzdk"
+        duration: 623
+      - id: "TL5DpNxiTnc"
+        title: "Variablen dank Let und Where"
+        description:
+        type: youtube
+        video_id: "TL5DpNxiTnc"
+        duration: 378
+      - id: "rxA2DoQ6eso"
+        title: "Listenkombinatoren"
+        description:
+        type: youtube
+        video_id: "rxA2DoQ6eso"
+        duration: 752
+      - id: "jt3Msx5wwLY"
+        title: "Unendliche Listen und Lazy Evaluation"
+        description:
+        type: youtube
+        video_id: "jt3Msx5wwLY"
+        duration: 601
+      - id: "R3XEHaw4o44"
+        title: "Datentypen"
+        description:
+        type: youtube
+        video_id: "R3XEHaw4o44"
+        duration: 702

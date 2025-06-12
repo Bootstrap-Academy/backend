@@ -1,0 +1,429 @@
+# https://www.dropbox.com/t/e1CSdYLRYWviD86b
+title: "Schwachstellen von Web Anwendungen"
+description: "Websites sind mittlerweile überall und sind damit das Ding, was am meisten angegriffen wird. Hier erfahrt ihr alles über die wichtigsten Angriffe und die Möglichkeiten sich zu verteidigen."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/pentesting.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 1000
+learning_goals: []
+requirements: []
+last_update: 1665584088
+sections:
+  - id: grundlagen
+    title: "Grundlagen"
+    description:
+    lectures:
+      - id: "01_web_anwendungen_hacken_tutorial_1_schwachstellen_angriffe_und_verteidigung"
+        title: "Schwachstellen, Angriffe und Verteidigung"
+        description:
+        type: mp4
+        duration: 575
+      - id: "01_web_anwendungen_hacken_tutorial_2_grundlagen_architektur_von_web_anwendungen"
+        title: "Architektur von Web Anwendungen"
+        description:
+        type: mp4
+        duration: 335
+      - id: "01_web_anwendungen_hacken_tutorial_3_grundlagen_url_kodierung"
+        title: "URL Kodierung"
+        description:
+        type: mp4
+        duration: 759
+      - id: "01_web_anwendungen_hacken_tutorial_4_grundlagen_parameter_außerhalb_von_urls"
+        title: "Parameter außerhalb von URLs"
+        description:
+        type: mp4
+        duration: 840
+      - id: "01_web_anwendungen_hacken_tutorial_5_grundlagen_das_große_problem_nutzereingaben"
+        title: "Das große Problem - Nutzereingaben"
+        description:
+        type: mp4
+        duration: 336
+      - id: "01_web_anwendungen_hacken_tutorial_6_grundlagen_blacklisting_vs._whitelisting"
+        title: "Blacklisting vs. Whitelisting"
+        description:
+        type: mp4
+        duration: 352
+  - id: xss
+    title: "XSS"
+    description:
+    lectures:
+      - id: "02_web_anwendungen_hacken_tutorial_xss_1_demo"
+        title: "Demo"
+        description:
+        type: mp4
+        duration: 418
+      - id: "02_web_anwendungen_hacken_tutorial_xss_2_gefahren_von_xss"
+        title: "Gefahren von XSS"
+        description:
+        type: mp4
+        duration: 473
+      - id: "02_web_anwendungen_hacken_tutorial_xss_3_reflected_xss"
+        title: "Reflected XSS"
+        description:
+        type: mp4
+        duration: 281
+      - id: "02_web_anwendungen_hacken_tutorial_xss_4_cookies_stehlen"
+        title: "Cookies stehlen"
+        description:
+        type: mp4
+        duration: 389
+      - id: "02_web_anwendungen_hacken_tutorial_xss_5_stored_xss"
+        title: "Stored XSS"
+        description:
+        type: mp4
+        duration: 268
+      - id: "02_web_anwendungen_hacken_tutorial_xss_6_dom_based_xss"
+        title: "DOM-based XSS"
+        description:
+        type: mp4
+        duration: 294
+      - id: "02_web_anwendungen_hacken_tutorial_xss_7_exotischere_xss_payloads"
+        title: "Exotischere XSS-Payloads"
+        description:
+        type: mp4
+        duration: 357
+      - id: "02_web_anwendungen_hacken_tutorial_xss_8_filtern_ausweichen_1"
+        title: "Filtern ausweichen #1"
+        description:
+        type: mp4
+        duration: 295
+      - id: "02_web_anwendungen_hacken_tutorial_xss_9_filtern_ausweichen_2"
+        title: "Filtern ausweichen #2"
+        description:
+        type: mp4
+        duration: 372
+      - id: "02_web_anwendungen_hacken_tutorial_xss_10_filtern_ausweichen_3"
+        title: "Filtern ausweichen #3"
+        description:
+        type: mp4
+        duration: 364
+      - id: "02_web_anwendungen_hacken_tutorial_xss_11_filtern_ausweichen_4"
+        title: "Filtern ausweichen #4"
+        description:
+        type: mp4
+        duration: 322
+      - id: "02_web_anwendungen_hacken_tutorial_xss_12_filtern_ausweichen_5"
+        title: "Filtern ausweichen #5"
+        description:
+        type: mp4
+        duration: 474
+      - id: "02_web_anwendungen_hacken_tutorial_xss_13_filtern_ausweichen_6"
+        title: "Filtern ausweichen #6"
+        description:
+        type: mp4
+        duration: 511
+      - id: "02_web_anwendungen_hacken_tutorial_xss_14_filtern_ausweichen_7_liste_in_beschreibung!"
+        title: "Filtern ausweichen #7"
+        description:
+        type: mp4
+        duration: 568
+      - id: "02_web_anwendungen_hacken_tutorial_xss_15_xss_verhindern_tricks_links_in_beschreibung"
+        title: "XSS Verhindern Tricks"
+        description:
+        type: mp4
+        duration: 516
+      - id: "02_schwachstellen_von_web_anwendungen_bonus_cookies_stehlen_in_der_praxis"
+        title: "Bonus: Cookies Stehlen in der Praxis"
+        description:
+        type: mp4
+        duration: 979
+  - id: sql_injections
+    title: "SQL Injections"
+    description:
+    lectures:
+      - id: "03_web_anwendungen_hacken_tutorial_sql_injections_1_demo"
+        title: "Demo"
+        description:
+        type: mp4
+        duration: 544
+      - id: "03_web_anwendungen_hacken_tutorial_sql_injections_2_code_reviews"
+        title: "Code Reviews"
+        description:
+        type: mp4
+        duration: 323
+      - id: "03_web_anwendungen_hacken_tutorial_sql_injections_3_wo_es_auftreten_kann"
+        title: "Wo es auftreten kann"
+        description:
+        type: mp4
+        duration: 455
+      - id: "03_web_anwendungen_hacken_tutorial_sql_injections_4_gefahren_von_sql_injections"
+        title: "Gefahren von SQL Injections"
+        description:
+        type: mp4
+        duration: 531
+      - id: "03_web_anwendungen_hacken_tutorial_sql_injections_5_sqlmap_einführung"
+        title: "SQLMap - Einführung"
+        description:
+        type: mp4
+        duration: 531
+      - id: "03_web_anwendungen_hacken_tutorial_sql_injections_6_sqlmap_grundlegende_nutzung_sqli_get_bereit_stellen"
+        title: "SQLMap - Grundlegende Nutzung"
+        description:
+        type: mp4
+        duration: 815
+      - id: "03_web_anwendungen_hacken_tutorial_sql_injections_7_sqlmap_exploiten_von_sql_injections"
+        title: "SQLMap - Exploiten von SQL Injections"
+        description:
+        type: mp4
+        duration: 614
+      - id: "03_web_anwendungen_hacken_tutorial_sql_injections_8_sqlmap_ausführen_von_beliebigen_sql_statements"
+        title: "SQLMap - Ausführen von beliebigen SQL-Statements"
+        description:
+        type: mp4
+        duration: 292
+      - id: "03_web_anwendungen_hacken_tutorial_sql_injections_9_sqlmap_eigene_injection_points"
+        title: "SQLMap - Eigene Injection-Points"
+        description:
+        type: mp4
+        duration: 325
+      - id: "03_web_anwendungen_hacken_tutorial_sql_injections_10_sqlmap_post_daten_index.php_bereit_stellen"
+        title: "SQLMap - POST-Daten"
+        description:
+        type: mp4
+        duration: 339
+      - id: "03_web_anwendungen_hacken_tutorial_sql_injections_11_sqlmap_optimierungen_und_stealth"
+        title: "SQLMap - Optimierungen und Stealth"
+        description:
+        type: mp4
+        duration: 259
+      - id: "03_web_anwendungen_hacken_tutorial_sql_injections_11_sqlmap_proxies_und_tor_nutzen"
+        title: "SQLMap - Proxies und TOR nutzen"
+        description:
+        type: mp4
+        duration: 471
+      - id: "03_web_anwendungen_hacken_tutorial_sql_injections_12_sqlmap_forms_automatisch_testen"
+        title: "SQLMap - Forms automatisch testen"
+        description:
+        type: mp4
+        duration: 310
+      - id: "03_web_anwendungen_hacken_tutorial_sql_injections_13_sqlmap_das_zielsystem_ownen"
+        title: "SQLMap - Das Zielsystem ownen"
+        description:
+        type: mp4
+        duration: 460
+      - id: "03_web_anwendungen_hacken_tutorial_sql_injections_14_sqlinjections_verhindern"
+        title: "SQLInjections verhindern"
+        description:
+        type: mp4
+        duration: 239
+      - id: "03_web_anwendungen_hacken_tutorial_sql_injections_15_sqlinjections_verhindern_ii"
+        title: "SQLInjections verhindern II"
+        description:
+        type: mp4
+        duration: 381
+  - id: xxe
+    title: "XXE"
+    description:
+    lectures:
+      - id: "04_web_anwendungen_hacken_tutorial_xxe_1_xml_external_entities"
+        title: "XML External Entities"
+        description:
+        type: mp4
+        duration: 350
+      - id: "04_web_anwendungen_hacken_tutorial_xxe_2_entities_definieren"
+        title: "Entities definieren"
+        description:
+        type: mp4
+        duration: 273
+      - id: "04_web_anwendungen_hacken_tutorial_xxe_3_der_billion_laughs_angriff"
+        title: "Der Billion Laughs Angriff"
+        description:
+        type: mp4
+        duration: 338
+      - id: "04_web_anwendungen_hacken_tutorial_xxe_4_geheime_daten_ausspähen"
+        title: "Geheime Daten ausspähen"
+        description:
+        type: mp4
+        duration: 234
+      - id: "04_web_anwendungen_hacken_tutorial_xxe_5_remote_code_execution"
+        title: "Remote Code Execution"
+        description:
+        type: mp4
+        duration: 256
+  - id: datei_schwachstellen
+    title: "Datei-Schwachstellen"
+    description:
+    lectures:
+      - id: "05_web_anwendungen_hacken_tutorial_datei_schwachstellen_2_local_file_inclusion"
+        title: "Local File Inclusion"
+        description:
+        type: mp4
+        duration: 289
+      - id: "05_web_anwendungen_hacken_tutorial_datei_schwachstellen_3_null_bytes"
+        title: "NULL Bytes"
+        description:
+        type: mp4
+        duration: 172
+      - id: "05_web_anwendungen_hacken_tutorial_datei_schwachstellen_4_filter_bypassing"
+        title: "Filter Bypassing"
+        description:
+        type: mp4
+        duration: 328
+      - id: "05_web_anwendungen_hacken_tutorial_datei_schwachstellen_5_log_injection"
+        title: "Log Injection"
+        description:
+        type: mp4
+        duration: 358
+      - id: "05_web_anwendungen_hacken_tutorial_datei_schwachstellen_remote_file_inclusion"
+        title: "Remote File Inclusion"
+        description:
+        type: mp4
+        duration: 287
+  - id: directory_enumeration
+    title: "Directory Enumeration"
+    description:
+    lectures:
+      - id: "06_web_anwendungen_hacken_tutorial_directory_enumeration_dirsearch"
+        title: "dirsearch"
+        description:
+        type: mp4
+        duration: 561
+  - id: ddos
+    title: "DDOS"
+    description:
+    lectures:
+      - id: "07_web_anwendungen_hacken_tutorial_ddos_1_klassen_von_ddos_angriffen"
+        title: "Klassen von DDoS-Angriffen"
+        description:
+        type: mp4
+        duration: 553
+      - id: "07_web_anwendungen_hacken_tutorial_ddos_2_ziele"
+        title: "Ziele"
+        description:
+        type: mp4
+        duration: 596
+      - id: "07_web_anwendungen_hacken_tutorial_ddos_3_tools_bzw_warum_keine_tools"
+        title: "Tools bzw warum keine Tools"
+        description:
+        type: mp4
+        duration: 302
+      - id: "07_web_anwendungen_hacken_tutorial_ddos_4_einfache_angriffe"
+        title: "einfache Angriffe"
+        description:
+        type: mp4
+        duration: 537
+      - id: "07_web_anwendungen_hacken_tutorial_ddos_5_generelles_vorgehen_und_angriffe_die_wir_schon_kennen"
+        title: "generelles Vorgehen und Angriffe, die wir schon kennen"
+        description:
+        type: mp4
+        duration: 371
+      - id: "07_web_anwendungen_hacken_tutorial_ddos_6_pre_authentification_angriffe"
+        title: "Pre-Authentification-Angriffe"
+        description:
+        type: mp4
+        duration: 725
+      - id: "07_web_anwendungen_hacken_tutorial_ddos_7_authentification_und_post_auth._angriffe"
+        title: "Authentification und Post-Auth.-Angriffe"
+        description:
+        type: mp4
+        duration: 645
+  - id: csrf
+    title: "CSRF"
+    description:
+    lectures:
+      - id: "08_web_anwendungen_hacken_tutorial_csrf_1_cross_site_request_forgery"
+        title: "Cross Site Request Forgery"
+        description:
+        type: mp4
+        duration: 252
+      - id: "08_web_anwendungen_hacken_tutorial_csrf_1_post_parameter"
+        title: "POST-Parameter"
+        description:
+        type: mp4
+        duration: 181
+      - id: "08_web_anwendungen_hacken_tutorial_csrf_3_csrf_unterbinden"
+        title: "CSRF unterbinden"
+        description:
+        type: mp4
+        duration: 522
+  - id: passwortsicherheit
+    title: "Passwortsicherheit"
+    description:
+    lectures:
+      - id: "09_web_anwendungen_hacken_tutorial_passwortsicherheit_1"
+        title: "Passwortsicherheit #1"
+        description:
+        type: mp4
+        duration: 618
+      - id: "09_web_anwendungen_hacken_tutorial_passwortsicherheit_2"
+        title: "Passwortsicherheit #2"
+        description:
+        type: mp4
+        duration: 511
+      - id: "09_web_anwendungen_hacken_tutorial_passwortsicherheit_3_speichern_von_passwörtern"
+        title: "Speichern von Passwörtern"
+        description:
+        type: mp4
+        duration: 714
+      - id: "09_web_anwendungen_hacken_tutorial_remember_me_tokens"
+        title: "Remember Me Tokens"
+        description:
+        type: mp4
+        duration: 517
+  - id: zap
+    title: "Zed Attack Proxy ZAP"
+    description:
+    lectures:
+      - id: "10_zed_attack_proxy_zap_tutorial_1_einleitung_und_installation"
+        title: "Einleitung und Installation"
+        description:
+        type: mp4
+        duration: 476
+      - id: "10_zed_attack_proxy_zap_tutorial_2_ein_einfacher_angriff"
+        title: "ein einfacher Angriff"
+        description:
+        type: mp4
+        duration: 575
+      - id: "10_zed_attack_proxy_zap_tutorial_3_warnungen"
+        title: "Warnungen"
+        description:
+        type: mp4
+        duration: 678
+      - id: "10_zed_attack_proxy_zap_tutorial_4_aktive_scans"
+        title: "Aktive Scans"
+        description:
+        type: mp4
+        duration: 590
+      - id: "10_zed_attack_proxy_zap_tutorial_5_eigene_policies"
+        title: "eigene Policies"
+        description:
+        type: mp4
+        duration: 379
+      - id: "10_zed_attack_proxy_zap_tutorial_6_forced_browsing"
+        title: "Forced Browsing"
+        description:
+        type: mp4
+        duration: 304
+      - id: "10_zed_attack_proxy_zap_tutorial_7_fuzzing"
+        title: "Fuzzing"
+        description:
+        type: mp4
+        duration: 656
+      - id: "10_zed_attack_proxy_zap_tutorial_8_über_den_browser_angreifen"
+        title: "Über den Browser angreifen"
+        description:
+        type: mp4
+        duration: 449
+      - id: "10_zed_attack_proxy_zap_tutorial_9_der_marketplace"
+        title: "Der Marketplace"
+        description:
+        type: mp4
+        duration: 184
+      - id: "10_zed_attack_proxy_zap_tutorial_10_scripts_eine_kurze_einführung"
+        title: "Scripts eine kurze Einführung"
+        description:
+        type: mp4
+        duration: 673
+      - id: "10_zed_attack_proxy_zap_tutorial_11_kontexte_authentifikation_und_mehr"
+        title: "Kontexte - Authentifikation und mehr"
+        description:
+        type: mp4
+        duration: 837
+      - id: "10_zed_attack_proxy_zap_tutorial_12_diff_und_abschließende_worte"
+        title: "Diff und abschließende Worte"
+        description:
+        type: mp4
+        duration: 259

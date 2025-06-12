@@ -1,0 +1,128 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7rhjy2t320NvKKGwP6Rxnpg
+title: "Assembler Lernen"
+description: |
+  Assembler - die Grundlage für alle modernen Programmiersprachen, die maschinennaheste Art der Programmierung überhaupt.
+  Heutzutage ist Assemblerprogrammierung wohl selten ein wirkliches Thema. Dennoch kann es in manchen Fällen nötig sein, Assembler lesen zu können - beispielsweise beim Verständnis des Compiler-generierten Codes oder bei der Analyse von Malware.
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/assembler.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665507903
+sections:
+  - id: section
+    title: "Assembler"
+    description:
+    lectures:
+      - id: "UiqAq-iWHPI"
+        title: "Einleitung"
+        description:
+        type: youtube
+        video_id: "UiqAq-iWHPI"
+        duration: 531
+      - id: "XFB_-UrrG3Y"
+        title: "GCC Assembler"
+        description:
+        type: youtube
+        video_id: "XFB_-UrrG3Y"
+        duration: 703
+      - id: "P013kCzh4TA"
+        title: "Der Von Neumann Rechner"
+        description:
+        type: youtube
+        video_id: "P013kCzh4TA"
+        duration: 420
+      - id: "9cOFFHvUwCs"
+        title: "abstrahierter Speicher"
+        description:
+        type: youtube
+        video_id: "9cOFFHvUwCs"
+        duration: 353
+      - id: "-yNUND7FTHY"
+        title: "Movl, Movq etc"
+        description:
+        type: youtube
+        video_id: "-yNUND7FTHY"
+        duration: 118
+      - id: "9i_1T-I8Guo"
+        title: "Der Stack"
+        description:
+        type: youtube
+        video_id: "9i_1T-I8Guo"
+        duration: 217
+      - id: "xA81yEWRLQc"
+        title: "Prozeduren und Funktionen"
+        description:
+        type: youtube
+        video_id: "xA81yEWRLQc"
+        duration: 359
+      - id: "jn53WnfxMPk"
+        title: "Einstiegspunkte und Ausgaben"
+        description:
+        type: youtube
+        video_id: "jn53WnfxMPk"
+        duration: 494
+      - id: "dCSYVW6yfFI"
+        title: "Einen Integer ausgeben"
+        description:
+        type: youtube
+        video_id: "dCSYVW6yfFI"
+        duration: 165
+      - id: "fEyGD-Qx7u8"
+        title: "Bedingte Ausgaben"
+        description:
+        type: youtube
+        video_id: "fEyGD-Qx7u8"
+        duration: 516
+      - id: "M50Vv32yzzo"
+        title: "Sprungbefehle - Jump"
+        description:
+        type: youtube
+        video_id: "M50Vv32yzzo"
+        duration: 597
+      - id: "IkVZc5MALi4"
+        title: "Einfache Arithmetische Befehle"
+        description:
+        type: youtube
+        video_id: "IkVZc5MALi4"
+        duration: 778
+      - id: "zYeOSoIB8ag"
+        title: "Schleifen"
+        description:
+        type: youtube
+        video_id: "zYeOSoIB8ag"
+        duration: 376
+      - id: "4f3t94Xwkvg"
+        title: "Logische Befehle"
+        description:
+        type: youtube
+        video_id: "4f3t94Xwkvg"
+        duration: 478
+      - id: "lpKo0ZDJD2Q"
+        title: "Shift Befehle"
+        description:
+        type: youtube
+        video_id: "lpKo0ZDJD2Q"
+        duration: 452
+      - id: "nvErXNcWTNg"
+        title: "Stack Frames"
+        description:
+        type: youtube
+        video_id: "nvErXNcWTNg"
+        duration: 273
+      - id: "zcQAd3vIXAU"
+        title: "Der GCC Output"
+        description:
+        type: youtube
+        video_id: "zcQAd3vIXAU"
+        duration: 840
+      - id: "BKmzY8Bu8GY"
+        title: "Inline Assembler - Assembler Code in C"
+        description:
+        type: youtube
+        video_id: "BKmzY8Bu8GY"
+        duration: 538

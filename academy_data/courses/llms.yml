@@ -1,0 +1,189 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7r4pg1j8eFsEQp3nL0w4jJz
+title: "Mit Large Language Models arbeiten"
+description: |
+  Dieser Kurs bietet eine umfassende Einführung in die Arbeit mit Large Language Models (LLMs) wie ChatGPT und Midjourney. Die Teilnehmer lernen, wie sie diese leistungsstarken Tools als Entwickler nutzen können, warum der Aufbau eigener Modelle oft nicht die beste Option ist und wie sie die Installation von LLMs wie LLama meistern können.
+
+  Der Kurs behandelt auch spezifische Anwendungsfälle und Techniken, wie das Prompt Engineering, um die besten Ergebnisse aus ChatGPT und Midjourney zu erzielen. Die Teilnehmer lernen, wie sie Anweisungen erstellen, Diagramme und Tabellen generieren und die Rollenfunktionen von ChatGPT nutzen können.
+
+  Darüber hinaus werden fortgeschrittene Themen wie das Generieren von Bildern mit Midjourney und Dall-E, die Verbesserung von ChatGPT mit Beispielen (Few-Shot vs. Zero-Shot Prompting) und die Verwendung von ChatGPT und Python zur Identifizierung illegaler Tweets behandelt.
+
+  Der Kurs endet mit einem Blick auf die Zukunft und diskutiert, wie Open-Source-KI bereits mit ChatGPT mithalten kann.
+
+  **Zielgruppe:**
+
+  Dieser Kurs richtet sich an Entwickler, Datenwissenschaftler und alle, die daran interessiert sind, die Möglichkeiten von Large Language Models zu nutzen und zu verstehen.
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/llms.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals:
+  - Die Grundlagen und Anwendungen von Large Language Models zu verstehen.
+  - ChatGPT und andere LLMs effizient für verschiedene Aufgaben einzusetzen.
+  - Fortgeschrittene Techniken wie Prompt Engineering und Bildgenerierung zu beherrschen.
+  - Die Grenzen und Möglichkeiten von Open-Source-KI im Vergleich zu proprietären Modellen wie ChatGPT zu verstehen.
+requirements: []
+last_update: 1686300755
+sections:
+  - id: section
+    title: "Mit Large Language Models arbeiten"
+    description:
+    lectures:
+      - id: "Bll_Ws_NNtk"
+        title: "Wie ITler ChatGPT realistisch nutzen können!"
+        description:
+        type: youtube
+        video_id: "Bll_Ws_NNtk"
+        duration: 735
+      - id: "r6DIFKA4OiQ"
+        title: "Warum ChatGPT selbst bauen keine Option ist"
+        description:
+        type: youtube
+        video_id: "r6DIFKA4OiQ"
+        duration: 825
+      - id: "j2mXlzOZ4V4"
+        title: "GPT-3 einfach ERKLÄRT - DAS steckt HINTER der beliebten KI"
+        description:
+        type: youtube
+        video_id: "j2mXlzOZ4V4"
+        duration: 615
+      - id: "qX_7VGEmTAg"
+        title: "ChatGPT-Klon LLama: Tutorial für die Installation"
+        description:
+        type: youtube
+        video_id: "qX_7VGEmTAg"
+        duration: 1201
+      - id: "SwALa9WHsLE"
+        title: "Prompt Engineering: Die besten Ergebnisse aus ChatGPT, Midjourney und Co bekommen | Tutorial #01"
+        description:
+        type: youtube
+        video_id: "SwALa9WHsLE"
+        duration: 527
+      - id: "rq3Ot9RfNhY"
+        title: "SO müsst ihr ChatGPT etc. Anweisungen geben | Tutorial #02"
+        description:
+        type: youtube
+        video_id: "rq3Ot9RfNhY"
+        duration: 811
+      - id: "aW9F1_2bOTc"
+        title: "Aus ChatGPT und Co Diagramme, Tabellen etc generieren | Tutorial #03"
+        description:
+        type: youtube
+        video_id: "aW9F1_2bOTc"
+        duration: 1064
+      - id: "-9b9DoYb_g4"
+        title: "ChatGPT, sei mein Alleskönner: Die Macht von Rollen! | Tutorial #04"
+        description:
+        type: youtube
+        video_id: "-9b9DoYb_g4"
+        duration: 727
+      - id: "MKF5LWgEXow"
+        title: "ChatGPT KANN Logik: Chain of Thought Prompting | Tutorial #05"
+        description:
+        type: youtube
+        video_id: "MKF5LWgEXow"
+        duration: 404
+      - id: "S8xdCCucFWE"
+        title: "Mit Beispielen ChatGPT verbessern: Few-Shot vs Zero-Shot Prompting | Tutorial #06"
+        description:
+        type: youtube
+        video_id: "S8xdCCucFWE"
+        duration: 427
+      - id: "KTMI8_mZw7w"
+        title: "Bessere Texte verfassen: ChatGPT und CoT Prompting | Tutorial #07"
+        description:
+        type: youtube
+        video_id: "KTMI8_mZw7w"
+        duration: 1115
+      - id: "OgMDJZWsst0"
+        title: "Mit ChatGPT und Whisper Meetings zusammenfassen | Tutorial #08"
+        description:
+        type: youtube
+        video_id: "OgMDJZWsst0"
+        duration: 646
+      - id: "Mi3UFQwCkbg"
+        title: "Einstufung mit Sinn: Self-Consistency für ChatGPT und Co | Tutorial #09"
+        description:
+        type: youtube
+        video_id: "Mi3UFQwCkbg"
+        duration: 679
+      - id: "4BLpzxVLwH8"
+        title: "Eine Einführung zu Bildgenerierung mit Midjourney, Dall-E und Co | Tutorial #01"
+        description:
+        type: youtube
+        video_id: "4BLpzxVLwH8"
+        duration: 500
+      - id: "86Hvl-_hrBI"
+        title: "Iterative Bildgenerierung mit Midjourney, Dall-E und Co | Tutorial #02"
+        description:
+        type: youtube
+        video_id: "86Hvl-_hrBI"
+        duration: 614
+      - id: "0vy3HG-3SmE"
+        title: "Midjourney: Gewichte und nie wieder schlechte Hände | Tutorial #03"
+        description:
+        type: youtube
+        video_id: "0vy3HG-3SmE"
+        duration: 497
+      - id: "f_8G4_PQw9c"
+        title: "Midjourney: Seed, Chaos und Stil erklärt | Tutorial #04"
+        description:
+        type: youtube
+        video_id: "f_8G4_PQw9c"
+        duration: 623
+      - id: "Vcd8HDh-9_A"
+        title: "Midjourney und Co: Tipps für FOTOREALISTISCHE Menschen | Tutorial #05"
+        description:
+        type: youtube
+        video_id: "Vcd8HDh-9_A"
+        duration: 593
+      - id: "OF9ns2xjouE"
+        title: "Midjourney: Bilder als EINGABE | Tutorial #06"
+        description:
+        type: youtube
+        video_id: "OF9ns2xjouE"
+        duration: 397
+      - id: "pAwodqn6Pg0"
+        title: "ChatGPT und Midjourney im Tandem für schnellere Prompts | Tutorial #07"
+        description:
+        type: youtube
+        video_id: "pAwodqn6Pg0"
+        duration: 361
+      - id: "WjdGmiblRF8"
+        title: "Midjourney: Ultimate Guide zu LOGOs | Tutorial #08"
+        description:
+        type: youtube
+        video_id: "WjdGmiblRF8"
+        duration: 620
+      - id: "SFVE_HzEW5c"
+        title: "Midjourney: Beleuchtung und Perspektiven | Tutorial #09"
+        description:
+        type: youtube
+        video_id: "SFVE_HzEW5c"
+        duration: 653
+      - id: "cshoZdn-gWA"
+        title: "Web Design mit Midjourney erledigen  | Tutorial #10"
+        description:
+        type: youtube
+        video_id: "cshoZdn-gWA"
+        duration: 502
+      - id: "QdbbWI-I_Ww"
+        title: "ChatGPT und Python um illegale Tweets zu finden"
+        description:
+        type: youtube
+        video_id: "QdbbWI-I_Ww"
+        duration: 1149
+      - id: "K54SMQRCnoc"
+        title: "Wir bauen die Satire-KI mit ChatGPT"
+        description:
+        type: youtube
+        video_id: "K54SMQRCnoc"
+        duration: 588
+      - id: "UjeHGXbiqLQ"
+        title: "GPT4All: Open-Source KI kann schon fast mit ChatGPT mithalten!"
+        description:
+        type: youtube
+        video_id: "UjeHGXbiqLQ"
+        duration: 1222

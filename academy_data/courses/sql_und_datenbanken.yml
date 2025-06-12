@@ -1,0 +1,132 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7qYPusTRflv3tkzhYoT-KiB
+title: "Datenbanken und die Structured Query Language SQL"
+description: "Datenbanken braucht es einfach immer. Daten speichern, Daten holen, wir können ja nicht alles für immer zwischenspeichern. Und Datenbanken werden mit SQL angesprochen."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/sql.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665507383
+sections:
+  - id: section
+    title: "Grundlagen"
+    description:
+    lectures:
+      - id: "1HLgKobzNZk"
+        title: "Einführung in SQL und Datenbanken"
+        description:
+        type: youtube
+        video_id: "1HLgKobzNZk"
+        duration: 355
+      - id: "WEV5sjgH34Q"
+        title: "MySQL Installation"
+        description:
+        type: youtube
+        video_id: "WEV5sjgH34Q"
+        duration: 550
+      - id: "kiy8F5uw7vU"
+        title: "Object Relational Mapping"
+        description:
+        type: youtube
+        video_id: "kiy8F5uw7vU"
+        duration: 432
+  - id: section2
+    title: "SQL Grundlagen"
+    description:
+    lectures:
+      - id: "RQPznV3LZW8"
+        title: "Einführung in SQL und Datenbanken"
+        description:
+        type: youtube
+        video_id: "RQPznV3LZW8"
+        duration: 500
+      - id: "Y_cBipGdf-k"
+        title: "Distinct und Where"
+        description:
+        type: youtube
+        video_id: "Y_cBipGdf-k"
+        duration: 674
+      - id: "rbQ67RynV_g"
+        title: "AND und OR, Order By"
+        description:
+        type: youtube
+        video_id: "rbQ67RynV_g"
+        duration: 456
+      - id: "n-TVepjRR5Y"
+        title: "Einfügen, Verändern und Löschen"
+        description:
+        type: youtube
+        video_id: "n-TVepjRR5Y"
+        duration: 543
+      - id: "G8bQATIsb44"
+        title: "Null und Like"
+        description:
+        type: youtube
+        video_id: "G8bQATIsb44"
+        duration: 573
+      - id: "eo1Yg00gOVQ"
+        title: "geschachtelte Suchanfragen mit IN"
+        description:
+        type: youtube
+        video_id: "eo1Yg00gOVQ"
+        duration: 361
+      - id: "NjTg1of8qK8"
+        title: "Tabellen erstellen und Datentypen"
+        description:
+        type: youtube
+        video_id: "NjTg1of8qK8"
+        duration: 844
+  - id: section3
+    title: "Arbeiten mit mehreren Tabellen"
+    description:
+    lectures:
+      - id: "1ZDao9-nfro"
+        title: "Assoziationen zwischen Tabellen"
+        description:
+        type: youtube
+        video_id: "1ZDao9-nfro"
+        duration: 507
+      - id: "4jYsByLUScY"
+        title: "Primary und Foreign Keys, Not Null"
+        description:
+        type: youtube
+        video_id: "4jYsByLUScY"
+        duration: 617
+      - id: "a6oAfRTTZmQ"
+        title: "Tabelle ändern, Autoincrement"
+        description:
+        type: youtube
+        video_id: "a6oAfRTTZmQ"
+        duration: 375
+      - id: "vzjSvjB_UaM"
+        title: "Joins"
+        description:
+        type: youtube
+        video_id: "vzjSvjB_UaM"
+        duration: 588
+  - id: section4
+    title: "Tipps und Tricks"
+    description:
+    lectures:
+      - id: "OY65bU_uNGI"
+        title: "SQL-built-in Funktionen"
+        description:
+        type: youtube
+        video_id: "OY65bU_uNGI"
+        duration: 725
+      - id: "X4M7XS8lwPE"
+        title: "SQLite als leichter Einstieg ins Thema Datenbanken"
+        description:
+        type: youtube
+        video_id: "X4M7XS8lwPE"
+        duration: 596
+      - id: "1CRCH_8I_xY"
+        title: "Relationale DBMS im Vergleich"
+        description:
+        type: youtube
+        video_id: "1CRCH_8I_xY"
+        duration: 772

@@ -1,0 +1,132 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7ogA_q-mOoYH3dDQIh8B3Oe
+title: "ExpressJS: JavaScript Server und APIs in einfach"
+description: "Ihr wollt eine API mit JavaScript erstellen? Klar, ihr könnt auch alles von Hand machen.. oder ihr nutzt Express und seid in 20 Minuten durch."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/javascript.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665507444
+sections:
+  - id: section
+    title: "Mit Express einfach einen JavaScript Server erstellen"
+    description:
+    lectures:
+      - id: "vTeblk3C7tc"
+        title: "Einleitung"
+        description:
+        type: youtube
+        video_id: "vTeblk3C7tc"
+        duration: 286
+      - id: "oQn6CWihv-A"
+        title: "Ein einfacher Express Server"
+        description:
+        type: youtube
+        video_id: "oQn6CWihv-A"
+        duration: 830
+      - id: "cJYnVOJpCJA"
+        title: "HTTP Methoden und Postman"
+        description:
+        type: youtube
+        video_id: "cJYnVOJpCJA"
+        duration: 642
+      - id: "1MQT_LAFSVo"
+        title: "Grundlegendes Routing"
+        description:
+        type: youtube
+        video_id: "1MQT_LAFSVo"
+        duration: 381
+      - id: "ym79gBNCRpA"
+        title: "Statische Ordner"
+        description:
+        type: youtube
+        video_id: "ym79gBNCRpA"
+        duration: 429
+      - id: "xxx3H555t64"
+        title: "Dateien als Antwort"
+        description:
+        type: youtube
+        video_id: "xxx3H555t64"
+        duration: 438
+      - id: "HLbtNPcGVNo"
+        title: "Middleware und use vs all"
+        description:
+        type: youtube
+        video_id: "HLbtNPcGVNo"
+        duration: 930
+      - id: "bIRLtRJjlHA"
+        title: "Daten empfangen via Json und URLEncoded"
+        description:
+        type: youtube
+        video_id: "bIRLtRJjlHA"
+        duration: 696
+      - id: "D_6YZGTG_Pg"
+        title: "Helmet für mehr Sicherheit"
+        description:
+        type: youtube
+        video_id: "D_6YZGTG_Pg"
+        duration: 408
+      - id: "PhMQh8iVprw"
+        title: "In Json antworten: eine echte API"
+        description:
+        type: youtube
+        video_id: "PhMQh8iVprw"
+        duration: 352
+      - id: "jAqsi8Ot2W8"
+        title: "Serverside Rendering: Einführung"
+        description:
+        type: youtube
+        video_id: "jAqsi8Ot2W8"
+        duration: 625
+      - id: "DhWS50ZJY7M"
+        title: "EJS: Embedded JavaScript"
+        description:
+        type: youtube
+        video_id: "DhWS50ZJY7M"
+        duration: 603
+      - id: "tI_D_H0g9y8"
+        title: "EJS mit Express verbinden"
+        description:
+        type: youtube
+        video_id: "tI_D_H0g9y8"
+        duration: 362
+      - id: "kFoeoxmvi48"
+        title: "EJS und Escapes: ein kleiner Ausflug in die Security"
+        description:
+        type: youtube
+        video_id: "kFoeoxmvi48"
+        duration: 851
+      - id: "8FWuPtOgs10"
+        title: "Fortgeschrittenes Routing"
+        description:
+        type: youtube
+        video_id: "8FWuPtOgs10"
+        duration: 643
+      - id: "kEiVL-RdQsI"
+        title: "Der Express Router"
+        description:
+        type: youtube
+        video_id: "kEiVL-RdQsI"
+        duration: 567
+      - id: "uaithhg0eIg"
+        title: "Get-Parameter"
+        description:
+        type: youtube
+        video_id: "uaithhg0eIg"
+        duration: 666
+      - id: "CUDsF03tcvo"
+        title: "Cookies"
+        description:
+        type: youtube
+        video_id: "CUDsF03tcvo"
+        duration: 831
+      - id: "C2o-9t50Wmc"
+        title: "Express Generator"
+        description:
+        type: youtube
+        video_id: "C2o-9t50Wmc"
+        duration: 734

@@ -1,0 +1,84 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7rRSgXNzZMV3XlrfklBugNW
+title: "Windows lernen - Kommandozeile und mehr"
+description: "Wir alle nutzen Windows irgendwann in unserem Leben. Und vermutlich sollten wir es dann schon zu nutzen lernen!"
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/windows.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665507370
+sections:
+  - id: section
+    title: "Grundlagen"
+    description:
+    lectures:
+      - id: "xnF2ZnYPIOc"
+        title: "Einleitung"
+        description:
+        type: youtube
+        video_id: "xnF2ZnYPIOc"
+        duration: 317
+      - id: "vWlwHLgdNBU"
+        title: "ipconfig"
+        description:
+        type: youtube
+        video_id: "vWlwHLgdNBU"
+        duration: 208
+      - id: "s6HmUeYefuE"
+        title: "Erstellen und Löschen von Verzeichnissen"
+        description:
+        type: youtube
+        video_id: "s6HmUeYefuE"
+        duration: 232
+      - id: "wtvCi6ytnxs"
+        title: "Dateien löschen, erstellen, anhängen und Pipes"
+        description:
+        type: youtube
+        video_id: "wtvCi6ytnxs"
+        duration: 519
+      - id: "3NEpD_mYcvM"
+        title: "Dateien verschieben, kopieren, Datenträger und Farbe"
+        description:
+        type: youtube
+        video_id: "3NEpD_mYcvM"
+        duration: 288
+      - id: "01pu4Euw9Ng"
+        title: "Speichern von Outputs"
+        description:
+        type: youtube
+        video_id: "01pu4Euw9Ng"
+        duration: 245
+      - id: "6app-3MmjVI"
+        title: "cls und mehrere Commands auf einmal ausführen"
+        description:
+        type: youtube
+        video_id: "6app-3MmjVI"
+        duration: 160
+      - id: "Jd_5Zr6qoO8"
+        title: "Der Registrierungseditor und Autostart unter Windows"
+        description:
+        type: youtube
+        video_id: "Jd_5Zr6qoO8"
+        duration: 506
+      - id: "vf62tjS6v9E"
+        title: "Registrierungseditor per Kommandozeile"
+        description:
+        type: youtube
+        video_id: "vf62tjS6v9E"
+        duration: 321
+      - id: "ejy0APEsRuY"
+        title: "Windows SICHER, ANONYM und SCHNELLER machen"
+        description:
+        type: youtube
+        video_id: "ejy0APEsRuY"
+        duration: 3287
+      - id: "0EgGoKG165o"
+        title: "Ich habe meine PowerShell gemoddet, damit ich SUDO nutzen kann"
+        description:
+        type: youtube
+        video_id: "0EgGoKG165o"
+        duration: 896

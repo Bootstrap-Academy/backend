@@ -1,0 +1,228 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7q_xBcMAlQ2K18HjMpAe0Nm
+title: "Mengenlehre"
+description: "Mengenlehre, eine fundamentale Thematik für die Mathematik, in der es um Mengen, Ringe, Körper und deren Rechenregeln geht."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/mengenlehre.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1678802776
+sections:
+  - id: section
+    title: "Mengenlehre"
+    description:
+    lectures:
+      - id: "rsYgZTHjfTQ"
+        title: "Mathematik: Mengenlehre #1 - Was sind Mengen?"
+        description:
+        type: youtube
+        video_id: "rsYgZTHjfTQ"
+        duration: 401
+      - id: "RNVEOu6yXmQ"
+        title: "Mathe in Code: Mengenlehre #1.5 - Mengen in Python"
+        description:
+        type: youtube
+        video_id: "RNVEOu6yXmQ"
+        duration: 320
+      - id: "NSQxleOe_Dg"
+        title: "Mathematik: Mengenlehre #2 - Teilmengen"
+        description:
+        type: youtube
+        video_id: "NSQxleOe_Dg"
+        duration: 310
+      - id: "H9tgO49YGQI"
+        title: "Mathematik: Mengenlehre #3 - Der Schnitt"
+        description:
+        type: youtube
+        video_id: "H9tgO49YGQI"
+        duration: 422
+      - id: "g3-aoISf2sI"
+        title: "Mathematik: Mengenlehre #4 - Vereinigung"
+        description:
+        type: youtube
+        video_id: "g3-aoISf2sI"
+        duration: 380
+      - id: "KstSdHRc96w"
+        title: "Mathematik: Mengenlehre #5 - Die Differenz"
+        description:
+        type: youtube
+        video_id: "KstSdHRc96w"
+        duration: 461
+      - id: "mlfmaVqKdRk"
+        title: "Mathematik: Mengenlehre #6 - Die Symmetrische Differenz"
+        description:
+        type: youtube
+        video_id: "mlfmaVqKdRk"
+        duration: 635
+      - id: "SwOxlWrDUiY"
+        title: "Mathe in Code: Mengenlehre #6.5 - Mengenoperationen in Python"
+        description:
+        type: youtube
+        video_id: "SwOxlWrDUiY"
+        duration: 751
+      - id: "5vcYYQOVW1s"
+        title: "Mathematik: Mengenlehre #7 - Potenzmengen"
+        description:
+        type: youtube
+        video_id: "5vcYYQOVW1s"
+        duration: 517
+      - id: "VJBZi-HD5_c"
+        title: "Mathematik: Mengenlehre #8 - Das Kartesische Produkt"
+        description:
+        type: youtube
+        video_id: "VJBZi-HD5_c"
+        duration: 683
+      - id: "h3NPutvl49U"
+        title: "Mathematik: Abbildungen und Relationen #1 - Funktionen"
+        description:
+        type: youtube
+        video_id: "h3NPutvl49U"
+        duration: 475
+      - id: "rfZvGoTh4Bk"
+        title: "Mathematik: Abbildungen und Relationen #2 - Das Bild"
+        description:
+        type: youtube
+        video_id: "rfZvGoTh4Bk"
+        duration: 286
+      - id: "vkLn1jSIkJM"
+        title: "Mathematik: Abbildungen und Relationen #3 - Das Urbild"
+        description:
+        type: youtube
+        video_id: "vkLn1jSIkJM"
+        duration: 367
+      - id: "T_75W5CkY14"
+        title: "Mathematik: Abbildungen und Relationen #4 - Injektivität, Surjektivität, Bijektivität"
+        description:
+        type: youtube
+        video_id: "T_75W5CkY14"
+        duration: 826
+      - id: "b6fm4uUvQyU"
+        title: "Mathematik: Abbildungen und Relationen #5 - Komposition"
+        description:
+        type: youtube
+        video_id: "b6fm4uUvQyU"
+        duration: 497
+      - id: "yQlF7_EeMsM"
+        title: "Mathematik: Abbildungen und Relationen #6 - Die Identität"
+        description:
+        type: youtube
+        video_id: "yQlF7_EeMsM"
+        duration: 97
+      - id: "g-86WCp19RE"
+        title: "Mathematik: Abbildungen und Relationen #7 - Die Umkehrabbildung"
+        description:
+        type: youtube
+        video_id: "g-86WCp19RE"
+        duration: 689
+      - id: "AgLxcYZ3MZk"
+        title: "Mathematik: Abbildungen und Relationen #8 - Relationen"
+        description:
+        type: youtube
+        video_id: "AgLxcYZ3MZk"
+        duration: 428
+      - id: "wDdck0dvkYc"
+        title: "Mathematik: Relationen #9 - Reflexivität, Symmetrie, Transitivität"
+        description:
+        type: youtube
+        video_id: "wDdck0dvkYc"
+        duration: 469
+      - id: "gceIKmaedso"
+        title: "Mathematik: Relationen #10 - Äquivalenzklassen und der Quotientenraum"
+        description:
+        type: youtube
+        video_id: "gceIKmaedso"
+        duration: 591
+      - id: "MhH41HA9OJw"
+        title: "Mathematik: Zahlen #1 - Natürliche, Ganze, Rationale und Reelle Zahlen"
+        description:
+        type: youtube
+        video_id: "MhH41HA9OJw"
+        duration: 596
+      - id: "q3UrMVPAINk"
+        title: "Mathematik: Zahlen #2 - Komplexe Zahlen"
+        description:
+        type: youtube
+        video_id: "q3UrMVPAINk"
+        duration: 287
+      - id: "AXwlPYp6L-4"
+        title: "Mathematik: Zahlen #3 - Große Operatoren"
+        description:
+        type: youtube
+        video_id: "AXwlPYp6L-4"
+        duration: 493
+      - id: "f0kK3Ekzmy8"
+        title: "Mathematik: Beweise #1 - Der Direkte Beweis"
+        description:
+        type: youtube
+        video_id: "f0kK3Ekzmy8"
+        duration: 518
+      - id: "fUT7lXkP9Ko"
+        title: "Mathematik: Beweise #2 - Der Indirekte Beweis"
+        description:
+        type: youtube
+        video_id: "fUT7lXkP9Ko"
+        duration: 515
+      - id: "NyPkBssGe4E"
+        title: "Mathematik: Beweise #3 - Vollständige Induktion"
+        description:
+        type: youtube
+        video_id: "NyPkBssGe4E"
+        duration: 1092
+      - id: "GFVrItmzn0o"
+        title: "Mathematik: Gruppen #1 - Was sind Gruppen?"
+        description:
+        type: youtube
+        video_id: "GFVrItmzn0o"
+        duration: 981
+      - id: "m1bkfddyZWk"
+        title: "Mathematik: Gruppen #2 - Untergruppen"
+        description:
+        type: youtube
+        video_id: "m1bkfddyZWk"
+        duration: 484
+      - id: "br9Qk7dLHW8"
+        title: "Mathematik: Gruppen #3 - Gruppenhomomorphismen"
+        description:
+        type: youtube
+        video_id: "br9Qk7dLHW8"
+        duration: 613
+      - id: "VKfRfsSoS2I"
+        title: "Mathematik: Gruppen #4 - Ringe"
+        description:
+        type: youtube
+        video_id: "VKfRfsSoS2I"
+        duration: 693
+      - id: "z-hS9iaW4cE"
+        title: "Mathematik: Gruppen #5 - Körper"
+        description:
+        type: youtube
+        video_id: "z-hS9iaW4cE"
+        duration: 562
+      - id: "7yxlMS10lR4"
+        title: "Mathematik: Gruppen #6 - Angeordnete Körper"
+        description:
+        type: youtube
+        video_id: "7yxlMS10lR4"
+        duration: 518
+      - id: "hIyjSAIxQuI"
+        title: "Mathematik: Gruppen #7 - Rechenregeln für Ungleichungen"
+        description:
+        type: youtube
+        video_id: "hIyjSAIxQuI"
+        duration: 1212
+      - id: "mOTrAKFeB7M"
+        title: "Mathematik: Gruppen #8 - Betrag und Signum"
+        description:
+        type: youtube
+        video_id: "mOTrAKFeB7M"
+        duration: 853
+      - id: "48hLi8R3dVM"
+        title: "Mathematik: Gruppen #9 - Vollständige Körper"
+        description:
+        type: youtube
+        video_id: "48hLi8R3dVM"
+        duration: 685

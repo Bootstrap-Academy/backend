@@ -1,0 +1,108 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7qIbKPeroqn3-BkUTWzYBT4
+title: "HTML 5"
+description: "HTML bildet die Grundlage jeder Website. Mit HTML ist auf jeder Website definiert, was der Inhalt ist. HTML ist leicht zu lernen, aber ein absolutes Must-Have, da es mittlerweile sogar häufig außerhalb der Web-Entwicklung zum Einsatz kommt."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/html.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665506509
+sections:
+  - id: section
+    title: "HTML 5"
+    description:
+    lectures:
+      - id: "pM-G2sIFPkA"
+        title: "Einleitung"
+        description:
+        type: youtube
+        video_id: "pM-G2sIFPkA"
+        duration: 446
+      - id: "9LmJjujyccw"
+        title: "einfache Tags"
+        description:
+        type: youtube
+        video_id: "9LmJjujyccw"
+        duration: 570
+      - id: "5ZiAHCPy1jc"
+        title: "Tags mit Attributen"
+        description:
+        type: youtube
+        video_id: "5ZiAHCPy1jc"
+        duration: 638
+      - id: "cV5q-AbyeAo"
+        title: "häufig verwendete Tags"
+        description:
+        type: youtube
+        video_id: "cV5q-AbyeAo"
+        duration: 644
+      - id: "s9iZxZUot3A"
+        title: "Tabellen"
+        description:
+        type: youtube
+        video_id: "s9iZxZUot3A"
+        duration: 518
+      - id: "HRJI36zZ29g"
+        title: "Listen"
+        description:
+        type: youtube
+        video_id: "HRJI36zZ29g"
+        duration: 443
+      - id: "Vj3DOvPwO0Q"
+        title: "Struktur und CSS-Zugriffsmöglichkeiten"
+        description:
+        type: youtube
+        video_id: "Vj3DOvPwO0Q"
+        duration: 545
+      - id: "B84vj38QULY"
+        title: "IFrames"
+        description:
+        type: youtube
+        video_id: "B84vj38QULY"
+        duration: 380
+      - id: "-4BE31wiJAw"
+        title: "Forms #1"
+        description:
+        type: youtube
+        video_id: "-4BE31wiJAw"
+        duration: 989
+      - id: "ynSOu2rqj7g"
+        title: "Forms #2"
+        description:
+        type: youtube
+        video_id: "ynSOu2rqj7g"
+        duration: 804
+      - id: "5tKNGQ5iG4Q"
+        title: "Forms #3"
+        description:
+        type: youtube
+        video_id: "5tKNGQ5iG4Q"
+        duration: 462
+      - id: "t1UwtbrHDsA"
+        title: "Meta-Tags"
+        description:
+        type: youtube
+        video_id: "t1UwtbrHDsA"
+        duration: 544
+      - id: "ZoFUebsyMr8"
+        title: "Videos und Untertitel"
+        description:
+        type: youtube
+        video_id: "ZoFUebsyMr8"
+        duration: 411
+      - id: "i01EUb0VuPk"
+        title: "Audio und YouTube einbetten"
+        description:
+        type: youtube
+        video_id: "i01EUb0VuPk"
+        duration: 426
+      - id: "CR4ZDwlIBtw"
+        title: "SVG-Grafiken"
+        description:
+        type: youtube
+        video_id: "CR4ZDwlIBtw"
+        duration: 736

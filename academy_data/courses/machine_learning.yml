@@ -1,0 +1,736 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7qoIUw0MBYQ9qJffZAVdRWC
+title: "Machine Learning und Künstliche Intelligenz"
+description: "KI, klar, tolles Thema, aber was verbirgt sich eigentlich dahinter? Es stellt sich raus - zumindest in der Theorie reine Mathematik!"
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/machinelearning.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665507965
+sections:
+  - id: section
+    title: "Grundlagen"
+    description:
+    lectures:
+      - id: "GdsOLrqj42I"
+        title: "Einleitung und Infos zur Serie"
+        description:
+        type: youtube
+        video_id: "GdsOLrqj42I"
+        duration: 377
+      - id: "BrIxs1TLHvw"
+        title: "Die Daten"
+        description:
+        type: youtube
+        video_id: "BrIxs1TLHvw"
+        duration: 506
+      - id: "pq8Ea5GqOv4"
+        title: "Konzept vs Klassifikation vs Regression"
+        description:
+        type: youtube
+        video_id: "pq8Ea5GqOv4"
+        duration: 353
+      - id: "MsD6hMnOSn0"
+        title: "Deduktion und Induktion"
+        description:
+        type: youtube
+        video_id: "MsD6hMnOSn0"
+        duration: 344
+      - id: "fXHL2AkKAok"
+        title: "Überwachtes und Unüberwachtes Lernen"
+        description:
+        type: youtube
+        video_id: "fXHL2AkKAok"
+        duration: 415
+      - id: "u4eDEIuVMtM"
+        title: "Fehlerminimierung"
+        description:
+        type: youtube
+        video_id: "u4eDEIuVMtM"
+        duration: 250
+      - id: "g4oBLJcsq3Q"
+        title: "Gradientenabstieg"
+        description:
+        type: youtube
+        video_id: "g4oBLJcsq3Q"
+        duration: 486
+      - id: "p8ypJFsWQNk"
+        title: "Overfitting"
+        description:
+        type: youtube
+        video_id: "p8ypJFsWQNk"
+        duration: 310
+      - id: "pyJa2kpWYtM"
+        title: "Abstandsmaße und Levenshtein Distanz"
+        description:
+        type: youtube
+        video_id: "pyJa2kpWYtM"
+        duration: 732
+  - id: section2
+    title: "Instanzbasiertes Lernen"
+    description:
+    lectures:
+      - id: "FghB26KmQG0"
+        title: "k-Nearest Neighbours"
+        description:
+        type: youtube
+        video_id: "FghB26KmQG0"
+        duration: 450
+      - id: "gMq4goRUg4k"
+        title: "k-Nearest Neighbours in Zahlen"
+        description:
+        type: youtube
+        video_id: "gMq4goRUg4k"
+        duration: 548
+      - id: "1HZU5pHGOCY"
+        title: "gewichteter k-Nearest Neighbours"
+        description:
+        type: youtube
+        video_id: "1HZU5pHGOCY"
+        duration: 550
+      - id: "i0j6f7gl4Rs"
+        title: 'Das Konzept "Case Based Reasoning"'
+        description:
+        type: youtube
+        video_id: "i0j6f7gl4Rs"
+        duration: 513
+  - id: section3
+    title: "Concept Learning"
+    description:
+    lectures:
+      - id: "C1cI7wUUg6M"
+        title: "Concept Learning aka Induktives Lernen #1"
+        description:
+        type: youtube
+        video_id: "C1cI7wUUg6M"
+        duration: 853
+      - id: "kB6kI-aj3KA"
+        title: "Concept Learning aka Induktives Lernen #2"
+        description:
+        type: youtube
+        video_id: "kB6kI-aj3KA"
+        duration: 379
+  - id: section4
+    title: "Unüberwachtes Lernen"
+    description:
+    lectures:
+      - id: "TZqRpYiUS3k"
+        title: "k-Means Clustering"
+        description:
+        type: youtube
+        video_id: "TZqRpYiUS3k"
+        duration: 1124
+      - id: "vLAgmZfdm1c"
+        title: "Fuzzy k-Means Clustering"
+        description:
+        type: youtube
+        video_id: "vLAgmZfdm1c"
+        duration: 621
+      - id: "TiBFigwj5F4"
+        title: "Dendrogramme"
+        description:
+        type: youtube
+        video_id: "TiBFigwj5F4"
+        duration: 335
+      - id: "ovI-KrOhvgc"
+        title: "Cobweb #1"
+        description:
+        type: youtube
+        video_id: "ovI-KrOhvgc"
+        duration: 790
+      - id: "K6B3uKuyL6g"
+        title: "Cobweb #2"
+        description:
+        type: youtube
+        video_id: "K6B3uKuyL6g"
+        duration: 811
+  - id: section5
+    title: "Bayes"
+    description:
+    lectures:
+      - id: "xaBrFCPk-P8"
+        title: "Intro"
+        description:
+        type: youtube
+        video_id: "xaBrFCPk-P8"
+        duration: 519
+      - id: "rY3NV1z6Kto"
+        title: "Das Bayes-Theorem"
+        description:
+        type: youtube
+        video_id: "rY3NV1z6Kto"
+        duration: 553
+      - id: "kWv8HZXe9j4"
+        title: "MAP - Die Maximum A Posteriori Hypothese"
+        description:
+        type: youtube
+        video_id: "kWv8HZXe9j4"
+        duration: 378
+      - id: "kzfVsRqAk_8"
+        title: "Konzeptlernen"
+        description:
+        type: youtube
+        video_id: "kzfVsRqAk_8"
+        duration: 497
+      - id: "RQAjm5bvBMI"
+        title: "Funktionslernen"
+        description:
+        type: youtube
+        video_id: "RQAjm5bvBMI"
+        duration: 459
+      - id: "HeWOxJFuZ6o"
+        title: "Optimaler Bayes"
+        description:
+        type: youtube
+        video_id: "HeWOxJFuZ6o"
+        duration: 429
+      - id: "MXlnK5ZL8Ok"
+        title: "Der Naive Bayes-Klassifikator"
+        description:
+        type: youtube
+        video_id: "MXlnK5ZL8Ok"
+        duration: 479
+      - id: "wuuGDuGuZ-I"
+        title: "Schätzen von Werten"
+        description:
+        type: youtube
+        video_id: "wuuGDuGuZ-I"
+        duration: 197
+      - id: "7qKyMcxRHEA"
+        title: "Bayes'sche Netze"
+        description:
+        type: youtube
+        video_id: "7qKyMcxRHEA"
+        duration: 465
+      - id: "Vg432zJ0UT4"
+        title: "Bedingte Unabhängigkeit #1"
+        description:
+        type: youtube
+        video_id: "Vg432zJ0UT4"
+        duration: 398
+      - id: "t2yupeDM4f8"
+        title: "Bedingte Unabhängigkeit #2"
+        description:
+        type: youtube
+        video_id: "t2yupeDM4f8"
+        duration: 415
+      - id: "5lqmo44NFDA"
+        title: "D-Separation"
+        description:
+        type: youtube
+        video_id: "5lqmo44NFDA"
+        duration: 373
+      - id: "GXJVKuNM6LE"
+        title: "Objektorientierte Probabilistisch Relationale Modelle"
+        description:
+        type: youtube
+        video_id: "GXJVKuNM6LE"
+        duration: 362
+      - id: "ZosvB9AXAys"
+        title: "Objektorientierte Probabilistisch Relationale Modelle - Parameter Schätzung"
+        description:
+        type: youtube
+        video_id: "ZosvB9AXAys"
+        duration: 461
+      - id: "mfh1laaJU3o"
+        title: "Objektorientierte Probabilistisch Relationale Modelle - Strukturbestimmung"
+        description:
+        type: youtube
+        video_id: "mfh1laaJU3o"
+        duration: 520
+      - id: "n3Z77g6lE5M"
+        title: "Der EM-Algorithmus"
+        description:
+        type: youtube
+        video_id: "n3Z77g6lE5M"
+        duration: 811
+  - id: section6
+    title: "Entscheidungsbäume"
+    description:
+    lectures:
+      - id: "-YW5s_an4z8"
+        title: "Decision Trees"
+        description:
+        type: youtube
+        video_id: "-YW5s_an4z8"
+        duration: 353
+      - id: "SYyyuHG9qBs"
+        title: "Der ID3-Algorithmus"
+        description:
+        type: youtube
+        video_id: "SYyyuHG9qBs"
+        duration: 589
+      - id: "lg1pb0YaAjI"
+        title: "Entropie und Informationsgewinn"
+        description:
+        type: youtube
+        video_id: "lg1pb0YaAjI"
+        duration: 400
+      - id: "RXrgUPc0uDc"
+        title: "Reduced Error Pruning"
+        description:
+        type: youtube
+        video_id: "RXrgUPc0uDc"
+        duration: 312
+      - id: "uQw93RacR1A"
+        title: "Attribute mit vielen Werten und kontinuierliche Werte"
+        description:
+        type: youtube
+        video_id: "uQw93RacR1A"
+        duration: 323
+      - id: "y4PS6Y-Jn90"
+        title: "Random Forests"
+        description:
+        type: youtube
+        video_id: "y4PS6Y-Jn90"
+        duration: 186
+  - id: section7
+    title: "Markov Modelle"
+    description:
+    lectures:
+      - id: "NAgofzXNqWc"
+        title: "Diskrete Markov Modelle"
+        description:
+        type: youtube
+        video_id: "NAgofzXNqWc"
+        duration: 408
+      - id: "Nqk_gPn2KS8"
+        title: "Hidden Markov Modelle"
+        description:
+        type: youtube
+        video_id: "Nqk_gPn2KS8"
+        duration: 327
+      - id: "s3p-zNlpsA4"
+        title: "HMMs #2 - Das Evaluationsproblem - Forward Backward Algorithmus"
+        description:
+        type: youtube
+        video_id: "s3p-zNlpsA4"
+        duration: 553
+      - id: "lDh8i7AV0bE"
+        title: "HMMs #3 - Das Dekodierungsproblem und der Viterbi Algorithmus"
+        description:
+        type: youtube
+        video_id: "lDh8i7AV0bE"
+        duration: 307
+      - id: "L1ZKbncUHuw"
+        title: "HMMs #4 - Der Baum Welch Algorithmus"
+        description:
+        type: youtube
+        video_id: "L1ZKbncUHuw"
+        duration: 794
+      - id: "BJIQ7rUk1WM"
+        title: "HMMs #5 - Der Baum Welch Algorithmus #2"
+        description:
+        type: youtube
+        video_id: "BJIQ7rUk1WM"
+        duration: 527
+      - id: "CLYcaO11h2E"
+        title: "HMMs #6 - Typen"
+        description:
+        type: youtube
+        video_id: "CLYcaO11h2E"
+        duration: 310
+  - id: section8
+    title: "Deduktives Lernen"
+    description:
+    lectures:
+      - id: "YAGWJ0fycBA"
+        title: "Einleitung"
+        description:
+        type: youtube
+        video_id: "YAGWJ0fycBA"
+        duration: 256
+      - id: "Fbd-Lwc9P8Y"
+        title: "Explanation Based Learning"
+        description:
+        type: youtube
+        video_id: "Fbd-Lwc9P8Y"
+        duration: 427
+      - id: "M-Z58RmIq_g"
+        title: "Knowledge Based Neural Networks"
+        description:
+        type: youtube
+        video_id: "M-Z58RmIq_g"
+        duration: 423
+  - id: section9
+    title: "Markov Logik Netze"
+    description:
+    lectures:
+      - id: "kP3H_UksjJ4"
+        title: "Probabilstische Graphische Modelle"
+        description:
+        type: youtube
+        video_id: "kP3H_UksjJ4"
+        duration: 699
+      - id: "UQGfYoAma6U"
+        title: "Markov Logik Netze #2"
+        description:
+        type: youtube
+        video_id: "UQGfYoAma6U"
+        duration: 448
+      - id: "mRGBU5UmBfI"
+        title: "Der MAP Algorithmus"
+        description:
+        type: youtube
+        video_id: "mRGBU5UmBfI"
+        duration: 300
+      - id: "mLrzdouGSlk"
+        title: "Generatives Lernen"
+        description:
+        type: youtube
+        video_id: "mLrzdouGSlk"
+        duration: 366
+  - id: section10
+    title: "Evolutionäre Algorithmen"
+    description:
+    lectures:
+      - id: "sxT71gpsA2k"
+        title: "Der Gundalgorithmus"
+        description:
+        type: youtube
+        video_id: "sxT71gpsA2k"
+        duration: 493
+      - id: "Bp4Xh-alVT4"
+        title: "Mutationen"
+        description:
+        type: youtube
+        video_id: "Bp4Xh-alVT4"
+        duration: 529
+      - id: "as3lijLxVAo"
+        title: "Rekombinationen"
+        description:
+        type: youtube
+        video_id: "as3lijLxVAo"
+        duration: 523
+      - id: "uf--mf-7njg"
+        title: "Selektion"
+        description:
+        type: youtube
+        video_id: "uf--mf-7njg"
+        duration: 434
+      - id: "k58CWZjorUE"
+        title: "Fitness Based Selection"
+        description:
+        type: youtube
+        video_id: "k58CWZjorUE"
+        duration: 301
+      - id: "9Mk5Vq3zhxs"
+        title: "Ranking Based und Tournament Selection"
+        description:
+        type: youtube
+        video_id: "9Mk5Vq3zhxs"
+        duration: 371
+  - id: section11
+    title: "Reinforcement Learning"
+    description:
+    lectures:
+      - id: "qtZ9-jJsuCI"
+        title: "Lernen durch Bestrafung"
+        description:
+        type: youtube
+        video_id: "qtZ9-jJsuCI"
+        duration: 470
+      - id: "XGFQMFZF-wo"
+        title: "Die State Value Function"
+        description:
+        type: youtube
+        video_id: "XGFQMFZF-wo"
+        duration: 400
+      - id: "Z4GCytqt4uM"
+        title: "Q-Learning"
+        description:
+        type: youtube
+        video_id: "Z4GCytqt4uM"
+        duration: 387
+      - id: "BLkNXkGhzbA"
+        title: "Living Reward und Exploration"
+        description:
+        type: youtube
+        video_id: "BLkNXkGhzbA"
+        duration: 517
+      - id: "emqHD3T7Hv4"
+        title: "TD-Learning und SARSA"
+        description:
+        type: youtube
+        video_id: "emqHD3T7Hv4"
+        duration: 479
+      - id: "jOW2VrXbcdo"
+        title: "Options und Semi-MDP"
+        description:
+        type: youtube
+        video_id: "jOW2VrXbcdo"
+        duration: 391
+      - id: "A3Aial_3x88"
+        title: "Hierarchical Abstract Machines"
+        description:
+        type: youtube
+        video_id: "A3Aial_3x88"
+        duration: 385
+  - id: section12
+    title: "Support Vector Machines"
+    description:
+    lectures:
+      - id: "WKsWAqAnDBo"
+        title: "Support Vector Machines"
+        description:
+        type: youtube
+        video_id: "WKsWAqAnDBo"
+        duration: 373
+      - id: "NnEcnULecrU"
+        title: "Die Lagrange Methode"
+        description:
+        type: youtube
+        video_id: "NnEcnULecrU"
+        duration: 724
+      - id: "wlgvAar4pQE"
+        title: "Duales Optimierungsproblem"
+        description:
+        type: youtube
+        video_id: "wlgvAar4pQE"
+        duration: 372
+      - id: "PXVxRXTS3_I"
+        title: "Soft Margin"
+        description:
+        type: youtube
+        video_id: "PXVxRXTS3_I"
+        duration: 269
+      - id: "5zUHh-wNjNs"
+        title: "Nicht lineare SVM und der Kernel Trick"
+        description:
+        type: youtube
+        video_id: "5zUHh-wNjNs"
+        duration: 770
+  - id: section13
+    title: "Semi-Supervised Learning"
+    description:
+    lectures:
+      - id: "MRAvP7y-pPE"
+        title: "Semi Supervised Learning"
+        description:
+        type: youtube
+        video_id: "MRAvP7y-pPE"
+        duration: 407
+      - id: "uUnAvesAVc4"
+        title: "Self Learning"
+        description:
+        type: youtube
+        video_id: "uUnAvesAVc4"
+        duration: 520
+      - id: "GlKEwZl9s2k"
+        title: "Co-Training"
+        description:
+        type: youtube
+        video_id: "GlKEwZl9s2k"
+        duration: 467
+      - id: "fQy2AN_nGNk"
+        title: "Unlabeling und SVMlight"
+        description:
+        type: youtube
+        video_id: "fQy2AN_nGNk"
+        duration: 657
+      - id: "EGs-6ymY7Fs"
+        title: "Aktives Lernen"
+        description:
+        type: youtube
+        video_id: "EGs-6ymY7Fs"
+        duration: 491
+  - id: section14
+    title: "Neuronale Netze"
+    description:
+    lectures:
+      - id: "8gYmuU_PNto"
+        title: "Perzeptronen"
+        description:
+        type: youtube
+        video_id: "8gYmuU_PNto"
+        duration: 397
+      - id: "FWXaG99LhQo"
+        title: "Perzeptron Training"
+        description:
+        type: youtube
+        video_id: "FWXaG99LhQo"
+        duration: 653
+      - id: "DgacrjH-32c"
+        title: "Perzeptron Training Varianten"
+        description:
+        type: youtube
+        video_id: "DgacrjH-32c"
+        duration: 306
+      - id: "soFCzvytJyE"
+        title: "Die Phi / Aktivierungs - Funktion"
+        description:
+        type: youtube
+        video_id: "soFCzvytJyE"
+        duration: 355
+      - id: "oT1qdYMzgzY"
+        title: "Mean Squared Error"
+        description:
+        type: youtube
+        video_id: "oT1qdYMzgzY"
+        duration: 594
+      - id: "3H7Fzj_63o4"
+        title: "Multiclass Problem der Perzeptronen"
+        description:
+        type: youtube
+        video_id: "3H7Fzj_63o4"
+        duration: 258
+      - id: "2MEs2EHt7ow"
+        title: "Feed-Forward Neuronale Netze"
+        description:
+        type: youtube
+        video_id: "2MEs2EHt7ow"
+        duration: 416
+      - id: "emUOJaHXgdA"
+        title: "Backpropagation"
+        description:
+        type: youtube
+        video_id: "emUOJaHXgdA"
+        duration: 529
+      - id: "IXUDyrOisEE"
+        title: "Backpropagation: Rechnung der Output Neuronen"
+        description:
+        type: youtube
+        video_id: "IXUDyrOisEE"
+        duration: 641
+      - id: "R9XaPACZWyM"
+        title: "Rechnung der anderen Neuronen"
+        description:
+        type: youtube
+        video_id: "R9XaPACZWyM"
+        duration: 624
+      - id: "qx8l-LmdgEk"
+        title: "Die Softmax-Aktivierung"
+        description:
+        type: youtube
+        video_id: "qx8l-LmdgEk"
+        duration: 425
+      - id: "oUEnzS5P5JM"
+        title: "Cross Entropy Error"
+        description:
+        type: youtube
+        video_id: "oUEnzS5P5JM"
+        duration: 347
+      - id: "AiUqfCJbgEk"
+        title: "Überspringen von Beispielen"
+        description:
+        type: youtube
+        video_id: "AiUqfCJbgEk"
+        duration: 191
+      - id: "W3wkhcoe1dc"
+        title: "dynamische Lernraten"
+        description:
+        type: youtube
+        video_id: "W3wkhcoe1dc"
+        duration: 355
+      - id: "Ixx7S3iZws4"
+        title: "Initiale Gewichte und Offsets"
+        description:
+        type: youtube
+        video_id: "Ixx7S3iZws4"
+        duration: 395
+      - id: "Uos7B_cPz68"
+        title: "Quickprop"
+        description:
+        type: youtube
+        video_id: "Uos7B_cPz68"
+        duration: 231
+      - id: "pWZQ8r07vn8"
+        title: "Weight Elimination und Weight Decay"
+        description:
+        type: youtube
+        video_id: "pWZQ8r07vn8"
+        duration: 302
+      - id: "mBhzVbKxX0U"
+        title: "Optimal Brain Damage"
+        description:
+        type: youtube
+        video_id: "mBhzVbKxX0U"
+        duration: 244
+      - id: "TaDWE0UtfbU"
+        title: "Cascade Correlation"
+        description:
+        type: youtube
+        video_id: "TaDWE0UtfbU"
+        duration: 604
+      - id: "hHo8gIWz6I8"
+        title: "Deep Neural Networks"
+        description:
+        type: youtube
+        video_id: "hHo8gIWz6I8"
+        duration: 211
+      - id: "dRm5H3BQCpc"
+        title: "Hopfield Netze"
+        description:
+        type: youtube
+        video_id: "dRm5H3BQCpc"
+        duration: 706
+      - id: "N4anBqCIVA4"
+        title: "(Restricted) Boltzmann Machines"
+        description:
+        type: youtube
+        video_id: "N4anBqCIVA4"
+        duration: 378
+      - id: "2gxrt1bO_Ug"
+        title: "Cascaded Restricted Boltzmann Machines"
+        description:
+        type: youtube
+        video_id: "2gxrt1bO_Ug"
+        duration: 441
+      - id: "1xVgIkAR398"
+        title: "Autoencoder"
+        description:
+        type: youtube
+        video_id: "1xVgIkAR398"
+        duration: 464
+      - id: "aDq1O2FIfbk"
+        title: "Denoising Autoencoder"
+        description:
+        type: youtube
+        video_id: "aDq1O2FIfbk"
+        duration: 334
+      - id: "a5Sl5KnT4Bc"
+        title: "Bottleneck Features"
+        description:
+        type: youtube
+        video_id: "a5Sl5KnT4Bc"
+        duration: 320
+      - id: "bd4cpFGhGaM"
+        title: "Reinforcement Learning - Lernen für Spiele"
+        description:
+        type: youtube
+        video_id: "bd4cpFGhGaM"
+        duration: 608
+      - id: "c17PPaGVG3Y"
+        title: "Reinforcement Learning - Monte Carlo Search Trees"
+        description:
+        type: youtube
+        video_id: "c17PPaGVG3Y"
+        duration: 517
+      - id: "LqG_MosgnPI"
+        title: "Convolutional Neural Networks für Bilderkennung"
+        description:
+        type: youtube
+        video_id: "LqG_MosgnPI"
+        duration: 780
+      - id: "1mNNX9_z2ac"
+        title: "Rekurrente Neuronale Netze"
+        description:
+        type: youtube
+        video_id: "1mNNX9_z2ac"
+        duration: 572
+      - id: "ydBzqYiV4rw"
+        title: "Linear Short Term Memory"
+        description:
+        type: youtube
+        video_id: "ydBzqYiV4rw"
+        duration: 606
+      - id: "mVYTEKed0LM"
+        title: "GAN: Generative Adversarial Neuronale Netze: Dall-E und Co"
+        description:
+        type: youtube
+        video_id: "mVYTEKed0LM"
+        duration: 323

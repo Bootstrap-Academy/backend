@@ -1,0 +1,260 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7rx55Mai21reZtd_8m-qe27
+title: "PyTorch Tutorial - Neuronale Netze in Python"
+description: "Neuronale Netze programmieren in Python. Der Traum für KI. Wenn du es bis hier geschafft hast, hast du 2 Bibliotheken zur Auswahl: PyTorch und Tensorflow. Hier geht's um PyTorch. An der Stelle kurze Warnung, dass PyTorch ein echt großes Update bekommen hat und vieles hier mittlerweile etwas anders geht."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/pytorch.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665508278
+sections:
+  - id: section
+    title: "Das erste neuronale Netz"
+    description:
+    lectures:
+      - id: "pylvlMuRKY0"
+        title: "Tensorflow und Keras vs PyTorch"
+        description:
+        type: youtube
+        video_id: "pylvlMuRKY0"
+        duration: 691
+      - id: "h6KaLGUv9Uw"
+        title: "Installation von PyTorch"
+        description:
+        type: youtube
+        video_id: "h6KaLGUv9Uw"
+        duration: 660
+      - id: "U4aM8oTEVAc"
+        title: "Tensoren"
+        description:
+        type: youtube
+        video_id: "U4aM8oTEVAc"
+        duration: 637
+      - id: "bqVYRzwvCkU"
+        title: "Die Grafikkarte nutzen"
+        description:
+        type: youtube
+        video_id: "bqVYRzwvCkU"
+        duration: 169
+      - id: "GBzojftwfGQ"
+        title: "Das erste eigene Neuronale Netz"
+        description:
+        type: youtube
+        video_id: "GBzojftwfGQ"
+        duration: 775
+      - id: "u6V69py5Aps"
+        title: "Das Netz füttern"
+        description:
+        type: youtube
+        video_id: "u6V69py5Aps"
+        duration: 440
+      - id: "F4V2617urQs"
+        title: "Das Netz lernen lassen"
+        description:
+        type: youtube
+        video_id: "F4V2617urQs"
+        duration: 797
+      - id: "nU5Ww2-Zntk"
+        title: "Die Grafikkarte nutzen fürs ganze Netz"
+        description:
+        type: youtube
+        video_id: "nU5Ww2-Zntk"
+        duration: 208
+      - id: "I4v2sES3AK0"
+        title: "Speichern und Laden des Netzes"
+        description:
+        type: youtube
+        video_id: "I4v2sES3AK0"
+        duration: 408
+  - id: section2
+    title: "Handschrifterkennung mit MNIST"
+    description:
+    lectures:
+      - id: "8gZR4Q3262k"
+        title: "Handschrifterkennung mit dem MNIST Datensatz"
+        description:
+        type: youtube
+        video_id: "8gZR4Q3262k"
+        duration: 893
+      - id: "u0hC8gmpUDw"
+        title: "Training"
+        description:
+        type: youtube
+        video_id: "u0hC8gmpUDw"
+        duration: 601
+      - id: "wVcuMADUmdY"
+        title: "Das Netz"
+        description:
+        type: youtube
+        video_id: "wVcuMADUmdY"
+        duration: 1071
+      - id: "pS6Qe-A1MWg"
+        title: "Evaluieren"
+        description:
+        type: youtube
+        video_id: "pS6Qe-A1MWg"
+        duration: 799
+  - id: section3
+    title: "Katze oder Hund?"
+    description:
+    lectures:
+      - id: "32lHVbT09h8"
+        title: "Bilderkennung"
+        description:
+        type: youtube
+        video_id: "32lHVbT09h8"
+        duration: 819
+      - id: "cNwMpWt6IHk"
+        title: "Daten einlesen"
+        description:
+        type: youtube
+        video_id: "cNwMpWt6IHk"
+        duration: 640
+      - id: "Zj5QkjmYmBI"
+        title: "Randomisierung"
+        description:
+        type: youtube
+        video_id: "Zj5QkjmYmBI"
+        duration: 345
+      - id: "dDO7ihzkoC4"
+        title: "Das Training"
+        description:
+        type: youtube
+        video_id: "dDO7ihzkoC4"
+        duration: 554
+      - id: "RkcRqphggLY"
+        title: "Das Netz"
+        description:
+        type: youtube
+        video_id: "RkcRqphggLY"
+        duration: 829
+      - id: "ulCylfDJRKo"
+        title: "Evaluation"
+        description:
+        type: youtube
+        video_id: "ulCylfDJRKo"
+        duration: 613
+  - id: section4
+    title: "Namensherkunft"
+    description:
+    lectures:
+      - id: "kabjuJWLvus"
+        title: "Character-RNNs"
+        description:
+        type: youtube
+        video_id: "kabjuJWLvus"
+        duration: 899
+      - id: "26esNjWkEHA"
+        title: "One-Hot-Encoding"
+        description:
+        type: youtube
+        video_id: "26esNjWkEHA"
+        duration: 586
+      - id: "PjlFR-PdwXk"
+        title: "Das RNN-Netz"
+        description:
+        type: youtube
+        video_id: "PjlFR-PdwXk"
+        duration: 668
+      - id: "P08d-1RnczM"
+        title: "Training"
+        description:
+        type: youtube
+        video_id: "P08d-1RnczM"
+        duration: 791
+      - id: "rJUZfEJZas8"
+        title: "Training und Plotting"
+        description:
+        type: youtube
+        video_id: "rJUZfEJZas8"
+        duration: 669
+  - id: section5
+    title: "Menschliche Passwörter generieren"
+    description:
+    lectures:
+      - id: "5O5X5-rNqrA"
+        title: "Wordlists"
+        description:
+        type: youtube
+        video_id: "5O5X5-rNqrA"
+        duration: 378
+      - id: "cF9fVxHGL54"
+        title: "Das Netz"
+        description:
+        type: youtube
+        video_id: "cF9fVxHGL54"
+        duration: 662
+      - id: "5qqsfvGqdgU"
+        title: "Training"
+        description:
+        type: youtube
+        video_id: "5qqsfvGqdgU"
+        duration: 455
+      - id: "-BS63kJIvsY"
+        title: "Training #2"
+        description:
+        type: youtube
+        video_id: "-BS63kJIvsY"
+        duration: 804
+      - id: "Xe6dMzEyc9A"
+        title: "Passwörter generieren / Sampling"
+        description:
+        type: youtube
+        video_id: "Xe6dMzEyc9A"
+        duration: 482
+  - id: section6
+    title: "Balance halten mit Cartpole"
+    description:
+    lectures:
+      - id: "YfSPmFrs9Vg"
+        title: "Reinforcement Learning"
+        description:
+        type: youtube
+        video_id: "YfSPmFrs9Vg"
+        duration: 514
+      - id: "CB2WRO_G6OI"
+        title: "Memory"
+        description:
+        type: youtube
+        video_id: "CB2WRO_G6OI"
+        duration: 526
+      - id: "R9Iy_ViGfCs"
+        title: "Das Netz"
+        description:
+        type: youtube
+        video_id: "R9Iy_ViGfCs"
+        duration: 468
+      - id: "loTwHTGTBu4"
+        title: "Datenverarbeitung"
+        description:
+        type: youtube
+        video_id: "loTwHTGTBu4"
+        duration: 930
+      - id: "bDNWSe-DMXI"
+        title: "Training Vorbereitung"
+        description:
+        type: youtube
+        video_id: "bDNWSe-DMXI"
+        duration: 880
+      - id: "JLCGBEEf2BM"
+        title: "Training #2"
+        description:
+        type: youtube
+        video_id: "JLCGBEEf2BM"
+        duration: 1130
+      - id: "Jc6jevYQqQQ"
+        title: "Spielen und Training initialisieren"
+        description:
+        type: youtube
+        video_id: "Jc6jevYQqQQ"
+        duration: 624
+      - id: "Nk0X4TYd1oU"
+        title: "Anzeigen"
+        description:
+        type: youtube
+        video_id: "Nk0X4TYd1oU"
+        duration: 517

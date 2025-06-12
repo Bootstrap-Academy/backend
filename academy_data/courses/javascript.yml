@@ -1,0 +1,334 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7qOfMI2ZNk-LXUAiXKrwDIi
+title: "JavaScript Programmierung"
+description: "JavaScript - die Sprache ohne die kaum eine Website heutzutage noch läuft. Die Sprache, die für die meisten Web-Frameworks zum Einsatz kommt und auch die Sprache, in der mittlerweile eine wahre Vielzahl an Servern(!) geschrieben wurden. Jap. Essentiell."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/javascript.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665507478
+sections:
+  - id: section
+    title: "JavaScript Grundlagen"
+    description:
+    lectures:
+      - id: "UeZi8a99iS0"
+        title: "Einleitung und Einbinden"
+        description:
+        type: youtube
+        video_id: "UeZi8a99iS0"
+        duration: 421
+      - id: "8WpNm5lQoyk"
+        title: "Ausgaben"
+        description:
+        type: youtube
+        video_id: "8WpNm5lQoyk"
+        duration: 485
+      - id: "HuAFOK4vqZs"
+        title: "Variablen"
+        description:
+        type: youtube
+        video_id: "HuAFOK4vqZs"
+        duration: 468
+      - id: "0uyMhfpVgXs"
+        title: "Operatoren"
+        description:
+        type: youtube
+        video_id: "0uyMhfpVgXs"
+        duration: 359
+      - id: "UFQo9mIovpo"
+        title: "Strings"
+        description:
+        type: youtube
+        video_id: "UFQo9mIovpo"
+        duration: 405
+      - id: "ClF-2WZcE3w"
+        title: "Booleans"
+        description:
+        type: youtube
+        video_id: "ClF-2WZcE3w"
+        duration: 365
+      - id: "R7yRD_1qp_0"
+        title: "if-Abfragen"
+        description:
+        type: youtube
+        video_id: "R7yRD_1qp_0"
+        duration: 474
+      - id: "ZHgGIWru5Ec"
+        title: "Switch Case Statements"
+        description:
+        type: youtube
+        video_id: "ZHgGIWru5Ec"
+        duration: 386
+      - id: "1iae6R8zAoI"
+        title: "Arrays"
+        description:
+        type: youtube
+        video_id: "1iae6R8zAoI"
+        duration: 371
+      - id: "-VruqDKhryM"
+        title: "Arrays #2"
+        description:
+        type: youtube
+        video_id: "-VruqDKhryM"
+        duration: 340
+      - id: "HixeTVkfyn4"
+        title: "For Schleifen"
+        description:
+        type: youtube
+        video_id: "HixeTVkfyn4"
+        duration: 413
+      - id: "rSMrSyW_baw"
+        title: "For In Schleifen"
+        description:
+        type: youtube
+        video_id: "rSMrSyW_baw"
+        duration: 169
+      - id: "MtdHUmt2w20"
+        title: "While Schleifen"
+        description:
+        type: youtube
+        video_id: "MtdHUmt2w20"
+        duration: 325
+      - id: "M8VbJhWIGCI"
+        title: "Break und Continue"
+        description:
+        type: youtube
+        video_id: "M8VbJhWIGCI"
+        duration: 246
+      - id: "WkWVjhURF9s"
+        title: "Mathematische Funktionen"
+        description:
+        type: youtube
+        video_id: "WkWVjhURF9s"
+        duration: 478
+      - id: "pt0YqMbZO8Q"
+        title: "Funktionen"
+        description:
+        type: youtube
+        video_id: "pt0YqMbZO8Q"
+        duration: 285
+      - id: "KRIkAnbFq3A"
+        title: "Parameter und Rückgabewerte"
+        description:
+        type: youtube
+        video_id: "KRIkAnbFq3A"
+        duration: 346
+      - id: "qhi9f8E0Kps"
+        title: "Rekursive Funktionen"
+        description:
+        type: youtube
+        video_id: "qhi9f8E0Kps"
+        duration: 295
+      - id: "Z5uhFcg4lRg"
+        title: "Auslagern von Scripts"
+        description:
+        type: youtube
+        video_id: "Z5uhFcg4lRg"
+        duration: 258
+      - id: "LGefU5nrQbg"
+        title: "Variablenscopes"
+        description:
+        type: youtube
+        video_id: "LGefU5nrQbg"
+        duration: 287
+  - id: section2
+    title: "JavaScript im DOM und BOM"
+    description:
+    lectures:
+      - id: "K0PIQ7hispI"
+        title: "Events - Auf Klick Javascript ausführen"
+        description:
+        type: youtube
+        video_id: "K0PIQ7hispI"
+        duration: 287
+      - id: "7jyy4OcX_FA"
+        title: "Das Document Object Model DOM"
+        description:
+        type: youtube
+        video_id: "7jyy4OcX_FA"
+        duration: 425
+      - id: "Lkpfu_doJQc"
+        title: "Elemente"
+        description:
+        type: youtube
+        video_id: "Lkpfu_doJQc"
+        duration: 788
+      - id: "BdukNYP5Aow"
+        title: "Elemente verändern"
+        description:
+        type: youtube
+        video_id: "BdukNYP5Aow"
+        duration: 450
+      - id: "QIy874Wn1kM"
+        title: "Animationen"
+        description:
+        type: youtube
+        video_id: "QIy874Wn1kM"
+        duration: 478
+      - id: "1pUiyWP8jAU"
+        title: "this und Events"
+        description:
+        type: youtube
+        video_id: "1pUiyWP8jAU"
+        duration: 418
+      - id: "sZDjqTnfiGA"
+        title: "dynamisch neue Elemente erstellen - Nodes"
+        description:
+        type: youtube
+        video_id: "sZDjqTnfiGA"
+        duration: 736
+      - id: "LkYmKRo7-Ak"
+        title: "dynamisch neue Elemente erstellen #2"
+        description:
+        type: youtube
+        video_id: "LkYmKRo7-Ak"
+        duration: 301
+      - id: "TkoBFAmVgbQ"
+        title: "Das Browser Object Model BOM"
+        description:
+        type: youtube
+        video_id: "TkoBFAmVgbQ"
+        duration: 472
+      - id: "dtl9_Ob2Hx0"
+        title: "Das Browser Object Model BOM #2"
+        description:
+        type: youtube
+        video_id: "dtl9_Ob2Hx0"
+        duration: 252
+      - id: "-7fvXr97RDc"
+        title: "Cookies"
+        description:
+        type: youtube
+        video_id: "-7fvXr97RDc"
+        duration: 584
+  - id: section3
+    title: "JavaScript OOP"
+    description:
+    lectures:
+      - id: "kmvpCw0Q0DY"
+        title: "Objektorientierung"
+        description:
+        type: youtube
+        video_id: "kmvpCw0Q0DY"
+        duration: 383
+      - id: "-YOx-2BhNhs"
+        title: "Konstruktoren"
+        description:
+        type: youtube
+        video_id: "-YOx-2BhNhs"
+        duration: 527
+      - id: "XGI1e_dthlk"
+        title: "Methoden"
+        description:
+        type: youtube
+        video_id: "XGI1e_dthlk"
+        duration: 397
+      - id: "XTOKcXRionI"
+        title: "Prototypes"
+        description:
+        type: youtube
+        video_id: "XTOKcXRionI"
+        duration: 208
+  - id: section4
+    title: "JavaScript Nützliches"
+    description:
+    lectures:
+      - id: "HgR6X6QigE0"
+        title: "Errorhandling"
+        description:
+        type: youtube
+        video_id: "HgR6X6QigE0"
+        duration: 318
+      - id: "NPPJWmEe0EY"
+        title: "Datum und Uhrzeit"
+        description:
+        type: youtube
+        video_id: "NPPJWmEe0EY"
+        duration: 484
+      - id: "OGe8OlfibQI"
+        title: "var, let und const"
+        description:
+        type: youtube
+        video_id: "OGe8OlfibQI"
+        duration: 779
+      - id: "k2dLCL-hudE"
+        title: "Generatoren und Yield"
+        description:
+        type: youtube
+        video_id: "k2dLCL-hudE"
+        duration: 862
+      - id: "vYoMEYTaBYE"
+        title: "Mehr Informationen zu Generatoren"
+        description:
+        type: youtube
+        video_id: "vYoMEYTaBYE"
+        duration: 552
+      - id: "mvS450Y2FH4"
+        title: "Arrow Functions"
+        description:
+        type: youtube
+        video_id: "mvS450Y2FH4"
+        duration: 949
+  - id: section5
+    title: "Wie geht es weiter?"
+    description:
+    lectures:
+      - id: "uo4PWU-R96k"
+        title: "TypeScript"
+        description:
+        type: youtube
+        video_id: "uo4PWU-R96k"
+        duration: 799
+      - id: "joVJKCGM2RE"
+        title: "JavaScript - kann (a ==1 && a== 2 && a==3) jemals True werden?"
+        description:
+        type: youtube
+        video_id: "joVJKCGM2RE"
+        duration: 271
+      - id: "OXW1lu-bLk8"
+        title: "Sichere Passwörter in JavaScript mit @Unleashed Design"
+        description:
+        type: youtube
+        video_id: "OXW1lu-bLk8"
+        duration: 1681
+      - id: "LQrWkq6_hQQ"
+        title: "Clean JavaScript Code"
+        description:
+        type: youtube
+        video_id: "LQrWkq6_hQQ"
+        duration: 1690
+      - id: "IyNpu4t30e8"
+        title: "NodeJS: JavaScript sinnvoll erweitern"
+        description:
+        type: youtube
+        video_id: "IyNpu4t30e8"
+        duration: 431
+      - id: "f15kMS0z5iU"
+        title: "NPM - Paketmanager für Javascript"
+        description:
+        type: youtube
+        video_id: "f15kMS0z5iU"
+        duration: 411
+      - id: "pRZ5qdJxxgE"
+        title: "JavaScript - NPM: Abhängigkeiten definieren und Projekte weitergeben mit der Package.json"
+        description:
+        type: youtube
+        video_id: "pRZ5qdJxxgE"
+        duration: 355
+      - id: "Ei7-YOR8oRU"
+        title: "NPM - Automatisierte Builds und Browserify"
+        description:
+        type: youtube
+        video_id: "Ei7-YOR8oRU"
+        duration: 1002
+      - id: "9mTQPlhNvb8"
+        title: "NodeJS Tutorial - Mit nodemon unkompliziert schnelleres serverseitiges Arbeiten ermöglichen"
+        description:
+        type: youtube
+        video_id: "9mTQPlhNvb8"
+        duration: 257

@@ -1,0 +1,102 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7ryyZikMDPxxyYxEKtKn0ji
+title: "Clean Code"
+description: "Denkt immer daran: Wenn ihr schlechten Code schreibt, muss irgendein armer Mensch später damit weiter arbeiten - im Zweifel seid ihr das selbst. Spaß beiseite, schlechter Code kann dazu führen, dass ein Projekt bis zu Faktor 60 langsamer entwickelt wird. Irgendwann kommt man zum Stillstand. Deswegen BRAUCHEN wir sauberen Code."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/cleancode.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665507543
+sections:
+  - id: section
+    title: "Clean Code"
+    description:
+    lectures:
+      - id: "vOBiHk6MwX0"
+        title: "Einführung und Struktur einer Klasse"
+        description:
+        type: youtube
+        video_id: "vOBiHk6MwX0"
+        duration: 410
+      - id: "Sa1slZ18nLo"
+        title: "Law of Demeter"
+        description:
+        type: youtube
+        video_id: "Sa1slZ18nLo"
+        duration: 284
+      - id: "QKtGq66dN6U"
+        title: "Prinzip der kleinsten Überraschung"
+        description:
+        type: youtube
+        video_id: "QKtGq66dN6U"
+        duration: 274
+      - id: "OKHkGNue7fI"
+        title: "Kommentare"
+        description:
+        type: youtube
+        video_id: "OKHkGNue7fI"
+        duration: 339
+      - id: "HVSTWJwWC_w"
+        title: "DRY: dont repeat yourself"
+        description:
+        type: youtube
+        video_id: "HVSTWJwWC_w"
+        duration: 230
+      - id: "oKdy-hwdpw8"
+        title: "YAGNI"
+        description:
+        type: youtube
+        video_id: "oKdy-hwdpw8"
+        duration: 285
+      - id: "ju3NeXFCsaE"
+        title: "Single Responsibility"
+        description:
+        type: youtube
+        video_id: "ju3NeXFCsaE"
+        duration: 286
+      - id: "rLPNqlbUyIM"
+        title: "Open Closed"
+        description:
+        type: youtube
+        video_id: "rLPNqlbUyIM"
+        duration: 288
+      - id: "VQinjwq03rY"
+        title: "Liskovsches Substitutionsprinzip"
+        description:
+        type: youtube
+        video_id: "VQinjwq03rY"
+        duration: 429
+      - id: "adXGiewEY1c"
+        title: "Interface Segregation"
+        description:
+        type: youtube
+        video_id: "adXGiewEY1c"
+        duration: 347
+      - id: "oC-y2TS0qbE"
+        title: "Dependency Inversion"
+        description:
+        type: youtube
+        video_id: "oC-y2TS0qbE"
+        duration: 273
+      - id: "o5zdblAfZ6U"
+        title: "Single Level of Abstraction"
+        description:
+        type: youtube
+        video_id: "o5zdblAfZ6U"
+        duration: 278
+      - id: "F8tAUuHJ43U"
+        title: "Refactoring und Pfadfinderregel"
+        description:
+        type: youtube
+        video_id: "F8tAUuHJ43U"
+        duration: 572
+      - id: "LQrWkq6_hQQ"
+        title: "Clean JavaScript Code"
+        description:
+        type: youtube
+        video_id: "LQrWkq6_hQQ"
+        duration: 1690

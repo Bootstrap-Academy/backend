@@ -1,0 +1,142 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7oi_Q4whC28Yp12l1I-hauk
+title: "React JS"
+description: "React, das Frontend Framework von Facebook, ist ein bisschen kleiner und flexibler, aber dennoch genauso mächtig wie Angular!"
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/javascript.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1666715550
+sections:
+  - id: section
+    title: "React JS"
+    description:
+    lectures:
+      - id: "HCJCFV-OGnY"
+        title: "React vs. Angular"
+        description:
+        type: youtube
+        video_id: "HCJCFV-OGnY"
+        duration: 495
+      - id: "cSRop5CJQws"
+        title: "Installation und Setup der Umgebung"
+        description:
+        type: youtube
+        video_id: "cSRop5CJQws"
+        duration: 665
+      - id: "WMf5UEZLXyM"
+        title: "JSX und Rendern von Objekten"
+        description:
+        type: youtube
+        video_id: "WMf5UEZLXyM"
+        duration: 954
+      - id: "NRpuaZrilCU"
+        title: "Eine Uhr - Selbst aktualisierende Komponenten"
+        description:
+        type: youtube
+        video_id: "NRpuaZrilCU"
+        duration: 809
+      - id: "dk0KWGOOvdQ"
+        title: "Mehrere Elemente und Events"
+        description:
+        type: youtube
+        video_id: "dk0KWGOOvdQ"
+        duration: 944
+      - id: "1KlCH6rPpgI"
+        title: "Euro in Dollar umrechnen - Forms und Live Änderungen"
+        description:
+        type: youtube
+        video_id: "1KlCH6rPpgI"
+        duration: 1026
+      - id: "FfAiMfxxxA8"
+        title: "Ordnerstrukturen"
+        description:
+        type: youtube
+        video_id: "FfAiMfxxxA8"
+        duration: 705
+      - id: "pRROp0bwxOE"
+        title: "Routing"
+        description:
+        type: youtube
+        video_id: "pRROp0bwxOE"
+        duration: 760
+      - id: "-Y73N2uqQiM"
+        title: "Parameter in URLs"
+        description:
+        type: youtube
+        video_id: "-Y73N2uqQiM"
+        duration: 370
+      - id: "K9P-ZclspJg"
+        title: "Sass / Scss verwenden"
+        description:
+        type: youtube
+        video_id: "K9P-ZclspJg"
+        duration: 262
+      - id: "cwrS3omZbR4"
+        title: "Redirects"
+        description:
+        type: youtube
+        video_id: "cwrS3omZbR4"
+        duration: 316
+      - id: "PcGQ6nzTXgY"
+        title: "Deployment"
+        description:
+        type: youtube
+        video_id: "PcGQ6nzTXgY"
+        duration: 533
+      - id: "ZDOo8iCjOMs"
+        title: "Logik beim Erstellen einer Anwendung mit TypeScript"
+        description:
+        type: youtube
+        video_id: "ZDOo8iCjOMs"
+        duration: 2707
+      - id: "mG7yXW7jluc"
+        title: "Umbau und erste Tests mit Jest"
+        description:
+        type: youtube
+        video_id: "mG7yXW7jluc"
+        duration: 492
+      - id: "G2KljzRBfNM"
+        title: "Testen mit Jest"
+        description:
+        type: youtube
+        video_id: "G2KljzRBfNM"
+        duration: 843
+  - id: section2
+    title: "Redux"
+    description:
+    lectures:
+      - id: "IglaWZAWVgc"
+        title: "Was ist React Redux"
+        description:
+        type: youtube
+        video_id: "IglaWZAWVgc"
+        duration: 550
+      - id: "jfBmMztAlxQ"
+        title: "Die Beispiel App"
+        description:
+        type: youtube
+        video_id: "jfBmMztAlxQ"
+        duration: 1014
+      - id: "SKSxwCX8oGE"
+        title: "Ein neues Feature hinzufügen"
+        description:
+        type: youtube
+        video_id: "SKSxwCX8oGE"
+        duration: 795
+      - id: "DkkSEbgsjmQ"
+        title: "Reducer für das Feature"
+        description:
+        type: youtube
+        video_id: "DkkSEbgsjmQ"
+        duration: 891
+      - id: "Nci56RDMlF8"
+        title: "Asynchronität ermöglichen via Thunks"
+        description:
+        type: youtube
+        video_id: "Nci56RDMlF8"
+        duration: 895

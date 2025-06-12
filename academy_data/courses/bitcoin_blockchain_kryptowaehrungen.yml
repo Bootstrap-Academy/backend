@@ -1,0 +1,294 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7oiW2UVh1Go8JgllRbZRcPK
+title: "Bitcoin, die Blockchain und Kryptowährungen einfach erklärt und praktisch angewandt"
+description: "Blockchain-Technologien haben einen fragwürdigen Ruf - manche lieben sie, manche hassen sie. Eines ist aber sicher: Die wenigsten haben ein so tiefes technisches Verständnis, dass sie wissen, was es bedeutet, Transaktionen nachverfolgen zu können. Auch die kryptographischen Hintergründe von Blockchain-Technologien könnte man sich längst für viele weitere Anwendungen zunutze machen. Höchste Zeit, diese Technologie besser zu verstehen."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/blockchain.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665508312
+sections:
+  - id: section
+    title: "Bitcoin, die Blockchain und Kryptowährungen einfach erklärt und praktisch angewandt"
+    description:
+    lectures:
+      - id: "LpZO01eQb8I"
+        title: "Einleitung"
+        description:
+        type: youtube
+        video_id: "LpZO01eQb8I"
+        duration: 567
+      - id: "tidYegYNplc"
+        title: "Banken"
+        description:
+        type: youtube
+        video_id: "tidYegYNplc"
+        duration: 434
+      - id: "GcOVxYH3UD0"
+        title: "Die Anon-Bank"
+        description:
+        type: youtube
+        video_id: "GcOVxYH3UD0"
+        duration: 309
+      - id: "4-T9QATVXl4"
+        title: "Die Blockchain"
+        description:
+        type: youtube
+        video_id: "4-T9QATVXl4"
+        duration: 670
+      - id: "rp1nc0qyMFA"
+        title: "Dezentralisierung"
+        description:
+        type: youtube
+        video_id: "rp1nc0qyMFA"
+        duration: 296
+      - id: "ep9emzqB54U"
+        title: "Blockchain.info"
+        description:
+        type: youtube
+        video_id: "ep9emzqB54U"
+        duration: 466
+      - id: "PYAdagCNY3M"
+        title: "Transaktionen"
+        description:
+        type: youtube
+        video_id: "PYAdagCNY3M"
+        duration: 469
+      - id: "uP06YTkbzmE"
+        title: "Das Double Spend Problem"
+        description:
+        type: youtube
+        video_id: "uP06YTkbzmE"
+        duration: 552
+      - id: "qiJ5vI9I5U8"
+        title: "Proof of Work - Mining"
+        description:
+        type: youtube
+        video_id: "qiJ5vI9I5U8"
+        duration: 508
+      - id: "34670_jd4HM"
+        title: "Warum Transaktionen manchmal ewig dauern"
+        description:
+        type: youtube
+        video_id: "34670_jd4HM"
+        duration: 559
+      - id: "SzSmwvlLYSg"
+        title: "Stromverbrauch von Bitcoin"
+        description:
+        type: youtube
+        video_id: "SzSmwvlLYSg"
+        duration: 408
+      - id: "h2K4eTfd-GA"
+        title: "Der SECP256K1-Standard für Schlüssel"
+        description:
+        type: youtube
+        video_id: "h2K4eTfd-GA"
+        duration: 405
+      - id: "3lsKGK7YvLU"
+        title: "Mit Python Schlüssel generieren"
+        description:
+        type: youtube
+        video_id: "3lsKGK7YvLU"
+        duration: 577
+      - id: "9gcT-9VAic8"
+        title: "Von den Keys zur Adresse"
+        description:
+        type: youtube
+        video_id: "9gcT-9VAic8"
+        duration: 303
+      - id: "rrey8duU5EU"
+        title: "Wallets"
+        description:
+        type: youtube
+        video_id: "rrey8duU5EU"
+        duration: 325
+      - id: "BhimXDC6zDQ"
+        title: "Non-Determinstic oder Random Wallets"
+        description:
+        type: youtube
+        video_id: "BhimXDC6zDQ"
+        duration: 183
+      - id: "INIwb7A0qkI"
+        title: "Deterministic oder Seeded Wallets"
+        description:
+        type: youtube
+        video_id: "INIwb7A0qkI"
+        duration: 250
+      - id: "2R8jZIUx86k"
+        title: "Hierarchical Deterministic (HD) Wallets"
+        description:
+        type: youtube
+        video_id: "2R8jZIUx86k"
+        duration: 421
+      - id: "yMBgXEqGrnQ"
+        title: "Mnemonics"
+        description:
+        type: youtube
+        video_id: "yMBgXEqGrnQ"
+        duration: 352
+      - id: "1C_ZElEgP8I"
+        title: "Software Wallets, Third Party Wallets und Hardware Wallets"
+        description:
+        type: youtube
+        video_id: "1C_ZElEgP8I"
+        duration: 461
+      - id: "srKTodPzFU0"
+        title: "Paper Wallets selbst erstellen"
+        description:
+        type: youtube
+        video_id: "srKTodPzFU0"
+        duration: 595
+      - id: "HrFKtfySVxY"
+        title: "Electrum Wallets"
+        description:
+        type: youtube
+        video_id: "HrFKtfySVxY"
+        duration: 852
+      - id: "pdkdP33-yt8"
+        title: "Jaxx - Multiplatform Softwarewallet"
+        description:
+        type: youtube
+        video_id: "pdkdP33-yt8"
+        duration: 376
+      - id: "rzuWktCSPvw"
+        title: "Script - Bitcoins Programmiersprache"
+        description:
+        type: youtube
+        video_id: "rzuWktCSPvw"
+        duration: 671
+      - id: "fMVy9kvRoNE"
+        title: "Script - OP Codes"
+        description:
+        type: youtube
+        video_id: "fMVy9kvRoNE"
+        duration: 590
+      - id: "YTniSN-7y6U"
+        title: "Multisignatures"
+        description:
+        type: youtube
+        video_id: "YTniSN-7y6U"
+        duration: 514
+      - id: "p8ZSEvNlkv4"
+        title: "Pay-2-Script-Hash"
+        description:
+        type: youtube
+        video_id: "p8ZSEvNlkv4"
+        duration: 593
+      - id: "31mMHVMT2Dg"
+        title: "Transaktionstimelocks mit nTimelock"
+        description:
+        type: youtube
+        video_id: "31mMHVMT2Dg"
+        duration: 452
+      - id: "pgIkavypXb4"
+        title: "Per Output Timelocks mit Checklocktime"
+        description:
+        type: youtube
+        video_id: "pgIkavypXb4"
+        duration: 399
+      - id: "nrWFXrhn3Fc"
+        title: "Bootstrapping im P2P-Netz"
+        description:
+        type: youtube
+        video_id: "nrWFXrhn3Fc"
+        duration: 334
+      - id: "JKWEuUWzrWQ"
+        title: "Der Blockaustausch"
+        description:
+        type: youtube
+        video_id: "JKWEuUWzrWQ"
+        duration: 186
+      - id: "YlHQh9Evav0"
+        title: "Der Genesis Block und der Code von Bitcoin"
+        description:
+        type: youtube
+        video_id: "YlHQh9Evav0"
+        duration: 339
+      - id: "9mxVBqUykF8"
+        title: "Simplified Payment Verification"
+        description:
+        type: youtube
+        video_id: "9mxVBqUykF8"
+        duration: 401
+      - id: "tURba0N50Cg"
+        title: "Bloom FIlter"
+        description:
+        type: youtube
+        video_id: "tURba0N50Cg"
+        duration: 466
+      - id: "I7uG0ojtzkQ"
+        title: "Merkle Trees"
+        description:
+        type: youtube
+        video_id: "I7uG0ojtzkQ"
+        duration: 388
+      - id: "ZueiWt-gVSU"
+        title: "Der Mining Algorithmus in Python"
+        description:
+        type: youtube
+        video_id: "ZueiWt-gVSU"
+        duration: 358
+      - id: "LqegYrpYUeM"
+        title: "Das Mining Target und die Difficulty"
+        description:
+        type: youtube
+        video_id: "LqegYrpYUeM"
+        duration: 270
+      - id: "4COmXzIQVSE"
+        title: "Soft Forks"
+        description:
+        type: youtube
+        video_id: "4COmXzIQVSE"
+        duration: 442
+      - id: "vpJXW8nYCYs"
+        title: "Mining Pools"
+        description:
+        type: youtube
+        video_id: "vpJXW8nYCYs"
+        duration: 454
+      - id: "Qh-nK_Nx-wE"
+        title: "P2Pool"
+        description:
+        type: youtube
+        video_id: "Qh-nK_Nx-wE"
+        duration: 352
+      - id: "YZLIvGizEto"
+        title: "Mining Software und Equipment"
+        description:
+        type: youtube
+        video_id: "YZLIvGizEto"
+        duration: 526
+      - id: "zeNEiC8pZdI"
+        title: "Lohnt Bitcoin Mining"
+        description:
+        type: youtube
+        video_id: "zeNEiC8pZdI"
+        duration: 665
+      - id: "sA44Cg8ktew"
+        title: "Payment Channels"
+        description:
+        type: youtube
+        video_id: "sA44Cg8ktew"
+        duration: 706
+      - id: "-kIwnUZpQGo"
+        title: "Asymmetric Revocable Commitments"
+        description:
+        type: youtube
+        video_id: "-kIwnUZpQGo"
+        duration: 685
+      - id: "8kinwF17fK0"
+        title: "Das Lightning Network"
+        description:
+        type: youtube
+        video_id: "8kinwF17fK0"
+        duration: 329
+      - id: "DxV5JK67gOM"
+        title: "Bitcoin kaufen"
+        description:
+        type: youtube
+        video_id: "DxV5JK67gOM"
+        duration: 728

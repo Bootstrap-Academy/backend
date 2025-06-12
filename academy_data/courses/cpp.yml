@@ -1,0 +1,360 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7oG-kkn36ZnDpRq6iahUXZS
+title: "C++ Programmierung"
+description: "C++ ist die Weiterentwicklung von C - Objektorientierung, Vererbung, dynamische Bindung. Hier kam der ganze Spaß dazu. C++ ist mittlerweile eine moderne Sprache, die weit verbreitet ist und speziell dort zum Einsatz kommt, wo Leistung essentiell ist: Spiele, Server und Co."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/cpp.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665506460
+sections:
+  - id: section
+    title: "Grundlagen der C++ Programmierung"
+    description:
+    lectures:
+      - id: "Q7CnoMhUxWQ"
+        title: "C Crashkurs Tutorial für Programmierer in ~45 Minuten"
+        description:
+        type: youtube
+        video_id: "Q7CnoMhUxWQ"
+        duration: 2640
+      - id: "fypyXGaNFgg"
+        title: "Installation und Setup"
+        description:
+        type: youtube
+        video_id: "fypyXGaNFgg"
+        duration: 593
+      - id: "jZAaUJvqbPM"
+        title: "Inputs und Outputs"
+        description:
+        type: youtube
+        video_id: "jZAaUJvqbPM"
+        duration: 278
+      - id: "nIhTXXxl-Lc"
+        title: "Strings"
+        description:
+        type: youtube
+        video_id: "nIhTXXxl-Lc"
+        duration: 781
+      - id: "JytgNgE1CqQ"
+        title: "Klassen"
+        description:
+        type: youtube
+        video_id: "JytgNgE1CqQ"
+        duration: 616
+      - id: "z-2Od9wLzKM"
+        title: "Konstruktoren"
+        description:
+        type: youtube
+        video_id: "z-2Od9wLzKM"
+        duration: 647
+      - id: "Psdvmx-Hj-8"
+        title: "Member Initialisierung und Pointer auf Objekte"
+        description:
+        type: youtube
+        video_id: "Psdvmx-Hj-8"
+        duration: 558
+      - id: "uWiPVmOJdLo"
+        title: "Kapselung mit private und public"
+        description:
+        type: youtube
+        video_id: "uWiPVmOJdLo"
+        duration: 541
+      - id: "SML9OTNlAOg"
+        title: "Operatoren überladen"
+        description:
+        type: youtube
+        video_id: "SML9OTNlAOg"
+        duration: 559
+      - id: "vpaAQu7Lkfs"
+        title: "this und Call by Reference"
+        description:
+        type: youtube
+        video_id: "vpaAQu7Lkfs"
+        duration: 394
+      - id: "j1KKmMF1_Ys"
+        title: "static - Klassenvariablen"
+        description:
+        type: youtube
+        video_id: "j1KKmMF1_Ys"
+        duration: 320
+      - id: "eRg5EU2qq-k"
+        title: "const"
+        description:
+        type: youtube
+        video_id: "eRg5EU2qq-k"
+        duration: 518
+      - id: "Lh8tzIieBJU"
+        title: "Header Files für Klassendefinitionen"
+        description:
+        type: youtube
+        video_id: "Lh8tzIieBJU"
+        duration: 496
+      - id: "8prKOxAS_Co"
+        title: "Friendship"
+        description:
+        type: youtube
+        video_id: "8prKOxAS_Co"
+        duration: 267
+      - id: "Ia1QE-RraGU"
+        title: "Vererbung"
+        description:
+        type: youtube
+        video_id: "Ia1QE-RraGU"
+        duration: 468
+      - id: "X8HqCZQr1PI"
+        title: "Zugriffsmodifikatoren bei Vererbung"
+        description:
+        type: youtube
+        video_id: "X8HqCZQr1PI"
+        duration: 550
+      - id: "esCBTBiMTNQ"
+        title: "virtual und mehr zu Vererbung"
+        description:
+        type: youtube
+        video_id: "esCBTBiMTNQ"
+        duration: 610
+      - id: "a3zvYc-txRo"
+        title: "Mehrfachvererbung"
+        description:
+        type: youtube
+        video_id: "a3zvYc-txRo"
+        duration: 473
+      - id: "qHQpz7UFvA0"
+        title: "Abstraktheit und Interfaces"
+        description:
+        type: youtube
+        video_id: "qHQpz7UFvA0"
+        duration: 507
+      - id: "wiW3hDyYvmc"
+        title: "Multithreading"
+        description:
+        type: youtube
+        video_id: "wiW3hDyYvmc"
+        duration: 723
+      - id: "bpRmoIWyZLE"
+        title: "Multithreading #2"
+        description:
+        type: youtube
+        video_id: "bpRmoIWyZLE"
+        duration: 502
+  - id: section2
+    title: "Moderne C++ Programmierung"
+    description:
+    lectures:
+      - id: "1hO5O5t-9Ws"
+        title: "Die IDE CLion einrichten"
+        description:
+        type: youtube
+        video_id: "1hO5O5t-9Ws"
+        duration: 534
+      - id: "VUuSzDQh8uo"
+        title: "Vector"
+        description:
+        type: youtube
+        video_id: "VUuSzDQh8uo"
+        duration: 805
+      - id: "1grLmPPU9v0"
+        title: "Maps"
+        description:
+        type: youtube
+        video_id: "1grLmPPU9v0"
+        duration: 874
+      - id: "rNnE37oObh4"
+        title: "Auto"
+        description:
+        type: youtube
+        video_id: "rNnE37oObh4"
+        duration: 675
+      - id: "ljiP8T16ckU"
+        title: "nullptr"
+        description:
+        type: youtube
+        video_id: "ljiP8T16ckU"
+        duration: 607
+      - id: "NIAJPOroh94"
+        title: "constexpr"
+        description:
+        type: youtube
+        video_id: "NIAJPOroh94"
+        duration: 809
+      - id: "Dpm7gqLhPPk"
+        title: "Chrono"
+        description:
+        type: youtube
+        video_id: "Dpm7gqLhPPk"
+        duration: 356
+      - id: "-Y4kigvvrAQ"
+        title: "If-Variablen-Scope"
+        description:
+        type: youtube
+        video_id: "-Y4kigvvrAQ"
+        duration: 525
+      - id: "U-dZ4uaeMlo"
+        title: "initializer Lists"
+        description:
+        type: youtube
+        video_id: "U-dZ4uaeMlo"
+        duration: 483
+      - id: "PjIR0QO2dGE"
+        title: "Mehrere Rückgabe-Werte"
+        description:
+        type: youtube
+        video_id: "PjIR0QO2dGE"
+        duration: 529
+      - id: "F_Gn20Vr-1w"
+        title: "Raw Strings"
+        description:
+        type: youtube
+        video_id: "F_Gn20Vr-1w"
+        duration: 474
+  - id: section3
+    title: "Smart Pointer"
+    description:
+    lectures:
+      - id: "b_rgiYG5xWs"
+        title: "RAII"
+        description:
+        type: youtube
+        video_id: "b_rgiYG5xWs"
+        duration: 751
+      - id: "KNcqxpjO_vI"
+        title: "Shared Pointer"
+        description:
+        type: youtube
+        video_id: "KNcqxpjO_vI"
+        duration: 648
+      - id: "u2TME7SqLlo"
+        title: "Unique Pointer"
+        description:
+        type: youtube
+        video_id: "u2TME7SqLlo"
+        duration: 569
+      - id: "JYs5hroLTJE"
+        title: "Weak Pointer"
+        description:
+        type: youtube
+        video_id: "JYs5hroLTJE"
+        duration: 547
+  - id: section4
+    title: "Filesystem"
+    description:
+    lectures:
+      - id: "ryFOJlhb4nc"
+        title: "Ordner"
+        description:
+        type: youtube
+        video_id: "ryFOJlhb4nc"
+        duration: 559
+      - id: "EowRm0EKWsg"
+        title: "Dateien"
+        description:
+        type: youtube
+        video_id: "EowRm0EKWsg"
+        duration: 666
+  - id: section5
+    title: "Lambdas und Functional C++"
+    description:
+    lectures:
+      - id: "cOXo09KHVtw"
+        title: "Einleitung"
+        description:
+        type: youtube
+        video_id: "cOXo09KHVtw"
+        duration: 649
+      - id: "CF30r-A7uV8"
+        title: "Capture List"
+        description:
+        type: youtube
+        video_id: "CF30r-A7uV8"
+        duration: 604
+      - id: "otInl-deYSk"
+        title: "Die Typen von Funktionen"
+        description:
+        type: youtube
+        video_id: "otInl-deYSk"
+        duration: 607
+  - id: section6
+    title: "So geht neue OOP"
+    description:
+    lectures:
+      - id: "Kzei0cT8bE8"
+        title: "Delegate und Inheritance Constructors"
+        description:
+        type: youtube
+        video_id: "Kzei0cT8bE8"
+        duration: 472
+      - id: "Dgh1I5x-g50"
+        title: "override und final für virtual functions"
+        description:
+        type: youtube
+        video_id: "Dgh1I5x-g50"
+        duration: 435
+      - id: "NCa-QKf5MZ8"
+        title: "noexcept"
+        description:
+        type: youtube
+        video_id: "NCa-QKf5MZ8"
+        duration: 301
+  - id: section7
+    title: "Parallelismus und Concurrency"
+    description:
+    lectures:
+      - id: "S1E0GD4UZMo"
+        title: "Threads erstellen"
+        description:
+        type: youtube
+        video_id: "S1E0GD4UZMo"
+        duration: 522
+      - id: "2w4p0miwRzs"
+        title: "Mutex"
+        description:
+        type: youtube
+        video_id: "2w4p0miwRzs"
+        duration: 791
+      - id: "8KO-q2SymjQ"
+        title: "Spinlocks"
+        description:
+        type: youtube
+        video_id: "8KO-q2SymjQ"
+        duration: 316
+      - id: "9lz3j2BY9UY"
+        title: "Atomic Variablen"
+        description:
+        type: youtube
+        video_id: "9lz3j2BY9UY"
+        duration: 244
+      - id: "E7E-KI9qX9M"
+        title: "Der Standard Daten Workflow"
+        description:
+        type: youtube
+        video_id: "E7E-KI9qX9M"
+        duration: 771
+      - id: "DypE0Eg5qb4"
+        title: "Condition Variables"
+        description:
+        type: youtube
+        video_id: "DypE0Eg5qb4"
+        duration: 549
+      - id: "wAqT0Jk4NYg"
+        title: "Asnyc und Futures"
+        description:
+        type: youtube
+        video_id: "wAqT0Jk4NYg"
+        duration: 615
+      - id: "7IJdAKgJ_xE"
+        title: "Futures und Promises"
+        description:
+        type: youtube
+        video_id: "7IJdAKgJ_xE"
+        duration: 608
+      - id: "9VlNjHhKHMc"
+        title: "Parallele Algorithmen in der STL"
+        description:
+        type: youtube
+        video_id: "9VlNjHhKHMc"
+        duration: 1188

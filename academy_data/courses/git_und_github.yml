@@ -1,0 +1,82 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7rbmmqb1Lt_RGU4DEhelTrR
+title: "Git und Github"
+description: "Ihr entwickelt eure Programme noch ohne Git? Oh oh... Die Versionierungssoftware Git - und ihr zugehörige Cloud Variante Github - können euch helfen, ungewollte Änderungen rückgängig zu machen, im Team zu arbeiten und gleichzeitig noch das Deployment immens stabiler zu halten. Absolutes Must-Have für jeden in der IT."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/git.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665507293
+sections:
+  - id: section
+    title: "Git"
+    description:
+    lectures:
+      - id: "9RbU-h0NH0A"
+        title: "Lokale Repositories"
+        description:
+        type: youtube
+        video_id: "9RbU-h0NH0A"
+        duration: 523
+      - id: "Oc3jnCqnLjo"
+        title: "Remote Repositories mit Beispiel Github"
+        description:
+        type: youtube
+        video_id: "Oc3jnCqnLjo"
+        duration: 346
+      - id: "ZVoSBA03Tdc"
+        title: "Branches, Merges etc"
+        description:
+        type: youtube
+        video_id: "ZVoSBA03Tdc"
+        duration: 607
+  - id: section2
+    title: "Github"
+    description:
+    lectures:
+      - id: "mBfbktYFftQ"
+        title: "In eine Jetbrains IDE einbinden"
+        description:
+        type: youtube
+        video_id: "mBfbktYFftQ"
+        duration: 661
+      - id: "xi4q3dTVSgI"
+        title: "In der IDE mit Branches arbeiten"
+        description:
+        type: youtube
+        video_id: "xi4q3dTVSgI"
+        duration: 774
+      - id: "l8MZCnrSeQQ"
+        title: "Pull-Requests"
+        description:
+        type: youtube
+        video_id: "l8MZCnrSeQQ"
+        duration: 616
+      - id: "jRX87fDJDaI"
+        title: "Ein paar Worte zu Lizenzen"
+        description:
+        type: youtube
+        video_id: "jRX87fDJDaI"
+        duration: 776
+      - id: "wSHNvdRjB9Q"
+        title: "Issues"
+        description:
+        type: youtube
+        video_id: "wSHNvdRjB9Q"
+        duration: 408
+      - id: "YbuJv8XPVV8"
+        title: "Templates, Code of Conduct und Beschreibungen"
+        description:
+        type: youtube
+        video_id: "YbuJv8XPVV8"
+        duration: 531
+      - id: "CLz4sedgK-4"
+        title: "Github Dev: VS Code im Browser direkt nutzen"
+        description:
+        type: youtube
+        video_id: "CLz4sedgK-4"
+        duration: 260

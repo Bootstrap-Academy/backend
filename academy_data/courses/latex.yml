@@ -1,0 +1,480 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7phxF5hBRWNJx9-KtIHjVYv
+title: "LaTeX: Wissenschaftliche Arbeiten schreiben"
+description: "Ja, irgendwer muss diese ganzen digitalen Bücher auch layouten, irgendwer muss die Formeln hübsch aussehen lassen - und stellt euch vor, mit Word ist man deutlich langsamer. Deswegen LaTeX."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/latex.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 3000
+learning_goals: []
+requirements: []
+last_update: 1665508460
+sections:
+  - id: section
+    title: "LaTeX Tutorial für die Supporter"
+    description:
+    lectures:
+      - id: "yg-KET15Poc"
+        title: "Einleitung und Installation"
+        description:
+        type: youtube
+        video_id: "yg-KET15Poc"
+        duration: 1163
+      - id: "LOLg_C9QvDg"
+        title: "Grundlagen"
+        description:
+        type: youtube
+        video_id: "LOLg_C9QvDg"
+        duration: 718
+      - id: "B_ZSw7O35ZY"
+        title: "Dokument Klassen"
+        description:
+        type: youtube
+        video_id: "B_ZSw7O35ZY"
+        duration: 781
+  - id: section2
+    title: "Struktur des Dokuments"
+    description:
+    lectures:
+      - id: "uHbhaCuHLtE"
+        title: "Titelfolien"
+        description:
+        type: youtube
+        video_id: "uHbhaCuHLtE"
+        duration: 238
+      - id: "MXKOTwoLtto"
+        title: "Abstracts"
+        description:
+        type: youtube
+        video_id: "MXKOTwoLtto"
+        duration: 388
+      - id: "KCCA5Ycyld8"
+        title: "Kapitel und Strukturen"
+        description:
+        type: youtube
+        video_id: "KCCA5Ycyld8"
+        duration: 767
+      - id: "Zmmvy_W7E0A"
+        title: "Inhaltsverzeichnis"
+        description:
+        type: youtube
+        video_id: "Zmmvy_W7E0A"
+        duration: 383
+      - id: "AYbFdDVnPCk"
+        title: "Neue Seiten und Tiefen im Inhaltsverzeichnis"
+        description:
+        type: youtube
+        video_id: "AYbFdDVnPCk"
+        duration: 391
+      - id: "Ph6FjGecGGU"
+        title: "Buchlayout"
+        description:
+        type: youtube
+        video_id: "Ph6FjGecGGU"
+        duration: 331
+  - id: section3
+    title: "Seitenlayouts und Textformatierung"
+    description:
+    lectures:
+      - id: "FViujku8Fww"
+        title: "Zeilenabstand"
+        description:
+        type: youtube
+        video_id: "FViujku8Fww"
+        duration: 491
+      - id: "AozCVl1Fe74"
+        title: "hfill und vfill"
+        description:
+        type: youtube
+        video_id: "AozCVl1Fe74"
+        duration: 251
+      - id: "i1GgMUg4UXU"
+        title: "Silbentrennung"
+        description:
+        type: youtube
+        video_id: "i1GgMUg4UXU"
+        duration: 580
+      - id: "FAlaTtHNNNY"
+        title: "Anführungstriche"
+        description:
+        type: youtube
+        video_id: "FAlaTtHNNNY"
+        duration: 294
+      - id: "eqJxuj1NBY0"
+        title: "Ein ganzer Haufen Textcommands"
+        description:
+        type: youtube
+        video_id: "eqJxuj1NBY0"
+        duration: 713
+      - id: "eo0PmltAji8"
+        title: "Bündigkeit und Zentrieren"
+        description:
+        type: youtube
+        video_id: "eo0PmltAji8"
+        duration: 345
+      - id: "Iqnm5-IP_2Y"
+        title: "Paragrapheneinzug"
+        description:
+        type: youtube
+        video_id: "Iqnm5-IP_2Y"
+        duration: 394
+      - id: "mfSO-0AdRQ8"
+        title: "Mehr zu Paragraphen"
+        description:
+        type: youtube
+        video_id: "mfSO-0AdRQ8"
+        duration: 499
+  - id: section4
+    title: "Schrift"
+    description:
+    lectures:
+      - id: "259rSKC0qis"
+        title: "Die Umgebungen Verbatim und alltt"
+        description:
+        type: youtube
+        video_id: "259rSKC0qis"
+        duration: 422
+      - id: "t18LfokdO_w"
+        title: "Farben"
+        description:
+        type: youtube
+        video_id: "t18LfokdO_w"
+        duration: 887
+      - id: "ZkJKwWQa7L8"
+        title: "Schriftart"
+        description:
+        type: youtube
+        video_id: "ZkJKwWQa7L8"
+        duration: 638
+      - id: "3COEZNDQUD0"
+        title: "Schriftgrößen"
+        description:
+        type: youtube
+        video_id: "3COEZNDQUD0"
+        duration: 556
+      - id: "Y-S9TM3nyY4"
+        title: "Schriftarten wechseln"
+        description:
+        type: youtube
+        video_id: "Y-S9TM3nyY4"
+        duration: 343
+      - id: "u589dG2gwDY"
+        title: "Kurze Worte zu Schriftenkodierung"
+        description:
+        type: youtube
+        video_id: "u589dG2gwDY"
+        duration: 190
+  - id: section5
+    title: "Listen"
+    description:
+    lectures:
+      - id: "6vlM7R_wVxk"
+        title: "Listen"
+        description:
+        type: youtube
+        video_id: "6vlM7R_wVxk"
+        duration: 405
+      - id: "qxtwdrO4DaM"
+        title: "Das Paket enumitem"
+        description:
+        type: youtube
+        video_id: "qxtwdrO4DaM"
+        duration: 788
+  - id: section6
+    title: "Tabellen"
+    description:
+    lectures:
+      - id: "T4rR2vpuGPs"
+        title: "Tabellen"
+        description:
+        type: youtube
+        video_id: "T4rR2vpuGPs"
+        duration: 702
+      - id: "LiB9pfqJxZI"
+        title: "Text in Tabellen"
+        description:
+        type: youtube
+        video_id: "LiB9pfqJxZI"
+        duration: 409
+      - id: "RpQ7HD5rqdo"
+        title: "Platzhalter"
+        description:
+        type: youtube
+        video_id: "RpQ7HD5rqdo"
+        duration: 379
+      - id: "0U1TzAImhLQ"
+        title: "Multicolumns"
+        description:
+        type: youtube
+        video_id: "0U1TzAImhLQ"
+        duration: 250
+      - id: "iO8Z018nj20"
+        title: "Tabellenunterschriften"
+        description:
+        type: youtube
+        video_id: "iO8Z018nj20"
+        duration: 146
+      - id: "c82iYBIrpSs"
+        title: "Farben in Tabellen und vereinzelte Vertikale Striche"
+        description:
+        type: youtube
+        video_id: "c82iYBIrpSs"
+        duration: 463
+  - id: section7
+    title: "Grafiken"
+    description:
+    lectures:
+      - id: "bWl_gi06shs"
+        title: "Grafiken importieren"
+        description:
+        type: youtube
+        video_id: "bWl_gi06shs"
+        duration: 425
+      - id: "4j3KzT826N4"
+        title: "Positionierung von Grafiken und Tabellen"
+        description:
+        type: youtube
+        video_id: "4j3KzT826N4"
+        duration: 498
+      - id: "xyh-rAvlm8g"
+        title: "Bildbeschreibungen aka Captions"
+        description:
+        type: youtube
+        video_id: "xyh-rAvlm8g"
+        duration: 472
+      - id: "xAMxcu-MXKM"
+        title: "Textumfluss bei Grafiken"
+        description:
+        type: youtube
+        video_id: "xAMxcu-MXKM"
+        duration: 430
+      - id: "Obw-sNGiV44"
+        title: "Subfigures"
+        description:
+        type: youtube
+        video_id: "Obw-sNGiV44"
+        duration: 616
+  - id: section8
+    title: "Referenzieren und Links"
+    description:
+    lectures:
+      - id: "IEK7JeYlJ8w"
+        title: "Referenzieren"
+        description:
+        type: youtube
+        video_id: "IEK7JeYlJ8w"
+        duration: 369
+      - id: "HCK2-ZP6HIo"
+        title: "Referenzieren mit hyperref"
+        description:
+        type: youtube
+        video_id: "HCK2-ZP6HIo"
+        duration: 347
+      - id: "TkQ0d3k0swE"
+        title: "URLs darstellen"
+        description:
+        type: youtube
+        video_id: "TkQ0d3k0swE"
+        duration: 462
+      - id: "mWHmPw2akBo"
+        title: "PDF Metadaten und Setups"
+        description:
+        type: youtube
+        video_id: "mWHmPw2akBo"
+        duration: 572
+      - id: "IsIAZuN5exI"
+        title: "Fußnoten"
+        description:
+        type: youtube
+        video_id: "IsIAZuN5exI"
+        duration: 760
+  - id: section9
+    title: "Nochmal Layouts"
+    description:
+    lectures:
+      - id: "M0nOOR0Rah8"
+        title: "eigene Titelseiten"
+        description:
+        type: youtube
+        video_id: "M0nOOR0Rah8"
+        duration: 280
+      - id: "sxCzZ1Uubf8"
+        title: "Seitenlayout"
+        description:
+        type: youtube
+        video_id: "sxCzZ1Uubf8"
+        duration: 546
+      - id: "shuyTHZJAp0"
+        title: "Kapitelüberschriften formatieren"
+        description:
+        type: youtube
+        video_id: "shuyTHZJAp0"
+        duration: 628
+      - id: "N93ixQZFh1Q"
+        title: "Mehrere Spalten"
+        description:
+        type: youtube
+        video_id: "N93ixQZFh1Q"
+        duration: 266
+      - id: "xo8necL-UEc"
+        title: "Ein Brief in LaTeX"
+        description:
+        type: youtube
+        video_id: "xo8necL-UEc"
+        duration: 412
+  - id: section10
+    title: "Zitieren und Bibliographien"
+    description:
+    lectures:
+      - id: "YDH3L9tudnY"
+        title: "Bibliographie und zitieren"
+        description:
+        type: youtube
+        video_id: "YDH3L9tudnY"
+        duration: 584
+      - id: "0fGEhXQeUgo"
+        title: "Bibliographie: Einträge"
+        description:
+        type: youtube
+        video_id: "0fGEhXQeUgo"
+        duration: 320
+      - id: "ugsHpU_l30k"
+        title: "Zitatoptionen"
+        description:
+        type: youtube
+        video_id: "ugsHpU_l30k"
+        duration: 320
+      - id: "7Z0msgsQ5gQ"
+        title: "Bibliographiestile"
+        description:
+        type: youtube
+        video_id: "7Z0msgsQ5gQ"
+        duration: 605
+  - id: section11
+    title: "Mathematik"
+    description:
+    lectures:
+      - id: "MLrBA2pr4eg"
+        title: "Mathematik Umgebungen"
+        description:
+        type: youtube
+        video_id: "MLrBA2pr4eg"
+        duration: 386
+      - id: "9O13UFtK4ek"
+        title: "griechische Buchstaben und Sonderzeichen"
+        description:
+        type: youtube
+        video_id: "9O13UFtK4ek"
+        duration: 485
+      - id: "90LFzhrG4uY"
+        title: "Formeln"
+        description:
+        type: youtube
+        video_id: "90LFzhrG4uY"
+        duration: 636
+      - id: "1M_gXZ2QFw4"
+        title: "Klammern"
+        description:
+        type: youtube
+        video_id: "1M_gXZ2QFw4"
+        duration: 328
+      - id: "rjnCDanjRdU"
+        title: "Matrizen und Vektoren"
+        description:
+        type: youtube
+        video_id: "rjnCDanjRdU"
+        duration: 537
+      - id: "1_ZMStvjTGQ"
+        title: "Theoreme und Beweise"
+        description:
+        type: youtube
+        video_id: "1_ZMStvjTGQ"
+        duration: 260
+  - id: section12
+    title: "Mehr wissenschaftliche Arbeiten"
+    description:
+    lectures:
+      - id: "aAcFd8LxkYc"
+        title: "Algorithmen"
+        description:
+        type: youtube
+        video_id: "aAcFd8LxkYc"
+        duration: 337
+      - id: "3AVcNn7xnhc"
+        title: "Quellcode"
+        description:
+        type: youtube
+        video_id: "3AVcNn7xnhc"
+        duration: 296
+      - id: "QYw5uqp8wuU"
+        title: "Quellcode mit Farbe"
+        description:
+        type: youtube
+        video_id: "QYw5uqp8wuU"
+        duration: 649
+      - id: "_GtjWcF6SIg"
+        title: "Bäume"
+        description:
+        type: youtube
+        video_id: "_GtjWcF6SIg"
+        duration: 284
+      - id: "ElwzJOQq4DA"
+        title: "Chemie"
+        description:
+        type: youtube
+        video_id: "ElwzJOQq4DA"
+        duration: 498
+  - id: section13
+    title: "Bonus"
+    description:
+    lectures:
+      - id: "TACIGZecwho"
+        title: "PDF-Dateien importieren"
+        description:
+        type: youtube
+        video_id: "TACIGZecwho"
+        duration: 422
+      - id: "rb2yELiWsc0"
+        title: "Include und input - Tex Dateien kombinieren"
+        description:
+        type: youtube
+        video_id: "rb2yELiWsc0"
+        duration: 439
+      - id: "a0CDkfCYd3k"
+        title: "Der Glossar"
+        description:
+        type: youtube
+        video_id: "a0CDkfCYd3k"
+        duration: 628
+      - id: "AIf6CVceIL8"
+        title: "Mehr zum Glossar: Inhaltsverzeichnis, Plural und Sortierung"
+        description:
+        type: youtube
+        video_id: "AIf6CVceIL8"
+        duration: 660
+      - id: "NbRwcPiYSRg"
+        title: "Kopf-  und Fußzeilen"
+        description:
+        type: youtube
+        video_id: "NbRwcPiYSRg"
+        duration: 674
+      - id: "p-zvPUI6EF4"
+        title: "Bibliographiestlyes selbst erstellen mit makebst"
+        description:
+        type: youtube
+        video_id: "p-zvPUI6EF4"
+        duration: 2005
+      - id: "-J4LN81cLok"
+        title: "Flyer erstellen mit Leaflet"
+        description:
+        type: youtube
+        video_id: "-J4LN81cLok"
+        duration: 504
+      - id: "aZvi5WQw994"
+        title: "Lebenslauf"
+        description:
+        type: youtube
+        video_id: "aZvi5WQw994"
+        duration: 1195

@@ -1,0 +1,204 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7q4shI4L__SRpetWff9BjLZ
+title: "C Programmierung"
+description: "C ist die Sprache, die als Vorlage für unsere modernen Sprachen zum Einsatz kam. Und sie ist noch immer weit verbreitet - hardwarenahe Programmierung, Treiber, Firmware, Betriebssysteme: Fast alles wird nach wie vor in C geschrieben. Wollt ihr hier einsteigen, solltet ihr C definitiv beherrschen."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/c.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665506415
+sections:
+  - id: section
+    title: "C Programmierung"
+    description:
+    lectures:
+      - id: "x-2ZCkS3OHY"
+        title: "Einleitung"
+        description:
+        type: youtube
+        video_id: "x-2ZCkS3OHY"
+        duration: 390
+      - id: "9bX5xEUqsqo"
+        title: "Variablen"
+        description:
+        type: youtube
+        video_id: "9bX5xEUqsqo"
+        duration: 400
+      - id: "2tDkKZeAiPc"
+        title: "Datentypen"
+        description:
+        type: youtube
+        video_id: "2tDkKZeAiPc"
+        duration: 683
+      - id: "w8Q0SaKS3C0"
+        title: "Konstanten"
+        description:
+        type: youtube
+        video_id: "w8Q0SaKS3C0"
+        duration: 273
+      - id: "wRBes5ORwRo"
+        title: "if-Verzweigungen"
+        description:
+        type: youtube
+        video_id: "wRBes5ORwRo"
+        duration: 397
+      - id: "a0S_1Yl4k2s"
+        title: "Operatoren"
+        description:
+        type: youtube
+        video_id: "a0S_1Yl4k2s"
+        duration: 438
+      - id: "pJ1g-mWXJoc"
+        title: "Logische Operatoren und mehr als ein if"
+        description:
+        type: youtube
+        video_id: "pJ1g-mWXJoc"
+        duration: 309
+      - id: "4yIVdaWHBYc"
+        title: "Die Switch-Case-Verzweigung"
+        description:
+        type: youtube
+        video_id: "4yIVdaWHBYc"
+        duration: 420
+      - id: "_imEnxCFyiE"
+        title: "While-Schleife"
+        description:
+        type: youtube
+        video_id: "_imEnxCFyiE"
+        duration: 468
+      - id: "qNRwmmQui6k"
+        title: "Die For-Schleife"
+        description:
+        type: youtube
+        video_id: "qNRwmmQui6k"
+        duration: 191
+      - id: "9YizVz4ffgc"
+        title: "Die Do-While Schleife"
+        description:
+        type: youtube
+        video_id: "9YizVz4ffgc"
+        duration: 145
+      - id: "6Uj_Ki9ZSqU"
+        title: "Loop Control"
+        description:
+        type: youtube
+        video_id: "6Uj_Ki9ZSqU"
+        duration: 351
+      - id: "Q1Wf5cScgDM"
+        title: "Funktionen"
+        description:
+        type: youtube
+        video_id: "Q1Wf5cScgDM"
+        duration: 376
+      - id: "yY3IB-vlpIw"
+        title: "Rückgabewerte"
+        description:
+        type: youtube
+        video_id: "yY3IB-vlpIw"
+        duration: 530
+      - id: "UNGFcLwMG1E"
+        title: "Parameter"
+        description:
+        type: youtube
+        video_id: "UNGFcLwMG1E"
+        duration: 435
+      - id: "eAl9ehuJpCo"
+        title: "Gültigkeitsbereiche von Variablen"
+        description:
+        type: youtube
+        video_id: "eAl9ehuJpCo"
+        duration: 379
+      - id: "cH0pZYLEE5o"
+        title: "Arrays"
+        description:
+        type: youtube
+        video_id: "cH0pZYLEE5o"
+        duration: 408
+      - id: "FBiwnHnZ8s8"
+        title: "Arrays in Funktionen"
+        description:
+        type: youtube
+        video_id: "FBiwnHnZ8s8"
+        duration: 389
+      - id: "e2oUCDel0ZE"
+        title: "Pointer"
+        description:
+        type: youtube
+        video_id: "e2oUCDel0ZE"
+        duration: 412
+      - id: "otsNa8gmHwQ"
+        title: "Pointer auf Arrays"
+        description:
+        type: youtube
+        video_id: "otsNa8gmHwQ"
+        duration: 376
+      - id: "HJxSbFqqceo"
+        title: "Strings als Arrays mit Pointern"
+        description:
+        type: youtube
+        video_id: "HJxSbFqqceo"
+        duration: 641
+      - id: "wlMgxCxFdxY"
+        title: "Mehrdimensionale Arrays"
+        description:
+        type: youtube
+        video_id: "wlMgxCxFdxY"
+        duration: 473
+      - id: "JlJwVBKT4TM"
+        title: "Structures"
+        description:
+        type: youtube
+        video_id: "JlJwVBKT4TM"
+        duration: 425
+      - id: "38NPeapXYSY"
+        title: "Pointer auf Structures"
+        description:
+        type: youtube
+        video_id: "38NPeapXYSY"
+        duration: 229
+      - id: "59MOqTyAiVc"
+        title: "Unions"
+        description:
+        type: youtube
+        video_id: "59MOqTyAiVc"
+        duration: 334
+      - id: "-nFGkHRLl2c"
+        title: "typedef"
+        description:
+        type: youtube
+        video_id: "-nFGkHRLl2c"
+        duration: 176
+      - id: "5wnoPArE4Ns"
+        title: "Eingaben und Ausgaben"
+        description:
+        type: youtube
+        video_id: "5wnoPArE4Ns"
+        duration: 470
+      - id: "7D5nsUZiGEc"
+        title: "Dateien lesen und schreiben"
+        description:
+        type: youtube
+        video_id: "7D5nsUZiGEc"
+        duration: 929
+      - id: "xKX854l3How"
+        title: "Header-Dateien"
+        description:
+        type: youtube
+        video_id: "xKX854l3How"
+        duration: 473
+      - id: "Dvs6s6_Gz6Y"
+        title: "Funktionen mit variabler Anzahl an Parametern"
+        description:
+        type: youtube
+        video_id: "Dvs6s6_Gz6Y"
+        duration: 307
+      - id: "Pe0S0mUPGBc"
+        title: "Speicherzuweisung"
+        description:
+        type: youtube
+        video_id: "Pe0S0mUPGBc"
+        duration: 495

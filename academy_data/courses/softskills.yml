@@ -1,0 +1,134 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7rC5g_bZNxZF6lOjSfNBKkE
+title: "Softskills für Informatiker"
+description: "Informatiker sitzen im Keller und reden nicht mit anderen? Da hast du wohl einigen Vorurteilen aufgesessen. Informatik und vor allem Softwareentwicklung ist mittlerweile fast schon ein sozialer Beruf! Furchtbar? Nein, das kann man lernen!"
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/softskills.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+  - name: "Tom Klein"
+    url: "https://www.tomklein.de/"
+price: 5000
+learning_goals: []
+requirements: []
+last_update: 1666399091
+sections:
+  - id: section
+    title: "Softskills für Informatiker"
+    description:
+    lectures:
+      - id: "4vuFbfqv9P4"
+        title: "Einleitung"
+        description:
+        type: youtube
+        video_id: "4vuFbfqv9P4"
+        duration: 244
+      - id: "B-DsxJjdHBU"
+        title: "Kalibration"
+        description:
+        type: youtube
+        video_id: "B-DsxJjdHBU"
+        duration: 625
+      - id: "C5KyArMdmb0"
+        title: "Spiegeln"
+        description:
+        type: youtube
+        video_id: "C5KyArMdmb0"
+        duration: 417
+      - id: "tqvRSRvlZKE"
+        title: "Feedback geben"
+        description:
+        type: youtube
+        video_id: "tqvRSRvlZKE"
+        duration: 781
+      - id: "lxm9-NgpTtU"
+        title: "Framing"
+        description:
+        type: youtube
+        video_id: "lxm9-NgpTtU"
+        duration: 1183
+      - id: "voP9-VO0Eto"
+        title: "Fragetechniken"
+        description:
+        type: youtube
+        video_id: "voP9-VO0Eto"
+        duration: 1091
+      - id: "bAA_2euVt28"
+        title: "Zuhören"
+        description:
+        type: youtube
+        video_id: "bAA_2euVt28"
+        duration: 1275
+      - id: "aAfwhMLO56s"
+        title: "Visualisieren"
+        description:
+        type: youtube
+        video_id: "aAfwhMLO56s"
+        duration: 798
+      - id: "UXgSjo0NxyY"
+        title: "Konfliktmanagement: Definition"
+        description:
+        type: youtube
+        video_id: "UXgSjo0NxyY"
+        duration: 991
+      - id: "qesypUWwBVk"
+        title: "Konfliktmanagement: Grundannahmen"
+        description:
+        type: youtube
+        video_id: "qesypUWwBVk"
+        duration: 1445
+      - id: "smLgKIALcjo"
+        title: "Gruppendynamik"
+        description:
+        type: youtube
+        video_id: "smLgKIALcjo"
+        duration: 1099
+      - id: "uikaPfxrTuc"
+        title: "Moderation"
+        description:
+        type: youtube
+        video_id: "uikaPfxrTuc"
+        duration: 496
+      - id: "pJ9rL1DxFK0"
+        title: "Selbstreflexion"
+        description:
+        type: youtube
+        video_id: "pJ9rL1DxFK0"
+        duration: 1049
+      - id: "lFAEw3Ti1gM"
+        title: "Kommunikationskontext erklärt"
+        description:
+        type: youtube
+        video_id: "lFAEw3Ti1gM"
+        duration: 1035
+      - id: "MnMiIt1Nr68"
+        title: "Kontaktfähigkeit"
+        description:
+        type: youtube
+        video_id: "MnMiIt1Nr68"
+        duration: 785
+      - id: "KK829x4FEr4"
+        title: "Verhandlungsfähigkeit"
+        description:
+        type: youtube
+        video_id: "KK829x4FEr4"
+        duration: 834
+      - id: "IH_BtcH-Bvk"
+        title: "Product Entry Board"
+        description:
+        type: youtube
+        video_id: "IH_BtcH-Bvk"
+        duration: 1133
+      - id: "yccek0Vout8"
+        title: "Retrospektive"
+        description:
+        type: youtube
+        video_id: "yccek0Vout8"
+        duration: 848
+      - id: "S0VxFmj5FgA"
+        title: "Sprint Planning"
+        description:
+        type: youtube
+        video_id: "S0VxFmj5FgA"
+        duration: 855

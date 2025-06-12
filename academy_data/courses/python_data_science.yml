@@ -1,0 +1,282 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7o46LI06XkxAqcg4Ucm7pwn
+title: "Data Science in Python"
+description: "Data Science, also wie genau gehe ich eigentlich mit meinen Daten um, ist in vielen Fällen einfach harte Programmierung. Und weil die beliebtesten Bibliotheken für die Sprache Python verfügbar sind, meist in Python. In diesem Kurs geht's um diese beliebtesten Bibliotheken!"
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/python.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665507403
+sections:
+  - id: section
+    title: "Einleitung"
+    description:
+    lectures:
+      - id: "EW0rpuPoRNA"
+        title: "Einleitung"
+        description:
+        type: youtube
+        video_id: "EW0rpuPoRNA"
+        duration: 686
+  - id: section2
+    title: "Numpy"
+    description:
+    lectures:
+      - id: "XamW67vUJ-Q"
+        title: "Arrays erstellen"
+        description:
+        type: youtube
+        video_id: "XamW67vUJ-Q"
+        duration: 800
+      - id: "0tNt4Lu7EZg"
+        title: "Numpy Arrays vs Python Lists"
+        description:
+        type: youtube
+        video_id: "0tNt4Lu7EZg"
+        duration: 927
+      - id: "mQ_P06Z7e5Y"
+        title: "Datentypen"
+        description:
+        type: youtube
+        video_id: "mQ_P06Z7e5Y"
+        duration: 1081
+      - id: "RWWjSm5F8uM"
+        title: "Shape erklärt"
+        description:
+        type: youtube
+        video_id: "RWWjSm5F8uM"
+        duration: 693
+      - id: "bWl4I-kYpio"
+        title: "Shapes in komplexen Dtypes"
+        description:
+        type: youtube
+        video_id: "bWl4I-kYpio"
+        duration: 906
+      - id: "OTrslIWEf54"
+        title: "benannte DTypes"
+        description:
+        type: youtube
+        video_id: "OTrslIWEf54"
+        duration: 979
+      - id: "kxpGn6DQVB4"
+        title: "Slicen und Indexierung"
+        description:
+        type: youtube
+        video_id: "kxpGn6DQVB4"
+        duration: 848
+      - id: "cccNKHvzofw"
+        title: "Operationen mit Vektoren und Matrizen"
+        description:
+        type: youtube
+        video_id: "cccNKHvzofw"
+        duration: 1183
+      - id: "ZQj8qY6e5uw"
+        title: "Ravel und Flatten"
+        description:
+        type: youtube
+        video_id: "ZQj8qY6e5uw"
+        duration: 583
+      - id: "bjfmlHghW34"
+        title: "Reshape"
+        description:
+        type: youtube
+        video_id: "bjfmlHghW34"
+        duration: 436
+      - id: "UMYbeltcyA8"
+        title: "Stacks, Tiles, Konkatenation und Padding"
+        description:
+        type: youtube
+        video_id: "UMYbeltcyA8"
+        duration: 639
+      - id: "btA5mOXcQYs"
+        title: "Zufall in Numpy"
+        description:
+        type: youtube
+        video_id: "btA5mOXcQYs"
+        duration: 333
+      - id: "l6Z2Fhxp6ZE"
+        title: "Dateien laden und speichern"
+        description:
+        type: youtube
+        video_id: "l6Z2Fhxp6ZE"
+        duration: 656
+      - id: "pv3KvUMRZKs"
+        title: "Mehr Möglichkeiten Arrays zu erstellen"
+        description:
+        type: youtube
+        video_id: "pv3KvUMRZKs"
+        duration: 490
+      - id: "7gWWxAJv_fA"
+        title: "Fancy Operationen"
+        description:
+        type: youtube
+        video_id: "7gWWxAJv_fA"
+        duration: 959
+  - id: section3
+    title: "Pandas"
+    description:
+    lectures:
+      - id: "Uu1Skwz98B4"
+        title: "DataFrames"
+        description:
+        type: youtube
+        video_id: "Uu1Skwz98B4"
+        duration: 557
+      - id: "tSSMQdNtz38"
+        title: "Series"
+        description:
+        type: youtube
+        video_id: "tSSMQdNtz38"
+        duration: 907
+      - id: "yRSV-wLWhSw"
+        title: "Multiindexierte und normale DataFrames erstellen"
+        description:
+        type: youtube
+        video_id: "yRSV-wLWhSw"
+        duration: 1341
+      - id: "u0kBG9rMHjI"
+        title: "Operationen und Indexierung von DataFrames"
+        description:
+        type: youtube
+        video_id: "u0kBG9rMHjI"
+        duration: 966
+      - id: "SAdh1JnOBYQ"
+        title: "Mehr wichtige Operationen auf DataFrames"
+        description:
+        type: youtube
+        video_id: "SAdh1JnOBYQ"
+        duration: 1027
+      - id: "lttSd1sBzq0"
+        title: "Einfache Statistik"
+        description:
+        type: youtube
+        video_id: "lttSd1sBzq0"
+        duration: 639
+      - id: "4rjNHNrr6_U"
+        title: "Reindex vs Zuweisen von Columns"
+        description:
+        type: youtube
+        video_id: "4rjNHNrr6_U"
+        duration: 544
+      - id: "RuQxtM99IK4"
+        title: "Fortgeschrittene Indexierung"
+        description:
+        type: youtube
+        video_id: "RuQxtM99IK4"
+        duration: 976
+      - id: "wNnVHNZfyqA"
+        title: "Iterieren über Dataframes"
+        description:
+        type: youtube
+        video_id: "wNnVHNZfyqA"
+        duration: 816
+      - id: "mQVq-pzd5Tg"
+        title: "Diskretisierung und Histogramme erstellen bei Floats"
+        description:
+        type: youtube
+        video_id: "mQVq-pzd5Tg"
+        duration: 616
+      - id: "HaLpJgaGBTE"
+        title: "Mehr zu Kategorien"
+        description:
+        type: youtube
+        video_id: "HaLpJgaGBTE"
+        duration: 1122
+      - id: "2JsAlrBDmUE"
+        title: "Konkatenieren von DataFrames"
+        description:
+        type: youtube
+        video_id: "2JsAlrBDmUE"
+        duration: 837
+      - id: "4iua5KvH8YA"
+        title: "Merge bei DataFrames"
+        description:
+        type: youtube
+        video_id: "4iua5KvH8YA"
+        duration: 1078
+      - id: "118j186E5JI"
+        title: "Gruppieren"
+        description:
+        type: youtube
+        video_id: "118j186E5JI"
+        duration: 869
+      - id: "o7iiox_xsko"
+        title: "Pivottables erstellen"
+        description:
+        type: youtube
+        video_id: "o7iiox_xsko"
+        duration: 438
+      - id: "Hz4t7K9NaCw"
+        title: "Stacking und Unstacking"
+        description:
+        type: youtube
+        video_id: "Hz4t7K9NaCw"
+        duration: 653
+      - id: "rfmiu5NKFjI"
+        title: "DateTime"
+        description:
+        type: youtube
+        video_id: "rfmiu5NKFjI"
+        duration: 828
+      - id: "fyi83xMSLjw"
+        title: "Datum und Uhrzeit als Index"
+        description:
+        type: youtube
+        video_id: "fyi83xMSLjw"
+        duration: 934
+      - id: "NyJdW0Pyj2E"
+        title: "TimeDeltas"
+        description:
+        type: youtube
+        video_id: "NyJdW0Pyj2E"
+        duration: 437
+      - id: "_VZQIIz5ofQ"
+        title: "CSV Dateien lesen und schreiben"
+        description:
+        type: youtube
+        video_id: "_VZQIIz5ofQ"
+        duration: 841
+      - id: "nzWBDfqe4ng"
+        title: "SQLalchemy nutzen, um in Datenbanken zu schreiben"
+        description:
+        type: youtube
+        video_id: "nzWBDfqe4ng"
+        duration: 619
+      - id: "Mb-fuYgEaFM"
+        title: "SQLalchemy: aus Datenbanken lesen"
+        description:
+        type: youtube
+        video_id: "Mb-fuYgEaFM"
+        duration: 303
+      - id: "iaYBUkl2u3U"
+        title: "Performance von loc, iloc, iat und at"
+        description:
+        type: youtube
+        video_id: "iaYBUkl2u3U"
+        duration: 538
+      - id: "_a87bkOZ3Jg"
+        title: "SQLAlchemy nutzen für Datum und Uhrzeit"
+        description:
+        type: youtube
+        video_id: "_a87bkOZ3Jg"
+        duration: 357
+      - id: "op42i9oheSI"
+        title: "SQLalchemy: Datum in Unix Timestamp konvertieren"
+        description:
+        type: youtube
+        video_id: "op42i9oheSI"
+        duration: 475
+  - id: section4
+    title: "Bonus"
+    description:
+    lectures:
+      - id: "JX0cHWUBkUQ"
+        title: "Nutzt keine CSV-Dateien, sondern Feathers!"
+        description:
+        type: youtube
+        video_id: "JX0cHWUBkUQ"
+        duration: 777

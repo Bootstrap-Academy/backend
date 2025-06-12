@@ -1,0 +1,102 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7o15uBS2J9Ryz-pM-P9xcWJ
+title: "Linux Distributionen - Vergleich und News"
+description: "Ja, ich weiß, Linux ist geil. Aber welches? Da streiten sich die Experten. Aber soll ich euch was sagen? Das ist individuell und jeder darf mögen, was er mag. Schaut euch hier in dieser kleinen Auswahl gerne um."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/linux.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665507306
+sections:
+  - id: section
+    title: "Linux Distributionen - Vergleich und News"
+    description:
+    lectures:
+      - id: "W4aHf4_FsHc"
+        title: "Linux für absolute Einsteiger - Linux Mint kurz vorgestellt und installiert"
+        description:
+        type: youtube
+        video_id: "W4aHf4_FsHc"
+        duration: 1588
+      - id: "2qFfo1Uapa0"
+        title: "Manjaro Linux  - der einfache Alleskönner - kurz vorgestellt und installiert"
+        description:
+        type: youtube
+        video_id: "2qFfo1Uapa0"
+        duration: 1380
+      - id: "VUHUzyvQ2J0"
+        title: "Das MacOS Linux - Elementary OS - kurz vorgestellt und installiert"
+        description:
+        type: youtube
+        video_id: "VUHUzyvQ2J0"
+        duration: 1150
+      - id: "2xNqD85Qx1s"
+        title: "Das Bekannteste Linux - Ubuntu Linux"
+        description:
+        type: youtube
+        video_id: "2xNqD85Qx1s"
+        duration: 1596
+      - id: "eyDaalvuOYE"
+        title: "Linux Tails - Maximale Anonymität - kurz vorgestellt und installiert"
+        description:
+        type: youtube
+        video_id: "eyDaalvuOYE"
+        duration: 1195
+      - id: "bjkyaeseb7g"
+        title: "Kali Linux Installation als virtuelle Maschine 2019 - die einfache Variante"
+        description:
+        type: youtube
+        video_id: "bjkyaeseb7g"
+        duration: 818
+      - id: "dtlku-GSDw0"
+        title: "Security und Pentesting Linux - Parrot Linux kurz vorgestellt und installiert"
+        description:
+        type: youtube
+        video_id: "dtlku-GSDw0"
+        duration: 948
+      - id: "NIezfynoMbI"
+        title: "MX Linux - Einfach und doch flexibel"
+        description:
+        type: youtube
+        video_id: "NIezfynoMbI"
+        duration: 1214
+      - id: "1PBE2YcXXxY"
+        title: "ReactOS - Windows Open Source"
+        description:
+        type: youtube
+        video_id: "1PBE2YcXXxY"
+        duration: 487
+      - id: "ZIBBPznic_c"
+        title: "Linux Vergleich - Welche Distribution passt für euch?"
+        description:
+        type: youtube
+        video_id: "ZIBBPznic_c"
+        duration: 932
+      - id: "b0v8yXIE2GU"
+        title: "Installation von Arch Linux"
+        description:
+        type: youtube
+        video_id: "b0v8yXIE2GU"
+        duration: 2084
+      - id: "Vbzz-EEUSkg"
+        title: "GrapheneOS Installation | Android in ANONYMER und SICHERER"
+        description:
+        type: youtube
+        video_id: "Vbzz-EEUSkg"
+        duration: 807
+      - id: "ycnC1j9usTM"
+        title: "[2021] KALI PERSISTENT auf USB installieren"
+        description:
+        type: youtube
+        video_id: "ycnC1j9usTM"
+        duration: 749
+      - id: "JDWtFbwd708"
+        title: "QubesOS: Das SICHERSTE und ANONYMSTE persistente Betriebssystem"
+        description:
+        type: youtube
+        video_id: "JDWtFbwd708"
+        duration: 1585

@@ -1,0 +1,108 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7pkk8-Yxa7mjAqi_E9DE_Z9
+title: "Spark und PySpark"
+description: "Data Science im ganz großen Stil? Da wirst du vermutlich mehr als einen Server brauchen.. und das muss man erstmal implementieren."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/python.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 3000
+learning_goals: []
+requirements: []
+last_update: 1665508416
+sections:
+  - id: section
+    title: "Spark und PySpark"
+    description:
+    lectures:
+      - id: "GbQKhMmfsKE"
+        title: "Einleitung und Motivation"
+        description:
+        type: youtube
+        video_id: "GbQKhMmfsKE"
+        duration: 844
+      - id: "JVuaK8ivKiM"
+        title: "Installation"
+        description:
+        type: youtube
+        video_id: "JVuaK8ivKiM"
+        duration: 379
+      - id: "oKrS5sd-V3E"
+        title: "Beispieldaten"
+        description:
+        type: youtube
+        video_id: "oKrS5sd-V3E"
+        duration: 619
+      - id: "nOxrBzUUEcw"
+        title: "DataFrame: Grundlagen"
+        description:
+        type: youtube
+        video_id: "nOxrBzUUEcw"
+        duration: 418
+      - id: "eXtO-CsAQMY"
+        title: "eigene Schemas"
+        description:
+        type: youtube
+        video_id: "eXtO-CsAQMY"
+        duration: 428
+      - id: "81t6mcAl9OQ"
+        title: "Mit Dataframes arbeiten"
+        description:
+        type: youtube
+        video_id: "81t6mcAl9OQ"
+        duration: 785
+      - id: "iBvOxJeww8k"
+        title: "SQL"
+        description:
+        type: youtube
+        video_id: "iBvOxJeww8k"
+        duration: 272
+      - id: "3_WVsntFqI0"
+        title: "Daten selektieren"
+        description:
+        type: youtube
+        video_id: "3_WVsntFqI0"
+        duration: 634
+      - id: "8aj0o74ibCQ"
+        title: "Groupby"
+        description:
+        type: youtube
+        video_id: "8aj0o74ibCQ"
+        duration: 910
+      - id: "IER3vADVs74"
+        title: "Missing Data"
+        description:
+        type: youtube
+        video_id: "IER3vADVs74"
+        duration: 672
+      - id: "4sKsKFUJAcc"
+        title: "Datum"
+        description:
+        type: youtube
+        video_id: "4sKsKFUJAcc"
+        duration: 516
+      - id: "4DPVrmE9N1I"
+        title: "Lineare Regression"
+        description:
+        type: youtube
+        video_id: "4DPVrmE9N1I"
+        duration: 1259
+      - id: "0tpCiSxGcOM"
+        title: "Kaufverhalten analysieren mit K Means"
+        description:
+        type: youtube
+        video_id: "0tpCiSxGcOM"
+        duration: 819
+      - id: "Wnmq1GFhHXg"
+        title: "Spark im Cluster nutzen"
+        description:
+        type: youtube
+        video_id: "Wnmq1GFhHXg"
+        duration: 515
+      - id: "gziO9FV3yqI"
+        title: "Praxisprojekt: Ähnliche Lieder auf Spotify"
+        description:
+        type: youtube
+        video_id: "gziO9FV3yqI"
+        duration: 1712

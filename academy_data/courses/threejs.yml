@@ -1,0 +1,150 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7rrmmZEVGA4GfLLNLlGipWo
+title: "Three.js - 3D Animationen im Browser"
+description: "Wunderschöne 3D Animationen im Browser, vielleicht sogar 3D Spiele? Das geht! Eine Möglichkeit ist ThreeJS."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/threejs.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665508437
+sections:
+  - id: section
+    title: "Three.js - 3D Animationen im Browser"
+    description:
+    lectures:
+      - id: "EYkoGizZnss"
+        title: "3D entwickeln für den Browser"
+        description:
+        type: youtube
+        video_id: "EYkoGizZnss"
+        duration: 548
+      - id: "FqK1tOillbE"
+        title: "Setup"
+        description:
+        type: youtube
+        video_id: "FqK1tOillbE"
+        duration: 1137
+      - id: "fHklmbY_cyc"
+        title: "Die erste Szene"
+        description:
+        type: youtube
+        video_id: "fHklmbY_cyc"
+        duration: 724
+      - id: "W4oLhi9HHlI"
+        title: "Objekte in der Szene"
+        description:
+        type: youtube
+        video_id: "W4oLhi9HHlI"
+        duration: 840
+      - id: "b6sft8PEs5o"
+        title: "Der Boden"
+        description:
+        type: youtube
+        video_id: "b6sft8PEs5o"
+        duration: 637
+      - id: "f6YXv363b6M"
+        title: "Die Renderschleife"
+        description:
+        type: youtube
+        video_id: "f6YXv363b6M"
+        duration: 483
+      - id: "NB0GU2rXhCU"
+        title: "Unsere erste Animation"
+        description:
+        type: youtube
+        video_id: "NB0GU2rXhCU"
+        duration: 563
+      - id: "JnhN8fXBawI"
+        title: "Phong Shading"
+        description:
+        type: youtube
+        video_id: "JnhN8fXBawI"
+        duration: 403
+      - id: "J5Iob6v18ZA"
+        title: "Schatten"
+        description:
+        type: youtube
+        video_id: "J5Iob6v18ZA"
+        duration: 218
+      - id: "QqeiNpkC4fI"
+        title: "Weitere Lichtquellen und Objekte"
+        description:
+        type: youtube
+        video_id: "QqeiNpkC4fI"
+        duration: 923
+      - id: "EkWL7jn8YsE"
+        title: "drehbare Kamera"
+        description:
+        type: youtube
+        video_id: "EkWL7jn8YsE"
+        duration: 338
+      - id: "ej6Sfm6oA-k"
+        title: "Dat.GUI"
+        description:
+        type: youtube
+        video_id: "ej6Sfm6oA-k"
+        duration: 294
+      - id: "Z8TVeEGGZC8"
+        title: "Tastatur Eingaben"
+        description:
+        type: youtube
+        video_id: "Z8TVeEGGZC8"
+        duration: 354
+      - id: "TbE5pAaoL7g"
+        title: "Die Clock"
+        description:
+        type: youtube
+        video_id: "TbE5pAaoL7g"
+        duration: 284
+      - id: "FE55Yhv0u6g"
+        title: "Texturen"
+        description:
+        type: youtube
+        video_id: "FE55Yhv0u6g"
+        duration: 712
+      - id: "kZSHYe7Oa-g"
+        title: "Hintergrund"
+        description:
+        type: youtube
+        video_id: "kZSHYe7Oa-g"
+        duration: 809
+      - id: "x3GQuTE76uc"
+        title: "Objekte laden"
+        description:
+        type: youtube
+        video_id: "x3GQuTE76uc"
+        duration: 775
+      - id: "KYWsvIdKygI"
+        title: "Bewegung"
+        description:
+        type: youtube
+        video_id: "KYWsvIdKygI"
+        duration: 467
+      - id: "w38ttnJ8HDI"
+        title: "Partikeleffekte"
+        description:
+        type: youtube
+        video_id: "w38ttnJ8HDI"
+        duration: 493
+      - id: "cEuEy1b9VUs"
+        title: "Animation der Partikel"
+        description:
+        type: youtube
+        video_id: "cEuEy1b9VUs"
+        duration: 483
+      - id: "5llCk-ItC6s"
+        title: "Mit ES6 arbeiten"
+        description:
+        type: youtube
+        video_id: "5llCk-ItC6s"
+        duration: 399
+      - id: "CB7zKq2whJk"
+        title: "Physik"
+        description:
+        type: youtube
+        video_id: "CB7zKq2whJk"
+        duration: 1433

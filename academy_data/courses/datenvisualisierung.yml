@@ -1,0 +1,102 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7pb4apqIMKvCz37t_dLznMm
+title: "Datenvisualisierung"
+description: "Data Science ist das eine, aber wie Daten gut dargestellt werden können, damit man auch auf den ersten Blick einen Zusammenhang zwischen zwei Dimensionen erkennen kann ein ganz anderer. Dazu gibt es Datenvisualisierung."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/datenvisualisierung.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665507531
+sections:
+  - id: section
+    title: "Datenvisualisierung"
+    description:
+    lectures:
+      - id: "Eo8b3Y2ibvY"
+        title: "hübsche Grafiken mit Python erstellen: Daten visualisieren"
+        description:
+        type: youtube
+        video_id: "Eo8b3Y2ibvY"
+        duration: 514
+      - id: "tMW5yWpo7H0"
+        title: "Graph Objects vs Dictionaries"
+        description:
+        type: youtube
+        video_id: "tMW5yWpo7H0"
+        duration: 587
+      - id: "JnOM7s1BSN8"
+        title: "Scatter Plots mit Express"
+        description:
+        type: youtube
+        video_id: "JnOM7s1BSN8"
+        duration: 615
+      - id: "H0VPGq0RcZU"
+        title: "Scatter Plots mit Fehlern"
+        description:
+        type: youtube
+        video_id: "H0VPGq0RcZU"
+        duration: 197
+      - id: "6sVXa1gfIbA"
+        title: "Bar Diagramme mit Express"
+        description:
+        type: youtube
+        video_id: "6sVXa1gfIbA"
+        duration: 718
+      - id: "a982sb3bDD0"
+        title: "Scatter Matrix - perfekt zum Überblick verschaffen"
+        description:
+        type: youtube
+        video_id: "a982sb3bDD0"
+        duration: 632
+      - id: "r4GdOcQLbeY"
+        title: "Parallel-Graphen"
+        description:
+        type: youtube
+        video_id: "r4GdOcQLbeY"
+        duration: 719
+      - id: "EMMLaY2GSX0"
+        title: "Animationen in Scatter Plots und mehr fortgeschrittene Themen"
+        description:
+        type: youtube
+        video_id: "EMMLaY2GSX0"
+        duration: 727
+      - id: "lej3-XxmAr4"
+        title: "Linien und Flächen Plots"
+        description:
+        type: youtube
+        video_id: "lej3-XxmAr4"
+        duration: 731
+      - id: "h2YYjgG_LtI"
+        title: "Kuchen und Sunburst Diagramme"
+        description:
+        type: youtube
+        video_id: "h2YYjgG_LtI"
+        duration: 868
+      - id: "knBjYw7e6z4"
+        title: "Histogramme erstellen"
+        description:
+        type: youtube
+        video_id: "knBjYw7e6z4"
+        duration: 647
+      - id: "IXOE-IPFuFc"
+        title: "Histogramme mit weiterverwendbaren Counts"
+        description:
+        type: youtube
+        video_id: "IXOE-IPFuFc"
+        duration: 339
+      - id: "XkE6YRR6voU"
+        title: "fortgeschrittene Histogramme"
+        description:
+        type: youtube
+        video_id: "XkE6YRR6voU"
+        duration: 598
+      - id: "dXPIayOZBQA"
+        title: "Templates"
+        description:
+        type: youtube
+        video_id: "dXPIayOZBQA"
+        duration: 275

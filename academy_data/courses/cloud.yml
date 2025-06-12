@@ -1,0 +1,60 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7oxg9u5X2a-9X_jpN8iPOQy
+title: "Cloud Technologien"
+description: "Die Cloud ist überall, so sagt man doch. Doch gerade wenn ihr selbst eine Software wirklich hosten wollt, verbreiten wollt, anderen zugänglich machen wollt - je kleiner man ist, desto wertvoller sind Cloud Technologien. Logisch: Es ist als eine Person kaum finanzierbar, ein ganzes Serverzentrum zu betreiben. Deswegen ziehen viele kleinere Firmen gerade immer mehr in die Cloud. Aber was heißt das? Dazu ist diese Serie da."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/cloud.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665508407
+sections:
+  - id: section
+    title: "Cloud Technologien"
+    description:
+    lectures:
+      - id: "alYIYtIxIVE"
+        title: "* As A Service - Die Grundbegriffe des Cloud Computing"
+        description:
+        type: youtube
+        video_id: "alYIYtIxIVE"
+        duration: 659
+      - id: "FsVTmFb6Eio"
+        title: 'GCP vs AWS vs Azure vs "die anderen"'
+        description:
+        type: youtube
+        video_id: "FsVTmFb6Eio"
+        duration: 481
+      - id: "N3JlH4HCzXU"
+        title: "Die Client-Server-Architektur"
+        description:
+        type: youtube
+        video_id: "N3JlH4HCzXU"
+        duration: 603
+      - id: "xkunFE-J_NE"
+        title: "Server Virtualisierung - Was ist das?"
+        description:
+        type: youtube
+        video_id: "xkunFE-J_NE"
+        duration: 706
+      - id: "_KnVD65mEJE"
+        title: "Virtuelle Maschinen vs Container / Docker"
+        description:
+        type: youtube
+        video_id: "_KnVD65mEJE"
+        duration: 996
+      - id: "bKyEecIGwJ0"
+        title: "Nested VMs sind meistens eine schlechte Idee"
+        description:
+        type: youtube
+        video_id: "bKyEecIGwJ0"
+        duration: 652
+      - id: "dlDGWN6xb44"
+        title: "Der Reverse Proxy | Wichtigster Baustein für Serverarchitekturen?"
+        description:
+        type: youtube
+        video_id: "dlDGWN6xb44"
+        duration: 869

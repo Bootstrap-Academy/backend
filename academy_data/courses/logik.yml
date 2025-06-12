@@ -1,0 +1,244 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7r7ztDWJ66pMNRYaa_TUjKP
+title: "Formale Logik"
+description: "If True ... Else If False... - aber was wenn es etwas komplexer sein darf? Was wenn ein ganzes Gleichungssystem daherkommt? Vielleicht sogar noch Funktionen dazu? Jup, das kann man auch rechnen."
+category:
+language: de
+image: "https://static.bootstrap.academy/thumbnails/formale logik.jpg"
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665506249
+sections:
+  - id: section
+    title: "Aussagenlogik"
+    description:
+    lectures:
+      - id: "ABuhSltG8yY"
+        title: "Und, Oder, Nicht"
+        description:
+        type: youtube
+        video_id: "ABuhSltG8yY"
+        duration: 591
+      - id: "4FvPKAlknfQ"
+        title: "Implikation und Äquivalenz"
+        description:
+        type: youtube
+        video_id: "4FvPKAlknfQ"
+        duration: 514
+      - id: "36KmhqViegI"
+        title: "XOR, NOR, NAND"
+        description:
+        type: youtube
+        video_id: "36KmhqViegI"
+        duration: 455
+      - id: "365sKG0BKSE"
+        title: "Die De Morgan'schen Gesetze"
+        description:
+        type: youtube
+        video_id: "365sKG0BKSE"
+        duration: 370
+      - id: "MhS_NHY-aRI"
+        title: "boolsche Funktionen"
+        description:
+        type: youtube
+        video_id: "MhS_NHY-aRI"
+        duration: 558
+      - id: "vsCfuQZ4Tj4"
+        title: "Logische Grundgesetze"
+        description:
+        type: youtube
+        video_id: "vsCfuQZ4Tj4"
+        duration: 806
+      - id: "y7oPW-b-2DM"
+        title: "Normalformen"
+        description:
+        type: youtube
+        video_id: "y7oPW-b-2DM"
+        duration: 619
+      - id: "N9VISlcJhQE"
+        title: "Vollständige Normalformen aus Wahrheitstabelle"
+        description:
+        type: youtube
+        video_id: "N9VISlcJhQE"
+        duration: 704
+      - id: "5anTmbtGSjk"
+        title: "Normalformen umwandeln"
+        description:
+        type: youtube
+        video_id: "5anTmbtGSjk"
+        duration: 833
+      - id: "1J1wtrEVUtw"
+        title: "Shannon Formeln, Bäume und deren Reduktion"
+        description:
+        type: youtube
+        video_id: "1J1wtrEVUtw"
+        duration: 777
+      - id: "N8sK28aWYyQ"
+        title: "Basen"
+        description:
+        type: youtube
+        video_id: "N8sK28aWYyQ"
+        duration: 222
+      - id: "gNGaJzUS0KY"
+        title: "Metasprache und das Craigsche Interpolationslemma"
+        description:
+        type: youtube
+        video_id: "gNGaJzUS0KY"
+        duration: 759
+      - id: "keILzTb0Soo"
+        title: "SatSolving und der DPLL Algorithmus"
+        description:
+        type: youtube
+        video_id: "keILzTb0Soo"
+        duration: 1762
+      - id: "tevFX3e0Tj8"
+        title: "Ein Sudokusolver in Java mit Sat4J"
+        description:
+        type: youtube
+        video_id: "tevFX3e0Tj8"
+        duration: 2879
+      - id: "rcAZ8oIvcUY"
+        title: "Modelle, Interpretationen, Folgerungen und Äquivalenz"
+        description:
+        type: youtube
+        video_id: "rcAZ8oIvcUY"
+        duration: 894
+      - id: "OG8haxPgIgc"
+        title: "Horn Formeln und der Markierungsalgorithmus"
+        description:
+        type: youtube
+        video_id: "OG8haxPgIgc"
+        duration: 585
+  - id: section2
+    title: "Prädikatenlogik"
+    description:
+    lectures:
+      - id: "Y4tfUA62mKk"
+        title: "Quantoren"
+        description:
+        type: youtube
+        video_id: "Y4tfUA62mKk"
+        duration: 756
+      - id: "oTBKRKC2dDE"
+        title: "Funktions- und Prädikatensymbole"
+        description:
+        type: youtube
+        video_id: "oTBKRKC2dDE"
+        duration: 1044
+      - id: "--tfLmTGS4U"
+        title: "Ein Beispielrätsel"
+        description:
+        type: youtube
+        video_id: "--tfLmTGS4U"
+        duration: 770
+      - id: "LhjaxFBZYog"
+        title: "Freie und gebundene Variablen"
+        description:
+        type: youtube
+        video_id: "LhjaxFBZYog"
+        duration: 618
+      - id: "2ITUIJhiRMQ"
+        title: "Substitutionen"
+        description:
+        type: youtube
+        video_id: "2ITUIJhiRMQ"
+        duration: 550
+      - id: "A2ch63AYO5Y"
+        title: "Unifikation"
+        description:
+        type: youtube
+        video_id: "A2ch63AYO5Y"
+        duration: 649
+      - id: "6obfErOT0WU"
+        title: "Normalformen"
+        description:
+        type: youtube
+        video_id: "6obfErOT0WU"
+        duration: 290
+      - id: "GpZ9SbRTEZA"
+        title: "Die pränexe Normalform"
+        description:
+        type: youtube
+        video_id: "GpZ9SbRTEZA"
+        duration: 364
+      - id: "SGrIrYkNSaU"
+        title: "Skolemnormalform"
+        description:
+        type: youtube
+        video_id: "SGrIrYkNSaU"
+        duration: 519
+  - id: section3
+    title: "Kalküle"
+    description:
+    lectures:
+      - id: "Y0_51xizzCo"
+        title: "Der Hilbertkalkül #1"
+        description:
+        type: youtube
+        video_id: "Y0_51xizzCo"
+        duration: 1076
+      - id: "LvSEglTwlUs"
+        title: "Der Hilbertkalkül #2"
+        description:
+        type: youtube
+        video_id: "LvSEglTwlUs"
+        duration: 682
+      - id: "fVNoVGACo2o"
+        title: "Der Hilbertkalkül #3"
+        description:
+        type: youtube
+        video_id: "fVNoVGACo2o"
+        duration: 1202
+      - id: "bUwRfrfrsgc"
+        title: "Resolutionskalkül #1"
+        description:
+        type: youtube
+        video_id: "bUwRfrfrsgc"
+        duration: 332
+      - id: "RbQhqSNPmqw"
+        title: "Reduktionssysteme"
+        description:
+        type: youtube
+        video_id: "RbQhqSNPmqw"
+        duration: 896
+  - id: section4
+    title: "Weitere Logiken"
+    description:
+    lectures:
+      - id: "4tbuQrrvUvg"
+        title: "Modallogik"
+        description:
+        type: youtube
+        video_id: "4tbuQrrvUvg"
+        duration: 508
+      - id: "U-nBLdYg0iA"
+        title: "Lineare Temporal-Logik (LTL)"
+        description:
+        type: youtube
+        video_id: "U-nBLdYg0iA"
+        duration: 523
+      - id: "TwdeZDvArGg"
+        title: "Fuzzy Logic"
+        description:
+        type: youtube
+        video_id: "TwdeZDvArGg"
+        duration: 384
+  - id: section5
+    title: "Extras"
+    description:
+    lectures:
+      - id: "hOoa0KiyspQ"
+        title: "Der Sequenzenkalkül der Aussagenlogik"
+        description:
+        type: youtube
+        video_id: "hOoa0KiyspQ"
+        duration: 1086
+      - id: "amdZMtiFNU8"
+        title: "Der Sequenzenkalkül der Prädikatenlogik"
+        description:
+        type: youtube
+        video_id: "amdZMtiFNU8"
+        duration: 690

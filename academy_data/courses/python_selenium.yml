@@ -1,0 +1,90 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7ruEf-FwVD3Z5owHgdXNKlb
+title: "Python Selenium - Den Browser automatisch bedienen"
+description: "Ihr wollt direkt eure Ende-zu-Ende Tests der Website in Python programmieren? Oder einfach nur ein paar lästige Aufgaben fernsteuern? Dann braucht ihr vermutlich Selenium."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/python.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665508136
+sections:
+  - id: section
+    title: "Den Browser automatisch bedienen"
+    description:
+    lectures:
+      - id: "u1T2v2Ucuuc"
+        title: "Den Browser automatisch bedienen lassen"
+        description:
+        type: youtube
+        video_id: "u1T2v2Ucuuc"
+        duration: 499
+      - id: "X_oTF5aSGcA"
+        title: "Automatisch Googlen"
+        description:
+        type: youtube
+        video_id: "X_oTF5aSGcA"
+        duration: 547
+      - id: "bfk6mmYkOWI"
+        title: "Unittests mit Selenium"
+        description:
+        type: youtube
+        video_id: "bfk6mmYkOWI"
+        duration: 633
+      - id: "Ak4-l5XkQ3k"
+        title: "Elemente finden #1"
+        description:
+        type: youtube
+        video_id: "Ak4-l5XkQ3k"
+        duration: 814
+      - id: "2iX3fQiqUdA"
+        title: "Keys"
+        description:
+        type: youtube
+        video_id: "2iX3fQiqUdA"
+        duration: 218
+      - id: "wJsUvQAjUFs"
+        title: "Die History"
+        description:
+        type: youtube
+        video_id: "wJsUvQAjUFs"
+        duration: 131
+      - id: "nK6CMrNTWqY"
+        title: "Cookies"
+        description:
+        type: youtube
+        video_id: "nK6CMrNTWqY"
+        duration: 400
+      - id: "ScByEODsLiw"
+        title: "Ein Mini XPath Tutorial"
+        description:
+        type: youtube
+        video_id: "ScByEODsLiw"
+        duration: 709
+      - id: "A1XWkGMeso4"
+        title: "Performance Tests und Explizites warten"
+        description:
+        type: youtube
+        video_id: "A1XWkGMeso4"
+        duration: 459
+      - id: "kPBbIo2iKic"
+        title: "Implizites warten und eigene Wartebedingungen"
+        description:
+        type: youtube
+        video_id: "kPBbIo2iKic"
+        duration: 475
+      - id: "BsWrl_AT_jQ"
+        title: "ActionChains"
+        description:
+        type: youtube
+        video_id: "BsWrl_AT_jQ"
+        duration: 530
+      - id: "0hz8u3iCxQk"
+        title: "ChromeOptions"
+        description:
+        type: youtube
+        video_id: "0hz8u3iCxQk"
+        duration: 394

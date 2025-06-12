@@ -1,0 +1,162 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7o4qcD8tepVY5k7YiHYfMu5
+title: "Algorithmen in Java"
+description: "Ihr könnt Java? Ein bisschen Übung kann nicht schaden, um eure Kenntnisse über Algorithmen in der Praxis zu vertiefen."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/java.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665506355
+sections:
+  - id: section
+    title: "Java Algorithmen"
+    description:
+    lectures:
+      - id: "1WGUjrGzZ2g"
+        title: "Automaten"
+        description:
+        type: youtube
+        video_id: "1WGUjrGzZ2g"
+        duration: 996
+      - id: "MsFhP3sO8go"
+        title: "Fifos und Stacks"
+        description:
+        type: youtube
+        video_id: "MsFhP3sO8go"
+        duration: 691
+      - id: "MuaikGaCHzQ"
+        title: "Webcrawler für Youtube"
+        description:
+        type: youtube
+        video_id: "MuaikGaCHzQ"
+        duration: 1194
+      - id: "VcW-MlwJTR8"
+        title: "Kodierung und Kompression"
+        description:
+        type: youtube
+        video_id: "VcW-MlwJTR8"
+        duration: 1561
+      - id: "TsjqDYjBl5w"
+        title: "K-Nearest-Neighbours aka kNN"
+        description:
+        type: youtube
+        video_id: "TsjqDYjBl5w"
+        duration: 1332
+      - id: "BOlpNPCE7Y4"
+        title: "Neuronale Netze"
+        description:
+        type: youtube
+        video_id: "BOlpNPCE7Y4"
+        duration: 816
+      - id: "vzFcMR68DlA"
+        title: "Training eines Neurons aka Perzeptrons"
+        description:
+        type: youtube
+        video_id: "vzFcMR68DlA"
+        duration: 716
+      - id: "KVVqdijV_7k"
+        title: "Sampling"
+        description:
+        type: youtube
+        video_id: "KVVqdijV_7k"
+        duration: 742
+      - id: "A-ykNJ5Ysts"
+        title: "Quantisierung"
+        description:
+        type: youtube
+        video_id: "A-ykNJ5Ysts"
+        duration: 1119
+      - id: "1ncy3GkY0ZI"
+        title: "Parzen-Windows"
+        description:
+        type: youtube
+        video_id: "1ncy3GkY0ZI"
+        duration: 657
+      - id: "HHbEeDXcsgc"
+        title: "Markov Modell"
+        description:
+        type: youtube
+        video_id: "HHbEeDXcsgc"
+        duration: 1159
+      - id: "gq9LqlaeZXs"
+        title: "Bäume: Einleitung"
+        description:
+        type: youtube
+        video_id: "gq9LqlaeZXs"
+        duration: 595
+      - id: "-bdEjEs0d_k"
+        title: "Mehr zu Bäumen"
+        description:
+        type: youtube
+        video_id: "-bdEjEs0d_k"
+        duration: 555
+      - id: "XOg1jmEIDw4"
+        title: "balancierte Bäume"
+        description:
+        type: youtube
+        video_id: "XOg1jmEIDw4"
+        duration: 1417
+      - id: "ti26qtqpRdU"
+        title: "Bubble Sort"
+        description:
+        type: youtube
+        video_id: "ti26qtqpRdU"
+        duration: 688
+      - id: "LcbIisbf5bM"
+        title: "Insertion Sort"
+        description:
+        type: youtube
+        video_id: "LcbIisbf5bM"
+        duration: 462
+      - id: "2XcfA6WKLPw"
+        title: "Merge Sort"
+        description:
+        type: youtube
+        video_id: "2XcfA6WKLPw"
+        duration: 594
+      - id: "VhwTKvuQ_Oc"
+        title: "Invertieren von Bildern"
+        description:
+        type: youtube
+        video_id: "VhwTKvuQ_Oc"
+        duration: 781
+      - id: "RU0y57aK_ng"
+        title: "Bild in Graustufen konvertieren und Kontrast verbessern"
+        description:
+        type: youtube
+        video_id: "RU0y57aK_ng"
+        duration: 714
+      - id: "ls3zZpfjn_M"
+        title: "Gaussian Blur"
+        description:
+        type: youtube
+        video_id: "ls3zZpfjn_M"
+        duration: 1801
+      - id: "QL1gNhcBhKk"
+        title: "Caesar Cipher aka Cäsar Verschlüsselung"
+        description:
+        type: youtube
+        video_id: "QL1gNhcBhKk"
+        duration: 977
+      - id: "ave1We1FQoo"
+        title: "Das Damen-Problem"
+        description:
+        type: youtube
+        video_id: "ave1We1FQoo"
+        duration: 1270
+      - id: "tevFX3e0Tj8"
+        title: "Sudokusolver mit Sat4J"
+        description:
+        type: youtube
+        video_id: "tevFX3e0Tj8"
+        duration: 2879
+      - id: "fu42rU7a-fE"
+        title: "Kantenerkennung"
+        description:
+        type: youtube
+        video_id: "fu42rU7a-fE"
+        duration: 974

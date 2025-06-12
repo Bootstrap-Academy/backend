@@ -1,0 +1,238 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7oj8ijyHSTOoW9bHLlXQ7hp
+title: "TensorFlow 2: Neuronale Netze in Python erstellen"
+description: "Neuronale Netze programmieren in Python. Der Traum für KI. Wenn du es bis hier geschafft hast, hast du 2 Bibliotheken zur Auswahl: PyTorch und Tensorflow. Hier geht's um Tensorflow - die neue Version allerdings, denn die ist um einiges leichter und angenehmer geworden."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/tensorflow.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 3000
+learning_goals: []
+requirements: []
+last_update: 1665507656
+sections:
+  - id: section
+    title: "TensorFlow 2: Neuronale Netze in Python erstellen"
+    description:
+    lectures:
+      - id: "eEgXn-D8LuU"
+        title: "Installation auch für die Grafikkarte"
+        description:
+        type: youtube
+        video_id: "eEgXn-D8LuU"
+        duration: 1259
+      - id: "u3WJniYFqvI"
+        title: "Tensoren"
+        description:
+        type: youtube
+        video_id: "u3WJniYFqvI"
+        duration: 934
+      - id: "IwCc8Yl918Q"
+        title: "Grundlagen für ein neuronales Netz"
+        description:
+        type: youtube
+        video_id: "IwCc8Yl918Q"
+        duration: 631
+      - id: "mpuVLGVNKnk"
+        title: "Das neuronale Netz erstellen"
+        description:
+        type: youtube
+        video_id: "mpuVLGVNKnk"
+        duration: 869
+      - id: "Em3r6E0rNiM"
+        title: "Daten vorbereiten"
+        description:
+        type: youtube
+        video_id: "Em3r6E0rNiM"
+        duration: 1052
+      - id: "L7fuzKv8RvQ"
+        title: "Metriken"
+        description:
+        type: youtube
+        video_id: "L7fuzKv8RvQ"
+        duration: 551
+      - id: "guEeDOAFn-M"
+        title: "Das Training"
+        description:
+        type: youtube
+        video_id: "guEeDOAFn-M"
+        duration: 1076
+      - id: "YogPNAlntSw"
+        title: "Plotten"
+        description:
+        type: youtube
+        video_id: "YogPNAlntSw"
+        duration: 446
+  - id: section2
+    title: "Alternativen für MNIST"
+    description:
+    lectures:
+      - id: "xdz8a7lANag"
+        title: "MNist in kurzem Tensorflow Code"
+        description:
+        type: youtube
+        video_id: "xdz8a7lANag"
+        duration: 1431
+      - id: "n_-WqWLujkM"
+        title: "Convolutional Neural Networks"
+        description:
+        type: youtube
+        video_id: "n_-WqWLujkM"
+        duration: 826
+  - id: section3
+    title: "Übung"
+    description:
+    lectures:
+      - id: "_LLBFqVwayo"
+        title: "Fashion MNist"
+        description:
+        type: youtube
+        video_id: "_LLBFqVwayo"
+        duration: 1271
+  - id: section4
+    title: "Google Colab"
+    description:
+    lectures:
+      - id: "5ZTFKNo5GSg"
+        title: "Google Colab"
+        description:
+        type: youtube
+        video_id: "5ZTFKNo5GSg"
+        duration: 381
+  - id: section5
+    title: "Lego Steine erkennen"
+    description:
+    lectures:
+      - id: "9kxjuTzGq-M"
+        title: "Datensatz"
+        description:
+        type: youtube
+        video_id: "9kxjuTzGq-M"
+        duration: 860
+      - id: "VfrKWzfNH10"
+        title: "Datensatz aufteilen"
+        description:
+        type: youtube
+        video_id: "VfrKWzfNH10"
+        duration: 1068
+      - id: "-PFS_9M70FQ"
+        title: "Daten laden"
+        description:
+        type: youtube
+        video_id: "-PFS_9M70FQ"
+        duration: 1017
+      - id: "3b7QlsFAJRo"
+        title: "Das neuronale Netz"
+        description:
+        type: youtube
+        video_id: "3b7QlsFAJRo"
+        duration: 1192
+      - id: "dlSkYC2WzUw"
+        title: "Speichern, Laden und Callbacks"
+        description:
+        type: youtube
+        video_id: "dlSkYC2WzUw"
+        duration: 787
+      - id: "DGmHcut6b6g"
+        title: "Graphen plotten und interpretieren"
+        description:
+        type: youtube
+        video_id: "DGmHcut6b6g"
+        duration: 477
+  - id: section6
+    title: "Objekt-Segmentierung"
+    description:
+    lectures:
+      - id: "lcug3JKUNvE"
+        title: "Daten laden"
+        description:
+        type: youtube
+        video_id: "lcug3JKUNvE"
+        duration: 1719
+      - id: "LbFDXkpmnz0"
+        title: "Das neuronale Netz und drucken von neuronalen Net"
+        description:
+        type: youtube
+        video_id: "LbFDXkpmnz0"
+        duration: 1617
+      - id: "3qWplvoZWY0"
+        title: "Training"
+        description:
+        type: youtube
+        video_id: "3qWplvoZWY0"
+        duration: 1072
+  - id: section7
+    title: "GAN - Bildgenerierung"
+    description:
+    lectures:
+      - id: "6geyb6iqjZE"
+        title: "Daten"
+        description:
+        type: youtube
+        video_id: "6geyb6iqjZE"
+        duration: 549
+      - id: "Jg8Hu0Tu0go"
+        title: "Bilder generieren mit dem Generator"
+        description:
+        type: youtube
+        video_id: "Jg8Hu0Tu0go"
+        duration: 1458
+      - id: "K1ZitZQgyGI"
+        title: "Der Discriminator"
+        description:
+        type: youtube
+        video_id: "K1ZitZQgyGI"
+        duration: 554
+      - id: "bPR6Xnr4Jyk"
+        title: "Die Fehler"
+        description:
+        type: youtube
+        video_id: "bPR6Xnr4Jyk"
+        duration: 467
+      - id: "fZFHf2SaNVc"
+        title: "Die Trainingsschleife"
+        description:
+        type: youtube
+        video_id: "fZFHf2SaNVc"
+        duration: 562
+      - id: "0O83ez27IHA"
+        title: "Das Training"
+        description:
+        type: youtube
+        video_id: "0O83ez27IHA"
+        duration: 1069
+  - id: section8
+    title: "Textverarbeitung mit dem IMDB Datensatz"
+    description:
+    lectures:
+      - id: "Fc1zqv9Ojmg"
+        title: "Daten"
+        description:
+        type: youtube
+        video_id: "Fc1zqv9Ojmg"
+        duration: 1502
+      - id: "hlN_UUEV7Pc"
+        title: "Daten 2"
+        description:
+        type: youtube
+        video_id: "hlN_UUEV7Pc"
+        duration: 953
+      - id: "CYmGAte9t8k"
+        title: "Das Modell und das Training"
+        description:
+        type: youtube
+        video_id: "CYmGAte9t8k"
+        duration: 667
+      - id: "QY7nIIDD75I"
+        title: "Vorhersagen erstellen"
+        description:
+        type: youtube
+        video_id: "QY7nIIDD75I"
+        duration: 502
+      - id: "CQLTg1h2yBo"
+        title: "Rekurrente Netze"
+        description:
+        type: youtube
+        video_id: "CQLTg1h2yBo"
+        duration: 1036

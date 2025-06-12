@@ -1,0 +1,298 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7rZMP1lj32Qyp4bkarvzCGm
+title: "PHP Programmierung"
+description: "PHP, meine erste serverseitige Programmiersprache und vermutlich das, was ihr von alten Browsergames kennt. Mittlerweile nur noch in Wordpress und alten Websites... doch halt! Was ist das? Moderne Anwendungen, APIs, ja, das geht auch mit PHP und kommt gerade immer mehr!"
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/php.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665507563
+sections:
+  - id: section
+    title: "Grundlagen von PHP"
+    description:
+    lectures:
+      - id: "SW1fgMxj9a4"
+        title: "Installation"
+        description:
+        type: youtube
+        video_id: "SW1fgMxj9a4"
+        duration: 811
+      - id: "uXNZTw2X2Uo"
+        title: "Variablen"
+        description:
+        type: youtube
+        video_id: "uXNZTw2X2Uo"
+        duration: 548
+      - id: "BBH36wuYWNE"
+        title: "Datentypen"
+        description:
+        type: youtube
+        video_id: "BBH36wuYWNE"
+        duration: 212
+      - id: "Wi6hzkPsHhE"
+        title: "Arithmetische Operatoren"
+        description:
+        type: youtube
+        video_id: "Wi6hzkPsHhE"
+        duration: 300
+      - id: "I8gclpRQUhA"
+        title: "Logische Operatoren"
+        description:
+        type: youtube
+        video_id: "I8gclpRQUhA"
+        duration: 276
+      - id: "KpBOBtcj-p8"
+        title: "if-Bedingungen"
+        description:
+        type: youtube
+        video_id: "KpBOBtcj-p8"
+        duration: 519
+      - id: "qM7fybZ10Cc"
+        title: "Das switch-case-Statement"
+        description:
+        type: youtube
+        video_id: "qM7fybZ10Cc"
+        duration: 418
+      - id: "YGkSgFD_a8I"
+        title: "while-Schleifen"
+        description:
+        type: youtube
+        video_id: "YGkSgFD_a8I"
+        duration: 347
+      - id: "pZJBZsfhe4Y"
+        title: "Die Do-While-Schleife"
+        description:
+        type: youtube
+        video_id: "pZJBZsfhe4Y"
+        duration: 209
+      - id: "fJRKomvlRq8"
+        title: "Arrays"
+        description:
+        type: youtube
+        video_id: "fJRKomvlRq8"
+        duration: 519
+      - id: "cPEtayniHIs"
+        title: "Die Foreach-Schleife"
+        description:
+        type: youtube
+        video_id: "cPEtayniHIs"
+        duration: 174
+      - id: "6y6g5SEh1g0"
+        title: "Assoziative Arrays"
+        description:
+        type: youtube
+        video_id: "6y6g5SEh1g0"
+        duration: 282
+      - id: "XYoGuWCytN4"
+        title: "Strings"
+        description:
+        type: youtube
+        video_id: "XYoGuWCytN4"
+        duration: 542
+      - id: "yEOY85tjRLY"
+        title: "Arrays Sortieren"
+        description:
+        type: youtube
+        video_id: "yEOY85tjRLY"
+        duration: 324
+      - id: "HnKxQJjPp68"
+        title: "Loopcontrol mit Break und Continue"
+        description:
+        type: youtube
+        video_id: "HnKxQJjPp68"
+        duration: 267
+      - id: "X4WRSRjerds"
+        title: "Kommentare, ===, die und exit"
+        description:
+        type: youtube
+        video_id: "X4WRSRjerds"
+        duration: 327
+      - id: "m5xzlquvf0g"
+        title: "Funktionen"
+        description:
+        type: youtube
+        video_id: "m5xzlquvf0g"
+        duration: 422
+      - id: "7QsOU0Gvb3U"
+        title: "Funktionen mit Parametern"
+        description:
+        type: youtube
+        video_id: "7QsOU0Gvb3U"
+        duration: 369
+      - id: "Ebj2luXPPqw"
+        title: "Funktionen mit Defaultparametern und Rückgabewerten"
+        description:
+        type: youtube
+        video_id: "Ebj2luXPPqw"
+        duration: 445
+      - id: "F19VwkwPW3A"
+        title: "Rekursive Funktionen"
+        description:
+        type: youtube
+        video_id: "F19VwkwPW3A"
+        duration: 649
+  - id: section2
+    title: "Web-spezifische Themen"
+    description:
+    lectures:
+      - id: "_ui0nclZK24"
+        title: "Forms auswerten"
+        description:
+        type: youtube
+        video_id: "_ui0nclZK24"
+        duration: 641
+      - id: "CaQVfH7ei30"
+        title: "Form und $_SERVER"
+        description:
+        type: youtube
+        video_id: "CaQVfH7ei30"
+        duration: 437
+      - id: "G9_owD5vBl4"
+        title: "Cross Site Scripting - Sicherheit von Forms"
+        description:
+        type: youtube
+        video_id: "G9_owD5vBl4"
+        duration: 560
+      - id: "Rt8mCnIHdbM"
+        title: "Validierung von Forms"
+        description:
+        type: youtube
+        video_id: "Rt8mCnIHdbM"
+        duration: 402
+  - id: section3
+    title: "Datenbanken"
+    description:
+    lectures:
+      - id: "pdd1fnTcuzU"
+        title: "Eine MySQL Datenbank über phpmyadmin"
+        description:
+        type: youtube
+        video_id: "pdd1fnTcuzU"
+        duration: 634
+      - id: "QBFlR-46aC0"
+        title: "auf die MySQL Datenbank verbinden"
+        description:
+        type: youtube
+        video_id: "QBFlR-46aC0"
+        duration: 440
+      - id: "mklFZGBPUzI"
+        title: "SQL Statements in PHP"
+        description:
+        type: youtube
+        video_id: "mklFZGBPUzI"
+        duration: 727
+      - id: "R9W3TCGW2Fk"
+        title: "SQL Injections und Gegenmaßnahmen"
+        description:
+        type: youtube
+        video_id: "R9W3TCGW2Fk"
+        duration: 697
+  - id: section4
+    title: "Tipps und Tricks"
+    description:
+    lectures:
+      - id: "Hz9AlK8Rt-M"
+        title: "Datum und Uhrzeit"
+        description:
+        type: youtube
+        video_id: "Hz9AlK8Rt-M"
+        duration: 449
+      - id: "bR2Z3vEXT8c"
+        title: "Include und Require"
+        description:
+        type: youtube
+        video_id: "bR2Z3vEXT8c"
+        duration: 305
+      - id: "Ov_rBQ0qMWo"
+        title: "File Uploads - Dateien auf den Server hochladen"
+        description:
+        type: youtube
+        video_id: "Ov_rBQ0qMWo"
+        duration: 820
+      - id: "clE-f1NRNWU"
+        title: "Den File Upload überprüfen"
+        description:
+        type: youtube
+        video_id: "clE-f1NRNWU"
+        duration: 734
+      - id: "Rz1muj_ACYQ"
+        title: "Dateien lesen und schreiben"
+        description:
+        type: youtube
+        video_id: "Rz1muj_ACYQ"
+        duration: 645
+      - id: "MeeoG5W8lNE"
+        title: "Cookies"
+        description:
+        type: youtube
+        video_id: "MeeoG5W8lNE"
+        duration: 632
+      - id: "-qRblIR14k0"
+        title: "Sessions"
+        description:
+        type: youtube
+        video_id: "-qRblIR14k0"
+        duration: 316
+      - id: "1_24npIWaJ8"
+        title: "sicheres Speichern von Passwörtern"
+        description:
+        type: youtube
+        video_id: "1_24npIWaJ8"
+        duration: 308
+      - id: "jWn6rR4y5uQ"
+        title: "wirklich sicheres Speichern mit salted Passwort Hashes"
+        description:
+        type: youtube
+        video_id: "jWn6rR4y5uQ"
+        duration: 538
+  - id: section5
+    title: "OOP in PHP"
+    description:
+    lectures:
+      - id: "iLghOcEFybE"
+        title: "Klassen"
+        description:
+        type: youtube
+        video_id: "iLghOcEFybE"
+        duration: 613
+      - id: "xc3PtywceoY"
+        title: "Konstruktoren"
+        description:
+        type: youtube
+        video_id: "xc3PtywceoY"
+        duration: 211
+      - id: "7JeDMo3JKi4"
+        title: "Vererbung"
+        description:
+        type: youtube
+        video_id: "7JeDMo3JKi4"
+        duration: 371
+      - id: "P0Z2ri47Cx0"
+        title: "Funktionen überschreiben"
+        description:
+        type: youtube
+        video_id: "P0Z2ri47Cx0"
+        duration: 407
+      - id: "W-eHyeK9eSI"
+        title: "Private, Public und Protected"
+        description:
+        type: youtube
+        video_id: "W-eHyeK9eSI"
+        duration: 634
+      - id: "lKbClm76LKI"
+        title: "Interfaces, Abstrakte Klassen und Mehrfachvererbung"
+        description:
+        type: youtube
+        video_id: "lKbClm76LKI"
+        duration: 842
+      - id: "vV-Hsebm9is"
+        title: "letzte Worte zu Klassen, final und parent constructor"
+        description:
+        type: youtube
+        video_id: "vV-Hsebm9is"
+        duration: 451

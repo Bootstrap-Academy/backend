@@ -1,0 +1,98 @@
+# https://www.dropbox.com/t/2QXeTTH1ZwdkNU07
+title: "Python zum Pentesting"
+description: "In Python gibt es unfassbar viele Bibliotheken - und einige davon sind definitiv zum Pentesting gedacht!"
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/python.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 500
+learning_goals: []
+requirements: []
+last_update: 1665584088
+sections:
+  - id: section
+    title: "Verschiedene Nützliche Scripts"
+    description:
+    lectures:
+      - id: "hacking_mit_python_ein_passwort_cracker_für_zip_archive"
+        title: "Ein Passwort Cracker für Zip-Archive"
+        description:
+        type: mp4
+        duration: 994
+      - id: "hacking_mit_python_ein_dictionary_passwort_cracker_für_zip_archive"
+        title: "Ein Dictionary Passwort Cracker für Zip-Archive"
+        description:
+        type: mp4
+        duration: 514
+      - id: "hacking_mit_python_rainbowtables_generieren"
+        title: "Rainbowtables generieren"
+        description:
+        type: mp4
+        duration: 693
+      - id: "hacking_mit_python_hashes_cracken_mit_rainbowtables"
+        title: "Hashes cracken mit Rainbowtables"
+        description:
+        type: mp4
+        duration: 431
+      - id: "hacking_mit_python_ddos"
+        title: "DDoS"
+        description:
+        type: mp4
+        duration: 637
+      - id: "hacking_mit_python_ein_keylogger_mit_pygame"
+        title: "Ein Keylogger mit PyGame"
+        description:
+        type: mp4
+        duration: 446
+      - id: "hacking_mit_python_eine_backdoor_mit_python"
+        title: "Eine Backdoor mit Python"
+        description:
+        type: mp4
+        duration: 966
+      - id: "hacking_mit_python_bildmetadaten_auslesen_mit_python"
+        title: "Bildmetadaten auslesen"
+        description:
+        type: mp4
+        duration: 267
+      - id: "hacking_mit_python_steganographie_text_in_bildern_verstecken_funktioniert_auch_mit_mp3s"
+        title: "Steganographie - Text in Bildern verstecken"
+        description:
+        type: mp4
+        duration: 391
+      - id: "hacking_mit_python_was_tun_ransomwares_aka_kryptographie_in_python"
+        title: "Was tun Ransomwares aka Kryptographie in Python"
+        description:
+        type: mp4
+        duration: 829
+      - id: "hacking_mit_python_den_antivirenschutz_austricksen"
+        title: "Den Antivirenschutz austricksen"
+        description:
+        type: mp4
+        duration: 1778
+      - id: "hacking_mit_python_ein_portscanner"
+        title: "Ein Portscanner"
+        description:
+        type: mp4
+        duration: 558
+      - id: "python_hacking_nmap_mit_python"
+        title: "Nmap"
+        description:
+        type: mp4
+        duration: 584
+      - id: "python_hacking_html_formulare_bruteforcen_mit_disclaimer"
+        title: "HTML-Formulare bruteforcen"
+        description:
+        type: mp4
+        duration: 1562
+      - id: "python_hacking_ft._wireshark_pyshark_ein_interface_für_tshark"
+        title: "Wireshark: PyShark ein Interface für TShark"
+        description:
+        type: mp4
+        duration: 798
+      - id: "python_krypto_one_time_pad"
+        title: "One Time Pad"
+        description:
+        type: mp4
+        duration: 992

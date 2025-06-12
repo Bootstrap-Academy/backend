@@ -1,0 +1,36 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7pUKpzMbzggvudByxULkut-
+title: "GnuPG unter Linux"
+description: "Wir waren uns ja einig: Verschlüsseln ist absolut essentiell. Aber.. wie? Dazu gibt's unter Linux GnuPG."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/krypto.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665508174
+sections:
+  - id: section
+    title: "GnuPG unter Linux"
+    description:
+    lectures:
+      - id: "YPQh1Z5zlqw"
+        title: "Schlüssel generieren"
+        description:
+        type: youtube
+        video_id: "YPQh1Z5zlqw"
+        duration: 416
+      - id: "hVjcKBUAvxk"
+        title: "Schlüssel austauschen"
+        description:
+        type: youtube
+        video_id: "hVjcKBUAvxk"
+        duration: 384
+      - id: "oitvqDTWQBs"
+        title: "Verschlüsseln und Signieren"
+        description:
+        type: youtube
+        video_id: "oitvqDTWQBs"
+        duration: 673

@@ -1,3 +1,5 @@
+use std::slice;
+
 use academy_demo::{
     UUID1, UUID2,
     oauth2::FOO_OAUTH2_LINK_1,
@@ -24,7 +26,7 @@ async fn list_links_by_user() {
         .list_links_by_user(&mut txn, FOO.user.id)
         .await
         .unwrap();
-    assert_eq!(result, [FOO_OAUTH2_LINK_1.clone()]);
+    assert_eq!(result, slice::from_ref(&*FOO_OAUTH2_LINK_1));
 }
 
 #[tokio::test]

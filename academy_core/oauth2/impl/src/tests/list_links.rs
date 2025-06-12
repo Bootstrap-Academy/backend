@@ -1,3 +1,5 @@
+use std::slice;
+
 use academy_auth_contracts::MockAuthService;
 use academy_core_oauth2_contracts::{OAuth2FeatureService, OAuth2ListLinksError};
 use academy_demo::{
@@ -50,7 +52,7 @@ async fn ok() {
     let result = sut.list_links(&"token".into(), FOO.user.id.into()).await;
 
     // Assert
-    assert_eq!(result.unwrap(), [FOO_OAUTH2_LINK_1.clone()]);
+    assert_eq!(result.unwrap(), slice::from_ref(&*FOO_OAUTH2_LINK_1));
 }
 
 #[tokio::test]

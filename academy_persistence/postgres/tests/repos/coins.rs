@@ -1,3 +1,5 @@
+use std::slice;
+
 use academy_demo::{UUID1, UUID2, user::FOO};
 use academy_models::coin::{Balance, Transaction};
 use academy_persistence_contracts::{
@@ -159,7 +161,7 @@ async fn transactions() {
         .get_transactions(&mut txn, FOO.user.id, d1..d5)
         .await
         .unwrap();
-    assert_eq!(result, [t1.clone()]);
+    assert_eq!(result, slice::from_ref(&t1));
 
     REPO.create_transaction(&mut txn, &t2).await.unwrap();
 

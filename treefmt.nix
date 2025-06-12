@@ -2,13 +2,14 @@
 
 {
   tree-root-file = ".git/config";
-  on-unmatched = "error";
+  on-unmatched = "fatal";
 
   excludes = [
     "academy_assets/assets/*"
     "Cargo.nix"
     ".envrc"
     ".gitattributes"
+    "*/.gitattributes"
     ".gitignore"
     "justfile"
     "*.lock"

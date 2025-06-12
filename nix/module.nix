@@ -259,6 +259,7 @@ in
         settings = {
           database.url = lib.mkIf cfg.localDatabase "host=/run/postgresql user=academy";
           cache.url = lib.mkIf cfg.localCache "redis+unix://${config.services.redis.servers.academy.unixSocket}";
+          course.course_dir = lib.mkDefault self.courses;
           render.daemon_url = lib.mkIf cfg.renderDaemon.enable "http://127.0.0.1:${toString cfg.renderDaemon.port}/";
           finance.invoices_archive = lib.mkDefault "/var/lib/academy/invoices";
           finance.credit_notes_archive = lib.mkDefault "/var/lib/academy/credit_notes";

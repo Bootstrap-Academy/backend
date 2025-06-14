@@ -12228,9 +12228,9 @@ rec {
       };
       "rust_decimal" = rec {
         crateName = "rust_decimal";
-        version = "1.37.1";
+        version = "1.37.2";
         edition = "2021";
-        sha256 = "0l3d6p96vqzand26al7r24aawljag37bxff6j2yr3hkallmxx9zs";
+        sha256 = "0p83j981r1y8s8k6c11j26gyflfar93kqbf4344kx800am1ac0xj";
         authors = [
           "Paul Mason <paul@form1.co.nz>"
         ];

@@ -177,6 +177,26 @@ rec {
       # File a bug if you depend on any for non-debug work!
       debug = internal.debugCrate { inherit packageId; };
     };
+    "academy_core_course_contracts" = rec {
+      packageId = "academy_core_course_contracts";
+      build = internal.buildRustCrateWithFeatures {
+        packageId = "academy_core_course_contracts";
+      };
+
+      # Debug support which might change between releases.
+      # File a bug if you depend on any for non-debug work!
+      debug = internal.debugCrate { inherit packageId; };
+    };
+    "academy_core_course_impl" = rec {
+      packageId = "academy_core_course_impl";
+      build = internal.buildRustCrateWithFeatures {
+        packageId = "academy_core_course_impl";
+      };
+
+      # Debug support which might change between releases.
+      # File a bug if you depend on any for non-debug work!
+      debug = internal.debugCrate { inherit packageId; };
+    };
     "academy_core_finance_contracts" = rec {
       packageId = "academy_core_finance_contracts";
       build = internal.buildRustCrateWithFeatures {
@@ -653,6 +673,14 @@ rec {
             packageId = "academy_core_contact_impl";
           }
           {
+            name = "academy_core_course_contracts";
+            packageId = "academy_core_course_contracts";
+          }
+          {
+            name = "academy_core_course_impl";
+            packageId = "academy_core_course_impl";
+          }
+          {
             name = "academy_core_finance_contracts";
             packageId = "academy_core_finance_contracts";
           }
@@ -896,6 +924,10 @@ rec {
           {
             name = "academy_core_contact_contracts";
             packageId = "academy_core_contact_contracts";
+          }
+          {
+            name = "academy_core_course_contracts";
+            packageId = "academy_core_course_contracts";
           }
           {
             name = "academy_core_finance_contracts";
@@ -1602,6 +1634,78 @@ rec {
             name = "academy_shared_contracts";
             packageId = "academy_shared_contracts";
             features = [ "mock" ];
+          }
+          {
+            name = "tokio";
+            packageId = "tokio";
+            usesDefaultFeatures = false;
+            features = [ "rt-multi-thread" "macros" "sync" "fs" "process" ];
+          }
+        ];
+
+      };
+      "academy_core_course_contracts" = rec {
+        crateName = "academy_core_course_contracts";
+        version = "0.0.0";
+        edition = "2024";
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/course/contracts; };
+        dependencies = [
+          {
+            name = "academy_models";
+            packageId = "academy_models";
+          }
+          {
+            name = "anyhow";
+            packageId = "anyhow";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+        ];
+
+      };
+      "academy_core_course_impl" = rec {
+        crateName = "academy_core_course_impl";
+        version = "0.0.0";
+        edition = "2024";
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/course/impl; };
+        dependencies = [
+          {
+            name = "academy_core_course_contracts";
+            packageId = "academy_core_course_contracts";
+          }
+          {
+            name = "academy_data";
+            packageId = "academy_data";
+          }
+          {
+            name = "academy_di";
+            packageId = "academy_di";
+          }
+          {
+            name = "academy_models";
+            packageId = "academy_models";
+          }
+          {
+            name = "academy_utils";
+            packageId = "academy_utils";
+          }
+          {
+            name = "anyhow";
+            packageId = "anyhow";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "tracing";
+            packageId = "tracing";
+            usesDefaultFeatures = false;
+            features = [ "attributes" ];
+          }
+        ];
+        devDependencies = [
+          {
+            name = "academy_demo";
+            packageId = "academy_demo";
           }
           {
             name = "tokio";

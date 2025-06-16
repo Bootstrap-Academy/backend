@@ -6,6 +6,7 @@ use std::{
 use academy_core_coin_contracts::CoinFeatureService;
 use academy_core_config_contracts::ConfigFeatureService;
 use academy_core_contact_contracts::ContactFeatureService;
+use academy_core_course_contracts::CourseFeatureService;
 use academy_core_finance_contracts::FinanceFeatureService;
 use academy_core_health_contracts::HealthFeatureService;
 use academy_core_heart_contracts::HeartFeatureService;
@@ -57,6 +58,7 @@ pub struct RestServer<
     Finance,
     Heart,
     Premium,
+    Course,
     Internal,
 > {
     _config: RestServerConfig,
@@ -72,6 +74,7 @@ pub struct RestServer<
     finance: Finance,
     heart: Heart,
     premium: Premium,
+    course: Course,
     internal: Internal,
 }
 
@@ -101,6 +104,7 @@ impl<
     Finance,
     Heart,
     Premium,
+    Course,
     Internal,
 >
     RestServer<
@@ -116,6 +120,7 @@ impl<
         Finance,
         Heart,
         Premium,
+        Course,
         Internal,
     >
 where
@@ -131,6 +136,7 @@ where
     Finance: FinanceFeatureService,
     Heart: HeartFeatureService,
     Premium: PremiumFeatureService,
+    Course: CourseFeatureService,
     Internal: InternalService,
 {
     pub async fn serve(self) -> anyhow::Result<()> {
@@ -162,6 +168,7 @@ where
                 routes::finance::TAG,
                 routes::heart::TAG,
                 routes::premium::TAG,
+                routes::course::TAG,
                 routes::internal::TAG,
             ]
             .into_iter()
@@ -239,6 +246,7 @@ where
             .merge(routes::finance::router(self.finance.into()))
             .merge(routes::heart::router(self.heart.into()))
             .merge(routes::premium::router(self.premium.into()))
+            .merge(routes::course::router(self.course.into()))
             .merge(routes::internal::router(self.internal.into()))
     }
 }

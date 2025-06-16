@@ -8,6 +8,7 @@ use academy_cache_valkey::ValkeyCache;
 use academy_core_coin_impl::{CoinFeatureServiceImpl, coin::CoinServiceImpl};
 use academy_core_config_impl::ConfigFeatureServiceImpl;
 use academy_core_contact_impl::ContactFeatureServiceImpl;
+use academy_core_course_impl::CourseFeatureServiceImpl;
 use academy_core_finance_impl::{
     FinanceFeatureServiceImpl, coin::FinanceCoinServiceImpl, invoice::FinanceInvoiceServiceImpl,
 };
@@ -68,6 +69,7 @@ pub type RestServer = academy_api_rest::RestServer<
     FinanceFeature,
     HeartFeature,
     PremiumFeature,
+    CourseFeature,
     Internal,
 >;
 
@@ -230,5 +232,7 @@ pub type PremiumFeature = PremiumFeatureServiceImpl<
 pub type PremiumPlan = PremiumPlanServiceImpl;
 pub type Premium = PremiumServiceImpl<Time, PremiumPurchase, PremiumRepo>;
 pub type PremiumPurchase = PremiumPurchaseServiceImpl<Id, Time, Coin, PremiumPlan, PremiumRepo>;
+
+pub type CourseFeature = CourseFeatureServiceImpl;
 
 pub type Internal = InternalServiceImpl<Database, AuthInternal, UserRepo, Coin, Heart, Premium>;

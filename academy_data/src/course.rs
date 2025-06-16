@@ -2,9 +2,9 @@ use std::{collections::HashMap, fs::DirEntry, ops::Deref, path::Path, sync::Arc,
 
 use academy_models::{
     course::{
-        Course, CourseAuthor, CourseAuthorName, CourseDescription, CourseId, CourseLecture,
-        CourseLectureId, CourseLectureKind, CourseLectureTitle, CourseMp4Lecture, CourseSection,
-        CourseSectionId, CourseSectionTitle, CourseTitle, CourseYoutubeLecture,
+        Course, CourseAuthor, CourseAuthorName, CourseBase, CourseDescription, CourseId,
+        CourseLecture, CourseLectureId, CourseLectureKind, CourseLectureTitle, CourseMp4Lecture,
+        CourseSection, CourseSectionId, CourseSectionTitle, CourseTitle, CourseYoutubeLecture,
     },
     url::Url,
 };
@@ -70,14 +70,16 @@ fn load_course(entry: DirEntry) -> anyhow::Result<Option<(CourseId, Course)>> {
         .with_context(|| anyhow!("Failed to deserialize file at {}", entry.path().display()))?;
 
     let course = Course {
-        id: id.clone(),
-        title: course.title,
-        description: course.description,
-        image_url: course.image,
-        authors: course.authors.into_iter().map(Into::into).collect(),
-        price: course.price,
-        last_update: DateTime::from_timestamp(course.last_update, 0)
-            .ok_or_else(|| anyhow!("Invalid timestamp: {}", course.last_update))?,
+        base: CourseBase {
+            id: id.clone(),
+            title: course.title,
+            description: course.description,
+            image_url: course.image,
+            authors: course.authors.into_iter().map(Into::into).collect(),
+            price: course.price,
+            last_update: DateTime::from_timestamp(course.last_update, 0)
+                .ok_or_else(|| anyhow!("Invalid timestamp: {}", course.last_update))?,
+        },
         sections: course.sections.into_iter().map(Into::into).collect(),
     };
 
@@ -171,6 +173,14 @@ impl From<RawCourseLecture> for CourseLecture {
                 }),
             },
         }
+    }
+}
+
+impl FromIterator<Course> for CourseDataRepository {
+    fn from_iter<T: IntoIterator<Item = Course>>(iter: T) -> Self {
+        Self(Arc::new(
+            iter.into_iter().map(|c| (c.base.id.clone(), c)).collect(),
+        ))
     }
 }
 

@@ -2,10 +2,10 @@ use std::time::Duration;
 
 use chrono::{DateTime, Utc};
 
-use crate::{nutype_string, url::Url};
+use crate::{SearchTerm, nutype_string, url::Url};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Course {
+pub struct CourseBase {
     pub id: CourseId,
     pub title: CourseTitle,
     pub description: CourseDescription,
@@ -13,7 +13,19 @@ pub struct Course {
     pub authors: Vec<CourseAuthor>,
     pub price: u64,
     pub last_update: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Course {
+    pub base: CourseBase,
     pub sections: Vec<CourseSection>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CourseUserSummary {
+    pub base: CourseBase,
+    pub sections: Vec<CourseSectionUserSummary>,
+    pub completed: Option<bool>,
 }
 
 nutype_string!(CourseId);
@@ -35,6 +47,13 @@ pub struct CourseSection {
     pub lectures: Vec<CourseLecture>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CourseSectionUserSummary {
+    pub title: CourseSectionTitle,
+    pub lectures: Vec<CourseLectureUserSummary>,
+    pub completed: Option<bool>,
+}
+
 nutype_string!(CourseSectionId);
 nutype_string!(CourseSectionTitle);
 
@@ -43,6 +62,13 @@ pub struct CourseLecture {
     pub id: CourseLectureId,
     pub title: CourseLectureTitle,
     pub kind: CourseLectureKind,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CourseLectureUserSummary {
+    pub title: CourseLectureTitle,
+    pub duration: Duration,
+    pub completed: Option<bool>,
 }
 
 nutype_string!(CourseLectureId);
@@ -64,4 +90,49 @@ pub struct CourseYoutubeLecture {
 pub struct CourseMp4Lecture {
     pub video_id: String,
     pub duration: Duration,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct CourseFilter {
+    /// Search in `title`
+    pub search_term: Option<SearchTerm>,
+    /// Filter by author
+    pub author: Option<SearchTerm>,
+    /// Return only free (`true`) or unfree (`false`) courses
+    pub free: Option<bool>,
+}
+
+impl From<Course> for CourseUserSummary {
+    fn from(value: Course) -> Self {
+        Self {
+            base: value.base,
+            sections: value.sections.into_iter().map(Into::into).collect(),
+            completed: None,
+        }
+    }
+}
+
+impl From<CourseSection> for CourseSectionUserSummary {
+    fn from(value: CourseSection) -> Self {
+        Self {
+            title: value.title,
+            lectures: value.lectures.into_iter().map(Into::into).collect(),
+            completed: None,
+        }
+    }
+}
+
+impl From<CourseLecture> for CourseLectureUserSummary {
+    fn from(value: CourseLecture) -> Self {
+        Self {
+            title: value.title,
+            duration: match value.kind {
+                CourseLectureKind::Youtube(course_youtube_lecture) => {
+                    course_youtube_lecture.duration
+                }
+                CourseLectureKind::Mp4(course_mp4_lecture) => course_mp4_lecture.duration,
+            },
+            completed: None,
+        }
+    }
 }

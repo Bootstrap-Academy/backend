@@ -15,6 +15,8 @@ dependencies = [
  "academy_core_coin_impl",
  "academy_core_config_impl",
  "academy_core_contact_impl",
+ "academy_core_course_contracts",
+ "academy_core_course_impl",
  "academy_core_finance_contracts",
  "academy_core_finance_impl",
  "academy_core_health_impl",
@@ -69,6 +71,7 @@ dependencies = [
  "academy_core_coin_contracts",
  "academy_core_config_contracts",
  "academy_core_contact_contracts",
+ "academy_core_course_contracts",
  "academy_core_finance_contracts",
  "academy_core_health_contracts",
  "academy_core_heart_contracts",
@@ -241,6 +244,29 @@ dependencies = [
  "academy_utils",
  "anyhow",
  "thiserror 2.0.12",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "academy_core_course_contracts"
+version = "0.0.0"
+dependencies = [
+ "academy_models",
+ "anyhow",
+]
+
+[[package]]
+name = "academy_core_course_impl"
+version = "0.0.0"
+dependencies = [
+ "academy_core_course_contracts",
+ "academy_data",
+ "academy_demo",
+ "academy_di",
+ "academy_models",
+ "academy_utils",
+ "anyhow",
  "tokio",
  "tracing",
 ]

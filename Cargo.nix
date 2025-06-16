@@ -5184,9 +5184,9 @@ rec {
       };
       "bb8-redis" = rec {
         crateName = "bb8-redis";
-        version = "0.23.0";
+        version = "0.24.0";
         edition = "2021";
-        sha256 = "19j8qyj5lds95fs3l1ygqn6x39v0l72zxiqbq7b5rpw0h32abvmp";
+        sha256 = "1abxld7w80931hyvq1z3wlan7nkpcwdx5qz3h6la3vp1ymm96hsi";
         libName = "bb8_redis";
         dependencies = [
           {
@@ -11327,9 +11327,9 @@ rec {
       };
       "redis" = rec {
         crateName = "redis";
-        version = "0.31.0";
+        version = "0.32.0";
         edition = "2021";
-        sha256 = "0zvasd2iv31h1arnc7q4p0h9ccxyg3vbgdgbndyhjbhb7rjymh8b";
+        sha256 = "0wyp5q4jiijz6r631vy3k69vfk1mq91v09qykh840h8q7pmksrxx";
         dependencies = [
           {
             name = "bytes";

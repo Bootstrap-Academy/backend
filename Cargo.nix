@@ -12586,6 +12586,25 @@ rec {
         };
         resolvedDefaultFeatures = [ "log" "logging" "ring" "std" "tls12" ];
       };
+      "rustls-pemfile" = rec {
+        crateName = "rustls-pemfile";
+        version = "2.2.0";
+        edition = "2018";
+        sha256 = "0l3f3mrfkgdjrava7ibwzgwc4h3dljw3pdkbsi9rkwz3zvji9qyw";
+        libName = "rustls_pemfile";
+        dependencies = [
+          {
+            name = "rustls-pki-types";
+            packageId = "rustls-pki-types";
+            rename = "pki-types";
+          }
+        ];
+        features = {
+          "default" = [ "std" ];
+          "std" = [ "pki-types/std" ];
+        };
+        resolvedDefaultFeatures = [ "std" ];
+      };
       "rustls-pki-types" = rec {
         crateName = "rustls-pki-types";
         version = "1.12.0";
@@ -12867,9 +12886,9 @@ rec {
       };
       "sentry" = rec {
         crateName = "sentry";
-        version = "0.39.0";
+        version = "0.40.0";
         edition = "2021";
-        sha256 = "1qhy4cwc3ga5nir2kyykmki47v0jiy14s7wrivs166v3pjmxmdqf";
+        sha256 = "01qabp4hain7hm44srgizk20zhrmml2xawvq5vlpdy3p8mjdgk39";
         authors = [
           "Sentry <hello@sentry.io>"
         ];
@@ -12939,11 +12958,6 @@ rec {
             optional = true;
             usesDefaultFeatures = false;
           }
-          {
-            name = "webpki-roots";
-            packageId = "webpki-roots 0.26.11";
-            optional = true;
-          }
         ];
         devDependencies = [
           {
@@ -12963,13 +12977,13 @@ rec {
           "embedded-svc-http" = [ "dep:embedded-svc" "dep:esp-idf-svc" ];
           "httpdate" = [ "dep:httpdate" ];
           "log" = [ "sentry-log" ];
-          "logs" = [ "sentry-core/logs" ];
+          "logs" = [ "sentry-core/logs" "sentry-tracing?/logs" "sentry-log?/logs" ];
           "native-tls" = [ "dep:native-tls" "reqwest?/default-tls" "ureq?/native-tls" ];
           "opentelemetry" = [ "sentry-opentelemetry" ];
           "panic" = [ "sentry-panic" ];
           "release-health" = [ "sentry-core/release-health" "sentry-actix?/release-health" ];
           "reqwest" = [ "dep:reqwest" "httpdate" "tokio" ];
-          "rustls" = [ "dep:rustls" "reqwest?/rustls-tls" "ureq?/tls" "webpki-roots" ];
+          "rustls" = [ "dep:rustls" "reqwest?/rustls-tls" "ureq?/rustls" ];
           "sentry-actix" = [ "dep:sentry-actix" ];
           "sentry-anyhow" = [ "dep:sentry-anyhow" ];
           "sentry-backtrace" = [ "dep:sentry-backtrace" ];
@@ -12991,15 +13005,14 @@ rec {
           "tracing" = [ "sentry-tracing" ];
           "transport" = [ "reqwest" "native-tls" ];
           "ureq" = [ "dep:ureq" "httpdate" ];
-          "webpki-roots" = [ "dep:webpki-roots" ];
         };
-        resolvedDefaultFeatures = [ "anyhow" "backtrace" "contexts" "debug-images" "httpdate" "panic" "reqwest" "rustls" "sentry-anyhow" "sentry-backtrace" "sentry-contexts" "sentry-debug-images" "sentry-panic" "sentry-tracing" "tokio" "tracing" "webpki-roots" ];
+        resolvedDefaultFeatures = [ "anyhow" "backtrace" "contexts" "debug-images" "httpdate" "panic" "reqwest" "rustls" "sentry-anyhow" "sentry-backtrace" "sentry-contexts" "sentry-debug-images" "sentry-panic" "sentry-tracing" "tokio" "tracing" ];
       };
       "sentry-anyhow" = rec {
         crateName = "sentry-anyhow";
-        version = "0.39.0";
+        version = "0.40.0";
         edition = "2021";
-        sha256 = "1ww38kh4rv6l319z47pzcaizm11nrbkxyar75wpn166k9cksvmzj";
+        sha256 = "12nr4xgff0f931lmpf183c0l9rrzrx6dpzi5gra4g4bl06zb24zm";
         libName = "sentry_anyhow";
         authors = [
           "Sentry <hello@sentry.io>"
@@ -13026,9 +13039,9 @@ rec {
       };
       "sentry-backtrace" = rec {
         crateName = "sentry-backtrace";
-        version = "0.39.0";
+        version = "0.40.0";
         edition = "2021";
-        sha256 = "0wmfrv8j3qca81kw0mjqjhkh6fdffljniqpzwl9r4csfjdjdkjy0";
+        sha256 = "04pyd91bz5cdxs3kfgafi7kb3iwxvqm8fifwsllbcqz7z9fx84fd";
         libName = "sentry_backtrace";
         authors = [
           "Sentry <hello@sentry.io>"
@@ -13053,9 +13066,9 @@ rec {
       };
       "sentry-contexts" = rec {
         crateName = "sentry-contexts";
-        version = "0.39.0";
+        version = "0.40.0";
         edition = "2021";
-        sha256 = "0l3q9b79swgmy1s6s45cpj90q8rkd3r4nmg88rglf1aby7z8fv9m";
+        sha256 = "1kd9fw2nhklw9cyqiimlnhlgid9dmabdiyzw1bdhzkin157kgka2";
         libName = "sentry_contexts";
         authors = [
           "Sentry <hello@sentry.io>"
@@ -13094,9 +13107,9 @@ rec {
       };
       "sentry-core" = rec {
         crateName = "sentry-core";
-        version = "0.39.0";
+        version = "0.40.0";
         edition = "2021";
-        sha256 = "1316287y165n2di292qhjvxkdvbbzh5bm67q70p9wzssmjmzqfz7";
+        sha256 = "11azdhjmkhb3ivvj11hw49jw4yj42v70i63gmb465nzlvg2dds9n";
         libName = "sentry_core";
         authors = [
           "Sentry <hello@sentry.io>"
@@ -13132,9 +13145,9 @@ rec {
       };
       "sentry-debug-images" = rec {
         crateName = "sentry-debug-images";
-        version = "0.39.0";
+        version = "0.40.0";
         edition = "2021";
-        sha256 = "0i90gjb7p1prciarcv1jgf00mvnjn5apmxjia2b5iapyl2qmix8w";
+        sha256 = "1a6kacj00clxzs2g5b7x3mz9k1js677k8lvym2v8wdlbw514z4a4";
         libName = "sentry_debug_images";
         authors = [
           "Sentry <hello@sentry.io>"
@@ -13153,9 +13166,9 @@ rec {
       };
       "sentry-panic" = rec {
         crateName = "sentry-panic";
-        version = "0.39.0";
+        version = "0.40.0";
         edition = "2021";
-        sha256 = "0i1wa0yxif7vp5fyh92kcpm3qc7dxz02srfvmzpnybwh6d7fdar9";
+        sha256 = "04012q181h5cmlgga0ilmafn2hs1yjhm1w4kkwjqqdxsm32kyzpq";
         libName = "sentry_panic";
         authors = [
           "Sentry <hello@sentry.io>"
@@ -13174,9 +13187,9 @@ rec {
       };
       "sentry-tracing" = rec {
         crateName = "sentry-tracing";
-        version = "0.39.0";
+        version = "0.40.0";
         edition = "2021";
-        sha256 = "0i9sy5b4lgvvrs0cbna0vkf6wwjwn2a2icz95sljkn2bsnzk5zdv";
+        sha256 = "0m2dzhbk802hy261l504y6ki5ccmvv726ck2yqmnygk3kdx5yb2k";
         libName = "sentry_tracing";
         authors = [
           "Sentry <hello@sentry.io>"
@@ -13212,14 +13225,15 @@ rec {
         ];
         features = {
           "backtrace" = [ "dep:sentry-backtrace" ];
+          "logs" = [ "sentry-core/logs" ];
         };
         resolvedDefaultFeatures = [ "backtrace" "default" ];
       };
       "sentry-types" = rec {
         crateName = "sentry-types";
-        version = "0.39.0";
+        version = "0.40.0";
         edition = "2021";
-        sha256 = "1jrvdfr833byfcpa7qb438rnr5ci89zkdxg4c8f17s5xqmam0857";
+        sha256 = "001ddm7152hhn5fyka269d7scsa7g889a514bx72qkw26qh37l5a";
         libName = "sentry_types";
         authors = [
           "Sentry <hello@sentry.io>"
@@ -15668,9 +15682,9 @@ rec {
       };
       "ureq" = rec {
         crateName = "ureq";
-        version = "2.12.1";
+        version = "3.0.12";
         edition = "2018";
-        sha256 = "07f0qdn6459k4rmdnkivkz0y7j28vxh5c8q8sr0gcxgdfxiadl82";
+        sha256 = "0f8cfrigffa6r2y2jjig1ck3bkab6p5ng32z2n0y69hhr6dxw3wz";
         authors = [
           "Martin Algesten <martin@algesten.se>"
           "Jacob Hoffman-Andrews <ureq@hoffman-andrews.com>"
@@ -15685,55 +15699,110 @@ rec {
             packageId = "log";
           }
           {
-            name = "once_cell";
-            packageId = "once_cell";
+            name = "percent-encoding";
+            packageId = "percent-encoding";
           }
           {
             name = "rustls";
             packageId = "rustls";
             optional = true;
             usesDefaultFeatures = false;
-            features = [ "ring" "logging" "std" "tls12" ];
+            features = [ "logging" "std" "tls12" ];
+          }
+          {
+            name = "rustls-pemfile";
+            packageId = "rustls-pemfile";
+            optional = true;
+            usesDefaultFeatures = false;
+            features = [ "std" ];
           }
           {
             name = "rustls-pki-types";
             packageId = "rustls-pki-types";
             optional = true;
+            usesDefaultFeatures = false;
+            features = [ "std" ];
           }
           {
-            name = "url";
-            packageId = "url";
+            name = "ureq-proto";
+            packageId = "ureq-proto";
+            usesDefaultFeatures = false;
+            features = [ "client" ];
+          }
+          {
+            name = "utf-8";
+            packageId = "utf-8";
           }
           {
             name = "webpki-roots";
             packageId = "webpki-roots 0.26.11";
             optional = true;
+            usesDefaultFeatures = false;
           }
         ];
         devDependencies = [
           {
             name = "rustls";
             packageId = "rustls";
-            usesDefaultFeatures = false;
-            features = [ "std" "ring" ];
+            features = [ "aws-lc-rs" ];
           }
         ];
         features = {
+          "_doc" = [ "rustls?/aws-lc-rs" ];
+          "_ring" = [ "rustls?/ring" ];
+          "_tls" = [ "dep:rustls-pemfile" "dep:rustls-pki-types" ];
+          "_url" = [ "dep:url" ];
           "brotli" = [ "dep:brotli-decompressor" ];
           "charset" = [ "dep:encoding_rs" ];
-          "cookies" = [ "dep:cookie" "dep:cookie_store" ];
-          "default" = [ "tls" "gzip" ];
+          "cookies" = [ "dep:cookie_store" "_url" ];
+          "default" = [ "rustls" "gzip" ];
           "gzip" = [ "dep:flate2" ];
-          "http-crate" = [ "dep:http" ];
-          "http-interop" = [ "dep:http-02" ];
-          "json" = [ "dep:serde" "dep:serde_json" ];
-          "native-certs" = [ "dep:rustls-native-certs" ];
-          "native-tls" = [ "dep:native-tls" ];
+          "json" = [ "dep:serde" "dep:serde_json" "cookie_store?/serde_json" ];
+          "native-tls" = [ "dep:native-tls" "dep:der" "_tls" "dep:webpki-root-certs" ];
+          "platform-verifier" = [ "dep:rustls-platform-verifier" ];
+          "rustls" = [ "rustls-no-provider" "_ring" ];
+          "rustls-no-provider" = [ "dep:rustls" "_tls" "dep:webpki-roots" "_rustls" ];
           "socks-proxy" = [ "dep:socks" ];
-          "testdeps" = [ "dep:hootbin" ];
-          "tls" = [ "dep:webpki-roots" "dep:rustls" "dep:rustls-pki-types" ];
+          "vendored" = [ "native-tls?/vendored" ];
         };
-        resolvedDefaultFeatures = [ "tls" ];
+        resolvedDefaultFeatures = [ "_ring" "_rustls" "_tls" "rustls" "rustls-no-provider" ];
+      };
+      "ureq-proto" = rec {
+        crateName = "ureq-proto";
+        version = "0.4.2";
+        edition = "2021";
+        sha256 = "1xwkysnq4lq05vd8azyml1f60wxih3z83nmncazb3wi336npinsr";
+        libName = "ureq_proto";
+        authors = [
+          "Martin Algesten <martin@algesten.se>"
+        ];
+        dependencies = [
+          {
+            name = "base64";
+            packageId = "base64 0.22.1";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "http";
+            packageId = "http";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "httparse";
+            packageId = "httparse";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "log";
+            packageId = "log";
+          }
+        ];
+        features = {
+          "default" = [ "client" "server" ];
+        };
+        resolvedDefaultFeatures = [ "client" ];
       };
       "url" = rec {
         crateName = "url";
@@ -15791,6 +15860,17 @@ rec {
         authors = [
           "Kornel <kornel@geekhood.net>"
           "Bertram Truong <b@bertramtruong.com>"
+        ];
+
+      };
+      "utf-8" = rec {
+        crateName = "utf-8";
+        version = "0.7.6";
+        edition = "2015";
+        sha256 = "1a9ns3fvgird0snjkd3wbdhwd3zdpc2h5gpyybrfr6ra5pkqxk09";
+        libName = "utf8";
+        authors = [
+          "Simon Sapin <simon.sapin@exyr.org>"
         ];
 
       };

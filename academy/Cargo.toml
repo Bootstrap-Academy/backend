@@ -50,7 +50,7 @@ chrono.workspace = true
 clap.workspace = true
 clap_complete.workspace = true
 futures.workspace = true
-sentry = { version = "0.40.0", default-features = false, features = [
+sentry = { version = "0.41.0", default-features = false, features = [
   "anyhow",
   "backtrace",
   "contexts",

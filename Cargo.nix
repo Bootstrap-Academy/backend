@@ -11687,9 +11687,9 @@ rec {
       };
       "reqwest" = rec {
         crateName = "reqwest";
-        version = "0.12.20";
+        version = "0.12.21";
         edition = "2021";
-        sha256 = "04qqxghqszjxk4pl4vxa5qlwinkfx0vvjkk10vv2n3hkv6blrgza";
+        sha256 = "124jj18q5n6c1xis7khqvjjs1syj0d27awq1yfcv1kmw6mmym32c";
         authors = [
           "Sean McArthur <sean@seanmonstar.com>"
         ];
@@ -11947,7 +11947,7 @@ rec {
           "h2" = [ "dep:h2" ];
           "hickory-dns" = [ "dep:hickory-resolver" "dep:once_cell" ];
           "http2" = [ "h2" "hyper/http2" "hyper-util/http2" "hyper-rustls?/http2" ];
-          "http3" = [ "rustls-tls-manual-roots" "dep:h3" "dep:h3-quinn" "dep:quinn" "dep:slab" "tokio/macros" ];
+          "http3" = [ "rustls-tls-manual-roots" "dep:h3" "dep:h3-quinn" "dep:quinn" "tokio/macros" ];
           "json" = [ "dep:serde_json" ];
           "macos-system-configuration" = [ "system-proxy" ];
           "multipart" = [ "dep:mime_guess" "dep:futures-util" ];

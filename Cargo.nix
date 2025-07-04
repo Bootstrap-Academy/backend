@@ -8671,9 +8671,9 @@ rec {
       };
       "indicatif" = rec {
         crateName = "indicatif";
-        version = "0.17.12";
+        version = "0.18.0";
         edition = "2021";
-        sha256 = "0ml09nfddl82i1p7wyl7rixq2m9mcbimcvm320i936iimpk2xnsa";
+        sha256 = "1kg1wi3x9x15f22q99spfzcg5fzlmhcc5i6aqjxyssyh8vcld9kh";
         dependencies = [
           {
             name = "console";

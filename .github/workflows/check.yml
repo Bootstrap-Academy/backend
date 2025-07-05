@@ -15,7 +15,7 @@ jobs:
     if: ${{ !(github.event_name == 'push' && github.actor == 'github-merge-queue[bot]') }}
     steps:
       - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@v18
+      - uses: cachix/install-nix-action@v31
       - run: nix fmt -- --ci
 
   clippy:
@@ -37,7 +37,7 @@ jobs:
     if: ${{ !(github.event_name == 'push' && github.actor == 'github-merge-queue[bot]') }}
     steps:
       - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: cachix/install-nix-action@v31
       - run: nix run --accept-flake-config .#scripts.generate
       - run: git diff --exit-code
 
@@ -46,7 +46,7 @@ jobs:
     if: ${{ !(github.event_name == 'push' && github.actor == 'github-merge-queue[bot]') }}
     steps:
       - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: cachix/install-nix-action@v31
       - run: |
           for m in academy_persistence/postgres/migrations/*/up.sql; do
             psql -h 127.0.0.1 academy academy < "$m"

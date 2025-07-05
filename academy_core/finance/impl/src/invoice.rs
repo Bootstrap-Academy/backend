@@ -76,10 +76,10 @@ where
             .join(format!("{formatted_invoice_number}.pdf"));
 
         let cached = self.fs.read_file(&archive_path).await?;
-        if user_id.is_none() {
-            if let Some(invoice) = cached {
-                return Ok(Some(invoice));
-            }
+        if user_id.is_none()
+            && let Some(invoice) = cached
+        {
+            return Ok(Some(invoice));
         }
 
         let Some(coin_order) = self

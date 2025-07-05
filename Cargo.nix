@@ -5878,6 +5878,10 @@ rec {
             features = [ "serde" "clock" ];
           }
           {
+            name = "fallible-iterator";
+            packageId = "fallible-iterator";
+          }
+          {
             name = "futures";
             packageId = "futures";
             usesDefaultFeatures = false;

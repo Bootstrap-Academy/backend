@@ -42,18 +42,18 @@ in
       PATH="${rustfmtWrapper}/bin:$PATH" clorinde live "postgres://academy@127.0.0.1:5432/academy"
 
       if [[ "$1" != "-f" ]]; then
-        git restore clorinde/{.gitattributes,Cargo.toml,src/lib.rs}
+        git restore clorinde/{.gitattributes,Cargo.toml}
       fi
 
       cargo fmt -p clorinde -- --config-path /dev/null
 
       sed -i "s/+ 'c/+ use<'c, C, T, N>/" clorinde/src/queries/*.rs
 
-      sed -i -E '/^#\[cfg\(all\(feature = "chrono".*\)\]$/d' clorinde/src/types.rs
-      sed -i -E '/^#\[cfg\(all\(feature = "time".*\)\]$/,/^}$/d' clorinde/src/types.rs
+      sed -i -E '/^#\[cfg/d' clorinde/src/lib.rs
+      sed -i -E '/^pub use deadpool_postgres;$/d' clorinde/src/lib.rs
 
-      sed -i '/^#\[cfg/d' clorinde/src/{lib,types,client/async_}.rs
-      sed -i '/^mod deadpool;$/d' clorinde/src/client/async_.rs
+      sed -i -E '/^#\[cfg\(feature = "deadpool"\)\]$/d' clorinde/src/client/async_.rs
+      sed -i -E '/^mod deadpool;$/d' clorinde/src/client/async_.rs
       rm clorinde/src/client/async_/deadpool.rs
     '';
 

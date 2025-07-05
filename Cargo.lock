@@ -1389,6 +1389,7 @@ name = "clorinde"
 version = "0.0.0"
 dependencies = [
  "chrono",
+ "fallible-iterator",
  "futures",
  "postgres",
  "postgres-protocol",

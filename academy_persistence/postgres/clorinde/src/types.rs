@@ -1,11 +1,5 @@
 // This file was generated with `clorinde`. Do not modify.
 
-pub mod time {
-    pub type Timestamp = chrono::NaiveDateTime;
-    pub type TimestampTz = chrono::DateTime<chrono::FixedOffset>;
-    pub type Date = chrono::NaiveDate;
-    pub type Time = chrono::NaiveTime;
-}
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub enum PremiumPlan {

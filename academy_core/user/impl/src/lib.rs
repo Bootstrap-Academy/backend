@@ -305,15 +305,14 @@ where
             return Err(UserUpdateError::CannotDemoteSelf);
         }
 
-        if let PatchValue::Update(Some(vat_id)) = &invoice_info_update.vat_id {
-            if !self
+        if let PatchValue::Update(Some(vat_id)) = &invoice_info_update.vat_id
+            && !self
                 .vat_api
                 .is_vat_id_valid(vat_id.as_str())
                 .await
                 .context("Failed to validate VAT id")?
-            {
-                return Err(UserUpdateError::InvalidVatId);
-            }
+        {
+            return Err(UserUpdateError::InvalidVatId);
         }
 
         // Apply patch

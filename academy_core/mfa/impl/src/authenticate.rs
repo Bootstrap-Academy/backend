@@ -57,15 +57,14 @@ where
                 .get_mfa_recovery_code_hash(txn, user_id)
                 .await
                 .context("Failed to get recovery code hash from database")?
+                && self.hash.sha256(&recovery_code) == *hash
             {
-                if self.hash.sha256(&recovery_code) == *hash {
-                    trace!("recovery code matches");
-                    self.mfa_disable
-                        .disable(txn, user_id)
-                        .await
-                        .context("Failed to disable MFA")?;
-                    return Ok(MfaAuthenticateResult::Reset);
-                }
+                trace!("recovery code matches");
+                self.mfa_disable
+                    .disable(txn, user_id)
+                    .await
+                    .context("Failed to disable MFA")?;
+                return Ok(MfaAuthenticateResult::Reset);
             }
         }
 

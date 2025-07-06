@@ -5,7 +5,7 @@ pub struct CreateLinkParams<T1: crate::StringSql, T2: crate::StringSql, T3: crat
     pub id: uuid::Uuid,
     pub user_id: uuid::Uuid,
     pub provider_id: T1,
-    pub created_at: crate::types::time::TimestampTz,
+    pub created_at: chrono::DateTime<chrono::FixedOffset>,
     pub remote_user_id: T2,
     pub remote_user_name: T3,
 }
@@ -14,7 +14,7 @@ pub struct OAuth2Link {
     pub id: uuid::Uuid,
     pub user_id: uuid::Uuid,
     pub provider_id: String,
-    pub created_at: crate::types::time::TimestampTz,
+    pub created_at: chrono::DateTime<chrono::FixedOffset>,
     pub remote_user_id: String,
     pub remote_user_name: String,
 }
@@ -22,7 +22,7 @@ pub struct OAuth2LinkBorrowed<'a> {
     pub id: uuid::Uuid,
     pub user_id: uuid::Uuid,
     pub provider_id: &'a str,
-    pub created_at: crate::types::time::TimestampTz,
+    pub created_at: chrono::DateTime<chrono::FixedOffset>,
     pub remote_user_id: &'a str,
     pub remote_user_name: &'a str,
 }
@@ -52,7 +52,8 @@ use futures::{self, StreamExt, TryStreamExt};
 pub struct OAuth2LinkQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
     client: &'c C,
     params: [&'a (dyn postgres_types::ToSql + Sync); N],
-    stmt: &'s mut crate::client::async_::Stmt,
+    query: &'static str,
+    cached: Option<&'s tokio_postgres::Statement>,
     extractor: fn(&tokio_postgres::Row) -> Result<OAuth2LinkBorrowed, tokio_postgres::Error>,
     mapper: fn(OAuth2LinkBorrowed) -> T,
 }
@@ -67,25 +68,24 @@ where
         OAuth2LinkQuery {
             client: self.client,
             params: self.params,
-            stmt: self.stmt,
+            query: self.query,
+            cached: self.cached,
             extractor: self.extractor,
             mapper,
         }
     }
     pub async fn one(self) -> Result<T, tokio_postgres::Error> {
-        let stmt = self.stmt.prepare(self.client).await?;
-        let row = self.client.query_one(stmt, &self.params).await?;
+        let row =
+            crate::client::async_::one(self.client, self.query, &self.params, self.cached).await?;
         Ok((self.mapper)((self.extractor)(&row)?))
     }
     pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
         self.iter().await?.try_collect().await
     }
     pub async fn opt(self) -> Result<Option<T>, tokio_postgres::Error> {
-        let stmt = self.stmt.prepare(self.client).await?;
-        Ok(self
-            .client
-            .query_opt(stmt, &self.params)
-            .await?
+        let opt_row =
+            crate::client::async_::opt(self.client, self.query, &self.params, self.cached).await?;
+        Ok(opt_row
             .map(|row| {
                 let extracted = (self.extractor)(&row)?;
                 Ok((self.mapper)(extracted))
@@ -98,11 +98,14 @@ where
         impl futures::Stream<Item = Result<T, tokio_postgres::Error>> + use<'c, C, T, N>,
         tokio_postgres::Error,
     > {
-        let stmt = self.stmt.prepare(self.client).await?;
-        let it = self
-            .client
-            .query_raw(stmt, crate::slice_iter(&self.params))
-            .await?
+        let stream = crate::client::async_::raw(
+            self.client,
+            self.query,
+            crate::slice_iter(&self.params),
+            self.cached,
+        )
+        .await?;
+        let mapped = stream
             .map(move |res| {
                 res.and_then(|row| {
                     let extracted = (self.extractor)(&row)?;
@@ -110,25 +113,31 @@ where
                 })
             })
             .into_stream();
-        Ok(it)
+        Ok(mapped)
     }
 }
+pub struct ListLinksByUserStmt(&'static str, Option<tokio_postgres::Statement>);
 pub fn list_links_by_user() -> ListLinksByUserStmt {
-    ListLinksByUserStmt(crate::client::async_::Stmt::new(
-        "select * from oauth2_links where user_id=$1",
-    ))
+    ListLinksByUserStmt("select * from oauth2_links where user_id=$1", None)
 }
-pub struct ListLinksByUserStmt(crate::client::async_::Stmt);
 impl ListLinksByUserStmt {
+    pub async fn prepare<'a, C: GenericClient>(
+        mut self,
+        client: &'a C,
+    ) -> Result<Self, tokio_postgres::Error> {
+        self.1 = Some(client.prepare(self.0).await?);
+        Ok(self)
+    }
     pub fn bind<'c, 'a, 's, C: GenericClient>(
-        &'s mut self,
+        &'s self,
         client: &'c C,
         user_id: &'a uuid::Uuid,
     ) -> OAuth2LinkQuery<'c, 'a, 's, C, OAuth2Link, 1> {
         OAuth2LinkQuery {
             client,
             params: [user_id],
-            stmt: &mut self.0,
+            query: self.0,
+            cached: self.1.as_ref(),
             extractor:
                 |row: &tokio_postgres::Row| -> Result<OAuth2LinkBorrowed, tokio_postgres::Error> {
                     Ok(OAuth2LinkBorrowed {
@@ -144,22 +153,28 @@ impl ListLinksByUserStmt {
         }
     }
 }
+pub struct GetLinkStmt(&'static str, Option<tokio_postgres::Statement>);
 pub fn get_link() -> GetLinkStmt {
-    GetLinkStmt(crate::client::async_::Stmt::new(
-        "select * from oauth2_links where id=$1",
-    ))
+    GetLinkStmt("select * from oauth2_links where id=$1", None)
 }
-pub struct GetLinkStmt(crate::client::async_::Stmt);
 impl GetLinkStmt {
+    pub async fn prepare<'a, C: GenericClient>(
+        mut self,
+        client: &'a C,
+    ) -> Result<Self, tokio_postgres::Error> {
+        self.1 = Some(client.prepare(self.0).await?);
+        Ok(self)
+    }
     pub fn bind<'c, 'a, 's, C: GenericClient>(
-        &'s mut self,
+        &'s self,
         client: &'c C,
         id: &'a uuid::Uuid,
     ) -> OAuth2LinkQuery<'c, 'a, 's, C, OAuth2Link, 1> {
         OAuth2LinkQuery {
             client,
             params: [id],
-            stmt: &mut self.0,
+            query: self.0,
+            cached: self.1.as_ref(),
             extractor:
                 |row: &tokio_postgres::Row| -> Result<OAuth2LinkBorrowed, tokio_postgres::Error> {
                     Ok(OAuth2LinkBorrowed {
@@ -175,13 +190,21 @@ impl GetLinkStmt {
         }
     }
 }
+pub struct CreateLinkStmt(&'static str, Option<tokio_postgres::Statement>);
 pub fn create_link() -> CreateLinkStmt {
-    CreateLinkStmt(crate::client::async_::Stmt::new(
+    CreateLinkStmt(
         "insert into oauth2_links (id, user_id, provider_id, created_at, remote_user_id, remote_user_name) values ($1, $2, $3, $4, $5, $6)",
-    ))
+        None,
+    )
 }
-pub struct CreateLinkStmt(crate::client::async_::Stmt);
 impl CreateLinkStmt {
+    pub async fn prepare<'a, C: GenericClient>(
+        mut self,
+        client: &'a C,
+    ) -> Result<Self, tokio_postgres::Error> {
+        self.1 = Some(client.prepare(self.0).await?);
+        Ok(self)
+    }
     pub async fn bind<
         'c,
         'a,
@@ -191,19 +214,18 @@ impl CreateLinkStmt {
         T2: crate::StringSql,
         T3: crate::StringSql,
     >(
-        &'s mut self,
+        &'s self,
         client: &'c C,
         id: &'a uuid::Uuid,
         user_id: &'a uuid::Uuid,
         provider_id: &'a T1,
-        created_at: &'a crate::types::time::TimestampTz,
+        created_at: &'a chrono::DateTime<chrono::FixedOffset>,
         remote_user_id: &'a T2,
         remote_user_name: &'a T3,
     ) -> Result<u64, tokio_postgres::Error> {
-        let stmt = self.0.prepare(client).await?;
         client
             .execute(
-                stmt,
+                self.0,
                 &[
                     id,
                     user_id,
@@ -235,7 +257,7 @@ impl<
     > for CreateLinkStmt
 {
     fn params(
-        &'a mut self,
+        &'a self,
         client: &'a C,
         params: &'a CreateLinkParams<T1, T2, T3>,
     ) -> std::pin::Pin<
@@ -252,19 +274,23 @@ impl<
         ))
     }
 }
+pub struct DeleteLinkStmt(&'static str, Option<tokio_postgres::Statement>);
 pub fn delete_link() -> DeleteLinkStmt {
-    DeleteLinkStmt(crate::client::async_::Stmt::new(
-        "delete from oauth2_links where id=$1",
-    ))
+    DeleteLinkStmt("delete from oauth2_links where id=$1", None)
 }
-pub struct DeleteLinkStmt(crate::client::async_::Stmt);
 impl DeleteLinkStmt {
+    pub async fn prepare<'a, C: GenericClient>(
+        mut self,
+        client: &'a C,
+    ) -> Result<Self, tokio_postgres::Error> {
+        self.1 = Some(client.prepare(self.0).await?);
+        Ok(self)
+    }
     pub async fn bind<'c, 'a, 's, C: GenericClient>(
-        &'s mut self,
+        &'s self,
         client: &'c C,
         id: &'a uuid::Uuid,
     ) -> Result<u64, tokio_postgres::Error> {
-        let stmt = self.0.prepare(client).await?;
-        client.execute(stmt, &[id]).await
+        client.execute(self.0, &[id]).await
     }
 }

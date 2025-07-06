@@ -15,11 +15,11 @@ jobs:
     if: ${{ !(github.event_name == 'push' && github.actor == 'github-merge-queue[bot]') }}
     steps:
       - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@v18
+      - uses: cachix/install-nix-action@v31
       - uses: ryanccn/attic-action@v0
         with:
           endpoint: https://cache.bootstrap.academy/
           cache: academy
           # atticd-atticadm make-token --sub github --validity 1y --pull academy --push academy
           token: ${{ secrets.ATTIC_TOKEN }}
-      - run: nix build -L --keep-going .#checks
+      - run: nix build --accept-flake-config -L --keep-going -j1 .#checks

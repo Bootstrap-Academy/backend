@@ -8,8 +8,9 @@ repository.workspace = true
 
 [dependencies]
 chrono.workspace = true
+fallible-iterator = "0.2.0"
 futures.workspace = true
-postgres = { version = "0.19.10" }
+postgres = "0.19.10"
 postgres-protocol = "0.6.8"
 postgres-types = { version = "0.2.9", features = ["derive"] }
 tokio-postgres = { version = "0.7.13", features = ["with-chrono-0_4", "with-uuid-1"] }

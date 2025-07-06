@@ -4,19 +4,20 @@
 pub struct SetParams {
     pub user_id: uuid::Uuid,
     pub hearts: i64,
-    pub last_refill: crate::types::time::TimestampTz,
+    pub last_refill: chrono::DateTime<chrono::FixedOffset>,
 }
 #[derive(Debug, Clone, PartialEq, Copy)]
 pub struct Get {
     pub hearts: i64,
-    pub last_refill: crate::types::time::TimestampTz,
+    pub last_refill: chrono::DateTime<chrono::FixedOffset>,
 }
 use crate::client::async_::GenericClient;
 use futures::{self, StreamExt, TryStreamExt};
 pub struct GetQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
     client: &'c C,
     params: [&'a (dyn postgres_types::ToSql + Sync); N],
-    stmt: &'s mut crate::client::async_::Stmt,
+    query: &'static str,
+    cached: Option<&'s tokio_postgres::Statement>,
     extractor: fn(&tokio_postgres::Row) -> Result<Get, tokio_postgres::Error>,
     mapper: fn(Get) -> T,
 }
@@ -28,25 +29,24 @@ where
         GetQuery {
             client: self.client,
             params: self.params,
-            stmt: self.stmt,
+            query: self.query,
+            cached: self.cached,
             extractor: self.extractor,
             mapper,
         }
     }
     pub async fn one(self) -> Result<T, tokio_postgres::Error> {
-        let stmt = self.stmt.prepare(self.client).await?;
-        let row = self.client.query_one(stmt, &self.params).await?;
+        let row =
+            crate::client::async_::one(self.client, self.query, &self.params, self.cached).await?;
         Ok((self.mapper)((self.extractor)(&row)?))
     }
     pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
         self.iter().await?.try_collect().await
     }
     pub async fn opt(self) -> Result<Option<T>, tokio_postgres::Error> {
-        let stmt = self.stmt.prepare(self.client).await?;
-        Ok(self
-            .client
-            .query_opt(stmt, &self.params)
-            .await?
+        let opt_row =
+            crate::client::async_::opt(self.client, self.query, &self.params, self.cached).await?;
+        Ok(opt_row
             .map(|row| {
                 let extracted = (self.extractor)(&row)?;
                 Ok((self.mapper)(extracted))
@@ -59,11 +59,14 @@ where
         impl futures::Stream<Item = Result<T, tokio_postgres::Error>> + use<'c, C, T, N>,
         tokio_postgres::Error,
     > {
-        let stmt = self.stmt.prepare(self.client).await?;
-        let it = self
-            .client
-            .query_raw(stmt, crate::slice_iter(&self.params))
-            .await?
+        let stream = crate::client::async_::raw(
+            self.client,
+            self.query,
+            crate::slice_iter(&self.params),
+            self.cached,
+        )
+        .await?;
+        let mapped = stream
             .map(move |res| {
                 res.and_then(|row| {
                     let extracted = (self.extractor)(&row)?;
@@ -71,25 +74,34 @@ where
                 })
             })
             .into_stream();
-        Ok(it)
+        Ok(mapped)
     }
 }
+pub struct GetStmt(&'static str, Option<tokio_postgres::Statement>);
 pub fn get() -> GetStmt {
-    GetStmt(crate::client::async_::Stmt::new(
+    GetStmt(
         "select hearts, last_refill from hearts where user_id=$1",
-    ))
+        None,
+    )
 }
-pub struct GetStmt(crate::client::async_::Stmt);
 impl GetStmt {
+    pub async fn prepare<'a, C: GenericClient>(
+        mut self,
+        client: &'a C,
+    ) -> Result<Self, tokio_postgres::Error> {
+        self.1 = Some(client.prepare(self.0).await?);
+        Ok(self)
+    }
     pub fn bind<'c, 'a, 's, C: GenericClient>(
-        &'s mut self,
+        &'s self,
         client: &'c C,
         user_id: &'a uuid::Uuid,
     ) -> GetQuery<'c, 'a, 's, C, Get, 1> {
         GetQuery {
             client,
             params: [user_id],
-            stmt: &mut self.0,
+            query: self.0,
+            cached: self.1.as_ref(),
             extractor: |row: &tokio_postgres::Row| -> Result<Get, tokio_postgres::Error> {
                 Ok(Get {
                     hearts: row.try_get(0)?,
@@ -100,22 +112,31 @@ impl GetStmt {
         }
     }
 }
+pub struct SetStmt(&'static str, Option<tokio_postgres::Statement>);
 pub fn set() -> SetStmt {
-    SetStmt(crate::client::async_::Stmt::new(
+    SetStmt(
         "insert into hearts (user_id, hearts, last_refill) values ($1, $2, $3) on conflict (user_id) do update set hearts=$2, last_refill=$3",
-    ))
+        None,
+    )
 }
-pub struct SetStmt(crate::client::async_::Stmt);
 impl SetStmt {
+    pub async fn prepare<'a, C: GenericClient>(
+        mut self,
+        client: &'a C,
+    ) -> Result<Self, tokio_postgres::Error> {
+        self.1 = Some(client.prepare(self.0).await?);
+        Ok(self)
+    }
     pub async fn bind<'c, 'a, 's, C: GenericClient>(
-        &'s mut self,
+        &'s self,
         client: &'c C,
         user_id: &'a uuid::Uuid,
         hearts: &'a i64,
-        last_refill: &'a crate::types::time::TimestampTz,
+        last_refill: &'a chrono::DateTime<chrono::FixedOffset>,
     ) -> Result<u64, tokio_postgres::Error> {
-        let stmt = self.0.prepare(client).await?;
-        client.execute(stmt, &[user_id, hearts, last_refill]).await
+        client
+            .execute(self.0, &[user_id, hearts, last_refill])
+            .await
     }
 }
 impl<'a, C: GenericClient + Send + Sync>
@@ -131,7 +152,7 @@ impl<'a, C: GenericClient + Send + Sync>
     > for SetStmt
 {
     fn params(
-        &'a mut self,
+        &'a self,
         client: &'a C,
         params: &'a SetParams,
     ) -> std::pin::Pin<

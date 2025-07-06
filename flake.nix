@@ -1,6 +1,7 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs-clorinde.url = "github:NixOS/nixpkgs/pull/422700/merge";
     fenix.url = "github:nix-community/fenix";
     devenv = {
       url = "github:cachix/devenv";
@@ -28,7 +29,14 @@
         "aarch64-darwin"
       ];
 
-      importNixpkgs = system: import nixpkgs { inherit system; };
+      importNixpkgs =
+        system:
+        import nixpkgs {
+          inherit system;
+          overlays = [
+            (final: prev: { inherit (inputs.nixpkgs-clorinde.legacyPackages.${system}) clorinde; })
+          ];
+        };
 
       mkDevShell =
         {
@@ -96,7 +104,15 @@
     };
 
   nixConfig = {
-    extra-substituters = "https://cache.bootstrap.academy/academy";
-    extra-trusted-public-keys = "academy:JU67oyd32Kzh7XFkUD/rZ6I3wVT8xMtgghwBvEINGus=";
+    extra-substituters = [
+      "https://cache.bootstrap.academy/academy"
+      "https://nix-community.cachix.org"
+      "https://devenv.cachix.org"
+    ];
+    extra-trusted-public-keys = [
+      "academy:JU67oyd32Kzh7XFkUD/rZ6I3wVT8xMtgghwBvEINGus="
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw="
+    ];
   };
 }

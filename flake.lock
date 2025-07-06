@@ -209,6 +209,22 @@
         "type": "github"
       }
     },
+    "nixpkgs-clorinde": {
+      "locked": {
+        "lastModified": 1751729622,
+        "narHash": "sha256-P3tsE8FDAa7NTDLfrFqXe8iljqUTxNa85iavCArYOa8=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "2c551dedf81d07e3bf38ea0d6ce182379932262e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "pull/422700/merge",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "nixpkgs_2": {
       "locked": {
         "lastModified": 1751271578,
@@ -245,7 +261,8 @@
       "inputs": {
         "devenv": "devenv",
         "fenix": "fenix",
-        "nixpkgs": "nixpkgs_3"
+        "nixpkgs": "nixpkgs_3",
+        "nixpkgs-clorinde": "nixpkgs-clorinde"
       }
     },
     "rust-analyzer-src": {

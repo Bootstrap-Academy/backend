@@ -6002,9 +6002,9 @@ rec {
       };
       "config" = rec {
         crateName = "config";
-        version = "0.15.11";
+        version = "0.15.12";
         edition = "2018";
-        sha256 = "107glr9a6qwh8l8hy83yrg1lla95633fh62qs29fffswwqhawnjr";
+        sha256 = "1by22k119g0nvmchpyr50fpj9c6khz6vlahxf0m29z7qnhbfmblv";
         dependencies = [
           {
             name = "pathdiff";
@@ -6019,7 +6019,7 @@ rec {
             packageId = "toml";
             optional = true;
             usesDefaultFeatures = false;
-            features = [ "parse" ];
+            features = [ "parse" "serde" ];
           }
           {
             name = "winnow";
@@ -13517,14 +13517,15 @@ rec {
       };
       "serde_spanned" = rec {
         crateName = "serde_spanned";
-        version = "0.6.9";
+        version = "1.0.0";
         edition = "2021";
-        sha256 = "18vmxq6qfrm110caszxrzibjhy2s54n1g5w1bshxq9kjmz7y0hdz";
+        sha256 = "10rv91337k8x8zmfir4h8aiwmwgkq07gdv7h0jxhcwwgk10lqws0";
         dependencies = [
           {
             name = "serde";
             packageId = "serde";
             optional = true;
+            usesDefaultFeatures = false;
           }
         ];
         devDependencies = [
@@ -13534,9 +13535,12 @@ rec {
           }
         ];
         features = {
+          "alloc" = [ "serde?/alloc" ];
+          "default" = [ "std" "serde" ];
           "serde" = [ "dep:serde" ];
+          "std" = [ "alloc" "serde?/std" ];
         };
-        resolvedDefaultFeatures = [ "serde" ];
+        resolvedDefaultFeatures = [ "alloc" "serde" ];
       };
       "serde_urlencoded" = rec {
         crateName = "serde_urlencoded";
@@ -14847,30 +14851,41 @@ rec {
       };
       "toml" = rec {
         crateName = "toml";
-        version = "0.8.23";
+        version = "0.9.0";
         edition = "2021";
-        sha256 = "0qnkrq4lm2sdhp3l6cb6f26i8zbnhqb7mhbmksd550wxdfcyn6yw";
+        sha256 = "1y7qad1jq6h5x7k5s279fynmj1byay47x9k004jm5arrvsdy0wgj";
         dependencies = [
           {
             name = "serde";
             packageId = "serde";
+            optional = true;
+            usesDefaultFeatures = false;
+            features = [ "alloc" ];
           }
           {
             name = "serde_spanned";
             packageId = "serde_spanned";
-            features = [ "serde" ];
+            usesDefaultFeatures = false;
+            features = [ "alloc" ];
           }
           {
             name = "toml_datetime";
-            packageId = "toml_datetime";
-            features = [ "serde" ];
+            packageId = "toml_datetime 0.7.0";
+            usesDefaultFeatures = false;
+            features = [ "alloc" ];
           }
           {
-            name = "toml_edit";
-            packageId = "toml_edit";
+            name = "toml_parser";
+            packageId = "toml_parser";
             optional = true;
             usesDefaultFeatures = false;
-            features = [ "serde" ];
+            features = [ "alloc" ];
+          }
+          {
+            name = "winnow";
+            packageId = "winnow";
+            optional = true;
+            usesDefaultFeatures = false;
           }
         ];
         devDependencies = [
@@ -14881,31 +14896,46 @@ rec {
           }
         ];
         features = {
-          "default" = [ "parse" "display" ];
-          "display" = [ "dep:toml_edit" "toml_edit?/display" ];
-          "indexmap" = [ "dep:indexmap" ];
-          "parse" = [ "dep:toml_edit" "toml_edit?/parse" ];
-          "preserve_order" = [ "indexmap" ];
-          "unbounded" = [ "toml_edit?/unbounded" ];
+          "debug" = [ "std" "toml_parser?/debug" "dep:anstream" "dep:anstyle" ];
+          "default" = [ "std" "serde" "parse" "display" ];
+          "display" = [ "dep:toml_writer" ];
+          "fast_hash" = [ "preserve_order" "dep:foldhash" ];
+          "parse" = [ "dep:toml_parser" "dep:winnow" ];
+          "preserve_order" = [ "dep:indexmap" "std" ];
+          "serde" = [ "dep:serde" "toml_datetime/serde" "serde_spanned/serde" ];
+          "std" = [ "indexmap?/std" "serde?/std" "toml_parser?/std" "toml_writer?/std" "toml_datetime/std" "serde_spanned/std" ];
         };
-        resolvedDefaultFeatures = [ "parse" ];
+        resolvedDefaultFeatures = [ "parse" "serde" ];
       };
-      "toml_datetime" = rec {
+      "toml_datetime 0.6.11" = rec {
         crateName = "toml_datetime";
         version = "0.6.11";
         edition = "2021";
         sha256 = "077ix2hb1dcya49hmi1avalwbixmrs75zgzb3b2i7g2gizwdmk92";
+        features = {
+          "serde" = [ "dep:serde" ];
+        };
+      };
+      "toml_datetime 0.7.0" = rec {
+        crateName = "toml_datetime";
+        version = "0.7.0";
+        edition = "2021";
+        sha256 = "1qwivxqkjxxwcqsvfhxnphpwphci0grdfk197wyxfn1gj0z1rpms";
         dependencies = [
           {
             name = "serde";
             packageId = "serde";
             optional = true;
+            usesDefaultFeatures = false;
           }
         ];
         features = {
+          "alloc" = [ "serde?/alloc" ];
+          "default" = [ "std" ];
           "serde" = [ "dep:serde" ];
+          "std" = [ "alloc" "serde?/std" ];
         };
-        resolvedDefaultFeatures = [ "serde" ];
+        resolvedDefaultFeatures = [ "alloc" "serde" ];
       };
       "toml_edit" = rec {
         crateName = "toml_edit";
@@ -14919,31 +14949,13 @@ rec {
             features = [ "std" ];
           }
           {
-            name = "serde";
-            packageId = "serde";
-            optional = true;
-          }
-          {
-            name = "serde_spanned";
-            packageId = "serde_spanned";
-            optional = true;
-            features = [ "serde" ];
-          }
-          {
             name = "toml_datetime";
-            packageId = "toml_datetime";
+            packageId = "toml_datetime 0.6.11";
           }
           {
             name = "winnow";
             packageId = "winnow";
             optional = true;
-          }
-        ];
-        devDependencies = [
-          {
-            name = "serde";
-            packageId = "serde";
-            features = [ "derive" ];
           }
         ];
         features = {
@@ -14954,7 +14966,27 @@ rec {
           "serde" = [ "dep:serde" "toml_datetime/serde" "dep:serde_spanned" ];
           "unstable-debug" = [ "winnow?/debug" ];
         };
-        resolvedDefaultFeatures = [ "parse" "serde" ];
+        resolvedDefaultFeatures = [ "parse" ];
+      };
+      "toml_parser" = rec {
+        crateName = "toml_parser";
+        version = "1.0.0";
+        edition = "2021";
+        sha256 = "0gi99mki0qfw3ic004nhsvhgyscsjsjmd08d4g94k5x8xmlw9hdm";
+        dependencies = [
+          {
+            name = "winnow";
+            packageId = "winnow";
+            usesDefaultFeatures = false;
+          }
+        ];
+        features = {
+          "debug" = [ "std" "dep:anstream" "dep:anstyle" ];
+          "default" = [ "std" ];
+          "simd" = [ "winnow/simd" ];
+          "std" = [ "alloc" ];
+        };
+        resolvedDefaultFeatures = [ "alloc" ];
       };
       "totp-rs" = rec {
         crateName = "totp-rs";

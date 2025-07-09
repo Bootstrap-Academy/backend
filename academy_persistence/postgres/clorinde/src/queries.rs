@@ -1,6 +1,7 @@
 // This file was generated with `clorinde`. Do not modify.
 
 pub mod coin;
+pub mod course;
 pub mod heart;
 pub mod mfa;
 pub mod oauth2;

@@ -12,3 +12,4 @@ workspace = true
 [dependencies]
 academy_models.workspace = true
 anyhow.workspace = true
+thiserror.workspace = true

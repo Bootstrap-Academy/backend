@@ -6,8 +6,8 @@ use academy_email_contracts::{
 };
 use academy_models::email_address::EmailAddressWithName;
 use academy_templates_contracts::{
-    PurchaseConfirmationTemplate, ResetPasswordTemplate, SubscribeNewsletterTemplate, Template,
-    TemplateService, VerifyEmailTemplate,
+    CoursePurchaseConfirmationTemplate, PurchaseConfirmationTemplate, ResetPasswordTemplate,
+    SubscribeNewsletterTemplate, Template, TemplateService, VerifyEmailTemplate,
 };
 use academy_utils::trace_instrument;
 
@@ -97,6 +97,21 @@ where
             data,
             "Kaufbestätigung - Bootstrap Academy",
             vec![invoice, terms, revocation_policy],
+        )
+        .await
+    }
+
+    #[trace_instrument(skip(self))]
+    async fn send_course_purchase_confirmation_email(
+        &self,
+        recipient: EmailAddressWithName,
+        data: &CoursePurchaseConfirmationTemplate,
+    ) -> anyhow::Result<bool> {
+        self.send_email(
+            recipient,
+            data,
+            "Kaufbestätigung - Bootstrap Academy",
+            Vec::new(),
         )
         .await
     }

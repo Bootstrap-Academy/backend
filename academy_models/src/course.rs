@@ -1,8 +1,18 @@
 use std::time::Duration;
 
+use academy_utils::patch::Patch;
 use chrono::{DateTime, Utc};
 
-use crate::{SearchTerm, nutype_string, url::Url};
+use crate::{SearchTerm, nutype_string, url::Url, user::UserId};
+
+#[derive(Debug, Clone, PartialEq, Eq, Patch)]
+pub struct CourseUser {
+    #[no_patch]
+    pub course_id: CourseId,
+    #[no_patch]
+    pub user_id: UserId,
+    pub purchased: bool,
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CourseBase {

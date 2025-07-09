@@ -57,6 +57,7 @@ templates! {
     SubscribeNewsletterTemplate(templates::SUBSCRIBE_NEWSLETTER_HTML),
     PurchaseConfirmationTemplate(templates::PURCHASE_CONFIRMATION_HTML),
     InvoiceTemplate(templates::INVOICE_HTML),
+    CoursePurchaseConfirmationTemplate(templates::COURSE_PURCHASE_CONFIRMATION_HTML),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -97,6 +98,11 @@ pub struct PurchaseConfirmationTemplate {
     pub vat_total: Decimal,
     #[serde(serialize_with = "rounded_2")]
     pub gross_total: Decimal,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct CoursePurchaseConfirmationTemplate {
+    pub title: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]

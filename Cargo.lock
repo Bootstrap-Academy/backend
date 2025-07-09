@@ -254,17 +254,23 @@ version = "0.0.0"
 dependencies = [
  "academy_models",
  "anyhow",
+ "thiserror 2.0.12",
 ]
 
 [[package]]
 name = "academy_core_course_impl"
 version = "0.0.0"
 dependencies = [
+ "academy_auth_contracts",
+ "academy_core_coin_contracts",
  "academy_core_course_contracts",
  "academy_data",
  "academy_demo",
  "academy_di",
+ "academy_email_contracts",
  "academy_models",
+ "academy_persistence_contracts",
+ "academy_templates_contracts",
  "academy_utils",
  "anyhow",
  "tokio",

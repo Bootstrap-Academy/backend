@@ -43,10 +43,10 @@ use academy_extern_impl::{
     render::RenderApiServiceImpl, vat::VatApiServiceImpl,
 };
 use academy_persistence_postgres::{
-    PostgresDatabase, coin::PostgresCoinRepository, heart::PostgresHeartRepository,
-    mfa::PostgresMfaRepository, oauth2::PostgresOAuth2Repository, paypal::PostgresPaypalRepository,
-    premium::PostgresPremiumRepository, session::PostgresSessionRepository,
-    user::PostgresUserRepository,
+    PostgresDatabase, coin::PostgresCoinRepository, course::PostgresCourseRepository,
+    heart::PostgresHeartRepository, mfa::PostgresMfaRepository, oauth2::PostgresOAuth2Repository,
+    paypal::PostgresPaypalRepository, premium::PostgresPremiumRepository,
+    session::PostgresSessionRepository, user::PostgresUserRepository,
 };
 use academy_shared_impl::{
     captcha::CaptchaServiceImpl, fs::FsServiceImpl, hash::HashServiceImpl, id::IdServiceImpl,
@@ -113,6 +113,7 @@ pub type CoinRepo = PostgresCoinRepository;
 pub type PaypalRepo = PostgresPaypalRepository;
 pub type HeartRepo = PostgresHeartRepository;
 pub type PremiumRepo = PostgresPremiumRepository;
+pub type CourseRepo = PostgresCourseRepository;
 
 // Auth
 pub type Auth =
@@ -233,6 +234,7 @@ pub type PremiumPlan = PremiumPlanServiceImpl;
 pub type Premium = PremiumServiceImpl<Time, PremiumPurchase, PremiumRepo>;
 pub type PremiumPurchase = PremiumPurchaseServiceImpl<Id, Time, Coin, PremiumPlan, PremiumRepo>;
 
-pub type CourseFeature = CourseFeatureServiceImpl;
+pub type CourseFeature =
+    CourseFeatureServiceImpl<Database, Auth, Coin, TemplateEmail, UserRepo, CourseRepo>;
 
 pub type Internal = InternalServiceImpl<Database, AuthInternal, UserRepo, Coin, Heart, Premium>;

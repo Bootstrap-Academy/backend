@@ -1660,6 +1660,11 @@ rec {
             usesDefaultFeatures = false;
             features = [ "std" ];
           }
+          {
+            name = "thiserror";
+            packageId = "thiserror 2.0.12";
+            usesDefaultFeatures = false;
+          }
         ];
 
       };
@@ -1669,6 +1674,14 @@ rec {
         edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/course/impl; };
         dependencies = [
+          {
+            name = "academy_auth_contracts";
+            packageId = "academy_auth_contracts";
+          }
+          {
+            name = "academy_core_coin_contracts";
+            packageId = "academy_core_coin_contracts";
+          }
           {
             name = "academy_core_course_contracts";
             packageId = "academy_core_course_contracts";
@@ -1682,8 +1695,20 @@ rec {
             packageId = "academy_di";
           }
           {
+            name = "academy_email_contracts";
+            packageId = "academy_email_contracts";
+          }
+          {
             name = "academy_models";
             packageId = "academy_models";
+          }
+          {
+            name = "academy_persistence_contracts";
+            packageId = "academy_persistence_contracts";
+          }
+          {
+            name = "academy_templates_contracts";
+            packageId = "academy_templates_contracts";
           }
           {
             name = "academy_utils";
@@ -1704,8 +1729,28 @@ rec {
         ];
         devDependencies = [
           {
+            name = "academy_auth_contracts";
+            packageId = "academy_auth_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_core_coin_contracts";
+            packageId = "academy_core_coin_contracts";
+            features = [ "mock" ];
+          }
+          {
             name = "academy_demo";
             packageId = "academy_demo";
+          }
+          {
+            name = "academy_email_contracts";
+            packageId = "academy_email_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_persistence_contracts";
+            packageId = "academy_persistence_contracts";
+            features = [ "mock" ];
           }
           {
             name = "tokio";

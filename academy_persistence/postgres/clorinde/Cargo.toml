@@ -8,7 +8,7 @@ repository.workspace = true
 
 [dependencies]
 chrono.workspace = true
-fallible-iterator = "0.2.0"
+fallible-iterator = "0.3.0"
 futures.workspace = true
 postgres = "0.19.10"
 postgres-protocol = "0.6.8"

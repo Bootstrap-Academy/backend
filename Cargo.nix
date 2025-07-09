@@ -5883,7 +5883,7 @@ rec {
           }
           {
             name = "fallible-iterator";
-            packageId = "fallible-iterator";
+            packageId = "fallible-iterator 0.3.0";
           }
           {
             name = "futures";
@@ -6617,7 +6617,7 @@ rec {
         };
         resolvedDefaultFeatures = [ "std" ];
       };
-      "fallible-iterator" = rec {
+      "fallible-iterator 0.2.0" = rec {
         crateName = "fallible-iterator";
         version = "0.2.0";
         edition = "2018";
@@ -6630,6 +6630,21 @@ rec {
           "default" = [ "std" ];
         };
         resolvedDefaultFeatures = [ "default" "std" ];
+      };
+      "fallible-iterator 0.3.0" = rec {
+        crateName = "fallible-iterator";
+        version = "0.3.0";
+        edition = "2018";
+        sha256 = "0ja6l56yka5vn4y4pk6hn88z0bpny7a8k1919aqjzp0j1yhy9k1a";
+        libName = "fallible_iterator";
+        authors = [
+          "Steven Fackler <sfackler@gmail.com>"
+        ];
+        features = {
+          "default" = [ "alloc" ];
+          "std" = [ "alloc" ];
+        };
+        resolvedDefaultFeatures = [ "alloc" "default" ];
       };
       "fastrand" = rec {
         crateName = "fastrand";
@@ -10326,7 +10341,7 @@ rec {
           }
           {
             name = "fallible-iterator";
-            packageId = "fallible-iterator";
+            packageId = "fallible-iterator 0.2.0";
           }
           {
             name = "futures-util";
@@ -10420,7 +10435,7 @@ rec {
           }
           {
             name = "fallible-iterator";
-            packageId = "fallible-iterator";
+            packageId = "fallible-iterator 0.2.0";
           }
           {
             name = "hmac";
@@ -10477,7 +10492,7 @@ rec {
           }
           {
             name = "fallible-iterator";
-            packageId = "fallible-iterator";
+            packageId = "fallible-iterator 0.2.0";
           }
           {
             name = "postgres-derive";
@@ -14667,7 +14682,7 @@ rec {
           }
           {
             name = "fallible-iterator";
-            packageId = "fallible-iterator";
+            packageId = "fallible-iterator 0.2.0";
           }
           {
             name = "futures-channel";

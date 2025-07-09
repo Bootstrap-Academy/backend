@@ -23,6 +23,7 @@ use academy_shared_impl::{
     jwt::JwtServiceConfig,
     totp::TotpServiceConfig,
 };
+use anyhow::Context;
 use types::{Cache, Database, Email};
 
 pub mod types;
@@ -74,6 +75,22 @@ impl Provider {
             email,
             config,
         }
+    }
+
+    pub async fn from_config(config: &Config) -> anyhow::Result<Self> {
+        let config_provider =
+            ConfigProvider::new(config).context("Failed to build config provider")?;
+        let database = crate::database::connect(&config.database)
+            .await
+            .context("Failed to connect to database")?;
+        let cache = crate::cache::connect(&config.cache)
+            .await
+            .context("Failed to connect to cache")?;
+        let email = crate::email::connect(&config.email)
+            .await
+            .context("Failed to connect to email server")?;
+
+        Ok(Self::new(config_provider, database, cache, email))
     }
 }
 

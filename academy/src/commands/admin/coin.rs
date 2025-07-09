@@ -5,10 +5,7 @@ use academy_persistence_contracts::{Database, Transaction};
 use clap::Subcommand;
 use uuid::Uuid;
 
-use crate::{
-    cache, database, email,
-    environment::{ConfigProvider, Provider, types},
-};
+use crate::environment::{Provider, types};
 
 #[derive(Debug, Subcommand)]
 pub enum AdminCoinCommand {
@@ -62,11 +59,7 @@ async fn add(
     description: Option<String>,
     no_credit_note: bool,
 ) -> anyhow::Result<()> {
-    let database = database::connect(&config.database).await?;
-    let cache = cache::connect(&config.cache).await?;
-    let email_service = email::connect(&config.email).await?;
-    let config_provider = ConfigProvider::new(&config)?;
-    let mut provider = Provider::new(config_provider, database, cache, email_service);
+    let mut provider = Provider::from_config(&config).await?;
 
     let db: types::Database = provider.provide();
     let mut txn = db.begin_transaction().await?;

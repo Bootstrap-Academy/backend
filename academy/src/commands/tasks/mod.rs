@@ -11,8 +11,8 @@ use clap::Subcommand;
 use tracing::info;
 
 use crate::{
-    cache, database, email,
-    environment::{ConfigProvider, Provider, types},
+    database,
+    environment::{Provider, types},
 };
 
 #[derive(Debug, Subcommand)]
@@ -50,11 +50,7 @@ async fn prune_database(config: Config) -> anyhow::Result<()> {
 }
 
 async fn refresh_premium(config: Config) -> anyhow::Result<()> {
-    let database = database::connect(&config.database).await?;
-    let cache = cache::connect(&config.cache).await?;
-    let email_service = email::connect(&config.email).await?;
-    let config_provider = ConfigProvider::new(&config)?;
-    let mut provider = Provider::new(config_provider, database, cache, email_service);
+    let mut provider = Provider::from_config(&config).await?;
 
     let db: types::Database = provider.provide();
     let mut txn = db.begin_transaction().await?;

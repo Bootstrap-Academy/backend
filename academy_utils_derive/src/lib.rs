@@ -235,7 +235,18 @@ pub fn derive_patch(input: TokenStream) -> TokenStream {
 
 #[proc_macro_attribute]
 pub fn trace_instrument(meta: TokenStream, input: TokenStream) -> TokenStream {
-    let meta = proc_macro2::TokenStream::from(meta);
+    let mut meta_iter = proc_macro2::TokenStream::from(meta).into_iter();
+    let mut meta = proc_macro2::TokenStream::new();
+    let ret = match meta_iter.next() {
+        Some(proc_macro2::TokenTree::Ident(i)) if i == "no_ret" => false,
+        Some(t) => {
+            meta.extend([t]);
+            true
+        }
+        None => true,
+    };
+    meta.extend(meta_iter);
+
     let ItemFn {
         attrs,
         vis,
@@ -243,8 +254,10 @@ pub fn trace_instrument(meta: TokenStream, input: TokenStream) -> TokenStream {
         block,
     } = parse_macro_input!(input as ItemFn);
 
+    let ret = ret.then(|| quote! { ret(level = "trace") });
+
     quote! {
-        #[::tracing::instrument(ret(level = "trace"), #meta)]
+        #[::tracing::instrument(#ret, #meta)]
         #(#attrs)*
         #vis #sig {
             ::tracing::trace!("call");

@@ -55,6 +55,8 @@ in
       sed -i -E '/^#\[cfg\(feature = "deadpool"\)\]$/d' clorinde/src/client/async_.rs
       sed -i -E '/^mod deadpool;$/d' clorinde/src/client/async_.rs
       rm clorinde/src/client/async_/deadpool.rs
+
+      sed -i -E 's/^use fallible_iterator\b/use postgres::fallible_iterator/' clorinde/src/array_iterator.rs
     '';
 
   update-swagger-ui =

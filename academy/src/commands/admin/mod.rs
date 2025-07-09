@@ -4,8 +4,11 @@ use coin::AdminCoinCommand;
 use invoice::AdminInvoiceCommand;
 use user::AdminUserCommand;
 
+use crate::commands::admin::session::AdminSessionCommand;
+
 mod coin;
 mod invoice;
+mod session;
 mod user;
 
 #[derive(Debug, Subcommand)]
@@ -15,6 +18,12 @@ pub enum AdminCommand {
     User {
         #[command(subcommand)]
         command: AdminUserCommand,
+    },
+    /// Manage sessions
+    #[command(aliases(["s"]))]
+    Session {
+        #[command(subcommand)]
+        command: AdminSessionCommand,
     },
     /// Manage invoices
     #[command(aliases(["i"]))]
@@ -34,6 +43,7 @@ impl AdminCommand {
     pub async fn invoke(self, config: Config) -> anyhow::Result<()> {
         match self {
             AdminCommand::User { command } => command.invoke(config).await,
+            AdminCommand::Session { command } => command.invoke(config).await,
             AdminCommand::Invoice { command } => command.invoke(config).await,
             AdminCommand::Coin { command } => command.invoke(config).await,
         }

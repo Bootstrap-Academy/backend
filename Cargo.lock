@@ -25,6 +25,7 @@ dependencies = [
  "academy_core_paypal_impl",
  "academy_core_premium_contracts",
  "academy_core_premium_impl",
+ "academy_core_session_contracts",
  "academy_core_session_impl",
  "academy_core_user_contracts",
  "academy_core_user_impl",

@@ -683,6 +683,10 @@ rec {
             packageId = "academy_core_premium_impl";
           }
           {
+            name = "academy_core_session_contracts";
+            packageId = "academy_core_session_contracts";
+          }
+          {
             name = "academy_core_session_impl";
             packageId = "academy_core_session_impl";
           }

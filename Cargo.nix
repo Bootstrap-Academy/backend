@@ -6254,9 +6254,9 @@ rec {
       };
       "darling" = rec {
         crateName = "darling";
-        version = "0.20.11";
+        version = "0.21.0";
         edition = "2021";
-        sha256 = "1vmlphlrlw4f50z16p4bc9p5qwdni1ba95qmxfrrmzs6dh8lczzw";
+        sha256 = "1s9gagl4z88r9gi978vjs692wkf567h7ck5y0j9kvynm3z5lm757";
         authors = [
           "Ted Driggs <ted.driggs@outlook.com>"
         ];
@@ -6273,15 +6273,16 @@ rec {
         features = {
           "default" = [ "suggestions" ];
           "diagnostics" = [ "darling_core/diagnostics" ];
+          "serde" = [ "darling_core/serde" ];
           "suggestions" = [ "darling_core/suggestions" ];
         };
         resolvedDefaultFeatures = [ "suggestions" ];
       };
       "darling_core" = rec {
         crateName = "darling_core";
-        version = "0.20.11";
+        version = "0.21.0";
         edition = "2021";
-        sha256 = "0bj1af6xl4ablnqbgn827m43b8fiicgv180749f5cphqdmcvj00d";
+        sha256 = "07bagpvji6vrqqj4i4jcxjm0709n9m6vh44rc1cync5g1plmv1vl";
         authors = [
           "Ted Driggs <ted.driggs@outlook.com>"
         ];
@@ -6314,6 +6315,7 @@ rec {
           }
         ];
         features = {
+          "serde" = [ "dep:serde" ];
           "strsim" = [ "dep:strsim" ];
           "suggestions" = [ "strsim" ];
         };
@@ -6321,9 +6323,9 @@ rec {
       };
       "darling_macro" = rec {
         crateName = "darling_macro";
-        version = "0.20.11";
+        version = "0.21.0";
         edition = "2021";
-        sha256 = "1bbfbc2px6sj1pqqq97bgqn6c8xdnb2fmz66f7f40nrqrcybjd7w";
+        sha256 = "0im1qx22wqiypkp5byx3vrf22jznwpw6alnqghbgjpbxcxhqx7z7";
         procMacro = true;
         authors = [
           "Ted Driggs <ted.driggs@outlook.com>"

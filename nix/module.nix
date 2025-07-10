@@ -158,6 +158,7 @@ in
               User = "academy";
               Group = "academy";
               StateDirectory = "academy";
+              Restart = "always";
             };
 
             environment = {
@@ -220,6 +221,10 @@ in
               script = ''
                 ${lib.getExe cfg.package} task ${task}
               '';
+              serviceConfig = baseConfig.serviceConfig // {
+                Type = "oneshot";
+                Restart = "on-failure";
+              };
             };
           }
         ) cfg.tasks);

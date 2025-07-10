@@ -161,14 +161,6 @@ let
         '';
       };
 
-      systemd.services."test-set-date" = {
-        wantedBy = [ "academy-backend.service" ];
-        before = [ "academy-backend.service" ];
-        script = ''
-          ${lib.getExe' pkgs.coreutils "date"} -s 2024-01-01T06:00:00Z
-        '';
-      };
-
       services.postfix = {
         enable = true;
         virtual = "/.*/ root";
@@ -183,6 +175,8 @@ let
           jwt.secret = "changeme"
         '';
       };
+
+      virtualisation.qemu.options = [ "-rtc base=2024-01-01T06:00:00" ];
     };
 
   interactiveModule = {

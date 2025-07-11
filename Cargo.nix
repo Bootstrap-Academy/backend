@@ -7907,9 +7907,9 @@ rec {
       };
       "hyper-util" = rec {
         crateName = "hyper-util";
-        version = "0.1.14";
+        version = "0.1.15";
         edition = "2021";
-        sha256 = "1nqvf5azmv8p7hs5ghjlbgfya7xaafq377vppdazxbq8zzdxybyw";
+        sha256 = "1pyi2h8idwyadljs95gpihjvkfkmcxi5vn7s882vy0kg9jyxarkz";
         libName = "hyper_util";
         authors = [
           "Sean McArthur <sean@seanmonstar.com>"
@@ -8022,7 +8022,7 @@ rec {
           "client-legacy" = [ "client" "dep:socket2" "tokio/sync" "dep:libc" "dep:futures-util" ];
           "client-proxy" = [ "client" "dep:base64" "dep:ipnet" "dep:percent-encoding" ];
           "client-proxy-system" = [ "dep:system-configuration" "dep:windows-registry" ];
-          "full" = [ "client" "client-legacy" "server" "server-auto" "server-graceful" "service" "http1" "http2" "tokio" "tracing" ];
+          "full" = [ "client" "client-legacy" "client-proxy" "client-proxy-system" "server" "server-auto" "server-graceful" "service" "http1" "http2" "tokio" "tracing" ];
           "http1" = [ "hyper/http1" ];
           "http2" = [ "hyper/http2" ];
           "server" = [ "hyper/server" ];
@@ -10259,9 +10259,9 @@ rec {
       };
       "plist" = rec {
         crateName = "plist";
-        version = "1.7.2";
+        version = "1.7.4";
         edition = "2021";
-        sha256 = "1vaq384l8hj6w04pr0gxzc6jm6wcbccqcpx1ys2cv16mw9628xrx";
+        sha256 = "1qg7zkvnm4r4n9s9hbwwjnwznvkg6v0f035hza4agib3w64vbxis";
         authors = [
           "Ed Barnard <eabarnard@gmail.com>"
         ];
@@ -10820,9 +10820,9 @@ rec {
       };
       "quick-xml" = rec {
         crateName = "quick-xml";
-        version = "0.37.5";
+        version = "0.38.0";
         edition = "2021";
-        sha256 = "1yxpd7rc2qn6f4agfj47ps2z89vv7lvzxpzawqirix8bmyhrf7ik";
+        sha256 = "06vvgd9arm1nrsd4d0ii6lhnp6m11bwy7drqa4k9hnjw9xkb09w9";
         libName = "quick_xml";
         dependencies = [
           {
@@ -12530,9 +12530,9 @@ rec {
       };
       "rustls" = rec {
         crateName = "rustls";
-        version = "0.23.28";
+        version = "0.23.29";
         edition = "2021";
-        sha256 = "0hv6sk3r60vw11in2p8phpjd132684b4wg3zac456lzl1ghy6q3i";
+        sha256 = "1lcvzvzqk8xx8jzg0x5v3mkqgwkwr7v6zdq8zw8rp6xj74h3i494";
         dependencies = [
           {
             name = "log";
@@ -12646,9 +12646,9 @@ rec {
       };
       "rustls-webpki" = rec {
         crateName = "rustls-webpki";
-        version = "0.103.3";
+        version = "0.103.4";
         edition = "2021";
-        sha256 = "0ddl9qxx94iyichk05r7l30d9dxfd35ybffhsxpsr9pppki2z9z4";
+        sha256 = "1z4jmmgasjgk9glb160a66bshvgifa64mgfjrkqp7dy1w158h5qa";
         libName = "webpki";
         dependencies = [
           {
@@ -12672,6 +12672,7 @@ rec {
           "alloc" = [ "ring?/alloc" "pki-types/alloc" ];
           "aws-lc-rs" = [ "dep:aws-lc-rs" "aws-lc-rs/aws-lc-sys" "aws-lc-rs/prebuilt-nasm" ];
           "aws-lc-rs-fips" = [ "dep:aws-lc-rs" "aws-lc-rs/fips" ];
+          "aws-lc-rs-unstable" = [ "aws-lc-rs" "aws-lc-rs/unstable" ];
           "default" = [ "std" ];
           "ring" = [ "dep:ring" ];
           "std" = [ "alloc" "pki-types/std" ];
@@ -14853,9 +14854,9 @@ rec {
       };
       "toml" = rec {
         crateName = "toml";
-        version = "0.9.0";
+        version = "0.9.1";
         edition = "2021";
-        sha256 = "1y7qad1jq6h5x7k5s279fynmj1byay47x9k004jm5arrvsdy0wgj";
+        sha256 = "19c5v7zrl7hk8c35v6lnpz9310yb39i63v7vq4ja3hjj33nxc1q2";
         dependencies = [
           {
             name = "serde";

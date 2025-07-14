@@ -7972,7 +7972,7 @@ rec {
           }
           {
             name = "socket2";
-            packageId = "socket2";
+            packageId = "socket2 0.5.10";
             optional = true;
             features = [ "all" ];
           }
@@ -8951,7 +8951,7 @@ rec {
           }
           {
             name = "socket2";
-            packageId = "socket2";
+            packageId = "socket2 0.5.10";
             optional = true;
           }
           {
@@ -10883,7 +10883,7 @@ rec {
           }
           {
             name = "socket2";
-            packageId = "socket2";
+            packageId = "socket2 0.5.10";
             target = { target, features }: (!((builtins.elem "wasm" target."family") && ("unknown" == target."os" or null)));
           }
           {
@@ -11057,7 +11057,7 @@ rec {
           }
           {
             name = "socket2";
-            packageId = "socket2";
+            packageId = "socket2 0.5.10";
             target = { target, features }: (!((builtins.elem "wasm" target."family") && ("unknown" == target."os" or null)));
           }
           {
@@ -11338,9 +11338,9 @@ rec {
       };
       "redis" = rec {
         crateName = "redis";
-        version = "0.32.3";
+        version = "0.32.4";
         edition = "2021";
-        sha256 = "0jjw4g55qzmwgxq04q44zbfcl2ssk5ck8w4shsiqj79maf66l3vz";
+        sha256 = "1q9ymzsfarwgprlbmgk7hlhavapvxw0hw7nzphiklwy9rbs6pxp1";
         dependencies = [
           {
             name = "bytes";
@@ -11388,7 +11388,7 @@ rec {
           }
           {
             name = "socket2";
-            packageId = "socket2";
+            packageId = "socket2 0.6.0";
             features = [ "all" ];
           }
           {
@@ -13792,7 +13792,7 @@ rec {
         };
         resolvedDefaultFeatures = [ "const_generics" "const_new" ];
       };
-      "socket2" = rec {
+      "socket2 0.5.10" = rec {
         crateName = "socket2";
         version = "0.5.10";
         edition = "2021";
@@ -13810,6 +13810,32 @@ rec {
           {
             name = "windows-sys";
             packageId = "windows-sys 0.52.0";
+            target = { target, features }: (target."windows" or false);
+            features = [ "Win32_Foundation" "Win32_Networking_WinSock" "Win32_System_IO" "Win32_System_Threading" "Win32_System_WindowsProgramming" ];
+          }
+        ];
+        features = {
+        };
+        resolvedDefaultFeatures = [ "all" ];
+      };
+      "socket2 0.6.0" = rec {
+        crateName = "socket2";
+        version = "0.6.0";
+        edition = "2021";
+        sha256 = "01qqdzfnr0bvdwq6wl56c9c4m2cvbxn43dfpcv8gjx208sph8d93";
+        authors = [
+          "Alex Crichton <alex@alexcrichton.com>"
+          "Thomas de Zeeuw <thomasdezeeuw@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "libc";
+            packageId = "libc";
+            target = { target, features }: (target."unix" or false);
+          }
+          {
+            name = "windows-sys";
+            packageId = "windows-sys 0.59.0";
             target = { target, features }: (target."windows" or false);
             features = [ "Win32_Foundation" "Win32_Networking_WinSock" "Win32_System_IO" "Win32_System_Threading" "Win32_System_WindowsProgramming" ];
           }
@@ -14559,7 +14585,7 @@ rec {
           }
           {
             name = "socket2";
-            packageId = "socket2";
+            packageId = "socket2 0.5.10";
             optional = true;
             target = { target, features }: (!(builtins.elem "wasm" target."family"));
             features = [ "all" ];
@@ -14584,7 +14610,7 @@ rec {
           }
           {
             name = "socket2";
-            packageId = "socket2";
+            packageId = "socket2 0.5.10";
             target = {target, features}: (!(builtins.elem "wasm" target."family"));
           }
           {
@@ -14712,7 +14738,7 @@ rec {
           }
           {
             name = "socket2";
-            packageId = "socket2";
+            packageId = "socket2 0.5.10";
             target = { target, features }: (!("wasm32" == target."arch" or null));
             features = [ "all" ];
           }
@@ -14854,9 +14880,9 @@ rec {
       };
       "toml" = rec {
         crateName = "toml";
-        version = "0.9.1";
+        version = "0.9.2";
         edition = "2021";
-        sha256 = "19c5v7zrl7hk8c35v6lnpz9310yb39i63v7vq4ja3hjj33nxc1q2";
+        sha256 = "1b0fcp0la720p82vcsv3lrkdgsz1lmhv02rfj2bi19rgq6bfw2pd";
         dependencies = [
           {
             name = "serde";
@@ -14973,9 +14999,9 @@ rec {
       };
       "toml_parser" = rec {
         crateName = "toml_parser";
-        version = "1.0.0";
+        version = "1.0.1";
         edition = "2021";
-        sha256 = "0gi99mki0qfw3ic004nhsvhgyscsjsjmd08d4g94k5x8xmlw9hdm";
+        sha256 = "0c6a77v4i8zll5dbpyr306iq02msjsr1fhd12b2p97h6vdr0a84p";
         dependencies = [
           {
             name = "winnow";
@@ -18182,9 +18208,9 @@ rec {
       };
       "winnow" = rec {
         crateName = "winnow";
-        version = "0.7.11";
+        version = "0.7.12";
         edition = "2021";
-        sha256 = "1kfb2m5ahpqg037a34rgkm18x6nj2mw4fwn89ya0gdw06ipb5ivl";
+        sha256 = "159y8inpy86xswmr4yig9hxss0v2fssyqy1kk12504n8jbsfpvgk";
         dependencies = [
           {
             name = "memchr";

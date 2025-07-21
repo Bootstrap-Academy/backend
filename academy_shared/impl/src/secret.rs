@@ -82,8 +82,6 @@ fn uppercase_digits() -> impl Distribution<char> {
 
 #[cfg(test)]
 mod tests {
-    use rand::rngs::mock::StepRng;
-
     use super::*;
 
     #[test]
@@ -145,8 +143,25 @@ mod tests {
     #[test]
     fn uppercase_digits() {
         // Arrange
+        struct Gen(u64, u64);
+        impl RngCore for Gen {
+            fn next_u32(&mut self) -> u32 {
+                self.next_u64() as _
+            }
+
+            fn next_u64(&mut self) -> u64 {
+                let res = self.0;
+                self.0 = self.0.wrapping_add(self.1);
+                res
+            }
+
+            fn fill_bytes(&mut self, dst: &mut [u8]) {
+                rand::rand_core::impls::fill_bytes_via_next(self, dst);
+            }
+        }
+
         let expected = ('0'..='9').chain('A'..='Z').collect::<String>();
-        let rng = StepRng::new(0, (1 << 32) / expected.len() as u64);
+        let rng = Gen(0, (1 << 32) / expected.len() as u64);
         let dist = super::uppercase_digits();
 
         // Act

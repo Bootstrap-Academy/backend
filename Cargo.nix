@@ -3733,7 +3733,7 @@ rec {
           }
           {
             name = "rand";
-            packageId = "rand 0.9.1";
+            packageId = "rand 0.9.2";
             usesDefaultFeatures = false;
             features = [ "thread_rng" ];
           }
@@ -3963,7 +3963,7 @@ rec {
           }
           {
             name = "rand";
-            packageId = "rand 0.9.1";
+            packageId = "rand 0.9.2";
             usesDefaultFeatures = false;
             features = [ "thread_rng" ];
           }
@@ -10434,7 +10434,7 @@ rec {
           }
           {
             name = "rand";
-            packageId = "rand 0.9.1";
+            packageId = "rand 0.9.2";
           }
           {
             name = "sha2";
@@ -10967,7 +10967,7 @@ rec {
           }
           {
             name = "rand";
-            packageId = "rand 0.9.1";
+            packageId = "rand 0.9.2";
           }
           {
             name = "ring";
@@ -11189,11 +11189,11 @@ rec {
         };
         resolvedDefaultFeatures = [ "alloc" "default" "getrandom" "libc" "rand_chacha" "small_rng" "std" "std_rng" ];
       };
-      "rand 0.9.1" = rec {
+      "rand 0.9.2" = rec {
         crateName = "rand";
-        version = "0.9.1";
+        version = "0.9.2";
         edition = "2021";
-        sha256 = "15yxfcxbgmwba5cv7mjg9bhc1r5c9483dfcdfspg62x4jk8dkgwz";
+        sha256 = "1lah73ainvrgl7brcxx0pwhpnqa3sm3qaj672034jz8i0q7pgckd";
         authors = [
           "The Rand Project Developers"
           "The Rust Project Developers"
@@ -13127,7 +13127,7 @@ rec {
         dependencies = [
           {
             name = "rand";
-            packageId = "rand 0.9.1";
+            packageId = "rand 0.9.2";
             optional = true;
           }
           {
@@ -13264,7 +13264,7 @@ rec {
           }
           {
             name = "rand";
-            packageId = "rand 0.9.1";
+            packageId = "rand 0.9.2";
           }
           {
             name = "serde";
@@ -14733,7 +14733,7 @@ rec {
           }
           {
             name = "rand";
-            packageId = "rand 0.9.1";
+            packageId = "rand 0.9.2";
           }
           {
             name = "socket2";

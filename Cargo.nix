@@ -5496,9 +5496,9 @@ rec {
       };
       "cc" = rec {
         crateName = "cc";
-        version = "1.2.29";
+        version = "1.2.30";
         edition = "2018";
-        sha256 = "0qlkaspjmywvjyfqhpv2x4kwrqs6b69zg33wfi2l8fg2im9rj5aw";
+        sha256 = "1rqs46vb04ffqlpi6kjwfmvvvf64y6jkdn1faql30sfa0yb11v6y";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -7864,7 +7864,7 @@ rec {
           }
           {
             name = "webpki-roots";
-            packageId = "webpki-roots 1.0.1";
+            packageId = "webpki-roots 1.0.2";
             optional = true;
           }
         ];
@@ -8982,7 +8982,7 @@ rec {
           }
           {
             name = "webpki-roots";
-            packageId = "webpki-roots 1.0.1";
+            packageId = "webpki-roots 1.0.2";
             optional = true;
           }
         ];
@@ -11453,9 +11453,9 @@ rec {
       };
       "redox_syscall" = rec {
         crateName = "redox_syscall";
-        version = "0.5.13";
+        version = "0.5.14";
         edition = "2021";
-        sha256 = "1mlzna9bcd7ss1973bmysr3hpjrys82b3bd7l03h4jkbxv8bf10d";
+        sha256 = "1i5iax70jkifm7gsd66abgjqyxsb9bwhyzy43knbq7ds1agmsfny";
         libName = "syscall";
         authors = [
           "Jeremy Soller <jackpot51@gmail.com>"
@@ -11912,7 +11912,7 @@ rec {
           }
           {
             name = "webpki-roots";
-            packageId = "webpki-roots 1.0.1";
+            packageId = "webpki-roots 1.0.2";
             optional = true;
             target = { target, features }: (!("wasm32" == target."arch" or null));
           }
@@ -16893,17 +16893,17 @@ rec {
         dependencies = [
           {
             name = "webpki-roots";
-            packageId = "webpki-roots 1.0.1";
+            packageId = "webpki-roots 1.0.2";
             rename = "parent";
           }
         ];
 
       };
-      "webpki-roots 1.0.1" = rec {
+      "webpki-roots 1.0.2" = rec {
         crateName = "webpki-roots";
-        version = "1.0.1";
+        version = "1.0.2";
         edition = "2021";
-        sha256 = "00mm4bhkvis59pm2a7yz3ak6q8rykcj0ddj09wxfskm285ddv0l7";
+        sha256 = "1ck1wa1prinrvz3q34c3xp4cpa2f3i4x5npwgj0gpmikmg1q72by";
         libName = "webpki_roots";
         dependencies = [
           {

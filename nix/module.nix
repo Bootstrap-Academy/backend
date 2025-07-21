@@ -109,11 +109,12 @@ in
             lib.toInt
           ];
 
-          dependencies =
-            [ "network-online.target" ]
-            ++ (lib.optional cfg.renderDaemon.enable "academy-render-daemon.service")
-            ++ (lib.optional cfg.localDatabase "postgresql.service")
-            ++ (lib.optional cfg.localCache "redis-academy.service");
+          dependencies = [
+            "network-online.target"
+          ]
+          ++ (lib.optional cfg.renderDaemon.enable "academy-render-daemon.service")
+          ++ (lib.optional cfg.localDatabase "postgresql.service")
+          ++ (lib.optional cfg.localCache "redis-academy.service");
 
           defaultHardening = {
             AmbientCapabilities = "";

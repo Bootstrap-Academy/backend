@@ -8853,9 +8853,9 @@ rec {
       };
       "lettre" = rec {
         crateName = "lettre";
-        version = "0.11.17";
+        version = "0.11.18";
         edition = "2021";
-        sha256 = "0y9ifm56r8lg0pmni0141h6271z5dmzl2lzsz7fgrqpcx5a06anb";
+        sha256 = "0mmgdabb74pv45prp6ml4vbwrfbvqpmbm9fvhynfz2bszyv4vdaw";
         authors = [
           "Alexis Mousset <contact@amousset.me>"
           "Paolo Barbolini <paolo@paolo565.org>"
@@ -8951,7 +8951,7 @@ rec {
           }
           {
             name = "socket2";
-            packageId = "socket2 0.5.10";
+            packageId = "socket2 0.6.0";
             optional = true;
           }
           {

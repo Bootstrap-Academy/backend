@@ -115,7 +115,7 @@ clap_complete = { version = "4.5.55", default-features = false, features = ["uns
 darling = { version = "0.21.0", default-features = false, features = ["suggestions"] }
 futures = { version = "0.3.31", default-features = false, features = ["std"] }
 hex = { version = "0.4.3", default-features = false, features = ["std"] }
-lettre = { version = "0.11.17", default-features = false, features = [
+lettre = { version = "0.11.18", default-features = false, features = [
   "builder",
   "hostname",
   "pool",

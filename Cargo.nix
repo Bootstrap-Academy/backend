@@ -6506,9 +6506,9 @@ rec {
       };
       "dyn-clone" = rec {
         crateName = "dyn-clone";
-        version = "1.0.19";
+        version = "1.0.20";
         edition = "2018";
-        sha256 = "01ahm5abl20480v48nxy4ffyx80cs6263q9zf0gnrxpvm6w8yyhw";
+        sha256 = "0m956cxcg8v2n8kmz6xs5zl13k2fak3zkapzfzzp7pxih6hix26h";
         libName = "dyn_clone";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
@@ -7907,9 +7907,9 @@ rec {
       };
       "hyper-util" = rec {
         crateName = "hyper-util";
-        version = "0.1.15";
+        version = "0.1.16";
         edition = "2021";
-        sha256 = "1pyi2h8idwyadljs95gpihjvkfkmcxi5vn7s882vy0kg9jyxarkz";
+        sha256 = "0pmw8gqkqjnsdrxdy5wd5q8z1gh7caxqk2an7b4s53byghkhb6wd";
         libName = "hyper_util";
         authors = [
           "Sean McArthur <sean@seanmonstar.com>"
@@ -7972,7 +7972,7 @@ rec {
           }
           {
             name = "socket2";
-            packageId = "socket2 0.5.10";
+            packageId = "socket2 0.6.0";
             optional = true;
             features = [ "all" ];
           }
@@ -8018,7 +8018,7 @@ rec {
           }
         ];
         features = {
-          "client" = [ "hyper/client" "dep:tracing" "dep:futures-channel" "dep:tower-service" ];
+          "client" = [ "hyper/client" "tokio/net" "dep:tracing" "dep:futures-channel" "dep:tower-service" ];
           "client-legacy" = [ "client" "dep:socket2" "tokio/sync" "dep:libc" "dep:futures-util" ];
           "client-proxy" = [ "client" "dep:base64" "dep:ipnet" "dep:percent-encoding" ];
           "client-proxy-system" = [ "dep:system-configuration" "dep:windows-registry" ];
@@ -8029,7 +8029,7 @@ rec {
           "server-auto" = [ "server" "http1" "http2" ];
           "server-graceful" = [ "server" "tokio/sync" ];
           "service" = [ "dep:tower-service" ];
-          "tokio" = [ "dep:tokio" "tokio/net" "tokio/rt" "tokio/time" ];
+          "tokio" = [ "dep:tokio" "tokio/rt" "tokio/time" ];
           "tracing" = [ "dep:tracing" ];
         };
         resolvedDefaultFeatures = [ "client" "client-legacy" "client-proxy" "default" "http1" "http2" "server" "service" "tokio" ];
@@ -8602,9 +8602,9 @@ rec {
       };
       "io-uring" = rec {
         crateName = "io-uring";
-        version = "0.7.8";
+        version = "0.7.9";
         edition = "2021";
-        sha256 = "04whnj5a4pml44jhsmmf4p87bpgr7swkcijx4yjcng8900pj0vmq";
+        sha256 = "1i60fxfbxypfgfmq883kwxgldxcjlnnwjazgjiys3893fvrqfdfr";
         libName = "io_uring";
         authors = [
           "quininer <quininer@live.com>"
@@ -11453,9 +11453,9 @@ rec {
       };
       "redox_syscall" = rec {
         crateName = "redox_syscall";
-        version = "0.5.14";
+        version = "0.5.16";
         edition = "2021";
-        sha256 = "1i5iax70jkifm7gsd66abgjqyxsb9bwhyzy43knbq7ds1agmsfny";
+        sha256 = "14m78iyciirac46m7zydggnbarak8flwqqjswzs0kr84n0flflbj";
         libName = "syscall";
         authors = [
           "Jeremy Soller <jackpot51@gmail.com>"
@@ -12380,9 +12380,9 @@ rec {
       };
       "rustc-demangle" = rec {
         crateName = "rustc-demangle";
-        version = "0.1.25";
+        version = "0.1.26";
         edition = "2015";
-        sha256 = "0kxq6m0drr40434ch32j31dkg00iaf4zxmqg7sqxajhcz0wng7lq";
+        sha256 = "1kja3nb0yhlm4j2p1hl8d7sjmn2g9fa1s4pj0qma5kj2lcndkxsn";
         libName = "rustc_demangle";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
@@ -12529,9 +12529,9 @@ rec {
       };
       "rustls" = rec {
         crateName = "rustls";
-        version = "0.23.29";
+        version = "0.23.30";
         edition = "2021";
-        sha256 = "1lcvzvzqk8xx8jzg0x5v3mkqgwkwr7v6zdq8zw8rp6xj74h3i494";
+        sha256 = "0wb6z7z72xly1ka4pb1wpr23h5va771rf563vh91lsx197qqv6h6";
         dependencies = [
           {
             name = "log";

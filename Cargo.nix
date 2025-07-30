@@ -9535,9 +9535,9 @@ rec {
       };
       "nutype" = rec {
         crateName = "nutype";
-        version = "0.6.1";
-        edition = "2021";
-        sha256 = "12wrxdx3aym2x07c25cl3lamf3sq3mindzv27z5lwydhfdkwnh1k";
+        version = "0.6.2";
+        edition = "2024";
+        sha256 = "1ddvp7zr8cp0gn5ys3cc9mmhj5jnbj3jnwmz66npvil801w7ln3h";
         authors = [
           "Serhii Potapov <blake131313@gmail.com>"
         ];
@@ -9550,6 +9550,7 @@ rec {
         features = {
           "arbitrary" = [ "nutype_macros/arbitrary" ];
           "default" = [ "std" ];
+          "derive_unsafe" = [ "nutype_macros/derive_unsafe" ];
           "new_unchecked" = [ "nutype_macros/new_unchecked" ];
           "regex" = [ "nutype_macros/regex" ];
           "schemars08" = [ "nutype_macros/schemars08" ];
@@ -9560,9 +9561,9 @@ rec {
       };
       "nutype_macros" = rec {
         crateName = "nutype_macros";
-        version = "0.6.1";
-        edition = "2021";
-        sha256 = "1aapx79ahskwqsyq49rqxikyvmqzcq0wjbcw1glqz1h2gpi5bj9m";
+        version = "0.6.2";
+        edition = "2024";
+        sha256 = "015lfhl96z7hv8myfvsx972w8l0b508wzmvr0s7xvvgsfnwk928l";
         procMacro = true;
         authors = [
           "Serhii Potapov <blake131313@gmail.com>"

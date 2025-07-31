@@ -11454,9 +11454,9 @@ rec {
       };
       "redox_syscall" = rec {
         crateName = "redox_syscall";
-        version = "0.5.16";
+        version = "0.5.17";
         edition = "2021";
-        sha256 = "14m78iyciirac46m7zydggnbarak8flwqqjswzs0kr84n0flflbj";
+        sha256 = "0xrvpchkaxph3r5ww2i04v9nwg3843fp3prf8kqlh1gv01b4c1sl";
         libName = "syscall";
         authors = [
           "Jeremy Soller <jackpot51@gmail.com>"
@@ -12530,9 +12530,9 @@ rec {
       };
       "rustls" = rec {
         crateName = "rustls";
-        version = "0.23.30";
+        version = "0.23.31";
         edition = "2021";
-        sha256 = "0wb6z7z72xly1ka4pb1wpr23h5va771rf563vh91lsx197qqv6h6";
+        sha256 = "1k5ncablbb2h7hzllq3j3panqnks295v56xd488zrq1xy39cpsy0";
         dependencies = [
           {
             name = "log";
@@ -14884,9 +14884,9 @@ rec {
       };
       "toml" = rec {
         crateName = "toml";
-        version = "0.9.2";
+        version = "0.9.4";
         edition = "2021";
-        sha256 = "1b0fcp0la720p82vcsv3lrkdgsz1lmhv02rfj2bi19rgq6bfw2pd";
+        sha256 = "18d50mblicflimn1r8jvxrscb8hy1hjpx7sq2hf66rqgba5qdbj1";
         dependencies = [
           {
             name = "serde";
@@ -17691,7 +17691,7 @@ rec {
         dependencies = [
           {
             name = "windows-targets";
-            packageId = "windows-targets 0.53.2";
+            packageId = "windows-targets 0.53.3";
             usesDefaultFeatures = false;
           }
         ];
@@ -17997,16 +17997,22 @@ rec {
         ];
 
       };
-      "windows-targets 0.53.2" = rec {
+      "windows-targets 0.53.3" = rec {
         crateName = "windows-targets";
-        version = "0.53.2";
+        version = "0.53.3";
         edition = "2021";
-        sha256 = "1vwanhx2br7dh8mmrszdbcf01bccjr01mcyxcscxl4ffr7y6jvy6";
+        sha256 = "14fwwm136dhs3i1impqrrip7nvkra3bdxa4nqkblj604qhqn1znm";
         libName = "windows_targets";
         authors = [
           "Microsoft"
         ];
         dependencies = [
+          {
+            name = "windows-link";
+            packageId = "windows-link";
+            usesDefaultFeatures = false;
+            target = { target, features }: (target."windows_raw_dylib" or false);
+          }
           {
             name = "windows_aarch64_gnullvm";
             packageId = "windows_aarch64_gnullvm 0.53.0";

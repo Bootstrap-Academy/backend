@@ -5496,9 +5496,9 @@ rec {
       };
       "cc" = rec {
         crateName = "cc";
-        version = "1.2.30";
+        version = "1.2.31";
         edition = "2018";
-        sha256 = "1rqs46vb04ffqlpi6kjwfmvvvf64y6jkdn1faql30sfa0yb11v6y";
+        sha256 = "1ljzmb5djr6gnq9d06jyd4lik7hpizcg1b7anfld6sbbpf22v963";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -10821,9 +10821,9 @@ rec {
       };
       "quick-xml" = rec {
         crateName = "quick-xml";
-        version = "0.38.0";
+        version = "0.38.1";
         edition = "2021";
-        sha256 = "06vvgd9arm1nrsd4d0ii6lhnp6m11bwy7drqa4k9hnjw9xkb09w9";
+        sha256 = "1x3qpskdc72ny70m78zd65q5i8gvz8sz5yb99s16al2nrzfdjicq";
         libName = "quick_xml";
         dependencies = [
           {
@@ -13695,9 +13695,9 @@ rec {
       };
       "signal-hook-registry" = rec {
         crateName = "signal-hook-registry";
-        version = "1.4.5";
+        version = "1.4.6";
         edition = "2015";
-        sha256 = "042lkqrpnlrgvrrcirgigxyp1zk70d8v0fsr5w7a18k3bw2vh0wj";
+        sha256 = "12y2v1ms5z111fymaw1v8k93m5chnkp21h0jknrydkj8zydp395j";
         libName = "signal_hook_registry";
         authors = [
           "Michal 'vorner' Vaner <vorner@vorner.cz>"
@@ -14829,9 +14829,9 @@ rec {
       };
       "tokio-util" = rec {
         crateName = "tokio-util";
-        version = "0.7.15";
+        version = "0.7.16";
         edition = "2021";
-        sha256 = "1pypd9lm1fdnpw0779pqvc16qqrxjy63dgfm20ajhpbdmnlkk9b6";
+        sha256 = "1r9wdrg1k5hna3m0kc8kcb8jdb6n52g7vnw93kw2xxw4cyc7qc0l";
         libName = "tokio_util";
         authors = [
           "Tokio Contributors <team@tokio.rs>"
@@ -14869,13 +14869,14 @@ rec {
         features = {
           "__docs_rs" = [ "futures-util" ];
           "compat" = [ "futures-io" ];
-          "full" = [ "codec" "compat" "io-util" "time" "net" "rt" ];
+          "full" = [ "codec" "compat" "io-util" "time" "net" "rt" "join-map" ];
           "futures-io" = [ "dep:futures-io" ];
           "futures-util" = [ "dep:futures-util" ];
           "hashbrown" = [ "dep:hashbrown" ];
           "io-util" = [ "io" "tokio/rt" "tokio/io-util" ];
+          "join-map" = [ "rt" "hashbrown" ];
           "net" = [ "tokio/net" ];
-          "rt" = [ "tokio/rt" "tokio/sync" "futures-util" "hashbrown" ];
+          "rt" = [ "tokio/rt" "tokio/sync" "futures-util" ];
           "slab" = [ "dep:slab" ];
           "time" = [ "tokio/time" "slab" ];
           "tracing" = [ "dep:tracing" ];

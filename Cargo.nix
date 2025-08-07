@@ -4379,9 +4379,9 @@ rec {
       };
       "anstream" = rec {
         crateName = "anstream";
-        version = "0.6.19";
+        version = "0.6.20";
         edition = "2021";
-        sha256 = "0crr9a207dyn8k66xgvhvmlxm9raiwpss3syfa35c6265s9z26ih";
+        sha256 = "14k1iqdf3dx7hdjllmql0j9sjxkwr1lfdddi3adzff0r7mjn7r9s";
         dependencies = [
           {
             name = "anstyle";
@@ -4454,14 +4454,14 @@ rec {
       };
       "anstyle-query" = rec {
         crateName = "anstyle-query";
-        version = "1.1.3";
+        version = "1.1.4";
         edition = "2021";
-        sha256 = "1sgs2hq54wayrmpvy784ww2ccv9f8yhhpasv12z872bx0jvdx2vc";
+        sha256 = "1qir6d6fl5a4y2gmmw9a5w93ckwx6xn51aryd83p26zn6ihiy8wy";
         libName = "anstyle_query";
         dependencies = [
           {
             name = "windows-sys";
-            packageId = "windows-sys 0.59.0";
+            packageId = "windows-sys 0.60.2";
             target = { target, features }: (target."windows" or false);
             features = [ "Win32_System_Console" "Win32_Foundation" ];
           }
@@ -4470,9 +4470,9 @@ rec {
       };
       "anstyle-wincon" = rec {
         crateName = "anstyle-wincon";
-        version = "3.0.9";
+        version = "3.0.10";
         edition = "2021";
-        sha256 = "10n8mcgr89risdf35i73zc67aaa392bhggwzqlri1fv79297ags0";
+        sha256 = "0ajz9wsf46a2l3pds7v62xbhq2cffj7wrilamkx2z8r28m0k61iy";
         libName = "anstyle_wincon";
         dependencies = [
           {
@@ -4486,7 +4486,7 @@ rec {
           }
           {
             name = "windows-sys";
-            packageId = "windows-sys 0.59.0";
+            packageId = "windows-sys 0.60.2";
             target = { target, features }: (target."windows" or false);
             features = [ "Win32_System_Console" "Win32_Foundation" ];
           }
@@ -7272,9 +7272,9 @@ rec {
       };
       "h2" = rec {
         crateName = "h2";
-        version = "0.4.11";
+        version = "0.4.12";
         edition = "2021";
-        sha256 = "118771sqbsa6cn48y9waxq24jx80f5xy8af0lq5ixq7ifsi51nhp";
+        sha256 = "11hk5mpid8757z6n3v18jwb62ikffrgzjlrgpzqvkqdlzjfbdh7k";
         authors = [
           "Carl Lerche <me@carllerche.com>"
           "Sean McArthur <sean@seanmonstar.com>"
@@ -14885,9 +14885,9 @@ rec {
       };
       "toml" = rec {
         crateName = "toml";
-        version = "0.9.4";
+        version = "0.9.5";
         edition = "2021";
-        sha256 = "18d50mblicflimn1r8jvxrscb8hy1hjpx7sq2hf66rqgba5qdbj1";
+        sha256 = "1s7n4l40hvpf46jmgidfknnzpyblz4hip7gfkymgn2q0qlfrw4km";
         dependencies = [
           {
             name = "serde";
@@ -15004,9 +15004,9 @@ rec {
       };
       "toml_parser" = rec {
         crateName = "toml_parser";
-        version = "1.0.1";
+        version = "1.0.2";
         edition = "2021";
-        sha256 = "0c6a77v4i8zll5dbpyr306iq02msjsr1fhd12b2p97h6vdr0a84p";
+        sha256 = "042wp5ni22yqcbrfqq9c63g2vbbp4m59zamxw97hvacs8ipqhldm";
         dependencies = [
           {
             name = "winnow";
@@ -18564,9 +18564,9 @@ rec {
       };
       "zerovec" = rec {
         crateName = "zerovec";
-        version = "0.11.2";
+        version = "0.11.4";
         edition = "2021";
-        sha256 = "0a2457fmz39k9vrrj3rm82q5ykdhgxgbwfz2r6fa6nq11q4fn1aa";
+        sha256 = "0fz7j1ns8d86m2fqg2a4bzi5gnh5892bxv4kcr9apwc6a3ajpap7";
         authors = [
           "The ICU4X Project Developers"
         ];

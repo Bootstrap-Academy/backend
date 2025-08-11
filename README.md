@@ -12,7 +12,7 @@ If you would like to submit a bug report or feature request, or are looking for 
     - If you are using a different Linux distribution or OS, add the line `trusted-users = root YOUR_USERNAME` to `/etc/nix/nix.conf` and run `sudo systemctl restart nix-daemon`.
 3. [Install direnv](https://github.com/direnv/direnv/blob/master/docs/installation.md) (optional, but strongly recommended):
     - If you are on NixOS, set `programs.direnv.enable = true;` in `configuration.nix`.
-    - If you are using a different Linux distribution or OS, run the command `nix profile install nixpkgs#direnv`. Don't forget to [install the shell hook](https://github.com/direnv/direnv/blob/master/docs/hook.md) (e.g. for bash run `echo 'eval "$(direnv hook bash)"' >> ~/.bashrc`).
+    - If you are using a different Linux distribution or OS, run the command `nix profile add nixpkgs#direnv`. Don't forget to [install the shell hook](https://github.com/direnv/direnv/blob/master/docs/hook.md) (e.g. for bash run `echo 'eval "$(direnv hook bash)"' >> ~/.bashrc`).
 4. Clone this repository and `cd` into it.
 5. If you installed direnv, run `direnv allow` to automatically load the development environment when entering this repository. Otherwise you need to run `nix develop --no-pure-eval` manually each time to enter the development shell.
 6. Run `devenv up` to start a local Postgres database, Valkey cache, SMTP server and some other services needed by the backend.

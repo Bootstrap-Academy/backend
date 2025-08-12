@@ -150,7 +150,7 @@ syn = { version = "2.0.104", default-features = false, features = [
   "full",
 ] }
 tempfile = { version = "3.20.0", default-features = false }
-thiserror = { version = "2.0.13", default-features = false }
+thiserror = { version = "2.0.14", default-features = false }
 tokio = { version = "1.47.1", default-features = false, features = [
   "rt-multi-thread",
   "macros",

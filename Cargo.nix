@@ -6002,9 +6002,9 @@ rec {
       };
       "config" = rec {
         crateName = "config";
-        version = "0.15.13";
+        version = "0.15.14";
         edition = "2018";
-        sha256 = "0h2l4sinzw22as377xclp3zix5ymgdn7c0nz48j02zxw0zxv87jv";
+        sha256 = "0lhk83ga9y51rpxx0kqs4nkylwvcyf00nr3lppi6da9276zr4h5a";
         dependencies = [
           {
             name = "pathdiff";
@@ -6035,7 +6035,7 @@ rec {
           "indexmap" = [ "dep:indexmap" ];
           "ini" = [ "rust-ini" ];
           "json" = [ "serde_json" ];
-          "json5" = [ "json5_rs" "serde/derive" ];
+          "json5" = [ "json5_rs" "dep:serde-untagged" ];
           "json5_rs" = [ "dep:json5_rs" ];
           "preserve_order" = [ "indexmap" "toml?/preserve_order" "serde_json?/preserve_order" "ron?/indexmap" ];
           "ron" = [ "dep:ron" ];

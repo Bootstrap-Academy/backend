@@ -6254,9 +6254,9 @@ rec {
       };
       "darling" = rec {
         crateName = "darling";
-        version = "0.21.1";
+        version = "0.21.2";
         edition = "2021";
-        sha256 = "1cincy9n9s9hwbaz6zwqbfw53bbvwdbfkh4nqmm7pvx5bm3kdcfn";
+        sha256 = "0w05fq6kl16avbgkgwxg5c8myj397539gq337r1x1hr2s8yhni08";
         authors = [
           "Ted Driggs <ted.driggs@outlook.com>"
         ];
@@ -6280,9 +6280,9 @@ rec {
       };
       "darling_core" = rec {
         crateName = "darling_core";
-        version = "0.21.1";
+        version = "0.21.2";
         edition = "2021";
-        sha256 = "1rjkix422waarkdacff3mkl8nm0sa9z58s2bn0wb8pxpj8px6jml";
+        sha256 = "0zmzz0czsc8590n4n6isnii5d8da0gm6hnkinyqlm818ph97jnyj";
         authors = [
           "Ted Driggs <ted.driggs@outlook.com>"
         ];
@@ -6323,9 +6323,9 @@ rec {
       };
       "darling_macro" = rec {
         crateName = "darling_macro";
-        version = "0.21.1";
+        version = "0.21.2";
         edition = "2021";
-        sha256 = "1f91ynk6djlwnvxh0gv7wrizdg66rqq0qqrap6jiblv2lnkyhnrb";
+        sha256 = "0cfmv5ks4fjfr2w23zvhjzkkc300ah1x0qkf6blcic3zxadln5ff";
         procMacro = true;
         authors = [
           "Ted Driggs <ted.driggs@outlook.com>"

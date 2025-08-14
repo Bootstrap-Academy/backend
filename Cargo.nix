@@ -9037,9 +9037,9 @@ rec {
       };
       "libc" = rec {
         crateName = "libc";
-        version = "0.2.174";
+        version = "0.2.175";
         edition = "2021";
-        sha256 = "0xl7pqvw7g2874dy3kjady2fjr4rhj5lxsnxkkhr5689jcr6jw8i";
+        sha256 = "0hw5sb3gjr0ivah7s3fmavlpvspjpd4mr009abmam2sr7r4sx0ka";
         authors = [
           "The Rust Project Developers"
         ];
@@ -9064,6 +9064,37 @@ rec {
           "unstable" = [ "unstable-intrinsics" "unstable-float" ];
         };
         resolvedDefaultFeatures = [ "arch" "default" ];
+      };
+      "libredox" = rec {
+        crateName = "libredox";
+        version = "0.1.9";
+        edition = "2021";
+        sha256 = "1qqczzfqcc3sw3bl7la6qv7i9hy1s7sxhxmdvpxkfgdd3c9904ir";
+        authors = [
+          "4lDO2 <4lDO2@protonmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "bitflags";
+            packageId = "bitflags";
+          }
+          {
+            name = "libc";
+            packageId = "libc";
+          }
+          {
+            name = "redox_syscall";
+            packageId = "redox_syscall";
+            optional = true;
+          }
+        ];
+        features = {
+          "default" = [ "call" "std" "redox_syscall" ];
+          "ioslice" = [ "dep:ioslice" ];
+          "mkns" = [ "ioslice" ];
+          "redox_syscall" = [ "dep:redox_syscall" ];
+        };
+        resolvedDefaultFeatures = [ "call" "default" "redox_syscall" "std" ];
       };
       "linux-raw-sys" = rec {
         crateName = "linux-raw-sys";
@@ -16923,13 +16954,13 @@ rec {
       };
       "whoami" = rec {
         crateName = "whoami";
-        version = "1.6.0";
+        version = "1.6.1";
         edition = "2018";
-        sha256 = "19q2vm5ax3bgwffbywn4ad62anc1f4l1ky61h0y2qjdb30qx3539";
+        sha256 = "0zg9sz669vhqyxysn4lymnianj29jxs2vl6k2lqcl0kp0yslsjjx";
         dependencies = [
           {
-            name = "redox_syscall";
-            packageId = "redox_syscall";
+            name = "libredox";
+            packageId = "libredox";
             target = { target, features }: (("redox" == target."os" or null) && (!("wasm32" == target."arch" or null)));
           }
           {

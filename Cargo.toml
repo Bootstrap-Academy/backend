@@ -131,7 +131,7 @@ mockall = { version = "0.13.1", default-features = false }
 nutype = { version = "0.6.2", default-features = false, features = ["std", "regex", "serde", "schemars08"] }
 oauth2 = { version = "5.0.0", default-features = false, features = ["reqwest", "rustls-tls"] }
 pretty_assertions = { version = "1.4.1", default-features = false, features = ["std"] }
-proc-macro2 = { version = "1.0.98", default-features = false, features = ["proc-macro"] }
+proc-macro2 = { version = "1.0.99", default-features = false, features = ["proc-macro"] }
 quote = { version = "1.0.40", default-features = false, features = ["proc-macro"] }
 rand = { version = "0.9.2", default-features = false, features = ["thread_rng"] }
 regex = { version = "1.11.1", default-features = false }

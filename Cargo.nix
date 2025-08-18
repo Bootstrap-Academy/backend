@@ -4572,9 +4572,9 @@ rec {
       };
       "async-trait" = rec {
         crateName = "async-trait";
-        version = "0.1.88";
+        version = "0.1.89";
         edition = "2021";
-        sha256 = "1dgxvz7g75cmz6vqqz0mri4xazc6a8xfj1db6r9fxz29lzyd6fg5";
+        sha256 = "1fsxxmz3rzx1prn1h3rs7kyjhkap60i7xvi0ldapkvbb14nssdch";
         procMacro = true;
         libName = "async_trait";
         authors = [
@@ -5185,18 +5185,15 @@ rec {
       };
       "bitflags" = rec {
         crateName = "bitflags";
-        version = "2.9.1";
+        version = "2.9.2";
         edition = "2021";
-        sha256 = "0rz9rpp5wywwqb3mxfkywh4drmzci2fch780q7lifbf6bsc5d3hv";
+        sha256 = "0adahzd1i2kv86k0vzkaxdcw9zjm124x9698yp7qgmiimd2varba";
         authors = [
           "The Rust Project Developers"
         ];
         features = {
           "arbitrary" = [ "dep:arbitrary" ];
           "bytemuck" = [ "dep:bytemuck" ];
-          "compiler_builtins" = [ "dep:compiler_builtins" ];
-          "core" = [ "dep:core" ];
-          "rustc-dep-of-std" = [ "core" "compiler_builtins" ];
           "serde" = [ "dep:serde" ];
         };
         resolvedDefaultFeatures = [ "std" ];
@@ -5496,9 +5493,9 @@ rec {
       };
       "cc" = rec {
         crateName = "cc";
-        version = "1.2.32";
+        version = "1.2.33";
         edition = "2018";
-        sha256 = "0vi9np1fac712q5dpa2gb3g8lwr7bl6ik5cwdmg4sm4wgrcyali3";
+        sha256 = "0pwv1ql0gpvacwdn44643adr0s0q8p575pbp4xz5mfi26a0giq1y";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -7864,7 +7861,7 @@ rec {
           }
           {
             name = "webpki-roots";
-            packageId = "webpki-roots 1.0.2";
+            packageId = "webpki-roots";
             optional = true;
           }
         ];
@@ -8982,7 +8979,7 @@ rec {
           }
           {
             name = "webpki-roots";
-            packageId = "webpki-roots 1.0.2";
+            packageId = "webpki-roots";
             optional = true;
           }
         ];
@@ -11944,7 +11941,7 @@ rec {
           }
           {
             name = "webpki-roots";
-            packageId = "webpki-roots 1.0.2";
+            packageId = "webpki-roots";
             optional = true;
             target = { target, features }: (!("wasm32" == target."arch" or null));
           }
@@ -15810,9 +15807,9 @@ rec {
       };
       "ureq" = rec {
         crateName = "ureq";
-        version = "3.0.12";
+        version = "3.1.0";
         edition = "2018";
-        sha256 = "0f8cfrigffa6r2y2jjig1ck3bkab6p5ng32z2n0y69hhr6dxw3wz";
+        sha256 = "0w6xp9p7fwmpdgw0yigi26dnn8pq08xynnm68y75vnvi754jyhq0";
         authors = [
           "Martin Algesten <martin@algesten.se>"
           "Jacob Hoffman-Andrews <ureq@hoffman-andrews.com>"
@@ -15863,7 +15860,7 @@ rec {
           }
           {
             name = "webpki-roots";
-            packageId = "webpki-roots 0.26.11";
+            packageId = "webpki-roots";
             optional = true;
             usesDefaultFeatures = false;
           }
@@ -15897,9 +15894,9 @@ rec {
       };
       "ureq-proto" = rec {
         crateName = "ureq-proto";
-        version = "0.4.2";
+        version = "0.5.0";
         edition = "2021";
-        sha256 = "1xwkysnq4lq05vd8azyml1f60wxih3z83nmncazb3wi336npinsr";
+        sha256 = "1k14j8bcp1asqd8hi8n8v2kww1k2jlpva1mbi58w9i7cpfzcmdn5";
         libName = "ureq_proto";
         authors = [
           "Martin Algesten <martin@algesten.se>"
@@ -16921,22 +16918,7 @@ rec {
           "serde" = [ "dep:serde" ];
         };
       };
-      "webpki-roots 0.26.11" = rec {
-        crateName = "webpki-roots";
-        version = "0.26.11";
-        edition = "2021";
-        sha256 = "1agpayg5zzf7m1a01q30jahlgmn5nwggbabdhq0in008pf5c66sj";
-        libName = "webpki_roots";
-        dependencies = [
-          {
-            name = "webpki-roots";
-            packageId = "webpki-roots 1.0.2";
-            rename = "parent";
-          }
-        ];
-
-      };
-      "webpki-roots 1.0.2" = rec {
+      "webpki-roots" = rec {
         crateName = "webpki-roots";
         version = "1.0.2";
         edition = "2021";

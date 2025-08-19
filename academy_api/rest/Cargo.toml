@@ -28,7 +28,7 @@ academy_core_user_contracts.workspace = true
 academy_di.workspace = true
 academy_models.workspace = true
 academy_utils.workspace = true
-aide = { version = "0.15.0", default-features = false, features = [
+aide = { version = "0.15.1", default-features = false, features = [
   "axum",
   "axum-extra",
   "axum-json",

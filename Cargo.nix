@@ -4218,9 +4218,9 @@ rec {
       };
       "aide" = rec {
         crateName = "aide";
-        version = "0.15.0";
+        version = "0.15.1";
         edition = "2021";
-        sha256 = "0jznh0s43lh5d13rwkp119qbl5zj29kflzly5yzn1d45rvvg0d2d";
+        sha256 = "18p3n7dihh4ys1rp16yf7vxlla91s2as2009ik2m9zndi1qk2rk9";
         authors = [
           "tamasfe"
         ];

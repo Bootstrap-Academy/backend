@@ -5511,9 +5511,9 @@ rec {
       };
       "cfg-if" = rec {
         crateName = "cfg-if";
-        version = "1.0.1";
+        version = "1.0.3";
         edition = "2018";
-        sha256 = "0s0jr5j797q1vqjcd41l0v5izlmlqm7lxy512b418xz5r65mfmcm";
+        sha256 = "1afg7146gbxjvkbjx7i5sdrpqp9q5akmk9004fr8rsm90jf2il9g";
         libName = "cfg_if";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
@@ -7709,13 +7709,18 @@ rec {
       };
       "hyper" = rec {
         crateName = "hyper";
-        version = "1.6.0";
+        version = "1.7.0";
         edition = "2021";
-        sha256 = "103ggny2k31z0iq2gzwk2vbx601wx6xkpjpxn40hr3p3b0b5fayc";
+        sha256 = "07n59pxzlq621z611cbpvh7p4h9h15v0r7m5wgxygpx02d5aafpb";
         authors = [
           "Sean McArthur <sean@seanmonstar.com>"
         ];
         dependencies = [
+          {
+            name = "atomic-waker";
+            packageId = "atomic-waker";
+            optional = true;
+          }
           {
             name = "bytes";
             packageId = "bytes";
@@ -7726,10 +7731,9 @@ rec {
             optional = true;
           }
           {
-            name = "futures-util";
-            packageId = "futures-util";
+            name = "futures-core";
+            packageId = "futures-core";
             optional = true;
-            usesDefaultFeatures = false;
           }
           {
             name = "h2";
@@ -7765,6 +7769,11 @@ rec {
             optional = true;
           }
           {
+            name = "pin-utils";
+            packageId = "pin-utils";
+            optional = true;
+          }
+          {
             name = "smallvec";
             packageId = "smallvec";
             optional = true;
@@ -7788,12 +7797,6 @@ rec {
             features = [ "sink" ];
           }
           {
-            name = "futures-util";
-            packageId = "futures-util";
-            usesDefaultFeatures = false;
-            features = [ "alloc" "sink" ];
-          }
-          {
             name = "pin-project-lite";
             packageId = "pin-project-lite";
           }
@@ -7805,10 +7808,10 @@ rec {
         ];
         features = {
           "client" = [ "dep:want" "dep:pin-project-lite" "dep:smallvec" ];
-          "ffi" = [ "dep:http-body-util" "futures-util?/alloc" ];
+          "ffi" = [ "dep:http-body-util" "dep:futures-util" ];
           "full" = [ "client" "http1" "http2" "server" ];
-          "http1" = [ "dep:futures-channel" "dep:futures-util" "dep:httparse" "dep:itoa" ];
-          "http2" = [ "dep:futures-channel" "dep:futures-util" "dep:h2" ];
+          "http1" = [ "dep:atomic-waker" "dep:futures-channel" "dep:futures-core" "dep:httparse" "dep:itoa" "dep:pin-utils" ];
+          "http2" = [ "dep:futures-channel" "dep:futures-core" "dep:h2" ];
           "server" = [ "dep:httpdate" "dep:pin-project-lite" "dep:smallvec" ];
           "tracing" = [ "dep:tracing" ];
         };
@@ -10849,9 +10852,9 @@ rec {
       };
       "quick-xml" = rec {
         crateName = "quick-xml";
-        version = "0.38.1";
+        version = "0.38.2";
         edition = "2021";
-        sha256 = "1x3qpskdc72ny70m78zd65q5i8gvz8sz5yb99s16al2nrzfdjicq";
+        sha256 = "1a5vplns5pghy9kg11rcqcqsflvh6k1rakjfs0dldrlpfwda806j";
         libName = "quick_xml";
         dependencies = [
           {
@@ -14507,9 +14510,9 @@ rec {
       };
       "tinyvec" = rec {
         crateName = "tinyvec";
-        version = "1.9.0";
+        version = "1.10.0";
         edition = "2018";
-        sha256 = "0w9w8qcifns9lzvlbfwa01y0skhr542anwa3rpn28rg82wgndcq9";
+        sha256 = "1yhk0qdqyiaa4v2j9h8pzax5gxgwpz4da0lcphfil6g6pk1zv9dz";
         authors = [
           "Lokathor <zefria@gmail.com>"
         ];
@@ -14527,8 +14530,6 @@ rec {
           "generic-array" = [ "dep:generic-array" ];
           "latest_stable_rust" = [ "rustc_1_61" ];
           "real_blackbox" = [ "criterion/real_blackbox" ];
-          "rustc_1_55" = [ "rustc_1_40" ];
-          "rustc_1_57" = [ "rustc_1_55" ];
           "rustc_1_61" = [ "rustc_1_57" ];
           "serde" = [ "dep:serde" ];
           "std" = [ "alloc" ];
@@ -17003,9 +17004,9 @@ rec {
       };
       "winapi-util" = rec {
         crateName = "winapi-util";
-        version = "0.1.9";
+        version = "0.1.10";
         edition = "2021";
-        sha256 = "1fqhkcl9scd230cnfj8apfficpf5c9vhwnk4yy9xfc1sw69iq8ng";
+        sha256 = "08hb8rj3aq9lcrfmliqs4l7v9zh6srbcn0376yn0pndkf5qvyy09";
         libName = "winapi_util";
         authors = [
           "Andrew Gallant <jamslam@gmail.com>"
@@ -17013,7 +17014,7 @@ rec {
         dependencies = [
           {
             name = "windows-sys";
-            packageId = "windows-sys 0.59.0";
+            packageId = "windows-sys 0.60.2";
             target = { target, features }: (target."windows" or false);
             features = [ "Win32_Foundation" "Win32_Storage_FileSystem" "Win32_System_Console" "Win32_System_SystemInformation" ];
           }
@@ -17691,7 +17692,7 @@ rec {
           "Win32_Web" = [ "Win32" ];
           "Win32_Web_InternetExplorer" = [ "Win32_Web" ];
         };
-        resolvedDefaultFeatures = [ "Wdk" "Wdk_Foundation" "Wdk_Storage" "Wdk_Storage_FileSystem" "Wdk_System" "Wdk_System_IO" "Win32" "Win32_Foundation" "Win32_Networking" "Win32_Networking_WinSock" "Win32_Security" "Win32_Storage" "Win32_Storage_FileSystem" "Win32_System" "Win32_System_Console" "Win32_System_IO" "Win32_System_Memory" "Win32_System_Pipes" "Win32_System_SystemInformation" "Win32_System_SystemServices" "Win32_System_Threading" "Win32_System_WindowsProgramming" "default" ];
+        resolvedDefaultFeatures = [ "Wdk" "Wdk_Foundation" "Wdk_Storage" "Wdk_Storage_FileSystem" "Wdk_System" "Wdk_System_IO" "Win32" "Win32_Foundation" "Win32_Networking" "Win32_Networking_WinSock" "Win32_Security" "Win32_Storage" "Win32_Storage_FileSystem" "Win32_System" "Win32_System_IO" "Win32_System_Memory" "Win32_System_Pipes" "Win32_System_SystemServices" "Win32_System_Threading" "Win32_System_WindowsProgramming" "default" ];
       };
       "windows-sys 0.60.2" = rec {
         crateName = "windows-sys";
@@ -17956,7 +17957,7 @@ rec {
           "Win32_Web" = [ "Win32" ];
           "Win32_Web_InternetExplorer" = [ "Win32_Web" ];
         };
-        resolvedDefaultFeatures = [ "Win32" "Win32_Foundation" "Win32_Networking" "Win32_Networking_WinSock" "Win32_Storage" "Win32_Storage_FileSystem" "Win32_System" "Win32_System_Console" "Win32_System_Diagnostics" "Win32_System_Diagnostics_Debug" "Win32_UI" "Win32_UI_Input" "Win32_UI_Input_KeyboardAndMouse" "default" ];
+        resolvedDefaultFeatures = [ "Win32" "Win32_Foundation" "Win32_Networking" "Win32_Networking_WinSock" "Win32_Storage" "Win32_Storage_FileSystem" "Win32_System" "Win32_System_Console" "Win32_System_Diagnostics" "Win32_System_Diagnostics_Debug" "Win32_System_SystemInformation" "Win32_UI" "Win32_UI_Input" "Win32_UI_Input_KeyboardAndMouse" "default" ];
       };
       "windows-targets 0.52.6" = rec {
         crateName = "windows-targets";

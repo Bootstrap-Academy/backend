@@ -112,7 +112,7 @@ base64 = { version = "0.22.1", default-features = false }
 chrono = { version = "0.4.41", default-features = false, features = ["serde", "clock"] }
 clap = { version = "4.5.45", features = ["derive", "env"] }
 clap_complete = { version = "4.5.57", default-features = false, features = ["unstable-dynamic"] }
-darling = { version = "0.21.2", default-features = false, features = ["suggestions"] }
+darling = { version = "0.21.3", default-features = false, features = ["suggestions"] }
 futures = { version = "0.3.31", default-features = false, features = ["std"] }
 hex = { version = "0.4.3", default-features = false, features = ["std"] }
 lettre = { version = "0.11.18", default-features = false, features = [

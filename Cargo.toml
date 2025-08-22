@@ -160,7 +160,7 @@ tokio = { version = "1.47.1", default-features = false, features = [
 ] }
 tracing = { version = "0.1.41", default-features = false, features = ["attributes"] }
 tracing-subscriber = { version = "0.3.19", default-features = false, features = ["ansi", "fmt", "env-filter"] }
-url = { version = "2.5.4", default-features = false, features = ["serde"] }
+url = { version = "2.5.6", default-features = false, features = ["serde"] }
 uuid = { version = "1.18.0", default-features = false, features = ["v4", "v7", "serde"] }
 
 [profile.dev.package]

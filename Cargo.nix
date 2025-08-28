@@ -8685,18 +8685,18 @@ rec {
       };
       "is_executable" = rec {
         crateName = "is_executable";
-        version = "1.0.4";
+        version = "1.0.5";
         edition = "2021";
-        sha256 = "1qlafm7f0zq0kzvbd4fhcfci4g9gxp6g3yqxjqsjj1zrssxbb8fl";
+        sha256 = "1i78ss45h94nwabbn6ki64a91djlli8zdwwbh56jj9kvhssbiaxs";
         authors = [
           "Nick Fitzgerald <fitzgen@gmail.com>"
         ];
         dependencies = [
           {
-            name = "winapi";
-            packageId = "winapi";
+            name = "windows-sys";
+            packageId = "windows-sys 0.60.2";
             target = { target, features }: ("windows" == target."os" or null);
-            features = [ "winbase" ];
+            features = [ "Win32_Storage_FileSystem" ];
           }
         ];
 
@@ -10878,9 +10878,9 @@ rec {
       };
       "quinn" = rec {
         crateName = "quinn";
-        version = "0.11.8";
+        version = "0.11.9";
         edition = "2021";
-        sha256 = "1j02h87nfxww5mjcw4vjcnx8b70q0yinnc8xvjv82ryskii18qk2";
+        sha256 = "086gzj666dr3slmlynkvxlndy28hahgl361d6bf93hk3i6ahmqmr";
         dependencies = [
           {
             name = "bytes";
@@ -10916,7 +10916,7 @@ rec {
           }
           {
             name = "socket2";
-            packageId = "socket2 0.5.10";
+            packageId = "socket2 0.6.0";
             target = { target, features }: (!((builtins.elem "wasm" target."family") && ("unknown" == target."os" or null)));
           }
           {
@@ -10963,6 +10963,7 @@ rec {
           "futures-io" = [ "dep:futures-io" ];
           "log" = [ "tracing/log" "proto/log" "udp/log" ];
           "platform-verifier" = [ "proto/platform-verifier" ];
+          "qlog" = [ "proto/qlog" ];
           "ring" = [ "proto/ring" ];
           "runtime-async-std" = [ "async-io" "async-std" ];
           "runtime-smol" = [ "async-io" "smol" ];
@@ -10978,9 +10979,9 @@ rec {
       };
       "quinn-proto" = rec {
         crateName = "quinn-proto";
-        version = "0.11.12";
+        version = "0.11.13";
         edition = "2021";
-        sha256 = "0bj2yyrf1mrg2bcj19ipsspvrj5sq0di0pz5maw5pj31j4x89ps9";
+        sha256 = "0cca3mgja9p4w66f6sl1kfhj8rdf4mwsg1jxzssh9g63n14np47i";
         libName = "quinn_proto";
         dependencies = [
           {
@@ -11063,6 +11064,7 @@ rec {
           "default" = [ "rustls-ring" "log" "bloom" ];
           "log" = [ "tracing/log" ];
           "platform-verifier" = [ "dep:rustls-platform-verifier" ];
+          "qlog" = [ "dep:qlog" ];
           "ring" = [ "dep:ring" ];
           "rustls" = [ "rustls-ring" ];
           "rustls-aws-lc-rs" = [ "dep:rustls" "rustls?/aws-lc-rs" "aws-lc-rs" ];
@@ -11074,9 +11076,9 @@ rec {
       };
       "quinn-udp" = rec {
         crateName = "quinn-udp";
-        version = "0.5.13";
+        version = "0.5.14";
         edition = "2021";
-        sha256 = "0w0ri3wv5g419i5dfv4qmjxh4ayc4hp77y2gy4p3axp2kqhb3szw";
+        sha256 = "1gacawr17a2zkyri0r3m0lc9spzmxbq1by3ilyb8v2mdvjhcdpmd";
         libName = "quinn_udp";
         dependencies = [
           {
@@ -11090,7 +11092,7 @@ rec {
           }
           {
             name = "socket2";
-            packageId = "socket2 0.5.10";
+            packageId = "socket2 0.6.0";
             target = { target, features }: (!((builtins.elem "wasm" target."family") && ("unknown" == target."os" or null)));
           }
           {
@@ -11102,7 +11104,7 @@ rec {
           }
           {
             name = "windows-sys";
-            packageId = "windows-sys 0.59.0";
+            packageId = "windows-sys 0.60.2";
             target = { target, features }: (target."windows" or false);
             features = [ "Win32_Foundation" "Win32_System_IO" "Win32_Networking_WinSock" ];
           }
@@ -16991,7 +16993,7 @@ rec {
         features = {
           "debug" = [ "impl-debug" ];
         };
-        resolvedDefaultFeatures = [ "consoleapi" "errhandlingapi" "fileapi" "handleapi" "libloaderapi" "memoryapi" "processenv" "processthreadsapi" "psapi" "winbase" ];
+        resolvedDefaultFeatures = [ "consoleapi" "errhandlingapi" "fileapi" "handleapi" "libloaderapi" "memoryapi" "processenv" "processthreadsapi" "psapi" ];
       };
       "winapi-i686-pc-windows-gnu" = rec {
         crateName = "winapi-i686-pc-windows-gnu";
@@ -17959,7 +17961,7 @@ rec {
           "Win32_Web" = [ "Win32" ];
           "Win32_Web_InternetExplorer" = [ "Win32_Web" ];
         };
-        resolvedDefaultFeatures = [ "Win32" "Win32_Foundation" "Win32_Networking" "Win32_Networking_WinSock" "Win32_Storage" "Win32_Storage_FileSystem" "Win32_System" "Win32_System_Console" "Win32_System_Diagnostics" "Win32_System_Diagnostics_Debug" "Win32_System_SystemInformation" "Win32_UI" "Win32_UI_Input" "Win32_UI_Input_KeyboardAndMouse" "default" ];
+        resolvedDefaultFeatures = [ "Win32" "Win32_Foundation" "Win32_Networking" "Win32_Networking_WinSock" "Win32_Storage" "Win32_Storage_FileSystem" "Win32_System" "Win32_System_Console" "Win32_System_Diagnostics" "Win32_System_Diagnostics_Debug" "Win32_System_IO" "Win32_System_SystemInformation" "Win32_UI" "Win32_UI_Input" "Win32_UI_Input_KeyboardAndMouse" "default" ];
       };
       "windows-targets 0.52.6" = rec {
         crateName = "windows-targets";

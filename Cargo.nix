@@ -5185,9 +5185,9 @@ rec {
       };
       "bitflags" = rec {
         crateName = "bitflags";
-        version = "2.9.3";
+        version = "2.9.4";
         edition = "2021";
-        sha256 = "0pgjwsd9qgdmsmwpvg47p9ccrsc26yfjqawbhsi9qds5sg6brvrl";
+        sha256 = "157kkcv8s7vk6d17dar1pa5cqcz4c8pdrn16wm1ld7jnr86d2q92";
         authors = [
           "The Rust Project Developers"
         ];
@@ -5493,13 +5493,17 @@ rec {
       };
       "cc" = rec {
         crateName = "cc";
-        version = "1.2.34";
+        version = "1.2.35";
         edition = "2018";
-        sha256 = "1p5ycww65h7xca03lwdp264qalw8v357rg5h17s7naq3h3m4mg22";
+        sha256 = "18vfhd6njr0lhfvfvxchj3bay4fw6hcpyy4130sl134alqj903sr";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
         dependencies = [
+          {
+            name = "find-msvc-tools";
+            packageId = "find-msvc-tools";
+          }
           {
             name = "shlex";
             packageId = "shlex";
@@ -6369,9 +6373,9 @@ rec {
       };
       "deranged" = rec {
         crateName = "deranged";
-        version = "0.5.2";
+        version = "0.5.3";
         edition = "2021";
-        sha256 = "14xnl2d0k0kfgaci9niwccvpy6qh274zhpl42bxd0kab36acrmvm";
+        sha256 = "1k473y8lzjac956dm3s1cs2rz364py9zd52y9fkbanws8b6vqc6n";
         authors = [
           "Jacob Pratt <jacob@jhpratt.dev>"
         ];
@@ -6639,6 +6643,14 @@ rec {
           "std" = [ "alloc" ];
         };
         resolvedDefaultFeatures = [ "alloc" "default" "std" ];
+      };
+      "find-msvc-tools" = rec {
+        crateName = "find-msvc-tools";
+        version = "0.1.0";
+        edition = "2018";
+        sha256 = "0l4nnivhdigxd87drmahqq99qvz7479ad65syq1njwm2m3xy8y71";
+        libName = "find_msvc_tools";
+
       };
       "findshlibs" = rec {
         crateName = "findshlibs";
@@ -9159,9 +9171,9 @@ rec {
       };
       "log" = rec {
         crateName = "log";
-        version = "0.4.27";
+        version = "0.4.28";
         edition = "2021";
-        sha256 = "150x589dqil307rv0rwj0jsgz5bjbwvl83gyl61jf873a7rjvp0k";
+        sha256 = "0cklpzrpxafbaq1nyxarhnmcw9z3xcjrad3ch55mmr58xw2ha21l";
         authors = [
           "The Rust Project Developers"
         ];
@@ -14315,9 +14327,9 @@ rec {
       };
       "time" = rec {
         crateName = "time";
-        version = "0.3.42";
+        version = "0.3.43";
         edition = "2021";
-        sha256 = "1qz8x3xsy90w6k5f8mspsjn82gnhh5yldvc6il2vi3lxkwvngacc";
+        sha256 = "0c90pxn59zccwdyvh8pn9ql04c32ky9kqqli7mc2vrqhxkqydgc3";
         authors = [
           "Jacob Pratt <open-source@jhpratt.dev>"
           "Time contributors"
@@ -14378,7 +14390,9 @@ rec {
           "macros" = [ "dep:time-macros" ];
           "parsing" = [ "time-macros?/parsing" ];
           "quickcheck" = [ "dep:quickcheck" "alloc" "deranged/quickcheck" ];
-          "rand" = [ "dep:rand" "deranged/rand08" ];
+          "rand" = [ "rand08" "rand09" ];
+          "rand08" = [ "dep:rand08" "deranged/rand08" ];
+          "rand09" = [ "dep:rand09" "deranged/rand09" ];
           "serde" = [ "dep:serde" "time-macros?/serde" "deranged/serde" ];
           "serde-human-readable" = [ "serde" "formatting" "parsing" ];
           "serde-well-known" = [ "serde" "formatting" "parsing" ];
@@ -14389,9 +14403,9 @@ rec {
       };
       "time-core" = rec {
         crateName = "time-core";
-        version = "0.1.5";
+        version = "0.1.6";
         edition = "2021";
-        sha256 = "0s0asjj3mz5ahpymx7wbqsns852aliays3cm9ck0f6w6h2rqn459";
+        sha256 = "0sqwhg7n47gbffyr0zhipqcnskxgcgzz1ix8wirqs2rg3my8x1j0";
         libName = "time_core";
         authors = [
           "Jacob Pratt <open-source@jhpratt.dev>"
@@ -14401,9 +14415,9 @@ rec {
       };
       "time-macros" = rec {
         crateName = "time-macros";
-        version = "0.2.23";
+        version = "0.2.24";
         edition = "2021";
-        sha256 = "0k1k1c4rrxpqsnp3j9ixv7xazhgi701xjjdkj3jlq9m78n97k0ki";
+        sha256 = "1wzb6hnl35856f58cx259q7ijc4c7yis0qsnydvw5n8jbw9b1krh";
         procMacro = true;
         libName = "time_macros";
         authors = [

@@ -4350,17 +4350,6 @@ rec {
         };
         resolvedDefaultFeatures = [ "alloc" ];
       };
-      "android-tzdata" = rec {
-        crateName = "android-tzdata";
-        version = "0.1.1";
-        edition = "2018";
-        sha256 = "1w7ynjxrfs97xg3qlcdns4kgfpwcdv824g611fq32cag4cdr96g9";
-        libName = "android_tzdata";
-        authors = [
-          "RumovZ"
-        ];
-
-      };
       "android_system_properties" = rec {
         crateName = "android_system_properties";
         version = "0.1.5";
@@ -5539,16 +5528,10 @@ rec {
       };
       "chrono" = rec {
         crateName = "chrono";
-        version = "0.4.41";
+        version = "0.4.42";
         edition = "2021";
-        sha256 = "0k8wy2mph0mgipq28vv3wirivhb31pqs7jyid0dzjivz0i9djsf4";
+        sha256 = "1lp8iz9js9jwxw0sj8yi59v54lgvwdvm49b9wch77f25sfym4l0l";
         dependencies = [
-          {
-            name = "android-tzdata";
-            packageId = "android-tzdata";
-            optional = true;
-            target = { target, features }: ("android" == target."os" or null);
-          }
           {
             name = "iana-time-zone";
             packageId = "iana-time-zone";
@@ -5581,15 +5564,14 @@ rec {
           }
           {
             name = "windows-link";
-            packageId = "windows-link 0.1.3";
+            packageId = "windows-link 0.2.0";
             optional = true;
             target = { target, features }: (target."windows" or false);
           }
         ];
         features = {
-          "android-tzdata" = [ "dep:android-tzdata" ];
           "arbitrary" = [ "dep:arbitrary" ];
-          "clock" = [ "winapi" "iana-time-zone" "android-tzdata" "now" ];
+          "clock" = [ "winapi" "iana-time-zone" "now" ];
           "default" = [ "clock" "std" "oldtime" "wasmbind" ];
           "iana-time-zone" = [ "dep:iana-time-zone" ];
           "js-sys" = [ "dep:js-sys" ];
@@ -5608,7 +5590,7 @@ rec {
           "winapi" = [ "windows-link" ];
           "windows-link" = [ "dep:windows-link" ];
         };
-        resolvedDefaultFeatures = [ "alloc" "android-tzdata" "clock" "iana-time-zone" "js-sys" "now" "serde" "std" "wasm-bindgen" "wasmbind" "winapi" "windows-link" ];
+        resolvedDefaultFeatures = [ "alloc" "clock" "iana-time-zone" "js-sys" "now" "serde" "std" "wasm-bindgen" "wasmbind" "winapi" "windows-link" ];
       };
       "chrono-tz" = rec {
         crateName = "chrono-tz";

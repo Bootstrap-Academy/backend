@@ -14069,9 +14069,9 @@ rec {
       };
       "tempfile" = rec {
         crateName = "tempfile";
-        version = "3.21.0";
+        version = "3.22.0";
         edition = "2021";
-        sha256 = "07kx58ibjk3ydq1gcb7q637fs5zkxaa550lxckhgg9p3427izdhm";
+        sha256 = "0lza9r7dzm4k9fghw24yql6iz59wq8xgs46a7i29ir6xz88lvyl4";
         authors = [
           "Steven Allen <steven@stebalien.com>"
           "The Rust Project Developers"
@@ -14097,7 +14097,7 @@ rec {
           }
           {
             name = "windows-sys";
-            packageId = "windows-sys 0.60.2";
+            packageId = "windows-sys 0.61.0";
             target = { target, features }: (target."windows" or false);
             features = [ "Win32_Storage_FileSystem" "Win32_Foundation" ];
           }

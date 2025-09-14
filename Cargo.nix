@@ -13407,9 +13407,9 @@ rec {
       };
       "serde_json" = rec {
         crateName = "serde_json";
-        version = "1.0.143";
+        version = "1.0.144";
         edition = "2021";
-        sha256 = "0njabwzldvj13ykrf1aaf4gh5cgl25kf9hzbpafbv3qh3ppsn0fl";
+        sha256 = "0h3x0y9vw0kds7yd8qicd4fj3d3vf970n49z324yc0q3n20785sn";
         authors = [
           "Erick Tryzelaar <erick.tryzelaar@gmail.com>"
           "David Tolnay <dtolnay@gmail.com>"
@@ -13434,24 +13434,17 @@ rec {
             packageId = "ryu";
           }
           {
-            name = "serde";
-            packageId = "serde";
+            name = "serde_core";
+            packageId = "serde_core";
             usesDefaultFeatures = false;
           }
         ];
-        devDependencies = [
-          {
-            name = "serde";
-            packageId = "serde";
-            features = [ "derive" ];
-          }
-        ];
         features = {
-          "alloc" = [ "serde/alloc" ];
+          "alloc" = [ "serde_core/alloc" ];
           "default" = [ "std" ];
           "indexmap" = [ "dep:indexmap" ];
           "preserve_order" = [ "indexmap" "std" ];
-          "std" = [ "memchr/std" "serde/std" ];
+          "std" = [ "memchr/std" "serde_core/std" ];
         };
         resolvedDefaultFeatures = [ "alloc" "default" "indexmap" "preserve_order" "raw_value" "std" ];
       };

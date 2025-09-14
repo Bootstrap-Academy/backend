@@ -139,7 +139,7 @@ reqwest = { version = "0.12.23", default-features = false, features = ["http2", 
 rust_decimal = { version = "1.38.0", default-features = false, features = ["std", "serde-str"] }
 rust_decimal_macros = { version = "1.37.1", default-features = false }
 schemars = { version = "0.9.0", default-features = false, features = ["derive", "preserve_order", "uuid1", "url2"] }
-serde = { version = "1.0.221", default-features = false, features = ["derive", "std"] }
+serde = { version = "1.0.222", default-features = false, features = ["derive", "std"] }
 serde_json = { version = "1.0.145", default-features = false, features = ["std"] }
 sha2 = { version = "0.10.9", default-features = false }
 syn = { version = "2.0.106", default-features = false, features = [

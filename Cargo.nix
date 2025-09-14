@@ -13407,9 +13407,9 @@ rec {
       };
       "serde_json" = rec {
         crateName = "serde_json";
-        version = "1.0.144";
+        version = "1.0.145";
         edition = "2021";
-        sha256 = "0h3x0y9vw0kds7yd8qicd4fj3d3vf970n49z324yc0q3n20785sn";
+        sha256 = "1767y6kxjf7gwpbv8bkhgwc50nhg46mqwm9gy9n122f7v1k6yaj0";
         authors = [
           "Erick Tryzelaar <erick.tryzelaar@gmail.com>"
           "David Tolnay <dtolnay@gmail.com>"
@@ -13434,9 +13434,22 @@ rec {
             packageId = "ryu";
           }
           {
+            name = "serde";
+            packageId = "serde";
+            usesDefaultFeatures = false;
+            target = { target, features }: false;
+          }
+          {
             name = "serde_core";
             packageId = "serde_core";
             usesDefaultFeatures = false;
+          }
+        ];
+        devDependencies = [
+          {
+            name = "serde";
+            packageId = "serde";
+            features = [ "derive" ];
           }
         ];
         features = {

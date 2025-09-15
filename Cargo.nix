@@ -5985,17 +5985,17 @@ rec {
       };
       "config" = rec {
         crateName = "config";
-        version = "0.15.15";
+        version = "0.15.16";
         edition = "2018";
-        sha256 = "1fjjd19fqf10fzlhsz3j67qcq1sp571vjb98i7zk72yk152rgahg";
+        sha256 = "0j8ws99c4a58pcnq4l2ckf85k9fcw8q8cmsm2pqsx6zrxkq3dw6f";
         dependencies = [
           {
             name = "pathdiff";
             packageId = "pathdiff";
           }
           {
-            name = "serde";
-            packageId = "serde";
+            name = "serde_core";
+            packageId = "serde_core";
           }
           {
             name = "toml";

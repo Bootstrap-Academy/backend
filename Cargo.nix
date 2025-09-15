@@ -5482,9 +5482,9 @@ rec {
       };
       "cc" = rec {
         crateName = "cc";
-        version = "1.2.36";
+        version = "1.2.37";
         edition = "2018";
-        sha256 = "0m3dg927zvvfvnxzifwk3rf041syg4y1wl3g3ayfsplfck9b6ljj";
+        sha256 = "0i5xlxsgd7jif1ry9k3ysnpsmbrckapqwq8d8l5vhkj0qs4ka6b5";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -8028,9 +8028,9 @@ rec {
       };
       "iana-time-zone" = rec {
         crateName = "iana-time-zone";
-        version = "0.1.63";
+        version = "0.1.64";
         edition = "2021";
-        sha256 = "1n171f5lbc7bryzmp1h30zw86zbvl5480aq02z92lcdwvvjikjdh";
+        sha256 = "1yz980fmhaq9bdkasz35z63az37ci6kzzfhya83kgdqba61pzr9k";
         libName = "iana_time_zone";
         authors = [
           "Andrew Straw <strawman@astraw.com>"
@@ -9060,9 +9060,9 @@ rec {
       };
       "libredox" = rec {
         crateName = "libredox";
-        version = "0.1.9";
+        version = "0.1.10";
         edition = "2021";
-        sha256 = "1qqczzfqcc3sw3bl7la6qv7i9hy1s7sxhxmdvpxkfgdd3c9904ir";
+        sha256 = "1jswil4ai90s4rh91fg8580x8nikni1zl3wnch4h01nvidqpwvs1";
         authors = [
           "4lDO2 <4lDO2@protonmail.com>"
         ];
@@ -10034,9 +10034,9 @@ rec {
       };
       "pest" = rec {
         crateName = "pest";
-        version = "2.8.1";
+        version = "2.8.2";
         edition = "2021";
-        sha256 = "08s342r6vv6ml5in4jk7pb97wgpf0frcnrvg0sqshn23sdb5zc0x";
+        sha256 = "1a6g94pr4npsg0s6ljddwp4g127ks0nygzhxcpwfmyik6yis7q11";
         authors = [
           "Dragoș Tiselice <dragostiselice@gmail.com>"
         ];
@@ -10068,9 +10068,9 @@ rec {
       };
       "pest_derive" = rec {
         crateName = "pest_derive";
-        version = "2.8.1";
+        version = "2.8.2";
         edition = "2021";
-        sha256 = "1g20ma4y29axbjhi3z64ihhpqzmiix71qjn7bs224yd7isg6s1dv";
+        sha256 = "0qy6nv84q1m6m2rzw1qjfbxlcizz7h557rkk16yivjqafxpp0n5w";
         procMacro = true;
         authors = [
           "Dragoș Tiselice <dragostiselice@gmail.com>"
@@ -10097,9 +10097,9 @@ rec {
       };
       "pest_generator" = rec {
         crateName = "pest_generator";
-        version = "2.8.1";
+        version = "2.8.2";
         edition = "2021";
-        sha256 = "0rj9a20g4bjb4sl3zyzpxqg8mbn8c1kxp0nw08rfp0gp73k09r47";
+        sha256 = "0bws5i6g3v1sldvy66p7qbzmz5mqbiflcqilaywgf1zy3n0kckvd";
         authors = [
           "Dragoș Tiselice <dragostiselice@gmail.com>"
         ];
@@ -10136,9 +10136,9 @@ rec {
       };
       "pest_meta" = rec {
         crateName = "pest_meta";
-        version = "2.8.1";
+        version = "2.8.2";
         edition = "2021";
-        sha256 = "1mf01iln7shbnyxpdfnpf59gzn83nndqjkwiw3yh6n8g2wgi1lgd";
+        sha256 = "0844iv71ibf414yid0bvhi9i0zfi0jrmyh6mvjjx1jws102rp4a2";
         authors = [
           "Dragoș Tiselice <dragostiselice@gmail.com>"
         ];
@@ -12622,9 +12622,9 @@ rec {
       };
       "rustls-webpki" = rec {
         crateName = "rustls-webpki";
-        version = "0.103.4";
+        version = "0.103.5";
         edition = "2021";
-        sha256 = "1z4jmmgasjgk9glb160a66bshvgifa64mgfjrkqp7dy1w158h5qa";
+        sha256 = "1n2sj34x9b82g35gk6rqz3bac4pyx3sw7gn2af77jy3vf89pi8xm";
         libName = "webpki";
         dependencies = [
           {
@@ -12860,9 +12860,9 @@ rec {
       };
       "semver" = rec {
         crateName = "semver";
-        version = "1.0.26";
+        version = "1.0.27";
         edition = "2018";
-        sha256 = "1l5q2vb8fjkby657kdyfpvv40x2i2xqq9bg57pxqakfj92fgmrjn";
+        sha256 = "1qmi3akfrnqc2hfkdgcxhld5bv961wbk8my3ascv5068mc5fnryp";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -13339,7 +13339,7 @@ rec {
         features = {
           "default" = [ "std" "result" ];
         };
-        resolvedDefaultFeatures = [ "alloc" "result" "std" ];
+        resolvedDefaultFeatures = [ "alloc" "default" "result" "std" ];
       };
       "serde_derive" = rec {
         crateName = "serde_derive";
@@ -13463,9 +13463,9 @@ rec {
       };
       "serde_path_to_error" = rec {
         crateName = "serde_path_to_error";
-        version = "0.1.17";
+        version = "0.1.19";
         edition = "2021";
-        sha256 = "0alb447z25dvczd6ll3vfjbf51pypn23mgs5hv8978vzjczv3yjr";
+        sha256 = "0ajf9cdb5jgcli4nh8iqw3sifdcv7j788wy1hdqpq4rqv6z8l2m3";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -13474,6 +13474,17 @@ rec {
             name = "itoa";
             packageId = "itoa";
           }
+          {
+            name = "serde";
+            packageId = "serde";
+            target = { target, features }: false;
+          }
+          {
+            name = "serde_core";
+            packageId = "serde_core";
+          }
+        ];
+        devDependencies = [
           {
             name = "serde";
             packageId = "serde";
@@ -17022,13 +17033,10 @@ rec {
       };
       "windows-core" = rec {
         crateName = "windows-core";
-        version = "0.61.2";
+        version = "0.62.0";
         edition = "2021";
-        sha256 = "1qsa3iw14wk4ngfl7ipcvdf9xyq456ms7cx2i9iwf406p7fx7zf0";
+        sha256 = "0z294cblga0dl2dg9s9080xyglkh33b7zc05i8nqsmyyyxl73zjp";
         libName = "windows_core";
-        authors = [
-          "Microsoft"
-        ];
         dependencies = [
           {
             name = "windows-implement";
@@ -17042,7 +17050,7 @@ rec {
           }
           {
             name = "windows-link";
-            packageId = "windows-link 0.1.3";
+            packageId = "windows-link 0.2.0";
             usesDefaultFeatures = false;
           }
           {
@@ -17143,17 +17151,14 @@ rec {
       };
       "windows-result" = rec {
         crateName = "windows-result";
-        version = "0.3.4";
+        version = "0.4.0";
         edition = "2021";
-        sha256 = "1il60l6idrc6hqsij0cal0mgva6n3w6gq4ziban8wv6c6b9jpx2n";
+        sha256 = "0zqn8kmmf7y9yw9g7q6pbcg9dbry9m03fqi0b92q767q0v1xr13h";
         libName = "windows_result";
-        authors = [
-          "Microsoft"
-        ];
         dependencies = [
           {
             name = "windows-link";
-            packageId = "windows-link 0.1.3";
+            packageId = "windows-link 0.2.0";
             usesDefaultFeatures = false;
           }
         ];
@@ -17164,17 +17169,14 @@ rec {
       };
       "windows-strings" = rec {
         crateName = "windows-strings";
-        version = "0.4.2";
+        version = "0.5.0";
         edition = "2021";
-        sha256 = "0mrv3plibkla4v5kaakc2rfksdd0b14plcmidhbkcfqc78zwkrjn";
+        sha256 = "1nld65azvms87rdm2bdm8gskwdmsswh4pxbc8babxc2klmawc63j";
         libName = "windows_strings";
-        authors = [
-          "Microsoft"
-        ];
         dependencies = [
           {
             name = "windows-link";
-            packageId = "windows-link 0.1.3";
+            packageId = "windows-link 0.2.0";
             usesDefaultFeatures = false;
           }
         ];

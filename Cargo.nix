@@ -13283,9 +13283,9 @@ rec {
       };
       "serde" = rec {
         crateName = "serde";
-        version = "1.0.223";
+        version = "1.0.224";
         edition = "2021";
-        sha256 = "1b3vgbq3m9p6y1xzf776cjgkg4vhlpnvap6sjgi8ipmdc0cxf1d5";
+        sha256 = "02yczdf5qr3h3ff969hxmf6raph91gi72g2rmy267cak9zlv3bka";
         authors = [
           "Erick Tryzelaar <erick.tryzelaar@gmail.com>"
           "David Tolnay <dtolnay@gmail.com>"
@@ -13316,9 +13316,9 @@ rec {
       };
       "serde_core" = rec {
         crateName = "serde_core";
-        version = "1.0.223";
+        version = "1.0.224";
         edition = "2021";
-        sha256 = "1sdrkcqf3nd5r8qb8wk7vd6iv3rjxas90jn879xslrkn6nyprx90";
+        sha256 = "1as18fkfkgqza3w4vxqabnc1k2ms8jakvpdwxx6y4ik3za897wrj";
         authors = [
           "Erick Tryzelaar <erick.tryzelaar@gmail.com>"
           "David Tolnay <dtolnay@gmail.com>"
@@ -13343,9 +13343,9 @@ rec {
       };
       "serde_derive" = rec {
         crateName = "serde_derive";
-        version = "1.0.223";
+        version = "1.0.224";
         edition = "2021";
-        sha256 = "0mhsl2l92ghpam8mpkkbbnx6b8g5jqcykhcyd5p30zpiz83qshix";
+        sha256 = "1q64596c1n7gbicrlcjkxvq23rvsn1f7ihdzfnkcjqc5bsmpizw7";
         procMacro = true;
         authors = [
           "Erick Tryzelaar <erick.tryzelaar@gmail.com>"

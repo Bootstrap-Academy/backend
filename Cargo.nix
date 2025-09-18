@@ -7155,7 +7155,7 @@ rec {
           }
           {
             name = "wasi";
-            packageId = "wasi 0.14.5+wasi-0.2.4";
+            packageId = "wasi 0.14.7+wasi-0.2.4";
             usesDefaultFeatures = false;
             target = { target, features }: (("wasm32" == target."arch" or null) && ("wasi" == target."os" or null) && ("p2" == target."env" or null));
           }
@@ -7899,9 +7899,9 @@ rec {
       };
       "hyper-util" = rec {
         crateName = "hyper-util";
-        version = "0.1.16";
+        version = "0.1.17";
         edition = "2021";
-        sha256 = "0pmw8gqkqjnsdrxdy5wd5q8z1gh7caxqk2an7b4s53byghkhb6wd";
+        sha256 = "1a5fcnz0alrg4lx9xf6ja66ihaab58jnm5msnky804wg39cras9w";
         libName = "hyper_util";
         authors = [
           "Sean McArthur <sean@seanmonstar.com>"
@@ -8517,9 +8517,9 @@ rec {
       };
       "indexmap" = rec {
         crateName = "indexmap";
-        version = "2.11.1";
+        version = "2.11.3";
         edition = "2021";
-        sha256 = "088rg9dlk7lmw5hz5yi4jdyif25mrsj7lgwd5ska93y6mr180si0";
+        sha256 = "1hqs931f1sd3r92zj77ji9bs75f20amnj0s3aqas9zqkym29h4cj";
         dependencies = [
           {
             name = "equivalent";
@@ -8536,6 +8536,21 @@ rec {
             packageId = "serde";
             optional = true;
             usesDefaultFeatures = false;
+            target = { target, features }: false;
+          }
+          {
+            name = "serde_core";
+            packageId = "serde_core";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+        ];
+        devDependencies = [
+          {
+            name = "serde";
+            packageId = "serde";
+            usesDefaultFeatures = false;
+            features = [ "derive" ];
           }
         ];
         features = {
@@ -8544,7 +8559,7 @@ rec {
           "default" = [ "std" ];
           "quickcheck" = [ "dep:quickcheck" ];
           "rayon" = [ "dep:rayon" ];
-          "serde" = [ "dep:serde" ];
+          "serde" = [ "dep:serde_core" "dep:serde" ];
           "sval" = [ "dep:sval" ];
         };
         resolvedDefaultFeatures = [ "default" "serde" "std" ];
@@ -8716,9 +8731,9 @@ rec {
       };
       "js-sys" = rec {
         crateName = "js-sys";
-        version = "0.3.78";
+        version = "0.3.80";
         edition = "2021";
-        sha256 = "0f17vdkpbarm0qlbqb0p1fyiy4l9bs62zvw3fv0ywb29g0shc2qc";
+        sha256 = "0bkhnbna0a9sqhhswfar0mzi8mpy2dygv4zbzfdbm97bqnz16bw5";
         libName = "js_sys";
         authors = [
           "The wasm-bindgen Developers"
@@ -10274,9 +10289,9 @@ rec {
       };
       "plist" = rec {
         crateName = "plist";
-        version = "1.7.4";
+        version = "1.8.0";
         edition = "2021";
-        sha256 = "1qg7zkvnm4r4n9s9hbwwjnwznvkg6v0f035hza4agib3w64vbxis";
+        sha256 = "01qyv51ljbvhjbg8mva5c802b3dzrr95y6nd23wjh52xbjhvw3kl";
         authors = [
           "Ed Barnard <eabarnard@gmail.com>"
         ];
@@ -10693,9 +10708,9 @@ rec {
       };
       "proc-macro-crate" = rec {
         crateName = "proc-macro-crate";
-        version = "3.3.0";
+        version = "3.4.0";
         edition = "2021";
-        sha256 = "0d9xlymplfi9yv3f5g4bp0d6qh70apnihvqcjllampx4f5lmikpd";
+        sha256 = "10v9qi51n4phn1lrj5r94kjq7yhci9jrkqnn6wpan05yjsgb3711";
         libName = "proc_macro_crate";
         authors = [
           "Bastian Köcher <git@kchr.de>"
@@ -12622,9 +12637,9 @@ rec {
       };
       "rustls-webpki" = rec {
         crateName = "rustls-webpki";
-        version = "0.103.5";
+        version = "0.103.6";
         edition = "2021";
-        sha256 = "1n2sj34x9b82g35gk6rqz3bac4pyx3sw7gn2af77jy3vf89pi8xm";
+        sha256 = "1szqh1g2cwx89f21mf6zkxc8rxg187y9jm5law8j6d4rrg1g6wl5";
         libName = "webpki";
         dependencies = [
           {
@@ -13463,9 +13478,9 @@ rec {
       };
       "serde_path_to_error" = rec {
         crateName = "serde_path_to_error";
-        version = "0.1.19";
+        version = "0.1.20";
         edition = "2021";
-        sha256 = "0ajf9cdb5jgcli4nh8iqw3sifdcv7j788wy1hdqpq4rqv6z8l2m3";
+        sha256 = "0mxls44p2ycmnxh03zpnlxxygq42w61ws7ir7r0ba6rp5s1gza8h";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -13477,11 +13492,14 @@ rec {
           {
             name = "serde";
             packageId = "serde";
+            usesDefaultFeatures = false;
             target = { target, features }: false;
           }
           {
             name = "serde_core";
             packageId = "serde_core";
+            usesDefaultFeatures = false;
+            features = [ "alloc" ];
           }
         ];
         devDependencies = [
@@ -13543,28 +13561,22 @@ rec {
       };
       "serde_spanned" = rec {
         crateName = "serde_spanned";
-        version = "1.0.0";
+        version = "1.0.1";
         edition = "2021";
-        sha256 = "10rv91337k8x8zmfir4h8aiwmwgkq07gdv7h0jxhcwwgk10lqws0";
+        sha256 = "1rh9w15agr8hgljjm1l4p2ykihx38nmipsji3fzc8gx52d527297";
         dependencies = [
           {
-            name = "serde";
-            packageId = "serde";
+            name = "serde_core";
+            packageId = "serde_core";
             optional = true;
             usesDefaultFeatures = false;
           }
         ];
-        devDependencies = [
-          {
-            name = "serde";
-            packageId = "serde";
-          }
-        ];
         features = {
-          "alloc" = [ "serde?/alloc" ];
+          "alloc" = [ "serde_core?/alloc" ];
           "default" = [ "std" "serde" ];
-          "serde" = [ "dep:serde" ];
-          "std" = [ "alloc" "serde?/std" ];
+          "serde" = [ "dep:serde_core" ];
+          "std" = [ "alloc" "serde_core?/std" ];
         };
         resolvedDefaultFeatures = [ "alloc" "serde" ];
       };
@@ -14806,9 +14818,9 @@ rec {
       };
       "tokio-rustls" = rec {
         crateName = "tokio-rustls";
-        version = "0.26.2";
+        version = "0.26.3";
         edition = "2021";
-        sha256 = "16wf007q3584j46wc4s0zc4szj6280g23hka6x6bgs50l4v7nwlf";
+        sha256 = "1gc6fxpd185xclg5y8z1kana0axv4g6vnypmpvqj78ccj8skixh5";
         libName = "tokio_rustls";
         dependencies = [
           {
@@ -14898,13 +14910,13 @@ rec {
       };
       "toml" = rec {
         crateName = "toml";
-        version = "0.9.5";
+        version = "0.9.6";
         edition = "2021";
-        sha256 = "1s7n4l40hvpf46jmgidfknnzpyblz4hip7gfkymgn2q0qlfrw4km";
+        sha256 = "00g2y1r2znl73s03qfb2sgc977hhqajxyp617gax28yshprlqamf";
         dependencies = [
           {
-            name = "serde";
-            packageId = "serde";
+            name = "serde_core";
+            packageId = "serde_core";
             optional = true;
             usesDefaultFeatures = false;
             features = [ "alloc" ];
@@ -14917,7 +14929,7 @@ rec {
           }
           {
             name = "toml_datetime";
-            packageId = "toml_datetime 0.7.0";
+            packageId = "toml_datetime";
             usesDefaultFeatures = false;
             features = [ "alloc" ];
           }
@@ -14935,13 +14947,6 @@ rec {
             usesDefaultFeatures = false;
           }
         ];
-        devDependencies = [
-          {
-            name = "serde";
-            packageId = "serde";
-            features = [ "derive" ];
-          }
-        ];
         features = {
           "debug" = [ "std" "toml_parser?/debug" "dep:anstream" "dep:anstyle" ];
           "default" = [ "std" "serde" "parse" "display" ];
@@ -14949,46 +14954,37 @@ rec {
           "fast_hash" = [ "preserve_order" "dep:foldhash" ];
           "parse" = [ "dep:toml_parser" "dep:winnow" ];
           "preserve_order" = [ "dep:indexmap" "std" ];
-          "serde" = [ "dep:serde" "toml_datetime/serde" "serde_spanned/serde" ];
-          "std" = [ "indexmap?/std" "serde?/std" "toml_parser?/std" "toml_writer?/std" "toml_datetime/std" "serde_spanned/std" ];
+          "serde" = [ "dep:serde_core" "toml_datetime/serde" "serde_spanned/serde" ];
+          "std" = [ "indexmap?/std" "serde_core?/std" "toml_parser?/std" "toml_writer?/std" "toml_datetime/std" "serde_spanned/std" ];
         };
         resolvedDefaultFeatures = [ "parse" "serde" ];
       };
-      "toml_datetime 0.6.11" = rec {
+      "toml_datetime" = rec {
         crateName = "toml_datetime";
-        version = "0.6.11";
+        version = "0.7.1";
         edition = "2021";
-        sha256 = "077ix2hb1dcya49hmi1avalwbixmrs75zgzb3b2i7g2gizwdmk92";
-        features = {
-          "serde" = [ "dep:serde" ];
-        };
-      };
-      "toml_datetime 0.7.0" = rec {
-        crateName = "toml_datetime";
-        version = "0.7.0";
-        edition = "2021";
-        sha256 = "1qwivxqkjxxwcqsvfhxnphpwphci0grdfk197wyxfn1gj0z1rpms";
+        sha256 = "1gmn2rmd0g5pnq2vzbd7bnrylnjrl4ml9j42grpzq6qkgpnc15x1";
         dependencies = [
           {
-            name = "serde";
-            packageId = "serde";
+            name = "serde_core";
+            packageId = "serde_core";
             optional = true;
             usesDefaultFeatures = false;
           }
         ];
         features = {
-          "alloc" = [ "serde?/alloc" ];
+          "alloc" = [ "serde_core?/alloc" ];
           "default" = [ "std" ];
-          "serde" = [ "dep:serde" ];
-          "std" = [ "alloc" "serde?/std" ];
+          "serde" = [ "dep:serde_core" ];
+          "std" = [ "alloc" "serde_core?/std" ];
         };
-        resolvedDefaultFeatures = [ "alloc" "serde" ];
+        resolvedDefaultFeatures = [ "alloc" "default" "serde" "std" ];
       };
       "toml_edit" = rec {
         crateName = "toml_edit";
-        version = "0.22.27";
+        version = "0.23.5";
         edition = "2021";
-        sha256 = "16l15xm40404asih8vyjvnka9g0xs9i4hfb6ry3ph9g419k8rzj1";
+        sha256 = "1y8icvszr1cqpq85ryswy6ck6i8z4awrr0v3a5hgbvngx5x0pbf2";
         dependencies = [
           {
             name = "indexmap";
@@ -14997,7 +14993,12 @@ rec {
           }
           {
             name = "toml_datetime";
-            packageId = "toml_datetime 0.6.11";
+            packageId = "toml_datetime";
+          }
+          {
+            name = "toml_parser";
+            packageId = "toml_parser";
+            optional = true;
           }
           {
             name = "winnow";
@@ -15006,12 +15007,11 @@ rec {
           }
         ];
         features = {
+          "debug" = [ "toml_parser?/debug" "dep:anstream" "dep:anstyle" "display" ];
           "default" = [ "parse" "display" ];
-          "display" = [ "dep:toml_write" ];
-          "parse" = [ "dep:winnow" ];
-          "perf" = [ "dep:kstring" ];
-          "serde" = [ "dep:serde" "toml_datetime/serde" "dep:serde_spanned" ];
-          "unstable-debug" = [ "winnow?/debug" ];
+          "display" = [ "dep:toml_writer" ];
+          "parse" = [ "dep:toml_parser" "dep:winnow" ];
+          "serde" = [ "dep:serde_core" "toml_datetime/serde" "dep:serde_spanned" ];
         };
         resolvedDefaultFeatures = [ "parse" ];
       };
@@ -15033,7 +15033,7 @@ rec {
           "simd" = [ "winnow/simd" ];
           "std" = [ "alloc" ];
         };
-        resolvedDefaultFeatures = [ "alloc" ];
+        resolvedDefaultFeatures = [ "alloc" "default" "std" ];
       };
       "totp-rs" = rec {
         crateName = "totp-rs";
@@ -16151,11 +16151,11 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" "std" ];
       };
-      "wasi 0.14.5+wasi-0.2.4" = rec {
+      "wasi 0.14.7+wasi-0.2.4" = rec {
         crateName = "wasi";
-        version = "0.14.5+wasi-0.2.4";
+        version = "0.14.7+wasi-0.2.4";
         edition = "2021";
-        sha256 = "1m4gm7ndqcgv1502064xilz7dmmr6im6fyl1hkjmybx8j1i4yjd4";
+        sha256 = "133fq3mq7h65mzrsphcm7bbbx1gsz7srrbwh01624zin43g7hd48";
         dependencies = [
           {
             name = "wasip2";
@@ -16171,9 +16171,9 @@ rec {
       };
       "wasip2" = rec {
         crateName = "wasip2";
-        version = "1.0.0+wasi-0.2.4";
+        version = "1.0.1+wasi-0.2.4";
         edition = "2021";
-        sha256 = "090abdlgwwq4yjlj3rd4mh4j3bvi1h8p6znd08hdanvy75hjgyh3";
+        sha256 = "1rsqmpspwy0zja82xx7kbkbg9fv34a4a2if3sbd76dy64a244qh5";
         dependencies = [
           {
             name = "wit-bindgen";
@@ -16198,9 +16198,9 @@ rec {
       };
       "wasm-bindgen" = rec {
         crateName = "wasm-bindgen";
-        version = "0.2.101";
+        version = "0.2.103";
         edition = "2021";
-        sha256 = "0fv0yrfx170gf7i4dds4c69dxh8axp247wyip2dm4nylmmf9253y";
+        sha256 = "069qhf7yrl4jymzjzvwsmcmw96al639xim4scigpy5qapngsc45b";
         libName = "wasm_bindgen";
         authors = [
           "The wasm-bindgen Developers"
@@ -16249,9 +16249,9 @@ rec {
       };
       "wasm-bindgen-backend" = rec {
         crateName = "wasm-bindgen-backend";
-        version = "0.2.101";
+        version = "0.2.103";
         edition = "2021";
-        sha256 = "1fwkzc2z701g2rm2jq4m20a0lkc6qqq5r3a407yj6yfahalip3g2";
+        sha256 = "070x7fjnnvzm2y3a5j29wmss4z547cjdx3rnpixh19j56m105dqb";
         libName = "wasm_bindgen_backend";
         authors = [
           "The wasm-bindgen Developers"
@@ -16289,9 +16289,9 @@ rec {
       };
       "wasm-bindgen-futures" = rec {
         crateName = "wasm-bindgen-futures";
-        version = "0.4.51";
+        version = "0.4.53";
         edition = "2021";
-        sha256 = "1znz8i8kyrlpq6q2fals223zrwwixmn6s7a16s1v6sdlm4wm1a0c";
+        sha256 = "0rrglk9fjwk69adwca1skn10v9qlhacmbfxd16aq6mhj8bzj3cm0";
         libName = "wasm_bindgen_futures";
         authors = [
           "The wasm-bindgen Developers"
@@ -16334,9 +16334,9 @@ rec {
       };
       "wasm-bindgen-macro" = rec {
         crateName = "wasm-bindgen-macro";
-        version = "0.2.101";
+        version = "0.2.103";
         edition = "2021";
-        sha256 = "038vxk2yg11c3qv9iyasqcm70dw8sr2xmyaxqjq7bxzgwcx4cgbw";
+        sha256 = "18481jkmczv4j0m747ypb0k1acq093hhbdhpb4sr856r27sg8rgw";
         procMacro = true;
         libName = "wasm_bindgen_macro";
         authors = [
@@ -16358,9 +16358,9 @@ rec {
       };
       "wasm-bindgen-macro-support" = rec {
         crateName = "wasm-bindgen-macro-support";
-        version = "0.2.101";
+        version = "0.2.103";
         edition = "2021";
-        sha256 = "1ajjqmdbi7ybdpw41avskjfdqnxpc9v547gmr8izj4c2n24wxd3v";
+        sha256 = "0clsx611pday95s6wg8pndvrd8xknsaf20d40kk8x2irj6lh7h7z";
         libName = "wasm_bindgen_macro_support";
         authors = [
           "The wasm-bindgen Developers"
@@ -16394,10 +16394,10 @@ rec {
       };
       "wasm-bindgen-shared" = rec {
         crateName = "wasm-bindgen-shared";
-        version = "0.2.101";
+        version = "0.2.103";
         edition = "2021";
         links = "wasm_bindgen";
-        sha256 = "1h94nvm5p8zyr3718x4zhdz7rcmd0rir0b46a1ljqx8k7d58ahzi";
+        sha256 = "1kx13fvmlxxaxf04vm3b14437hyq92zdy89pvcaclc54xzs3fg19";
         libName = "wasm_bindgen_shared";
         authors = [
           "The wasm-bindgen Developers"
@@ -16412,9 +16412,9 @@ rec {
       };
       "web-sys" = rec {
         crateName = "web-sys";
-        version = "0.3.78";
+        version = "0.3.80";
         edition = "2021";
-        sha256 = "04lbcdr74pilsrf1g76lbw9bwg7zghgslqxdiwmxkw4zfhvvdr3p";
+        sha256 = "1p4nwlrjvaymzas40x1i0n6mzn8pilzl6jwcswlw97c6bs4k9rzv";
         libName = "web_sys";
         authors = [
           "The wasm-bindgen Developers"
@@ -18515,15 +18515,15 @@ rec {
       };
       "wit-bindgen" = rec {
         crateName = "wit-bindgen";
-        version = "0.45.1";
+        version = "0.46.0";
         edition = "2021";
-        sha256 = "0dndrimz95nwdv6m24ylj0vj1dvlc012xxrxs13mc1r5y5qk8msw";
+        sha256 = "0ngysw50gp2wrrfxbwgp6dhw1g6sckknsn3wm7l00vaf7n48aypi";
         libName = "wit_bindgen";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
         features = {
-          "async" = [ "macros" "dep:futures" "dep:once_cell" "wit-bindgen-rust-macro/async" ];
+          "async" = [ "macros" "std" "dep:futures" "dep:once_cell" "wit-bindgen-rust-macro/async" ];
           "bitflags" = [ "dep:bitflags" ];
           "default" = [ "macros" "realloc" "async" "std" "bitflags" ];
           "macros" = [ "dep:wit-bindgen-rust-macro" ];

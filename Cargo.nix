@@ -5482,9 +5482,9 @@ rec {
       };
       "cc" = rec {
         crateName = "cc";
-        version = "1.2.37";
+        version = "1.2.38";
         edition = "2018";
-        sha256 = "0i5xlxsgd7jif1ry9k3ysnpsmbrckapqwq8d8l5vhkj0qs4ka6b5";
+        sha256 = "1sg7gd94611qhryvb0iip0zibjnhf1yha2wnp0pw2mgrd3himx40";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -6628,9 +6628,9 @@ rec {
       };
       "find-msvc-tools" = rec {
         crateName = "find-msvc-tools";
-        version = "0.1.1";
+        version = "0.1.2";
         edition = "2018";
-        sha256 = "0b8rhghgjssjw9q8a3gg7f9kl8zhy9d7nqsc4s4nc52dyqq9knbz";
+        sha256 = "0nbrhvk4m04hviiwbqp2jwcv9j2k70x0q2kcvfk51iygvaqp7v8w";
         libName = "find_msvc_tools";
 
       };
@@ -7400,11 +7400,11 @@ rec {
         };
         resolvedDefaultFeatures = [ "ahash" "allocator-api2" "default" "inline-more" ];
       };
-      "hashbrown 0.15.5" = rec {
+      "hashbrown 0.16.0" = rec {
         crateName = "hashbrown";
-        version = "0.15.5";
+        version = "0.16.0";
         edition = "2021";
-        sha256 = "189qaczmjxnikm9db748xyhiw04kpmhm9xj9k9hg0sgx7pjwyacj";
+        sha256 = "13blh9j2yv77a6ni236ixiwdzbc1sh2bc4bdpaz7y859yv2bs6al";
         authors = [
           "Amanieu d'Antras <amanieu@gmail.com>"
         ];
@@ -7415,7 +7415,7 @@ rec {
           "default" = [ "default-hasher" "inline-more" "allocator-api2" "equivalent" "raw-entry" ];
           "default-hasher" = [ "dep:foldhash" ];
           "equivalent" = [ "dep:equivalent" ];
-          "nightly" = [ "bumpalo/allocator_api" ];
+          "nightly" = [ "foldhash?/nightly" "bumpalo/allocator_api" ];
           "rayon" = [ "dep:rayon" ];
           "rustc-dep-of-std" = [ "nightly" "core" "alloc" "rustc-internal-api" ];
           "serde" = [ "dep:serde" ];
@@ -8517,9 +8517,9 @@ rec {
       };
       "indexmap" = rec {
         crateName = "indexmap";
-        version = "2.11.3";
+        version = "2.11.4";
         edition = "2021";
-        sha256 = "1hqs931f1sd3r92zj77ji9bs75f20amnj0s3aqas9zqkym29h4cj";
+        sha256 = "1rc8bgcjzfcskz1zipjjm7s3m1jskzhnhr9jxmsafhdk1xv863sb";
         dependencies = [
           {
             name = "equivalent";
@@ -8528,7 +8528,7 @@ rec {
           }
           {
             name = "hashbrown";
-            packageId = "hashbrown 0.15.5";
+            packageId = "hashbrown 0.16.0";
             usesDefaultFeatures = false;
           }
           {
@@ -12521,9 +12521,9 @@ rec {
       };
       "rustls" = rec {
         crateName = "rustls";
-        version = "0.23.31";
+        version = "0.23.32";
         edition = "2021";
-        sha256 = "1k5ncablbb2h7hzllq3j3panqnks295v56xd488zrq1xy39cpsy0";
+        sha256 = "0h2ddlnbjhs47hcmf3rbvr32sxj5kpf0m56rgk739l192rijag6d";
         dependencies = [
           {
             name = "log";
@@ -13561,9 +13561,9 @@ rec {
       };
       "serde_spanned" = rec {
         crateName = "serde_spanned";
-        version = "1.0.1";
+        version = "1.0.2";
         edition = "2021";
-        sha256 = "1rh9w15agr8hgljjm1l4p2ykihx38nmipsji3fzc8gx52d527297";
+        sha256 = "1vh4kcnzhw0fbr1jhg41p8yybnp5gmpnh171fy25bgn2a8s7h5sl";
         dependencies = [
           {
             name = "serde_core";
@@ -14363,9 +14363,9 @@ rec {
       };
       "time" = rec {
         crateName = "time";
-        version = "0.3.43";
+        version = "0.3.44";
         edition = "2021";
-        sha256 = "0c90pxn59zccwdyvh8pn9ql04c32ky9kqqli7mc2vrqhxkqydgc3";
+        sha256 = "179awlwb36zly3nmz5h9awai1h4pbf1d83g2pmvlw4v1pgixkrwi";
         authors = [
           "Jacob Pratt <open-source@jhpratt.dev>"
           "Time contributors"
@@ -14375,6 +14375,11 @@ rec {
             name = "deranged";
             packageId = "deranged";
             features = [ "powerfmt" ];
+          }
+          {
+            name = "itoa";
+            packageId = "itoa";
+            optional = true;
           }
           {
             name = "num-conv";
@@ -14420,7 +14425,7 @@ rec {
         features = {
           "alloc" = [ "serde?/alloc" ];
           "default" = [ "std" ];
-          "formatting" = [ "std" "time-macros?/formatting" ];
+          "formatting" = [ "dep:itoa" "std" "time-macros?/formatting" ];
           "large-dates" = [ "time-macros?/large-dates" ];
           "local-offset" = [ "std" "dep:libc" "dep:num_threads" ];
           "macros" = [ "dep:time-macros" ];
@@ -14910,9 +14915,9 @@ rec {
       };
       "toml" = rec {
         crateName = "toml";
-        version = "0.9.6";
+        version = "0.9.7";
         edition = "2021";
-        sha256 = "00g2y1r2znl73s03qfb2sgc977hhqajxyp617gax28yshprlqamf";
+        sha256 = "187av4nsjc0cdfixpc24sqpxqwy5ijvdm7hd9yfsqx94pzcybr80";
         dependencies = [
           {
             name = "serde_core";
@@ -14961,9 +14966,9 @@ rec {
       };
       "toml_datetime" = rec {
         crateName = "toml_datetime";
-        version = "0.7.1";
+        version = "0.7.2";
         edition = "2021";
-        sha256 = "1gmn2rmd0g5pnq2vzbd7bnrylnjrl4ml9j42grpzq6qkgpnc15x1";
+        sha256 = "1hgff8gdk9yx7dljkqfijmj0sc5ln4xhpj045divdhi7xifhiw9j";
         dependencies = [
           {
             name = "serde_core";
@@ -14982,9 +14987,9 @@ rec {
       };
       "toml_edit" = rec {
         crateName = "toml_edit";
-        version = "0.23.5";
+        version = "0.23.6";
         edition = "2021";
-        sha256 = "1y8icvszr1cqpq85ryswy6ck6i8z4awrr0v3a5hgbvngx5x0pbf2";
+        sha256 = "0jqq4wz6is0497a42m0wh4j3x4vgp70wrlndd57zzzc61rygxvzk";
         dependencies = [
           {
             name = "indexmap";
@@ -15017,9 +15022,9 @@ rec {
       };
       "toml_parser" = rec {
         crateName = "toml_parser";
-        version = "1.0.2";
+        version = "1.0.3";
         edition = "2021";
-        sha256 = "042wp5ni22yqcbrfqq9c63g2vbbp4m59zamxw97hvacs8ipqhldm";
+        sha256 = "09x6i0b57lwc7yn6w1kbd2ypm4vpcrgd2vdax7h745g77g1r7y2c";
         dependencies = [
           {
             name = "winnow";

@@ -5985,9 +5985,9 @@ rec {
       };
       "config" = rec {
         crateName = "config";
-        version = "0.15.16";
+        version = "0.15.17";
         edition = "2018";
-        sha256 = "0j8ws99c4a58pcnq4l2ckf85k9fcw8q8cmsm2pqsx6zrxkq3dw6f";
+        sha256 = "1nssrbg95g9is89snn4df0x12l0yhxwcjcf81qq46v06zv13l3b8";
         dependencies = [
           {
             name = "pathdiff";
@@ -6014,6 +6014,7 @@ rec {
           "async-trait" = [ "dep:async-trait" ];
           "convert-case" = [ "convert_case" ];
           "convert_case" = [ "dep:convert_case" ];
+          "corn" = [ "dep:corn" ];
           "default" = [ "toml" "json" "yaml" "ini" "ron" "json5" "convert-case" "async" ];
           "indexmap" = [ "dep:indexmap" ];
           "ini" = [ "rust-ini" ];

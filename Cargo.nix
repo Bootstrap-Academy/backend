@@ -12889,9 +12889,9 @@ rec {
       };
       "sentry" = rec {
         crateName = "sentry";
-        version = "0.42.0";
+        version = "0.43.0";
         edition = "2021";
-        sha256 = "0c2hnj4agzf3mpy4jglixzw750i9dknpw600ckh13h5mi8k2b54q";
+        sha256 = "0qfgicm7169h80z5xd6ifans1ffvhh9n5jv894wxch2klnxsy0nc";
         authors = [
           "Sentry <hello@sentry.io>"
         ];
@@ -13013,9 +13013,9 @@ rec {
       };
       "sentry-anyhow" = rec {
         crateName = "sentry-anyhow";
-        version = "0.42.0";
+        version = "0.43.0";
         edition = "2021";
-        sha256 = "08z7zwf5jl856iph9dn3dnqrrzi3cidfj0g4zc5p7mlm4ly55d71";
+        sha256 = "0vrwvaz3ysjcrwrgip3x4rjmjp2yd9fhj99s9rxwfygqv2pvggnw";
         libName = "sentry_anyhow";
         authors = [
           "Sentry <hello@sentry.io>"
@@ -13041,9 +13041,9 @@ rec {
       };
       "sentry-backtrace" = rec {
         crateName = "sentry-backtrace";
-        version = "0.42.0";
+        version = "0.43.0";
         edition = "2021";
-        sha256 = "0lx68vwfnbcfab534g3li8khh78yjk4m5s7ffml6gkvv7zfrkqk8";
+        sha256 = "0xivjrdqmy58arksvkyipkxdaqw8848jskamhy43xyrdp698fa0g";
         libName = "sentry_backtrace";
         authors = [
           "Sentry <hello@sentry.io>"
@@ -13068,9 +13068,9 @@ rec {
       };
       "sentry-contexts" = rec {
         crateName = "sentry-contexts";
-        version = "0.42.0";
+        version = "0.43.0";
         edition = "2021";
-        sha256 = "120wavd32j3p2bxakz0i6kxjc032gd3mgj9g94ac9m1ci7bcbh7s";
+        sha256 = "0vg0wv6gh2qyisdrdjyyhm8ygvvz2aqlcvlas2ijhvhgichfca4b";
         libName = "sentry_contexts";
         authors = [
           "Sentry <hello@sentry.io>"
@@ -13109,9 +13109,9 @@ rec {
       };
       "sentry-core" = rec {
         crateName = "sentry-core";
-        version = "0.42.0";
+        version = "0.43.0";
         edition = "2021";
-        sha256 = "1k6bj8jgzq0mwqcgcc71gdk3n1gg1a5krnzry7rhz0kh9swkiany";
+        sha256 = "1f4v4ix83hvny3cw3wgb9rjq0nhki6i5cka506vmq05anm3hlq37";
         libName = "sentry_core";
         authors = [
           "Sentry <hello@sentry.io>"
@@ -13151,9 +13151,9 @@ rec {
       };
       "sentry-debug-images" = rec {
         crateName = "sentry-debug-images";
-        version = "0.42.0";
+        version = "0.43.0";
         edition = "2021";
-        sha256 = "1dh1d9w314vkhir7xpwhcc84rgbiasnk8x05axziqdqdm940d580";
+        sha256 = "037j7hc7l2w0x5pv37pwm8rs6crk1w2zx7h88q2ciw0843hyf9zv";
         libName = "sentry_debug_images";
         authors = [
           "Sentry <hello@sentry.io>"
@@ -13172,9 +13172,9 @@ rec {
       };
       "sentry-panic" = rec {
         crateName = "sentry-panic";
-        version = "0.42.0";
+        version = "0.43.0";
         edition = "2021";
-        sha256 = "1zlvrjx11z8ppixiz8smqvglmzjr1zmqdnz77kg76j007jqj6yib";
+        sha256 = "0q9lkl055inrvwcczf869xvyyjcvr0ydwqyw02mglsng7qlsw2yf";
         libName = "sentry_panic";
         authors = [
           "Sentry <hello@sentry.io>"
@@ -13187,15 +13187,16 @@ rec {
           {
             name = "sentry-core";
             packageId = "sentry-core";
+            features = [ "client" ];
           }
         ];
 
       };
       "sentry-tracing" = rec {
         crateName = "sentry-tracing";
-        version = "0.42.0";
+        version = "0.43.0";
         edition = "2021";
-        sha256 = "102h9vjz68q8hacpnxcm605syn8irglxixy8pv13z9qa0p3l3j7s";
+        sha256 = "0g3acfzxi5q9ap5m73d3dj4blh9kdi8qzkx75hy0lihzfwblc12w";
         libName = "sentry_tracing";
         authors = [
           "Sentry <hello@sentry.io>"
@@ -13241,9 +13242,9 @@ rec {
       };
       "sentry-types" = rec {
         crateName = "sentry-types";
-        version = "0.42.0";
+        version = "0.43.0";
         edition = "2021";
-        sha256 = "04n40n0vpb7yh330ij70vn0rxg0ilp9sh5rpanmv9p88vgag8xz4";
+        sha256 = "1hmr3f4hidmb9p7q752vhvgvb7i2347n45lxsvfmpfi3r1nrndma";
         libName = "sentry_types";
         authors = [
           "Sentry <hello@sentry.io>"

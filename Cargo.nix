@@ -5606,7 +5606,7 @@ rec {
           }
           {
             name = "phf";
-            packageId = "phf";
+            packageId = "phf 0.11.3";
             usesDefaultFeatures = false;
           }
         ];
@@ -5646,7 +5646,7 @@ rec {
           }
           {
             name = "phf";
-            packageId = "phf";
+            packageId = "phf 0.11.3";
             usesDefaultFeatures = false;
           }
           {
@@ -7965,7 +7965,7 @@ rec {
           }
           {
             name = "socket2";
-            packageId = "socket2 0.6.0";
+            packageId = "socket2";
             optional = true;
             features = [ "all" ];
           }
@@ -8960,7 +8960,7 @@ rec {
           }
           {
             name = "socket2";
-            packageId = "socket2 0.6.0";
+            packageId = "socket2";
             optional = true;
           }
           {
@@ -10176,7 +10176,7 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" ];
       };
-      "phf" = rec {
+      "phf 0.11.3" = rec {
         crateName = "phf";
         version = "0.11.3";
         edition = "2021";
@@ -10187,7 +10187,7 @@ rec {
         dependencies = [
           {
             name = "phf_shared";
-            packageId = "phf_shared";
+            packageId = "phf_shared 0.11.3";
             usesDefaultFeatures = false;
           }
         ];
@@ -10198,6 +10198,37 @@ rec {
           "serde" = [ "dep:serde" ];
           "std" = [ "phf_shared/std" ];
           "uncased" = [ "phf_shared/uncased" ];
+          "unicase" = [ "phf_macros?/unicase" "phf_shared/unicase" ];
+        };
+      };
+      "phf 0.13.1" = rec {
+        crateName = "phf";
+        version = "0.13.1";
+        edition = "2021";
+        sha256 = "1pzswx5gdglgjgp4azyzwyr4gh031r0kcnpqq6jblga72z3jsmn1";
+        authors = [
+          "Steven Fackler <sfackler@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "phf_shared";
+            packageId = "phf_shared 0.13.1";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "serde";
+            packageId = "serde";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+        ];
+        features = {
+          "default" = [ "std" ];
+          "macros" = [ "phf_macros" ];
+          "phf_macros" = [ "dep:phf_macros" ];
+          "serde" = [ "dep:serde" ];
+          "std" = [ "phf_shared/std" "serde?/std" ];
+          "uncased" = [ "phf_macros?/uncased" "phf_shared/uncased" ];
           "unicase" = [ "phf_macros?/unicase" "phf_shared/unicase" ];
         };
         resolvedDefaultFeatures = [ "default" "std" ];
@@ -10217,7 +10248,7 @@ rec {
           }
           {
             name = "phf_shared";
-            packageId = "phf_shared";
+            packageId = "phf_shared 0.11.3";
           }
         ];
 
@@ -10234,7 +10265,7 @@ rec {
         dependencies = [
           {
             name = "phf_shared";
-            packageId = "phf_shared";
+            packageId = "phf_shared 0.11.3";
             usesDefaultFeatures = false;
           }
           {
@@ -10248,7 +10279,7 @@ rec {
           "criterion" = [ "dep:criterion" ];
         };
       };
-      "phf_shared" = rec {
+      "phf_shared 0.11.3" = rec {
         crateName = "phf_shared";
         version = "0.11.3";
         edition = "2021";
@@ -10268,6 +10299,27 @@ rec {
           "unicase" = [ "dep:unicase" ];
         };
         resolvedDefaultFeatures = [ "default" "std" ];
+      };
+      "phf_shared 0.13.1" = rec {
+        crateName = "phf_shared";
+        version = "0.13.1";
+        edition = "2021";
+        sha256 = "0rpjchnswm0x5l4mz9xqfpw0j4w68sjvyqrdrv13h7lqqmmyyzz5";
+        authors = [
+          "Steven Fackler <sfackler@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "siphasher";
+            packageId = "siphasher";
+          }
+        ];
+        features = {
+          "default" = [ "std" ];
+          "uncased" = [ "dep:uncased" ];
+          "unicase" = [ "dep:unicase" ];
+        };
+        resolvedDefaultFeatures = [ "std" ];
       };
       "pin-project-lite" = rec {
         crateName = "pin-project-lite";
@@ -10342,9 +10394,9 @@ rec {
       };
       "postgres" = rec {
         crateName = "postgres";
-        version = "0.19.10";
-        edition = "2018";
-        sha256 = "0w44if0fz3dvjpjzmmxsm5gk3fvnvcqb8vkvb6ikl3bqvpxnsgin";
+        version = "0.19.11";
+        edition = "2021";
+        sha256 = "0v8iclcmmam1xcirsc5h9bj127rngk1xqqw67rkf14vab1hrmhcb";
         authors = [
           "Steven Fackler <sfackler@gmail.com>"
         ];
@@ -10379,6 +10431,8 @@ rec {
         features = {
           "array-impls" = [ "tokio-postgres/array-impls" ];
           "with-bit-vec-0_6" = [ "tokio-postgres/with-bit-vec-0_6" ];
+          "with-bit-vec-0_7" = [ "tokio-postgres/with-bit-vec-0_7" ];
+          "with-bit-vec-0_8" = [ "tokio-postgres/with-bit-vec-0_8" ];
           "with-chrono-0_4" = [ "tokio-postgres/with-chrono-0_4" ];
           "with-cidr-0_2" = [ "tokio-postgres/with-cidr-0_2" ];
           "with-cidr-0_3" = [ "tokio-postgres/with-cidr-0_3" ];
@@ -10387,6 +10441,7 @@ rec {
           "with-geo-types-0_6" = [ "tokio-postgres/with-geo-types-0_6" ];
           "with-geo-types-0_7" = [ "tokio-postgres/with-geo-types-0_7" ];
           "with-jiff-0_1" = [ "tokio-postgres/with-jiff-0_1" ];
+          "with-jiff-0_2" = [ "tokio-postgres/with-jiff-0_2" ];
           "with-serde_json-1" = [ "tokio-postgres/with-serde_json-1" ];
           "with-smol_str-01" = [ "tokio-postgres/with-smol_str-01" ];
           "with-time-0_2" = [ "tokio-postgres/with-time-0_2" ];
@@ -10397,9 +10452,9 @@ rec {
       };
       "postgres-derive" = rec {
         crateName = "postgres-derive";
-        version = "0.4.6";
-        edition = "2018";
-        sha256 = "0pqpwjjswzajgzll4200g8csrs6kkjhyc23p8hnz6piwc2j0ww39";
+        version = "0.4.7";
+        edition = "2021";
+        sha256 = "1rna7k5zxsk5sv4lkx2hwydal9bckrpi9pj91srd2w2377srdpsn";
         procMacro = true;
         libName = "postgres_derive";
         authors = [
@@ -10427,9 +10482,9 @@ rec {
       };
       "postgres-protocol" = rec {
         crateName = "postgres-protocol";
-        version = "0.6.8";
-        edition = "2018";
-        sha256 = "0m2w0zfbamk2qw1dfb7gm9i60dhazhg1zf7p7swl9f59njx0mzvn";
+        version = "0.6.9";
+        edition = "2021";
+        sha256 = "1m6g7zzcdj4pgw2gs3anh57ylzbabpynq9s8h23fn5mrar86bvzv";
         libName = "postgres_protocol";
         authors = [
           "Steven Fackler <sfackler@gmail.com>"
@@ -10484,9 +10539,9 @@ rec {
       };
       "postgres-types" = rec {
         crateName = "postgres-types";
-        version = "0.2.9";
-        edition = "2018";
-        sha256 = "0j2bvqv1zwjw3y41kmjy8ljygq27xv54im8q6py1s3nr7ib86ck1";
+        version = "0.2.10";
+        edition = "2021";
+        sha256 = "1r3nx8kysa7gl11rkiwm6z5r8a92x48y9xjv9lr0xjxzmbd218bp";
         libName = "postgres_types";
         authors = [
           "Steven Fackler <sfackler@gmail.com>"
@@ -10528,6 +10583,8 @@ rec {
           "array-impls" = [ "array-init" ];
           "array-init" = [ "dep:array-init" ];
           "bit-vec-06" = [ "dep:bit-vec-06" ];
+          "bit-vec-07" = [ "dep:bit-vec-07" ];
+          "bit-vec-08" = [ "dep:bit-vec-08" ];
           "chrono-04" = [ "dep:chrono-04" ];
           "cidr-02" = [ "dep:cidr-02" ];
           "cidr-03" = [ "dep:cidr-03" ];
@@ -10537,6 +10594,7 @@ rec {
           "geo-types-06" = [ "dep:geo-types-06" ];
           "geo-types-0_7" = [ "dep:geo-types-0_7" ];
           "jiff-01" = [ "dep:jiff-01" ];
+          "jiff-02" = [ "dep:jiff-02" ];
           "js" = [ "postgres-protocol/js" ];
           "postgres-derive" = [ "dep:postgres-derive" ];
           "serde-1" = [ "dep:serde-1" ];
@@ -10547,6 +10605,8 @@ rec {
           "uuid-08" = [ "dep:uuid-08" ];
           "uuid-1" = [ "dep:uuid-1" ];
           "with-bit-vec-0_6" = [ "bit-vec-06" ];
+          "with-bit-vec-0_7" = [ "bit-vec-07" ];
+          "with-bit-vec-0_8" = [ "bit-vec-08" ];
           "with-chrono-0_4" = [ "chrono-04" ];
           "with-cidr-0_2" = [ "cidr-02" ];
           "with-cidr-0_3" = [ "cidr-03" ];
@@ -10555,6 +10615,7 @@ rec {
           "with-geo-types-0_6" = [ "geo-types-06" ];
           "with-geo-types-0_7" = [ "geo-types-0_7" ];
           "with-jiff-0_1" = [ "jiff-01" ];
+          "with-jiff-0_2" = [ "jiff-02" ];
           "with-serde_json-1" = [ "serde-1" "serde_json-1" ];
           "with-smol_str-01" = [ "smol_str-01" ];
           "with-time-0_2" = [ "time-02" ];
@@ -10914,7 +10975,7 @@ rec {
           }
           {
             name = "socket2";
-            packageId = "socket2 0.6.0";
+            packageId = "socket2";
             target = { target, features }: (!((builtins.elem "wasm" target."family") && ("unknown" == target."os" or null)));
           }
           {
@@ -11090,7 +11151,7 @@ rec {
           }
           {
             name = "socket2";
-            packageId = "socket2 0.6.0";
+            packageId = "socket2";
             target = { target, features }: (!((builtins.elem "wasm" target."family") && ("unknown" == target."os" or null)));
           }
           {
@@ -11421,7 +11482,7 @@ rec {
           }
           {
             name = "socket2";
-            packageId = "socket2 0.6.0";
+            packageId = "socket2";
             features = [ "all" ];
           }
           {
@@ -13829,33 +13890,7 @@ rec {
         };
         resolvedDefaultFeatures = [ "const_generics" "const_new" ];
       };
-      "socket2 0.5.10" = rec {
-        crateName = "socket2";
-        version = "0.5.10";
-        edition = "2021";
-        sha256 = "0y067ki5q946w91xlz2sb175pnfazizva6fi3kfp639mxnmpc8z2";
-        authors = [
-          "Alex Crichton <alex@alexcrichton.com>"
-          "Thomas de Zeeuw <thomasdezeeuw@gmail.com>"
-        ];
-        dependencies = [
-          {
-            name = "libc";
-            packageId = "libc";
-            target = { target, features }: (target."unix" or false);
-          }
-          {
-            name = "windows-sys";
-            packageId = "windows-sys 0.52.0";
-            target = { target, features }: (target."windows" or false);
-            features = [ "Win32_Foundation" "Win32_Networking_WinSock" "Win32_System_IO" "Win32_System_Threading" "Win32_System_WindowsProgramming" ];
-          }
-        ];
-        features = {
-        };
-        resolvedDefaultFeatures = [ "all" ];
-      };
-      "socket2 0.6.0" = rec {
+      "socket2" = rec {
         crateName = "socket2";
         version = "0.6.0";
         edition = "2021";
@@ -14621,7 +14656,7 @@ rec {
           }
           {
             name = "socket2";
-            packageId = "socket2 0.6.0";
+            packageId = "socket2";
             optional = true;
             target = { target, features }: (!(builtins.elem "wasm" target."family"));
             features = [ "all" ];
@@ -14646,7 +14681,7 @@ rec {
           }
           {
             name = "socket2";
-            packageId = "socket2 0.6.0";
+            packageId = "socket2";
             target = {target, features}: (!(builtins.elem "wasm" target."family"));
           }
           {
@@ -14706,9 +14741,9 @@ rec {
       };
       "tokio-postgres" = rec {
         crateName = "tokio-postgres";
-        version = "0.7.13";
-        edition = "2018";
-        sha256 = "1c0zak88r656diliniv09q4gkvmvl359l670j1jbp0ihr0rxb5bc";
+        version = "0.7.14";
+        edition = "2021";
+        sha256 = "0lyqagbl3691gnzvnb2jhzsdbvh2wbyisgl5ay11c4zjzzkyymm1";
         libName = "tokio_postgres";
         authors = [
           "Steven Fackler <sfackler@gmail.com>"
@@ -14738,6 +14773,7 @@ rec {
           {
             name = "futures-util";
             packageId = "futures-util";
+            usesDefaultFeatures = false;
             features = [ "sink" ];
           }
           {
@@ -14754,7 +14790,7 @@ rec {
           }
           {
             name = "phf";
-            packageId = "phf";
+            packageId = "phf 0.13.1";
           }
           {
             name = "pin-project-lite";
@@ -14774,7 +14810,7 @@ rec {
           }
           {
             name = "socket2";
-            packageId = "socket2 0.5.10";
+            packageId = "socket2";
             target = { target, features }: (!("wasm32" == target."arch" or null));
             features = [ "all" ];
           }
@@ -14795,6 +14831,12 @@ rec {
         ];
         devDependencies = [
           {
+            name = "futures-util";
+            packageId = "futures-util";
+            usesDefaultFeatures = false;
+            features = [ "async-await-macro" ];
+          }
+          {
             name = "tokio";
             packageId = "tokio";
             features = [ "macros" "net" "rt" "rt-multi-thread" "time" ];
@@ -14806,6 +14848,8 @@ rec {
           "js" = [ "postgres-protocol/js" "postgres-types/js" ];
           "runtime" = [ "tokio/net" "tokio/time" ];
           "with-bit-vec-0_6" = [ "postgres-types/with-bit-vec-0_6" ];
+          "with-bit-vec-0_7" = [ "postgres-types/with-bit-vec-0_7" ];
+          "with-bit-vec-0_8" = [ "postgres-types/with-bit-vec-0_8" ];
           "with-chrono-0_4" = [ "postgres-types/with-chrono-0_4" ];
           "with-cidr-0_2" = [ "postgres-types/with-cidr-0_2" ];
           "with-cidr-0_3" = [ "postgres-types/with-cidr-0_3" ];
@@ -14814,6 +14858,7 @@ rec {
           "with-geo-types-0_6" = [ "postgres-types/with-geo-types-0_6" ];
           "with-geo-types-0_7" = [ "postgres-types/with-geo-types-0_7" ];
           "with-jiff-0_1" = [ "postgres-types/with-jiff-0_1" ];
+          "with-jiff-0_2" = [ "postgres-types/with-jiff-0_2" ];
           "with-serde_json-1" = [ "postgres-types/with-serde_json-1" ];
           "with-smol_str-01" = [ "postgres-types/with-smol_str-01" ];
           "with-time-0_2" = [ "postgres-types/with-time-0_2" ];
@@ -17438,7 +17483,7 @@ rec {
           "Win32_Web" = [ "Win32" ];
           "Win32_Web_InternetExplorer" = [ "Win32_Web" ];
         };
-        resolvedDefaultFeatures = [ "Win32" "Win32_Foundation" "Win32_Networking" "Win32_Networking_WinSock" "Win32_Security" "Win32_Storage" "Win32_Storage_FileSystem" "Win32_System" "Win32_System_Console" "Win32_System_IO" "Win32_System_LibraryLoader" "Win32_System_Registry" "Win32_System_SystemInformation" "Win32_System_SystemServices" "Win32_System_Threading" "Win32_System_WindowsProgramming" "Win32_UI" "Win32_UI_WindowsAndMessaging" "default" ];
+        resolvedDefaultFeatures = [ "Win32" "Win32_Foundation" "Win32_Security" "Win32_Storage" "Win32_Storage_FileSystem" "Win32_System" "Win32_System_Console" "Win32_System_LibraryLoader" "Win32_System_Registry" "Win32_System_SystemInformation" "Win32_System_SystemServices" "Win32_System_Threading" "Win32_UI" "Win32_UI_WindowsAndMessaging" "default" ];
       };
       "windows-sys 0.59.0" = rec {
         crateName = "windows-sys";

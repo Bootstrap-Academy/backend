@@ -4613,9 +4613,9 @@ rec {
       };
       "axum" = rec {
         crateName = "axum";
-        version = "0.8.4";
+        version = "0.8.5";
         edition = "2021";
-        sha256 = "1d99kb3vcjnhbgrf6hysllf25hzagw7m1i1nidjpgsaa30n8c7h2";
+        sha256 = "1qplx1fyilfk1fbjr5bn5zbncx8jjx3w9x2bpc384p3vwfp2krcq";
         dependencies = [
           {
             name = "axum-core";
@@ -4684,12 +4684,8 @@ rec {
             packageId = "pin-project-lite";
           }
           {
-            name = "rustversion";
-            packageId = "rustversion";
-          }
-          {
-            name = "serde";
-            packageId = "serde";
+            name = "serde_core";
+            packageId = "serde_core";
           }
           {
             name = "serde_json";
@@ -4746,11 +4742,6 @@ rec {
             features = [ "client" ];
           }
           {
-            name = "serde";
-            packageId = "serde";
-            features = [ "derive" ];
-          }
-          {
             name = "serde_json";
             packageId = "serde_json";
             features = [ "raw_value" ];
@@ -4774,7 +4765,7 @@ rec {
         ];
         features = {
           "__private" = [ "tokio" "http1" "dep:reqwest" ];
-          "__private_docs" = [ "axum-core/__private_docs" "tower/full" "dep:tower-http" ];
+          "__private_docs" = [ "axum-core/__private_docs" "tower/full" "dep:serde" "dep:tower-http" ];
           "default" = [ "form" "http1" "json" "matched-path" "original-uri" "query" "tokio" "tower-log" "tracing" ];
           "form" = [ "dep:form_urlencoded" "dep:serde_urlencoded" "dep:serde_path_to_error" ];
           "http1" = [ "dep:hyper" "hyper?/http1" "hyper-util?/http1" ];
@@ -4792,9 +4783,9 @@ rec {
       };
       "axum-core" = rec {
         crateName = "axum-core";
-        version = "0.5.2";
+        version = "0.5.3";
         edition = "2021";
-        sha256 = "19kwzksb4hwr3qfbrhjbqf83z6fjyng14wrkzck6fj1g8784qik8";
+        sha256 = "07rbfwglg4sdrhhw0625i2gd9h19r3qz2pdm4d4aginhl70zzg7r";
         libName = "axum_core";
         dependencies = [
           {
@@ -4856,9 +4847,9 @@ rec {
       };
       "axum-extra" = rec {
         crateName = "axum-extra";
-        version = "0.10.1";
+        version = "0.10.2";
         edition = "2021";
-        sha256 = "0gbi6p5944rfm545cml8ns2i23yl0nrjarbm7iyin4zm64w4dgs5";
+        sha256 = "1pdm0cv92nknjrhp5m85lhkyzirqr16j3hz9xf41hh3gs4f70vfq";
         libName = "axum_extra";
         dependencies = [
           {
@@ -4911,14 +4902,8 @@ rec {
             packageId = "rustversion";
           }
           {
-            name = "serde";
-            packageId = "serde";
-          }
-          {
-            name = "tower";
-            packageId = "tower";
-            usesDefaultFeatures = false;
-            features = [ "util" ];
+            name = "serde_core";
+            packageId = "serde_core";
           }
           {
             name = "tower-layer";
@@ -4928,21 +4913,15 @@ rec {
             name = "tower-service";
             packageId = "tower-service";
           }
-        ];
-        devDependencies = [
           {
-            name = "serde";
-            packageId = "serde";
-            features = [ "derive" ];
-          }
-          {
-            name = "tower";
-            packageId = "tower";
-            features = [ "util" ];
+            name = "tracing";
+            packageId = "tracing";
+            optional = true;
+            usesDefaultFeatures = false;
           }
         ];
         features = {
-          "__private_docs" = [ "axum/json" ];
+          "__private_docs" = [ "axum/json" "dep:serde" "dep:tower" ];
           "async-read-body" = [ "dep:tokio-util" "tokio-util?/io" "dep:tokio" ];
           "attachment" = [ "dep:tracing" ];
           "cookie" = [ "dep:cookie" ];
@@ -4959,7 +4938,7 @@ rec {
           "multipart" = [ "dep:multer" "dep:fastrand" ];
           "protobuf" = [ "dep:prost" ];
           "query" = [ "dep:form_urlencoded" "dep:serde_html_form" "dep:serde_path_to_error" ];
-          "tracing" = [ "axum-core/tracing" "axum/tracing" ];
+          "tracing" = [ "axum-core/tracing" "axum/tracing" "dep:tracing" ];
           "typed-header" = [ "dep:headers" ];
           "typed-routing" = [ "dep:axum-macros" "dep:percent-encoding" "dep:serde_html_form" "dep:form_urlencoded" ];
         };

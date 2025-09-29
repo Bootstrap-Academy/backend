@@ -4069,10 +4069,10 @@ rec {
       };
       "addr2line" = rec {
         crateName = "addr2line";
-        version = "0.24.2";
+        version = "0.25.1";
         edition = "2018";
         crateBin = [];
-        sha256 = "1hd1i57zxgz08j6h5qrhsnm2fi0bcqvsh389fw400xm3arz2ggnz";
+        sha256 = "0jwb96gv17vdr29hbzi0ha5q6jkpgjyn7rjlg5nis65k41rk0p8v";
         dependencies = [
           {
             name = "gimli";
@@ -4082,19 +4082,19 @@ rec {
           }
         ];
         features = {
-          "all" = [ "bin" ];
+          "all" = [ "bin" "wasm" ];
           "alloc" = [ "dep:alloc" ];
           "bin" = [ "loader" "rustc-demangle" "cpp_demangle" "fallible-iterator" "smallvec" "dep:clap" ];
-          "compiler_builtins" = [ "dep:compiler_builtins" ];
           "core" = [ "dep:core" ];
           "cpp_demangle" = [ "dep:cpp_demangle" ];
           "default" = [ "rustc-demangle" "cpp_demangle" "loader" "fallible-iterator" "smallvec" ];
           "fallible-iterator" = [ "dep:fallible-iterator" ];
           "loader" = [ "std" "dep:object" "dep:memmap2" "dep:typed-arena" ];
           "rustc-demangle" = [ "dep:rustc-demangle" ];
-          "rustc-dep-of-std" = [ "core" "alloc" "compiler_builtins" "gimli/rustc-dep-of-std" ];
+          "rustc-dep-of-std" = [ "core" "alloc" "gimli/rustc-dep-of-std" ];
           "smallvec" = [ "dep:smallvec" ];
           "std" = [ "gimli/std" ];
+          "wasm" = [ "object/wasm" ];
         };
       };
       "adler2" = rec {
@@ -4783,9 +4783,9 @@ rec {
       };
       "axum-core" = rec {
         crateName = "axum-core";
-        version = "0.5.3";
+        version = "0.5.4";
         edition = "2021";
-        sha256 = "07rbfwglg4sdrhhw0625i2gd9h19r3qz2pdm4d4aginhl70zzg7r";
+        sha256 = "1rj7s5gxh2bjvyy26c2s7ywbz040j4z5rrry4lq7wb0qn6zadiqa";
         libName = "axum_core";
         dependencies = [
           {
@@ -4815,10 +4815,6 @@ rec {
           {
             name = "pin-project-lite";
             packageId = "pin-project-lite";
-          }
-          {
-            name = "rustversion";
-            packageId = "rustversion";
           }
           {
             name = "sync_wrapper";
@@ -4946,9 +4942,9 @@ rec {
       };
       "backtrace" = rec {
         crateName = "backtrace";
-        version = "0.3.75";
+        version = "0.3.76";
         edition = "2021";
-        sha256 = "00hhizz29mvd7cdqyz5wrj98vqkihgcxmv2vl7z0d0f53qrac1k8";
+        sha256 = "1mibx75x4jf6wz7qjifynld3hpw3vq6sy3d3c9y5s88sg59ihlxv";
         authors = [
           "The Rust Project Developers"
         ];
@@ -4987,8 +4983,8 @@ rec {
             packageId = "rustc-demangle";
           }
           {
-            name = "windows-targets";
-            packageId = "windows-targets 0.52.6";
+            name = "windows-link";
+            packageId = "windows-link 0.2.0";
             target = { target, features }: ((target."windows" or false) || ("cygwin" == target."os" or null));
           }
         ];
@@ -5461,9 +5457,9 @@ rec {
       };
       "cc" = rec {
         crateName = "cc";
-        version = "1.2.38";
+        version = "1.2.39";
         edition = "2018";
-        sha256 = "1sg7gd94611qhryvb0iip0zibjnhf1yha2wnp0pw2mgrd3himx40";
+        sha256 = "0py3546wz3k5qi6pbfz80jvg0g3qgzr21c7a1p5wjvscjm4l6dg1";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -6038,7 +6034,7 @@ rec {
           }
           {
             name = "windows-sys";
-            packageId = "windows-sys 0.61.0";
+            packageId = "windows-sys 0.61.1";
             target = { target, features }: (target."windows" or false);
             features = [ "Win32_Foundation" "Win32_System_Console" "Win32_Storage_FileSystem" "Win32_UI_Input_KeyboardAndMouse" ];
           }
@@ -6565,7 +6561,7 @@ rec {
           }
           {
             name = "windows-sys";
-            packageId = "windows-sys 0.61.0";
+            packageId = "windows-sys 0.61.1";
             target = { target, features }: (target."windows" or false);
             features = [ "Win32_Foundation" "Win32_System_Diagnostics_Debug" ];
           }
@@ -7155,16 +7151,16 @@ rec {
       };
       "gimli" = rec {
         crateName = "gimli";
-        version = "0.31.1";
+        version = "0.32.3";
         edition = "2018";
-        sha256 = "0gvqc0ramx8szv76jhfd4dms0zyamvlg4whhiz11j34hh3dqxqh7";
+        sha256 = "1iqk5xznimn5bfa8jy4h7pa1dv3c624hzgd2dkz8mpgkiswvjag6";
         features = {
           "default" = [ "read-all" "write" ];
           "endian-reader" = [ "read" "dep:stable_deref_trait" ];
           "fallible-iterator" = [ "dep:fallible-iterator" ];
           "read" = [ "read-core" ];
           "read-all" = [ "read" "std" "fallible-iterator" "endian-reader" ];
-          "rustc-dep-of-std" = [ "dep:core" "dep:alloc" "dep:compiler_builtins" ];
+          "rustc-dep-of-std" = [ "dep:core" "dep:alloc" ];
           "std" = [ "fallible-iterator?/std" "stable_deref_trait?/std" ];
           "write" = [ "dep:indexmap" ];
         };
@@ -9247,9 +9243,9 @@ rec {
       };
       "memchr" = rec {
         crateName = "memchr";
-        version = "2.7.5";
+        version = "2.7.6";
         edition = "2021";
-        sha256 = "1h2bh2jajkizz04fh047lpid5wgw2cr9igpkdhl3ibzscpd858ij";
+        sha256 = "0wy29kf6pb4fbhfksjbs05jy2f32r2f3r1ga6qkmpz31k79h0azm";
         authors = [
           "Andrew Gallant <jamslam@gmail.com>"
           "bluss"
@@ -9711,9 +9707,9 @@ rec {
       };
       "object" = rec {
         crateName = "object";
-        version = "0.36.7";
+        version = "0.37.3";
         edition = "2018";
-        sha256 = "11vv97djn9nc5n6w1gc6bd96d2qk2c8cg1kw5km9bsi3v4a8x532";
+        sha256 = "1zikiy9xhk6lfx1dn2gn2pxbnfpmlkn0byd7ib1n720x0cgj0xpz";
         dependencies = [
           {
             name = "memchr";
@@ -9726,14 +9722,13 @@ rec {
           "alloc" = [ "dep:alloc" ];
           "build" = [ "build_core" "write_std" "elf" ];
           "build_core" = [ "read_core" "write_core" ];
-          "compiler_builtins" = [ "dep:compiler_builtins" ];
           "compression" = [ "dep:flate2" "dep:ruzstd" "std" ];
           "core" = [ "dep:core" ];
           "default" = [ "read" "compression" ];
           "doc" = [ "read_core" "write_std" "build_core" "std" "compression" "archive" "coff" "elf" "macho" "pe" "wasm" "xcoff" ];
           "pe" = [ "coff" ];
           "read" = [ "read_core" "archive" "coff" "elf" "macho" "pe" "xcoff" "unaligned" ];
-          "rustc-dep-of-std" = [ "core" "compiler_builtins" "alloc" "memchr/rustc-dep-of-std" ];
+          "rustc-dep-of-std" = [ "core" "alloc" "memchr/rustc-dep-of-std" ];
           "std" = [ "memchr/std" ];
           "unstable-all" = [ "all" "unstable" ];
           "wasm" = [ "dep:wasmparser" ];
@@ -11411,9 +11406,9 @@ rec {
       };
       "redis" = rec {
         crateName = "redis";
-        version = "0.32.5";
+        version = "0.32.6";
         edition = "2021";
-        sha256 = "1y7fw1hcnnb517d29nls1gps80j1za9b362861mm4s5wxq6nblvw";
+        sha256 = "1jy3d3cn18bmb5y42n88rn0r1njpvdmwmgk8iah3hp4prfy5z5hm";
         dependencies = [
           {
             name = "bytes";
@@ -11489,7 +11484,7 @@ rec {
         ];
         features = {
           "ahash" = [ "dep:ahash" ];
-          "aio" = [ "bytes" "dep:pin-project-lite" "dep:futures-util" "dep:tokio" "tokio/io-util" "dep:tokio-util" "tokio-util/codec" "combine/tokio" "dep:cfg-if" ];
+          "aio" = [ "bytes" "dep:pin-project-lite" "dep:futures-util" "dep:tokio" "dep:tokio-util" "tokio-util/codec" "combine/tokio" "dep:cfg-if" ];
           "async-std-comp" = [ "aio" "dep:async-std" ];
           "async-std-native-tls-comp" = [ "async-std-comp" "dep:async-native-tls" "tls-native-tls" ];
           "async-std-rustls-comp" = [ "async-std-comp" "dep:futures-rustls" "tls-rustls" ];
@@ -11548,9 +11543,9 @@ rec {
       };
       "ref-cast" = rec {
         crateName = "ref-cast";
-        version = "1.0.24";
+        version = "1.0.25";
         edition = "2021";
-        sha256 = "1kx57g118vs9sqi6d2dcxy6vp8jbx8n5hilmv1sacip9vc8y82ja";
+        sha256 = "0zdzc34qjva9xxgs889z5iz787g81hznk12zbk4g2xkgwq530m7k";
         libName = "ref_cast";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
@@ -11565,9 +11560,9 @@ rec {
       };
       "ref-cast-impl" = rec {
         crateName = "ref-cast-impl";
-        version = "1.0.24";
+        version = "1.0.25";
         edition = "2021";
-        sha256 = "1ir7dm7hpqqdgg60hlspsc1ck6wli7wa3xcqrsxz7wdz45f24r8i";
+        sha256 = "1nkhn1fklmn342z5c4mzfzlxddv3x8yhxwwk02cj06djvh36065p";
         procMacro = true;
         libName = "ref_cast_impl";
         authors = [
@@ -12519,7 +12514,7 @@ rec {
           }
           {
             name = "windows-sys";
-            packageId = "windows-sys 0.61.0";
+            packageId = "windows-sys 0.61.1";
             target = { target, features }: (target."windows" or false);
             features = [ "Win32_Foundation" "Win32_Networking_WinSock" ];
           }
@@ -14167,7 +14162,7 @@ rec {
           }
           {
             name = "windows-sys";
-            packageId = "windows-sys 0.61.0";
+            packageId = "windows-sys 0.61.1";
             target = { target, features }: (target."windows" or false);
             features = [ "Win32_Storage_FileSystem" "Win32_Foundation" ];
           }
@@ -14849,9 +14844,9 @@ rec {
       };
       "tokio-rustls" = rec {
         crateName = "tokio-rustls";
-        version = "0.26.3";
+        version = "0.26.4";
         edition = "2021";
-        sha256 = "1gc6fxpd185xclg5y8z1kana0axv4g6vnypmpvqj78ccj8skixh5";
+        sha256 = "0qggwknz9w4bbsv1z158hlnpkm97j3w8v31586jipn99byaala8p";
         libName = "tokio_rustls";
         dependencies = [
           {
@@ -14875,11 +14870,13 @@ rec {
         features = {
           "aws-lc-rs" = [ "aws_lc_rs" ];
           "aws_lc_rs" = [ "rustls/aws_lc_rs" ];
+          "brotli" = [ "rustls/brotli" ];
           "default" = [ "logging" "tls12" "aws_lc_rs" ];
           "fips" = [ "rustls/fips" ];
           "logging" = [ "rustls/logging" ];
           "ring" = [ "rustls/ring" ];
           "tls12" = [ "rustls/tls12" ];
+          "zlib" = [ "rustls/zlib" ];
         };
         resolvedDefaultFeatures = [ "logging" "ring" "tls12" ];
       };
@@ -17044,7 +17041,7 @@ rec {
         dependencies = [
           {
             name = "windows-sys";
-            packageId = "windows-sys 0.61.0";
+            packageId = "windows-sys 0.61.1";
             target = { target, features }: (target."windows" or false);
             features = [ "Win32_Foundation" "Win32_Storage_FileSystem" "Win32_System_Console" "Win32_System_SystemInformation" ];
           }
@@ -17064,9 +17061,9 @@ rec {
       };
       "windows-core" = rec {
         crateName = "windows-core";
-        version = "0.62.0";
+        version = "0.62.1";
         edition = "2021";
-        sha256 = "0z294cblga0dl2dg9s9080xyglkh33b7zc05i8nqsmyyyxl73zjp";
+        sha256 = "1aa94x61q0x39xnlzxjmahwck9i5p51xgzrz7m6hi1dj2rafwi38";
         libName = "windows_core";
         dependencies = [
           {
@@ -17103,14 +17100,11 @@ rec {
       };
       "windows-implement" = rec {
         crateName = "windows-implement";
-        version = "0.60.0";
+        version = "0.60.1";
         edition = "2021";
-        sha256 = "0dm88k3hlaax85xkls4gf597ar4z8m5vzjjagzk910ph7b8xszx4";
+        sha256 = "1q2lfwdqrkfzsrlshvvyr2cj7ckq4rqxj0ispzlnvyvl5bj0gczd";
         procMacro = true;
         libName = "windows_implement";
-        authors = [
-          "Microsoft"
-        ];
         dependencies = [
           {
             name = "proc-macro2";
@@ -17133,14 +17127,11 @@ rec {
       };
       "windows-interface" = rec {
         crateName = "windows-interface";
-        version = "0.59.1";
+        version = "0.59.2";
         edition = "2021";
-        sha256 = "1a4zr8740gyzzhq02xgl6vx8l669jwfby57xgf0zmkcdkyv134mx";
+        sha256 = "19a6if8dfnazjgjw4hm0kayk9vrjclyj3iqivcaaqr39pkfx3ay0";
         procMacro = true;
         libName = "windows_interface";
-        authors = [
-          "Microsoft"
-        ];
         dependencies = [
           {
             name = "proc-macro2";
@@ -17735,7 +17726,7 @@ rec {
         dependencies = [
           {
             name = "windows-targets";
-            packageId = "windows-targets 0.53.3";
+            packageId = "windows-targets 0.53.4";
             usesDefaultFeatures = false;
           }
         ];
@@ -17988,11 +17979,11 @@ rec {
         };
         resolvedDefaultFeatures = [ "Win32" "Win32_Foundation" "Win32_Networking" "Win32_Networking_WinSock" "Win32_Storage" "Win32_Storage_FileSystem" "Win32_System" "Win32_System_Console" "Win32_System_IO" "default" ];
       };
-      "windows-sys 0.61.0" = rec {
+      "windows-sys 0.61.1" = rec {
         crateName = "windows-sys";
-        version = "0.61.0";
+        version = "0.61.1";
         edition = "2021";
-        sha256 = "1ajpwsmzfcsa1r7i0dxzvfn24dp3525rcd7aq95ydvdj8171h0g2";
+        sha256 = "03vg2rxm0lyiyq64b5sm95lkg2x95sjdb0zb0y4q8g2avm0rw43g";
         libName = "windows_sys";
         dependencies = [
           {
@@ -18303,19 +18294,16 @@ rec {
         ];
 
       };
-      "windows-targets 0.53.3" = rec {
+      "windows-targets 0.53.4" = rec {
         crateName = "windows-targets";
-        version = "0.53.3";
+        version = "0.53.4";
         edition = "2021";
-        sha256 = "14fwwm136dhs3i1impqrrip7nvkra3bdxa4nqkblj604qhqn1znm";
+        sha256 = "0jxc6f032xb3bbb7mj9rlhky84w7vz7hkbsh8s2hcakdysvvfhid";
         libName = "windows_targets";
-        authors = [
-          "Microsoft"
-        ];
         dependencies = [
           {
             name = "windows-link";
-            packageId = "windows-link 0.1.3";
+            packageId = "windows-link 0.2.0";
             usesDefaultFeatures = false;
             target = { target, features }: (target."windows_raw_dylib" or false);
           }

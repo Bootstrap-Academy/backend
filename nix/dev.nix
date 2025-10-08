@@ -12,16 +12,18 @@ let
 in
 
 {
-  languages.c.enable = true;
+  languages.c.enable = false;
   languages.rust = {
     enable = builtins.getEnv "DEVENV_RUST" != "0";
     toolchain = fenix.packages.${pkgs.system}.stable;
   };
 
   packages =
-    (lib.attrValues scripts)
+    lib.attrValues scripts
     ++ lib.attrValues {
       inherit (pkgs)
+        stdenv
+        pkg-config
         crate2nix
         just
         lcov

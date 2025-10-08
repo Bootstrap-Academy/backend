@@ -8837,9 +8837,9 @@ rec {
       };
       "lettre" = rec {
         crateName = "lettre";
-        version = "0.11.18";
+        version = "0.11.19";
         edition = "2021";
-        sha256 = "0mmgdabb74pv45prp6ml4vbwrfbvqpmbm9fvhynfz2bszyv4vdaw";
+        sha256 = "0zzg5wk25ymgrvljp9ln7agvi26k85q15jsj1ykb5y0qi07f24wy";
         authors = [
           "Alexis Mousset <contact@amousset.me>"
           "Paolo Barbolini <paolo@paolo565.org>"

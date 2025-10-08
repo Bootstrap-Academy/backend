@@ -9,8 +9,8 @@ repository.workspace = true
 [dependencies]
 chrono.workspace = true
 futures.workspace = true
-postgres = "0.19.11"
+postgres = "0.19.12"
 postgres-protocol = "0.6.9"
 postgres-types = { version = "0.2.11", features = ["derive"] }
-tokio-postgres = { version = "0.7.14", features = ["with-chrono-0_4", "with-uuid-1"] }
+tokio-postgres = { version = "0.7.15", features = ["with-chrono-0_4", "with-uuid-1"] }
 uuid.workspace = true

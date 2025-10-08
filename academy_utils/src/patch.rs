@@ -1,15 +1,10 @@
 pub use academy_utils_derive::Patch;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum PatchValue<T> {
     Update(T),
+    #[default]
     Unchanged,
-}
-
-impl<T> Default for PatchValue<T> {
-    fn default() -> Self {
-        Self::Unchanged
-    }
 }
 
 impl<T> PatchValue<T> {

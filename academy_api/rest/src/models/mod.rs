@@ -38,16 +38,11 @@ impl From<ApiPaginationSlice> for PaginationSlice {
 }
 
 /// [`Option`]-like enum that deserializes the empty string to `None`
+#[derive(Default)]
 pub enum StringOption<T> {
     Some(T),
+    #[default]
     None,
-}
-
-// no `#[derive(Default)]` to avoid the `T: Default` bound
-impl<T> Default for StringOption<T> {
-    fn default() -> Self {
-        Self::None
-    }
 }
 
 impl<'de, T: Deserialize<'de>> Deserialize<'de> for StringOption<T> {

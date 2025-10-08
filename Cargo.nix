@@ -10501,9 +10501,9 @@ rec {
       };
       "postgres-types" = rec {
         crateName = "postgres-types";
-        version = "0.2.10";
+        version = "0.2.11";
         edition = "2021";
-        sha256 = "1r3nx8kysa7gl11rkiwm6z5r8a92x48y9xjv9lr0xjxzmbd218bp";
+        sha256 = "15bh03mqaclmv9jhzvrb3xdrgr1q0c6ardmfbg9ns1apq2vhaipg";
         libName = "postgres_types";
         authors = [
           "Steven Fackler <sfackler@gmail.com>"

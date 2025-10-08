@@ -6976,7 +6976,7 @@ rec {
           "unstable" = [ "futures-core/unstable" "futures-task/unstable" ];
           "write-all-vectored" = [ "io" ];
         };
-        resolvedDefaultFeatures = [ "alloc" "async-await" "async-await-macro" "channel" "default" "futures-channel" "futures-io" "futures-macro" "futures-sink" "io" "memchr" "sink" "slab" "std" ];
+        resolvedDefaultFeatures = [ "alloc" "async-await" "async-await-macro" "channel" "futures-channel" "futures-io" "futures-macro" "futures-sink" "io" "memchr" "sink" "slab" "std" ];
       };
       "generic-array" = rec {
         crateName = "generic-array";
@@ -10356,9 +10356,9 @@ rec {
       };
       "postgres" = rec {
         crateName = "postgres";
-        version = "0.19.11";
+        version = "0.19.12";
         edition = "2021";
-        sha256 = "0v8iclcmmam1xcirsc5h9bj127rngk1xqqw67rkf14vab1hrmhcb";
+        sha256 = "0xmimkn7scd1kwri94hf2iani9wd6whig3053fv0vnkc3k78xi77";
         authors = [
           "Steven Fackler <sfackler@gmail.com>"
         ];
@@ -10374,6 +10374,7 @@ rec {
           {
             name = "futures-util";
             packageId = "futures-util";
+            usesDefaultFeatures = false;
             features = [ "sink" ];
           }
           {
@@ -14709,9 +14710,9 @@ rec {
       };
       "tokio-postgres" = rec {
         crateName = "tokio-postgres";
-        version = "0.7.14";
+        version = "0.7.15";
         edition = "2021";
-        sha256 = "0lyqagbl3691gnzvnb2jhzsdbvh2wbyisgl5ay11c4zjzzkyymm1";
+        sha256 = "17kc1zr0j7dsqvkb1lxvvn77w92qiqv0jd0p52v09zickdnxch1b";
         libName = "tokio_postgres";
         authors = [
           "Steven Fackler <sfackler@gmail.com>"

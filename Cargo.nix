@@ -11575,9 +11575,9 @@ rec {
       };
       "regex" = rec {
         crateName = "regex";
-        version = "1.11.3";
+        version = "1.12.1";
         edition = "2021";
-        sha256 = "0b58ya98c4i5cjjiwhpcnjr61cv9g143qhdwhsryggj09098hllb";
+        sha256 = "0cslpri2f9d4hfv4v3mp2kdb7d7gab0fd3b7yip1gnxc5k8dhlja";
         authors = [
           "The Rust Project Developers"
           "Andrew Gallant <jamslam@gmail.com>"
@@ -11633,9 +11633,9 @@ rec {
       };
       "regex-automata" = rec {
         crateName = "regex-automata";
-        version = "0.4.11";
+        version = "0.4.12";
         edition = "2021";
-        sha256 = "1bawj908pxixpggcnma3xazw53mwyz68lv9hn4yg63nlhv7bjgl3";
+        sha256 = "1ilg4v6vad4w7v9v6byqas64x15ckmj2rk6mljxanf3l1nm6c8bj";
         libName = "regex_automata";
         authors = [
           "The Rust Project Developers"

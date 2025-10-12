@@ -12257,9 +12257,9 @@ rec {
       };
       "rust_decimal" = rec {
         crateName = "rust_decimal";
-        version = "1.38.0";
+        version = "1.39.0";
         edition = "2021";
-        sha256 = "1h7srmb7x6ia8aslkva1p1kswq2skk7ijlb39lh6bwsrh34mz5y8";
+        sha256 = "10i20blk3gma74qjl29c58dx4ma3cnbls9qjcy2bvac72x0gxbrm";
         authors = [
           "Paul Mason <paul@form1.co.nz>"
         ];
@@ -12340,7 +12340,7 @@ rec {
         features = {
           "borsh" = [ "dep:borsh" "std" ];
           "db-diesel-mysql" = [ "diesel/mysql_backend" "std" ];
-          "db-diesel-postgres" = [ "diesel/postgres" "std" ];
+          "db-diesel-postgres" = [ "diesel/postgres_backend" "std" ];
           "db-diesel2-mysql" = [ "db-diesel-mysql" ];
           "db-diesel2-postgres" = [ "db-diesel-postgres" ];
           "db-postgres" = [ "dep:bytes" "dep:postgres-types" "std" ];

@@ -6,8 +6,8 @@ If you would like to submit a bug report or feature request, or are looking for 
 ## Development Setup
 1. Install [Nix](https://nixos.org/) with [flakes](https://wiki.nixos.org/wiki/Flakes) enabled:
     - If you are on NixOS, just ensure that flakes are enabled by setting `nix.settings.experimental-features = ["nix-command" "flakes"];` in `configuration.nix`.
-    - If you are using a different Linux distribution or OS, we recommend using the [Determinate Nix Installer](https://github.com/DeterminateSystems/nix-installer?tab=readme-ov-file#the-determinate-nix-installer).
-2. Add your user to the [`trusted-users`](https://nix.dev/manual/nix/2.19/command-ref/conf-file#conf-trusted-users) Nix option (replace `YOUR_USERNAME` with the actual name of the user account you use for development):
+    - If you are using a different Linux distribution or OS, follow the instructions on <https://nixos.org/download/> and add the line `experimental-features = nix-command flakes` to `/etc/nix/nix.conf` to enable flakes.
+2. Add your user to the [`trusted-users`](https://nix.dev/manual/nix/latest/command-ref/conf-file#conf-trusted-users) Nix option (replace `YOUR_USERNAME` with the actual name of the user account you use for development):
     - If you are on NixOS, set `nix.settings.trusted-users = ["root" "YOUR_USERNAME"];` in `configuration.nix`.
     - If you are using a different Linux distribution or OS, add the line `trusted-users = root YOUR_USERNAME` to `/etc/nix/nix.conf` and run `sudo systemctl restart nix-daemon`.
 3. [Install direnv](https://github.com/direnv/direnv/blob/master/docs/installation.md) (optional, but strongly recommended):

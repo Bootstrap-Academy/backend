@@ -5457,9 +5457,9 @@ rec {
       };
       "cc" = rec {
         crateName = "cc";
-        version = "1.2.40";
+        version = "1.2.41";
         edition = "2018";
-        sha256 = "1ywr07jr2rj1h7gkgkc2c1bn39wchpfnrm39sjm7dzdiyj95vl71";
+        sha256 = "1dvwli6fljqc7kgmihb249rmdfs5irla1h0n6vkavdi4pg6yd7xc";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -6604,9 +6604,9 @@ rec {
       };
       "find-msvc-tools" = rec {
         crateName = "find-msvc-tools";
-        version = "0.1.3";
+        version = "0.1.4";
         edition = "2018";
-        sha256 = "1cr47xn14dgkyd5ca2jzfk1apkm3wwqvvglqqhrcx4aidv9gk683";
+        sha256 = "09x1sfinrz86bkm6i2d85lpsfnxn0w797g5zisv1nwhaz1w1h1aj";
         libName = "find_msvc_tools";
 
       };
@@ -6980,9 +6980,9 @@ rec {
       };
       "generic-array" = rec {
         crateName = "generic-array";
-        version = "0.14.7";
+        version = "0.14.8";
         edition = "2015";
-        sha256 = "16lyyrzrljfq424c3n8kfwkqihlimmsg5nhshbbp48np3yjrqr45";
+        sha256 = "0035ax4xacrc9vvfjp7z084z60n0756zvcz46naj1yfmvv9ggj0x";
         libName = "generic_array";
         authors = [
           "Bartłomiej Kamiński <fizyk20@gmail.com>"
@@ -9021,9 +9021,9 @@ rec {
       };
       "libc" = rec {
         crateName = "libc";
-        version = "0.2.176";
+        version = "0.2.177";
         edition = "2021";
-        sha256 = "0x7ivn80h7nz2l46vra7bxx36s6r8d0lkax14dx97skjsss2kyaq";
+        sha256 = "0xjrn69cywaii1iq2lib201bhlvan7czmrm604h5qcm28yps4x18";
         authors = [
           "The Rust Project Developers"
         ];
@@ -9430,9 +9430,9 @@ rec {
       };
       "nu-ansi-term" = rec {
         crateName = "nu-ansi-term";
-        version = "0.50.1";
+        version = "0.50.3";
         edition = "2021";
-        sha256 = "16a3isvbxx8pa3lk71h3cq2fsx2d17zzq42j4mhpxy81gl2qx8nl";
+        sha256 = "1ra088d885lbd21q1bxgpqdlk1zlndblmarn948jz2a40xsbjmvr";
         libName = "nu_ansi_term";
         authors = [
           "ogham@bsago.me"
@@ -9443,16 +9443,18 @@ rec {
         dependencies = [
           {
             name = "windows-sys";
-            packageId = "windows-sys 0.52.0";
+            packageId = "windows-sys 0.61.2";
             rename = "windows";
             target = { target, features }: (target."windows" or false);
             features = [ "Win32_Foundation" "Win32_System_Console" "Win32_Storage_FileSystem" "Win32_Security" ];
           }
         ];
         features = {
+          "default" = [ "std" ];
           "derive_serde_style" = [ "serde" ];
           "serde" = [ "dep:serde" ];
         };
+        resolvedDefaultFeatures = [ "default" "std" ];
       };
       "num-bigint" = rec {
         crateName = "num-bigint";
@@ -11694,9 +11696,9 @@ rec {
       };
       "regex-syntax" = rec {
         crateName = "regex-syntax";
-        version = "0.8.6";
+        version = "0.8.7";
         edition = "2021";
-        sha256 = "00chjpglclfskmc919fj5aq308ffbrmcn7kzbkz92k231xdsmx6a";
+        sha256 = "166jcv65vl7ncjpjpawp2qmzxf5pb7yyawfazpndakfmpci085n3";
         libName = "regex_syntax";
         authors = [
           "The Rust Project Developers"
@@ -13587,9 +13589,9 @@ rec {
       };
       "serde_spanned" = rec {
         crateName = "serde_spanned";
-        version = "1.0.2";
+        version = "1.0.3";
         edition = "2021";
-        sha256 = "1vh4kcnzhw0fbr1jhg41p8yybnp5gmpnh171fy25bgn2a8s7h5sl";
+        sha256 = "14j32cqcs6jjdl1c111lz6s0hr913dnmy2kpfd75k2761ym4ahz2";
         dependencies = [
           {
             name = "serde_core";
@@ -13881,9 +13883,9 @@ rec {
       };
       "stable_deref_trait" = rec {
         crateName = "stable_deref_trait";
-        version = "1.2.0";
+        version = "1.2.1";
         edition = "2015";
-        sha256 = "1lxjr8q2n534b2lhkxd6l6wcddzjvnksi58zv11f9y0jjmr15wd8";
+        sha256 = "15h5h73ppqyhdhx6ywxfj88azmrpml9gl6zp3pwy2malqa6vxqkc";
         authors = [
           "Robert Grosse <n210241048576@gmail.com>"
         ];
@@ -14933,9 +14935,9 @@ rec {
       };
       "toml" = rec {
         crateName = "toml";
-        version = "0.9.7";
+        version = "0.9.8";
         edition = "2021";
-        sha256 = "187av4nsjc0cdfixpc24sqpxqwy5ijvdm7hd9yfsqx94pzcybr80";
+        sha256 = "1n569s0dgdmqjy21wf85df7kx3vb1zgin3pc2rvy4j8lnqgqpp7h";
         dependencies = [
           {
             name = "serde_core";
@@ -14984,9 +14986,9 @@ rec {
       };
       "toml_datetime" = rec {
         crateName = "toml_datetime";
-        version = "0.7.2";
+        version = "0.7.3";
         edition = "2021";
-        sha256 = "1hgff8gdk9yx7dljkqfijmj0sc5ln4xhpj045divdhi7xifhiw9j";
+        sha256 = "0cs5f8y4rdsmmwipjclmq97lrwppjy2qa3vja4f9d5xwxcwvdkgj";
         dependencies = [
           {
             name = "serde_core";
@@ -15005,9 +15007,9 @@ rec {
       };
       "toml_edit" = rec {
         crateName = "toml_edit";
-        version = "0.23.6";
+        version = "0.23.7";
         edition = "2021";
-        sha256 = "0jqq4wz6is0497a42m0wh4j3x4vgp70wrlndd57zzzc61rygxvzk";
+        sha256 = "13cgp4y6prad1lh18bbg64zkq48hafq7xzs4fb0hwpcv1mnyz1b4";
         dependencies = [
           {
             name = "indexmap";
@@ -15040,9 +15042,9 @@ rec {
       };
       "toml_parser" = rec {
         crateName = "toml_parser";
-        version = "1.0.3";
+        version = "1.0.4";
         edition = "2021";
-        sha256 = "09x6i0b57lwc7yn6w1kbd2ypm4vpcrgd2vdax7h745g77g1r7y2c";
+        sha256 = "03l0750d1cyliij9vac4afpp1syh1a6yhbbalnslpnsvsdlf5jy0";
         dependencies = [
           {
             name = "winnow";
@@ -17448,7 +17450,7 @@ rec {
           "Win32_Web" = [ "Win32" ];
           "Win32_Web_InternetExplorer" = [ "Win32_Web" ];
         };
-        resolvedDefaultFeatures = [ "Win32" "Win32_Foundation" "Win32_Security" "Win32_Storage" "Win32_Storage_FileSystem" "Win32_System" "Win32_System_Console" "Win32_System_LibraryLoader" "Win32_System_Registry" "Win32_System_SystemInformation" "Win32_System_SystemServices" "Win32_System_Threading" "Win32_UI" "Win32_UI_WindowsAndMessaging" "default" ];
+        resolvedDefaultFeatures = [ "Win32" "Win32_Foundation" "Win32_System" "Win32_System_LibraryLoader" "Win32_System_Registry" "Win32_System_SystemInformation" "Win32_System_SystemServices" "Win32_System_Threading" "Win32_UI" "Win32_UI_WindowsAndMessaging" "default" ];
       };
       "windows-sys 0.59.0" = rec {
         crateName = "windows-sys";
@@ -18234,7 +18236,7 @@ rec {
           "Win32_Web" = [ "Win32" ];
           "Win32_Web_InternetExplorer" = [ "Win32_Web" ];
         };
-        resolvedDefaultFeatures = [ "Win32" "Win32_Foundation" "Win32_Networking" "Win32_Networking_WinSock" "Win32_Storage" "Win32_Storage_FileSystem" "Win32_System" "Win32_System_Console" "Win32_System_Diagnostics" "Win32_System_Diagnostics_Debug" "Win32_System_SystemInformation" "Win32_UI" "Win32_UI_Input" "Win32_UI_Input_KeyboardAndMouse" "default" ];
+        resolvedDefaultFeatures = [ "Win32" "Win32_Foundation" "Win32_Networking" "Win32_Networking_WinSock" "Win32_Security" "Win32_Storage" "Win32_Storage_FileSystem" "Win32_System" "Win32_System_Console" "Win32_System_Diagnostics" "Win32_System_Diagnostics_Debug" "Win32_System_SystemInformation" "Win32_UI" "Win32_UI_Input" "Win32_UI_Input_KeyboardAndMouse" "default" ];
       };
       "windows-targets 0.52.6" = rec {
         crateName = "windows-targets";

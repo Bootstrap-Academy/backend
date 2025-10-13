@@ -11577,9 +11577,9 @@ rec {
       };
       "regex" = rec {
         crateName = "regex";
-        version = "1.12.1";
+        version = "1.12.2";
         edition = "2021";
-        sha256 = "0cslpri2f9d4hfv4v3mp2kdb7d7gab0fd3b7yip1gnxc5k8dhlja";
+        sha256 = "1m14zkg6xmkb0q5ah3y39cmggclsjdr1wpxfa4kf5wvm3wcw0fw4";
         authors = [
           "The Rust Project Developers"
           "Andrew Gallant <jamslam@gmail.com>"

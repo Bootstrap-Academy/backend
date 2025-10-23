@@ -7168,9 +7168,9 @@ rec {
       };
       "globset" = rec {
         crateName = "globset";
-        version = "0.4.17";
+        version = "0.4.18";
         edition = "2024";
-        sha256 = "0193nqd7xy7625x4ba81yarw78j8i2zi7mygfn01z52dh0q93dpa";
+        sha256 = "1qsp3wg0mgxzmshcgymdlpivqlc1bihm6133pl6dx2x4af8w3psj";
         authors = [
           "Andrew Gallant <jamslam@gmail.com>"
         ];
@@ -8656,9 +8656,9 @@ rec {
       };
       "is_terminal_polyfill" = rec {
         crateName = "is_terminal_polyfill";
-        version = "1.70.1";
+        version = "1.70.2";
         edition = "2021";
-        sha256 = "1kwfgglh91z33kl0w5i338mfpa3zs0hidq5j4ny4rmjwrikchhvr";
+        sha256 = "15anlc47sbz0jfs9q8fhwf0h3vs2w4imc030shdnq54sny5i7jx6";
         features = {
         };
         resolvedDefaultFeatures = [ "default" ];
@@ -9725,9 +9725,9 @@ rec {
       };
       "once_cell_polyfill" = rec {
         crateName = "once_cell_polyfill";
-        version = "1.70.1";
+        version = "1.70.2";
         edition = "2021";
-        sha256 = "1bg0w99srq8h4mkl68l1mza2n2f2hvrg0n8vfa3izjr5nism32d4";
+        sha256 = "1zmla628f0sk3fhjdjqzgxhalr2xrfna958s632z65bjsfv8ljrq";
         features = {
         };
         resolvedDefaultFeatures = [ "default" ];
@@ -12519,9 +12519,9 @@ rec {
       };
       "rustls" = rec {
         crateName = "rustls";
-        version = "0.23.33";
+        version = "0.23.34";
         edition = "2021";
-        sha256 = "0b7qwspimfxf18mammg1yammlsyn4f6iahz0lnbvn06ajsj087km";
+        sha256 = "19vzmdybp5rlgr0bjb4fykp28w2d6fkqq150aamqykrbxvlqd5ba";
         dependencies = [
           {
             name = "log";
@@ -15665,9 +15665,9 @@ rec {
       };
       "unicode-ident" = rec {
         crateName = "unicode-ident";
-        version = "1.0.19";
+        version = "1.0.20";
         edition = "2018";
-        sha256 = "17bx1j1zf6b9j3kpyf74mraary7ava3984km0n8kh499h5a58fpn";
+        sha256 = "01lafj17xwizrlvn006zz8ip99hqisf77kjk0a8flfmpmrsynbj6";
         libName = "unicode_ident";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"

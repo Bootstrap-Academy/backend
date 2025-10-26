@@ -1,15 +1,18 @@
 use academy_auth_contracts::{AuthService, access_token::AuthAccessTokenService};
-use academy_core_session_contracts::session::{SessionRefreshError, SessionService};
+use academy_core_session_contracts::session::{
+    ActiveUsersGranularity, ActiveUsersRange, SessionRefreshError, SessionService,
+};
 use academy_di::Build;
 use academy_models::{
     auth::Login,
-    session::{DeviceName, Session, SessionId, SessionPatch},
+    session::{ActiveUsersBucket, DeviceName, Session, SessionId, SessionPatch},
     user::{UserComposite, UserId, UserPatch},
 };
 use academy_persistence_contracts::{session::SessionRepository, user::UserRepository};
 use academy_shared_contracts::{id::IdService, time::TimeService};
 use academy_utils::{patch::Patch, trace_instrument};
-use anyhow::Context;
+use anyhow::{Context, ensure};
+use chrono::{DateTime, Duration, Utc};
 
 #[derive(Debug, Clone, Build, Default)]
 pub struct SessionServiceImpl<Id, Time, Auth, AuthAccessToken, SessionRepo, UserRepo> {
@@ -177,6 +180,41 @@ where
 
         Ok(())
     }
+
+    #[trace_instrument(skip(self, txn))]
+    async fn active_users(
+        &self,
+        txn: &mut Txn,
+        range: ActiveUsersRange,
+        granularity: ActiveUsersGranularity,
+    ) -> anyhow::Result<Vec<ActiveUsersBucket>> {
+        let bucket = granularity.duration();
+        let range_duration = range.duration();
+        let bucket_seconds = bucket.num_seconds();
+        ensure!(bucket_seconds > 0, "Bucket duration must be positive");
+
+        let now = self.time.now();
+        let bucket_count =
+            ((range_duration.num_seconds() + bucket_seconds - 1) / bucket_seconds).max(1);
+        let aligned_end = align_to_bucket(now, bucket) + bucket;
+        let total_span = Duration::seconds(bucket_seconds * bucket_count);
+        let start = aligned_end - total_span;
+
+        self.session_repo
+            .active_users(txn, start, bucket, bucket_count)
+            .await
+    }
+}
+
+fn align_to_bucket(time: DateTime<Utc>, bucket: Duration) -> DateTime<Utc> {
+    let seconds = bucket.num_seconds();
+    if seconds <= 0 {
+        return time;
+    }
+
+    let timestamp = time.timestamp();
+    let aligned = timestamp - timestamp.rem_euclid(seconds);
+    DateTime::<Utc>::from_timestamp(aligned, 0).expect("invalid timestamp")
 }
 
 #[cfg(test)]

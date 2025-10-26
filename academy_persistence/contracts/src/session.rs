@@ -1,10 +1,10 @@
 use std::future::Future;
 
 use academy_models::{
-    session::{Session, SessionId, SessionPatchRef, SessionRefreshTokenHash},
+    session::{ActiveUsersBucket, Session, SessionId, SessionPatchRef, SessionRefreshTokenHash},
     user::UserId,
 };
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Duration, Utc};
 
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait SessionRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
@@ -58,6 +58,15 @@ pub trait SessionRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
         txn: &mut Txn,
         user_id: UserId,
     ) -> impl Future<Output = anyhow::Result<()>> + Send;
+
+    /// Return active user buckets for the provided range configuration.
+    fn active_users(
+        &self,
+        txn: &mut Txn,
+        start: DateTime<Utc>,
+        bucket: Duration,
+        bucket_count: i64,
+    ) -> impl Future<Output = anyhow::Result<Vec<ActiveUsersBucket>>> + Send;
 
     /// Delete all sessions that have not been updated since `updated_at`.
     ///
@@ -173,6 +182,25 @@ impl<Txn: Send + Sync + 'static> MockSessionRepository<Txn> {
                 mockall::predicate::eq(user_id),
             )
             .return_once(move |_, _| Box::pin(std::future::ready(Ok(()))));
+        self
+    }
+
+    pub fn with_active_users(
+        mut self,
+        start: DateTime<Utc>,
+        bucket: Duration,
+        bucket_count: i64,
+        result: Vec<ActiveUsersBucket>,
+    ) -> Self {
+        self.expect_active_users()
+            .once()
+            .with(
+                mockall::predicate::always(),
+                mockall::predicate::eq(start),
+                mockall::predicate::eq(bucket),
+                mockall::predicate::eq(bucket_count),
+            )
+            .return_once(move |_, _, _, _| Box::pin(std::future::ready(Ok(result.clone()))));
         self
     }
 

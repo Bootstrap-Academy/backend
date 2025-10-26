@@ -4,13 +4,15 @@ use academy_models::{
     RecaptchaResponse,
     auth::{AccessToken, AuthError, Login, RefreshToken},
     mfa::MfaAuthentication,
-    session::{DeviceName, Session, SessionId},
+    session::{ActiveUsersBucket, DeviceName, Session, SessionId},
     user::{UserId, UserIdOrSelf, UserNameOrEmailAddress, UserPassword},
 };
 use thiserror::Error;
 
 pub mod failed_auth_count;
 pub mod session;
+
+pub use session::{ActiveUsersGranularity, ActiveUsersRange};
 
 pub trait SessionFeatureService: Send + Sync + 'static {
     /// Return the currently authenticated session.
@@ -81,6 +83,16 @@ pub trait SessionFeatureService: Send + Sync + 'static {
         token: &AccessToken,
         user_id: UserIdOrSelf,
     ) -> impl Future<Output = Result<(), SessionDeleteByUserError>> + Send;
+
+    /// Return active user counts for the specified range and granularity.
+    ///
+    /// Requires admin privileges.
+    fn active_users(
+        &self,
+        token: &AccessToken,
+        range: ActiveUsersRange,
+        granularity: ActiveUsersGranularity,
+    ) -> impl Future<Output = Result<Vec<ActiveUsersBucket>, SessionActiveUsersError>> + Send;
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -159,6 +171,14 @@ pub enum SessionDeleteCurrentError {
 
 #[derive(Debug, Error)]
 pub enum SessionDeleteByUserError {
+    #[error(transparent)]
+    Auth(#[from] AuthError),
+    #[error(transparent)]
+    Other(#[from] anyhow::Error),
+}
+
+#[derive(Debug, Error)]
+pub enum SessionActiveUsersError {
     #[error(transparent)]
     Auth(#[from] AuthError),
     #[error(transparent)]

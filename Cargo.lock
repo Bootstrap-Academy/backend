@@ -485,6 +485,7 @@ version = "0.0.0"
 dependencies = [
  "academy_models",
  "anyhow",
+ "chrono",
  "mockall",
  "thiserror 2.0.17",
 ]
@@ -505,6 +506,7 @@ dependencies = [
  "academy_shared_contracts",
  "academy_utils",
  "anyhow",
+ "chrono",
  "hex",
  "tokio",
  "tracing",
@@ -688,6 +690,7 @@ dependencies = [
  "clorinde",
  "futures",
  "ouroboros",
+ "postgres-types",
  "pretty_assertions",
  "tokio",
  "tracing",

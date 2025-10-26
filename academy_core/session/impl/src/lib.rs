@@ -5,16 +5,16 @@ use academy_core_mfa_contracts::authenticate::{
     MfaAuthenticateError, MfaAuthenticateResult, MfaAuthenticateService,
 };
 use academy_core_session_contracts::{
-    SessionCreateCommand, SessionCreateError, SessionDeleteByUserError, SessionDeleteCurrentError,
-    SessionDeleteError, SessionFeatureService, SessionGetCurrentError, SessionImpersonateError,
-    SessionListByUserError, SessionRefreshError, failed_auth_count::SessionFailedAuthCountService,
-    session::SessionService,
+    ActiveUsersGranularity, ActiveUsersRange, SessionActiveUsersError, SessionCreateCommand,
+    SessionCreateError, SessionDeleteByUserError, SessionDeleteCurrentError, SessionDeleteError,
+    SessionFeatureService, SessionGetCurrentError, SessionImpersonateError, SessionListByUserError,
+    SessionRefreshError, failed_auth_count::SessionFailedAuthCountService, session::SessionService,
 };
 use academy_di::Build;
 use academy_models::{
     RecaptchaResponse,
     auth::{AccessToken, Login, RefreshToken},
-    session::{Session, SessionId},
+    session::{ActiveUsersBucket, Session, SessionId},
     user::{UserId, UserIdOrSelf, UserNameOrEmailAddress},
 };
 use academy_persistence_contracts::{
@@ -379,5 +379,26 @@ where
         txn.commit().await?;
 
         Ok(())
+    }
+
+    #[trace_instrument(skip(self))]
+    async fn active_users(
+        &self,
+        token: &AccessToken,
+        range: ActiveUsersRange,
+        granularity: ActiveUsersGranularity,
+    ) -> Result<Vec<ActiveUsersBucket>, SessionActiveUsersError> {
+        let auth = self.auth.authenticate(token).await.map_auth_err()?;
+        auth.ensure_admin().map_auth_err()?;
+
+        let mut txn = self.db.begin_transaction().await?;
+        let buckets = self
+            .session
+            .active_users(&mut txn, range, granularity)
+            .await
+            .context("Failed to load active user statistics")?;
+        txn.commit().await?;
+
+        Ok(buckets)
     }
 }

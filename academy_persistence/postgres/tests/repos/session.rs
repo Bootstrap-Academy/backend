@@ -9,6 +9,7 @@ use academy_models::session::{Session, SessionRefreshTokenHash};
 use academy_persistence_contracts::{Database, Transaction, session::SessionRepository};
 use academy_persistence_postgres::session::PostgresSessionRepository;
 use academy_utils::patch::Patch;
+use chrono::{Duration as ChronoDuration, TimeZone, Utc};
 use pretty_assertions::assert_eq;
 
 use crate::common::setup;
@@ -170,6 +171,25 @@ async fn delete_by_last_update() {
     assert_eq!(REPO.get(&mut txn, ADMIN_1.id).await.unwrap(), None);
     assert_eq!(REPO.get(&mut txn, FOO_1.id).await.unwrap().unwrap(), *FOO_1);
     assert_eq!(REPO.get(&mut txn, FOO_2.id).await.unwrap(), None);
+}
+
+#[tokio::test]
+async fn active_users_returns_buckets() {
+    let db = setup().await;
+    let mut txn = db.begin_transaction().await.unwrap();
+
+    let start = Utc.with_ymd_and_hms(2024, 3, 14, 13, 0, 0).unwrap();
+    let bucket = ChronoDuration::hours(1);
+
+    let result = REPO.active_users(&mut txn, start, bucket, 3).await.unwrap();
+
+    assert_eq!(result.len(), 3);
+    assert_eq!(result[0].bucket_start, start);
+    assert_eq!(result[0].active_users, 1);
+    assert_eq!(result[1].bucket_start, start + bucket);
+    assert_eq!(result[1].active_users, 0);
+    assert_eq!(result[2].bucket_start, start + bucket * 2);
+    assert_eq!(result[2].active_users, 0);
 }
 
 #[tokio::test]

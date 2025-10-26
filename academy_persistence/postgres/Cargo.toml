@@ -24,6 +24,7 @@ chrono.workspace = true
 clorinde.path = "./clorinde"
 futures.workspace = true
 ouroboros = { version = "0.18.5", default-features = false }
+postgres-types = { version = "0.2.11" }
 tracing.workspace = true
 uuid.workspace = true
 

@@ -1,9 +1,10 @@
 use std::sync::Arc;
 
 use academy_core_session_contracts::{
-    SessionCreateCommand, SessionCreateError, SessionDeleteByUserError, SessionDeleteCurrentError,
-    SessionDeleteError, SessionFeatureService, SessionGetCurrentError, SessionImpersonateError,
-    SessionListByUserError, SessionRefreshError,
+    ActiveUsersGranularity, ActiveUsersRange, SessionActiveUsersError, SessionCreateCommand,
+    SessionCreateError, SessionDeleteByUserError, SessionDeleteCurrentError, SessionDeleteError,
+    SessionFeatureService, SessionGetCurrentError, SessionImpersonateError, SessionListByUserError,
+    SessionRefreshError,
 };
 use academy_models::{
     RecaptchaResponse,
@@ -18,7 +19,7 @@ use aide::{
 };
 use axum::{
     Json,
-    extract::{Path, State},
+    extract::{Path, Query, State},
     http::StatusCode,
     response::{IntoResponse, Response},
 };
@@ -39,7 +40,7 @@ use crate::{
     extractors::{auth::ApiToken, user_agent::UserAgent},
     models::{
         OkResponse, StringOption,
-        session::{ApiLogin, ApiSession},
+        session::{ApiActiveUsersBucket, ApiLogin, ApiSession},
         user::{ApiUserIdOrSelf, PathUserId, PathUserIdOrSelf},
     },
 };
@@ -55,6 +56,10 @@ pub fn router(service: Arc<impl SessionFeatureService>) -> ApiRouter<()> {
                 .delete_with(delete_current, delete_current_docs),
         )
         .api_route("/auth/sessions", routing::post_with(create, create_docs))
+        .api_route(
+            "/analytics/active-users",
+            routing::get_with(active_users, active_users_docs),
+        )
         .api_route(
             "/auth/sessions/{user_id}",
             routing::get_with(list_by_user, list_by_user_docs)
@@ -83,6 +88,89 @@ async fn get_current(
 fn get_current_docs(op: TransformOperation) -> TransformOperation {
     op.summary("Return the currently authenticated session.")
         .add_response::<ApiSession>(StatusCode::OK, None)
+        .with(auth_error_docs)
+        .with(internal_server_error_docs)
+}
+
+#[derive(Deserialize, JsonSchema)]
+struct ActiveUsersQuery {
+    range: ActiveUsersRangeParam,
+    granularity: ActiveUsersGranularityParam,
+}
+
+#[derive(Debug, Clone, Copy, Deserialize, JsonSchema)]
+enum ActiveUsersRangeParam {
+    #[serde(rename = "1d")]
+    Day1,
+    #[serde(rename = "7d")]
+    Day7,
+    #[serde(rename = "30d")]
+    Day30,
+    #[serde(rename = "90d")]
+    Day90,
+}
+
+impl From<ActiveUsersRangeParam> for ActiveUsersRange {
+    fn from(value: ActiveUsersRangeParam) -> Self {
+        match value {
+            ActiveUsersRangeParam::Day1 => Self::Day1,
+            ActiveUsersRangeParam::Day7 => Self::Day7,
+            ActiveUsersRangeParam::Day30 => Self::Day30,
+            ActiveUsersRangeParam::Day90 => Self::Day90,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Deserialize, JsonSchema)]
+enum ActiveUsersGranularityParam {
+    #[serde(rename = "1h")]
+    Hour1,
+    #[serde(rename = "1d")]
+    Day1,
+    #[serde(rename = "7d")]
+    Day7,
+    #[serde(rename = "30d")]
+    Day30,
+}
+
+impl From<ActiveUsersGranularityParam> for ActiveUsersGranularity {
+    fn from(value: ActiveUsersGranularityParam) -> Self {
+        match value {
+            ActiveUsersGranularityParam::Hour1 => Self::Hour1,
+            ActiveUsersGranularityParam::Day1 => Self::Day1,
+            ActiveUsersGranularityParam::Day7 => Self::Day7,
+            ActiveUsersGranularityParam::Day30 => Self::Day30,
+        }
+    }
+}
+
+async fn active_users(
+    session_service: State<Arc<impl SessionFeatureService>>,
+    token: ApiToken,
+    Query(ActiveUsersQuery { range, granularity }): Query<ActiveUsersQuery>,
+) -> Response {
+    let range = ActiveUsersRange::from(range);
+    let granularity = ActiveUsersGranularity::from(granularity);
+
+    match session_service
+        .active_users(&token.0, range, granularity)
+        .await
+    {
+        Ok(buckets) => Json(
+            buckets
+                .into_iter()
+                .map(ApiActiveUsersBucket::from)
+                .collect::<Vec<_>>(),
+        )
+        .into_response(),
+        Err(SessionActiveUsersError::Auth(err)) => auth_error(err),
+        Err(SessionActiveUsersError::Other(err)) => internal_server_error(err),
+    }
+}
+
+fn active_users_docs(op: TransformOperation) -> TransformOperation {
+    op.summary("Return active user counts grouped by time buckets.")
+        .add_response::<Vec<ApiActiveUsersBucket>>(StatusCode::OK, None)
         .with(auth_error_docs)
         .with(internal_server_error_docs)
 }

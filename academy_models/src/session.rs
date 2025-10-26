@@ -20,6 +20,12 @@ pub struct Session {
     pub updated_at: DateTime<Utc>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ActiveUsersBucket {
+    pub bucket_start: DateTime<Utc>,
+    pub active_users: u64,
+}
+
 nutype_string!(DeviceName(validate(len_char_max = DeviceName::MAX_LEN)));
 
 impl DeviceName {

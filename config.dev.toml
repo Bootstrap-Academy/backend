@@ -3,7 +3,7 @@ address = "127.0.0.1:8000"
 allowed_origins = [".*"]
 
 [database]
-url = "postgres://academy@127.0.0.1:5432/academy" # https://docs.rs/tokio-postgres/latest/tokio_postgres/config/struct.Config.html
+url = "postgres://postgres@127.0.0.1:5432/academy" # https://docs.rs/tokio-postgres/latest/tokio_postgres/config/struct.Config.html
 
 [cache]
 url = "redis://127.0.0.1:6379/0" # https://docs.rs/redis/latest/redis/#connection-parameters

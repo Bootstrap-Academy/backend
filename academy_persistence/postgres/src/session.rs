@@ -1,11 +1,14 @@
+use std::convert::TryFrom;
+
 use academy_di::Build;
 use academy_models::{
-    session::{Session, SessionId, SessionPatchRef, SessionRefreshTokenHash},
+    session::{ActiveUsersBucket, Session, SessionId, SessionPatchRef, SessionRefreshTokenHash},
     user::UserId,
 };
 use academy_persistence_contracts::session::SessionRepository;
 use academy_utils::trace_instrument;
-use chrono::{DateTime, Utc};
+use anyhow::anyhow;
+use chrono::{DateTime, Duration, Utc};
 use clorinde::{
     client::Params,
     queries::{
@@ -129,6 +132,55 @@ impl SessionRepository<PostgresTransaction> for PostgresSessionRepository {
             .await
             .map(|_| ())
             .map_err(Into::into)
+    }
+
+    #[trace_instrument(skip(self, txn))]
+    async fn active_users(
+        &self,
+        txn: &mut PostgresTransaction,
+        start: DateTime<Utc>,
+        bucket: Duration,
+        bucket_count: i64,
+    ) -> anyhow::Result<Vec<ActiveUsersBucket>> {
+        let bucket_seconds = bucket.num_seconds();
+        if bucket_seconds <= 0 {
+            return Err(anyhow!("Bucket duration must be positive"));
+        }
+        let rows = txn
+            .txn()
+            .query(
+                r#"
+WITH series AS (
+    SELECT ($1::timestamptz + (($3::bigint || ' seconds')::interval * idx)) AS bucket_start
+    FROM generate_series(0::bigint, ($2::bigint) - 1) AS gs(idx)
+)
+SELECT
+    bucket_start,
+    COUNT(DISTINCT s.user_id) AS user_count
+FROM series
+LEFT JOIN sessions s
+    ON s.updated_at >= bucket_start
+   AND s.updated_at < bucket_start + ($3::bigint || ' seconds')::interval
+GROUP BY bucket_start
+ORDER BY bucket_start
+"#,
+                &[&start, &bucket_count, &bucket_seconds],
+            )
+            .await
+            .map_err(anyhow::Error::from)?;
+
+        rows.into_iter()
+            .map(|row| {
+                let bucket_start = row.get::<_, DateTime<Utc>>(0);
+                let count = row.get::<_, i64>(1);
+                let active_users = u64::try_from(count)
+                    .map_err(|_| anyhow!("Active user count cannot be negative"))?;
+                Ok(ActiveUsersBucket {
+                    bucket_start,
+                    active_users,
+                })
+            })
+            .collect()
     }
 
     #[trace_instrument(skip(self, txn))]

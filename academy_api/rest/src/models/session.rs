@@ -1,6 +1,6 @@
 use academy_models::{
     auth::{AccessToken, Login, RefreshToken},
-    session::{DeviceName, Session, SessionId},
+    session::{ActiveUsersBucket, DeviceName, Session, SessionId},
     user::UserId,
 };
 use schemars::JsonSchema;
@@ -46,6 +46,21 @@ impl From<Login> for ApiLogin {
             session: value.session.into(),
             access_token: value.access_token,
             refresh_token: value.refresh_token,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, JsonSchema)]
+pub struct ApiActiveUsersBucket {
+    pub bucket_start: i64,
+    pub active_users: u64,
+}
+
+impl From<ActiveUsersBucket> for ApiActiveUsersBucket {
+    fn from(value: ActiveUsersBucket) -> Self {
+        Self {
+            bucket_start: value.bucket_start.timestamp(),
+            active_users: value.active_users,
         }
     }
 }

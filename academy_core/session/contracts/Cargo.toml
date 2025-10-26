@@ -15,5 +15,6 @@ mock = ["dep:mockall"]
 [dependencies]
 academy_models.workspace = true
 anyhow.workspace = true
+chrono.workspace = true
 mockall = { workspace = true, optional = true }
 thiserror.workspace = true

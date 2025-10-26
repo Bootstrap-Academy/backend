@@ -2,10 +2,49 @@ use std::future::Future;
 
 use academy_models::{
     auth::Login,
-    session::{DeviceName, SessionId},
+    session::{ActiveUsersBucket, DeviceName, SessionId},
     user::{UserComposite, UserId},
 };
+use chrono::Duration;
 use thiserror::Error;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ActiveUsersRange {
+    Day1,
+    Day7,
+    Day30,
+    Day90,
+}
+
+impl ActiveUsersRange {
+    pub fn duration(self) -> Duration {
+        match self {
+            Self::Day1 => Duration::days(1),
+            Self::Day7 => Duration::days(7),
+            Self::Day30 => Duration::days(30),
+            Self::Day90 => Duration::days(90),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ActiveUsersGranularity {
+    Hour1,
+    Day1,
+    Day7,
+    Day30,
+}
+
+impl ActiveUsersGranularity {
+    pub fn duration(self) -> Duration {
+        match self {
+            Self::Hour1 => Duration::hours(1),
+            Self::Day1 => Duration::days(1),
+            Self::Day7 => Duration::days(7),
+            Self::Day30 => Duration::days(30),
+        }
+    }
+}
 
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait SessionService<Txn: Send + Sync + 'static>: Send + Sync + 'static {
@@ -41,6 +80,15 @@ pub trait SessionService<Txn: Send + Sync + 'static>: Send + Sync + 'static {
         txn: &mut Txn,
         user_id: UserId,
     ) -> impl Future<Output = anyhow::Result<()>> + Send;
+
+    /// Return the number of active users bucketed by the given range and
+    /// granularity.
+    fn active_users(
+        &self,
+        txn: &mut Txn,
+        range: ActiveUsersRange,
+        granularity: ActiveUsersGranularity,
+    ) -> impl Future<Output = anyhow::Result<Vec<ActiveUsersBucket>>> + Send;
 }
 
 #[derive(Debug, Error)]
@@ -106,6 +154,23 @@ impl<Txn: Send + Sync + 'static> MockSessionService<Txn> {
                 mockall::predicate::eq(user_id),
             )
             .return_once(|_, _| Box::pin(std::future::ready(Ok(()))));
+        self
+    }
+
+    pub fn with_active_users(
+        mut self,
+        range: ActiveUsersRange,
+        granularity: ActiveUsersGranularity,
+        result: Vec<ActiveUsersBucket>,
+    ) -> Self {
+        self.expect_active_users()
+            .once()
+            .with(
+                mockall::predicate::always(),
+                mockall::predicate::eq(range),
+                mockall::predicate::eq(granularity),
+            )
+            .return_once(move |_, _, _| Box::pin(std::future::ready(Ok(result.clone()))));
         self
     }
 }

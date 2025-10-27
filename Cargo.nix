@@ -5322,9 +5322,9 @@ rec {
       };
       "bstr" = rec {
         crateName = "bstr";
-        version = "1.12.0";
+        version = "1.12.1";
         edition = "2021";
-        sha256 = "195i0gd7r7jg7a8spkmw08492n7rmiabcvz880xn2z8dkp8i6h93";
+        sha256 = "1arc1v7h5l86vd6z76z3xykjzldqd5icldn7j9d3p7z6x0d4w133";
         authors = [
           "Andrew Gallant <jamslam@gmail.com>"
         ];
@@ -5458,9 +5458,9 @@ rec {
       };
       "cc" = rec {
         crateName = "cc";
-        version = "1.2.41";
+        version = "1.2.43";
         edition = "2018";
-        sha256 = "1dvwli6fljqc7kgmihb249rmdfs5irla1h0n6vkavdi4pg6yd7xc";
+        sha256 = "1hpg1f1srgd5bfivvln1s3kcajdxpqvjsvd8m4y4nmap8pwv17kk";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -6332,9 +6332,9 @@ rec {
       };
       "deranged" = rec {
         crateName = "deranged";
-        version = "0.5.4";
+        version = "0.5.5";
         edition = "2021";
-        sha256 = "0wch36gpg2crz2f72p7c0i5l4bzxjkwxw96sdj57c1cadzw566d4";
+        sha256 = "11z5939gv2klp1r1lgrp4w5fnlkj18jqqf0h9zxmia3vkrjwpv7c";
         authors = [
           "Jacob Pratt <jacob@jhpratt.dev>"
         ];

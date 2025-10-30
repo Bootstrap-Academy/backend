@@ -14142,9 +14142,9 @@ rec {
       };
       "tera" = rec {
         crateName = "tera";
-        version = "1.20.0";
+        version = "1.20.1";
         edition = "2018";
-        sha256 = "1vnj9imw2h9szkd1izsrhwrc9jvazvdsp84x65wg2rg88ldqb7db";
+        sha256 = "08k743nwb2mykpbwnipa1k3v8b1igg39pmdc7ggk4b8z5354n078";
         authors = [
           "Vincent Prouillet <hello@prouilletvincent.com>"
         ];
@@ -14210,8 +14210,8 @@ rec {
             optional = true;
           }
           {
-            name = "unic-segment";
-            packageId = "unic-segment";
+            name = "unicode-segmentation";
+            packageId = "unicode-segmentation";
           }
         ];
         features = {
@@ -15535,110 +15535,6 @@ rec {
           {
             name = "libc";
             packageId = "libc";
-          }
-        ];
-
-      };
-      "unic-char-property" = rec {
-        crateName = "unic-char-property";
-        version = "0.9.0";
-        edition = "2018";
-        sha256 = "08g21dn3wwix3ycfl0vrbahn0835nv2q3swm8wms0vwvgm07mid8";
-        libName = "unic_char_property";
-        authors = [
-          "The UNIC Project Developers"
-        ];
-        dependencies = [
-          {
-            name = "unic-char-range";
-            packageId = "unic-char-range";
-          }
-        ];
-
-      };
-      "unic-char-range" = rec {
-        crateName = "unic-char-range";
-        version = "0.9.0";
-        edition = "2018";
-        sha256 = "1g0z7iwvjhqspi6194zsff8vy6i3921hpqcrp3v1813hbwnh5603";
-        libName = "unic_char_range";
-        authors = [
-          "The UNIC Project Developers"
-        ];
-        features = {
-          "rayon" = [ "dep:rayon" ];
-          "unstable" = [ "exact-size-is-empty" "fused" "trusted-len" ];
-        };
-        resolvedDefaultFeatures = [ "default" ];
-      };
-      "unic-common" = rec {
-        crateName = "unic-common";
-        version = "0.9.0";
-        edition = "2018";
-        sha256 = "1g1mm954m0zr497dl4kx3vr09yaly290zs33bbl4wrbaba1gzmw0";
-        libName = "unic_common";
-        authors = [
-          "The UNIC Project Developers"
-        ];
-        features = {
-        };
-        resolvedDefaultFeatures = [ "default" ];
-      };
-      "unic-segment" = rec {
-        crateName = "unic-segment";
-        version = "0.9.0";
-        edition = "2018";
-        sha256 = "08wgz2q6vrdvmbd23kf9pbg8cyzm5q8hq9spc4blzy2ppqk5vvg4";
-        libName = "unic_segment";
-        authors = [
-          "The UNIC Project Developers"
-        ];
-        dependencies = [
-          {
-            name = "unic-ucd-segment";
-            packageId = "unic-ucd-segment";
-          }
-        ];
-
-      };
-      "unic-ucd-segment" = rec {
-        crateName = "unic-ucd-segment";
-        version = "0.9.0";
-        edition = "2018";
-        sha256 = "0027lczcg0r401g6fnzm2bq9fxhgxvri1nlryhhv8192lqic2y90";
-        libName = "unic_ucd_segment";
-        authors = [
-          "The UNIC Project Developers"
-        ];
-        dependencies = [
-          {
-            name = "unic-char-property";
-            packageId = "unic-char-property";
-          }
-          {
-            name = "unic-char-range";
-            packageId = "unic-char-range";
-          }
-          {
-            name = "unic-ucd-version";
-            packageId = "unic-ucd-version";
-          }
-        ];
-
-      };
-      "unic-ucd-version" = rec {
-        crateName = "unic-ucd-version";
-        version = "0.9.0";
-        edition = "2018";
-        sha256 = "1i5hnzpfnxkp4ijfk8kvhpvj84bij575ybqx1b6hyigy6wi2zgcn";
-        libName = "unic_ucd_version";
-        authors = [
-          "The UNIC Project Developers"
-        ];
-        dependencies = [
-          {
-            name = "unic-common";
-            packageId = "unic-common";
           }
         ];
 

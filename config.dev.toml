@@ -25,6 +25,12 @@ lecture = 20
 practice = 10
 lab = 30
 
+[daily_rewards.activity_sources.skills]
+dsn = "postgres://academy@127.0.0.1:5432/academy-skills"
+
+[daily_rewards.activity_sources.challenges]
+dsn = "postgres://academy@127.0.0.1:5432/academy-challenges"
+
 [session]
 access_token_ttl = "1d"
 

@@ -481,10 +481,7 @@ fn map_claim_error(
     }
 }
 
-pub(crate) fn build_snapshot(
-    date: NaiveDate,
-    refreshed: RefreshedRewards,
-) -> DailyRewardsSnapshot {
+pub(crate) fn build_snapshot(date: NaiveDate, refreshed: RefreshedRewards) -> DailyRewardsSnapshot {
     let mut rewards = Vec::new();
     let mut available_total = 0;
     let mut claimed_total = 0;
@@ -740,8 +737,7 @@ mod refresh_entries_tests {
     use academy_core_daily_rewards_contracts::DailyRewardActivitySnapshot;
     use academy_core_daily_rewards_contracts::MockDailyRewardActivityService;
     use academy_persistence_contracts::{
-        MockDatabase, MockTransaction,
-        daily_rewards::MockDailyRewardRepository,
+        MockDatabase, MockTransaction, daily_rewards::MockDailyRewardRepository,
     };
     use academy_shared_contracts::{id::MockIdService, time::MockTimeService};
     use chrono::TimeZone;

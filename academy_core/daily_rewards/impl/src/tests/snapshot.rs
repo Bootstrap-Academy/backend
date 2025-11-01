@@ -124,13 +124,7 @@ fn build_snapshot_uses_entry_coin_amounts() {
     );
     entries.insert(
         DailyRewardCategory::Lab,
-        entry(
-            DailyRewardCategory::Lab,
-            7,
-            date,
-            Some(ready_time),
-            None,
-        ),
+        entry(DailyRewardCategory::Lab, 7, date, Some(ready_time), None),
     );
 
     let mut unavailability = HashMap::new();

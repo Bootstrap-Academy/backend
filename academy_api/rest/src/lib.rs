@@ -6,6 +6,7 @@ use std::{
 use academy_core_coin_contracts::CoinFeatureService;
 use academy_core_config_contracts::ConfigFeatureService;
 use academy_core_contact_contracts::ContactFeatureService;
+use academy_core_daily_rewards_contracts::DailyRewardFeatureService;
 use academy_core_finance_contracts::FinanceFeatureService;
 use academy_core_health_contracts::HealthFeatureService;
 use academy_core_heart_contracts::HeartFeatureService;
@@ -53,6 +54,7 @@ pub struct RestServer<
     Mfa,
     OAuth2,
     Coin,
+    DailyReward,
     Paypal,
     Finance,
     Heart,
@@ -68,6 +70,7 @@ pub struct RestServer<
     mfa: Mfa,
     oauth2: OAuth2,
     coin: Coin,
+    daily_reward: DailyReward,
     paypal: Paypal,
     finance: Finance,
     heart: Heart,
@@ -97,6 +100,7 @@ impl<
     Mfa,
     OAuth2,
     Coin,
+    DailyReward,
     Paypal,
     Finance,
     Heart,
@@ -112,6 +116,7 @@ impl<
         Mfa,
         OAuth2,
         Coin,
+        DailyReward,
         Paypal,
         Finance,
         Heart,
@@ -127,6 +132,7 @@ where
     Mfa: MfaFeatureService,
     OAuth2: OAuth2FeatureService,
     Coin: CoinFeatureService,
+    DailyReward: DailyRewardFeatureService,
     Paypal: PaypalFeatureService,
     Finance: FinanceFeatureService,
     Heart: HeartFeatureService,
@@ -158,6 +164,7 @@ where
                 routes::mfa::TAG,
                 routes::oauth2::TAG,
                 routes::coin::TAG,
+                routes::daily_rewards::TAG,
                 routes::paypal::TAG,
                 routes::finance::TAG,
                 routes::heart::TAG,
@@ -235,6 +242,7 @@ where
             .merge(routes::mfa::router(self.mfa.into()))
             .merge(routes::oauth2::router(self.oauth2.into()))
             .merge(routes::coin::router(self.coin.into()))
+            .merge(routes::daily_rewards::router(self.daily_reward.into()))
             .merge(routes::paypal::router(self.paypal.into()))
             .merge(routes::finance::router(self.finance.into()))
             .merge(routes::heart::router(self.heart.into()))

@@ -93,6 +93,7 @@ pub struct Config {
     pub vat: VatConfig,
     pub paypal: PaypalConfig,
     pub coin: CoinConfig,
+    pub daily_rewards: DailyRewardsConfig,
     pub heart: HeartConfig,
     pub premium: PremiumConfig,
     pub render: RenderConfig,
@@ -225,6 +226,47 @@ pub struct CoinConfig {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct DailyRewardsConfig {
+    pub enable: bool,
+    pub coins: DailyRewardsCoinsConfig,
+    #[serde(default)]
+    pub cache_ttl: Option<Duration>,
+    #[serde(default)]
+    pub activity_sources: DailyRewardsActivitySourcesConfig,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct DailyRewardsCoinsConfig {
+    pub arrival: i32,
+    pub lecture: i32,
+    pub practice: i32,
+    pub lab: i32,
+}
+
+#[derive(Debug, Default, Deserialize)]
+pub struct DailyRewardsActivitySourcesConfig {
+    #[serde(default)]
+    pub skills: Option<DailyRewardsPostgresConfig>,
+    #[serde(default)]
+    pub challenges: Option<DailyRewardsPostgresConfig>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct DailyRewardsPostgresConfig {
+    pub dsn: String,
+    #[serde(default = "default_max_connections")]
+    pub max_connections: u32,
+    #[serde(default = "default_min_connections")]
+    pub min_connections: u32,
+    #[serde(default = "default_acquire_timeout")]
+    pub acquire_timeout: Duration,
+    #[serde(default)]
+    pub idle_timeout: Option<Duration>,
+    #[serde(default)]
+    pub max_lifetime: Option<Duration>,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct HeartConfig {
     pub max: u64,
     pub refill_price: u64,
@@ -276,6 +318,18 @@ pub struct OAuth2ProviderConfig {
     pub scopes: Vec<String>,
 }
 
+fn default_max_connections() -> u32 {
+    5
+}
+
+fn default_min_connections() -> u32 {
+    1
+}
+
+fn default_acquire_timeout() -> Duration {
+    Duration(std::time::Duration::from_secs(30))
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
@@ -292,6 +346,11 @@ mod tests {
             "email.smtp_url = \"\"",
             "email.from = \"Test <test@example.com>\"",
             "jwt.secret = \"\"",
+            "daily_rewards.enable = false",
+            "daily_rewards.coins.arrival = 20",
+            "daily_rewards.coins.lecture = 20",
+            "daily_rewards.coins.practice = 10",
+            "daily_rewards.coins.lab = 30",
             "contact.email = \"test@example.com\"",
             "recaptcha.sitekey = \"\"",
             "recaptcha.secret = \"\"",

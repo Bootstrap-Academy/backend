@@ -15,6 +15,16 @@ from = "Bootstrap Academy DEV <dev@bootstrap.academy>"
 [jwt]
 secret = "changeme"
 
+[daily_rewards]
+enable = true
+cache_ttl = "5m"
+
+[daily_rewards.coins]
+arrival = 20
+lecture = 20
+practice = 10
+lab = 30
+
 [session]
 access_token_ttl = "1d"
 

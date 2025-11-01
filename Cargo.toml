@@ -55,6 +55,8 @@ academy_core_coin_contracts.path = "academy_core/coin/contracts"
 academy_core_coin_impl.path = "academy_core/coin/impl"
 academy_core_config_contracts.path = "academy_core/config/contracts"
 academy_core_config_impl.path = "academy_core/config/impl"
+academy_core_daily_rewards_contracts.path = "academy_core/daily_rewards/contracts"
+academy_core_daily_rewards_impl.path = "academy_core/daily_rewards/impl"
 academy_core_contact_contracts.path = "academy_core/contact/contracts"
 academy_core_contact_impl.path = "academy_core/contact/impl"
 academy_core_finance_contracts.path = "academy_core/finance/contracts"
@@ -131,6 +133,7 @@ mockall = { version = "0.13.1", default-features = false }
 nutype = { version = "0.6.2", default-features = false, features = ["std", "regex", "serde", "schemars08"] }
 oauth2 = { version = "5.0.0", default-features = false, features = ["reqwest", "rustls-tls"] }
 pretty_assertions = { version = "1.4.1", default-features = false, features = ["std"] }
+postgres-types = { version = "0.2.11", default-features = false, features = ["derive"] }
 proc-macro2 = { version = "1.0.103", default-features = false, features = ["proc-macro"] }
 quote = { version = "1.0.41", default-features = false, features = ["proc-macro"] }
 rand = { version = "0.9.2", default-features = false, features = ["thread_rng"] }
@@ -138,7 +141,7 @@ regex = { version = "1.12.2", default-features = false }
 reqwest = { version = "0.12.24", default-features = false, features = ["http2", "rustls-tls", "json"] }
 rust_decimal = { version = "1.39.0", default-features = false, features = ["std", "serde-str"] }
 rust_decimal_macros = { version = "1.39.0", default-features = false }
-schemars = { version = "0.9.0", default-features = false, features = ["derive", "preserve_order", "uuid1", "url2"] }
+schemars = { version = "0.9.0", default-features = false, features = ["chrono04", "derive", "preserve_order", "uuid1", "url2"] }
 serde = { version = "1.0.228", default-features = false, features = ["derive", "std"] }
 serde_json = { version = "1.0.145", default-features = false, features = ["std"] }
 sha2 = { version = "0.10.9", default-features = false }

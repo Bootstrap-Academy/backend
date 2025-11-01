@@ -15,6 +15,7 @@ dependencies = [
  "academy_core_coin_impl",
  "academy_core_config_impl",
  "academy_core_contact_impl",
+ "academy_core_daily_rewards_impl",
  "academy_core_finance_contracts",
  "academy_core_finance_impl",
  "academy_core_health_impl",
@@ -68,6 +69,7 @@ dependencies = [
  "academy_core_coin_contracts",
  "academy_core_config_contracts",
  "academy_core_contact_contracts",
+ "academy_core_daily_rewards_contracts",
  "academy_core_finance_contracts",
  "academy_core_health_contracts",
  "academy_core_heart_contracts",
@@ -86,6 +88,7 @@ dependencies = [
  "axum",
  "axum-extra",
  "base64 0.22.1",
+ "chrono",
  "futures",
  "mime",
  "regex",
@@ -242,6 +245,45 @@ dependencies = [
  "thiserror 2.0.17",
  "tokio",
  "tracing",
+]
+
+[[package]]
+name = "academy_core_daily_rewards_contracts"
+version = "0.0.0"
+dependencies = [
+ "academy_models",
+ "anyhow",
+ "chrono",
+ "mockall",
+ "schemars",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.17",
+]
+
+[[package]]
+name = "academy_core_daily_rewards_impl"
+version = "0.0.0"
+dependencies = [
+ "academy_auth_contracts",
+ "academy_core_coin_contracts",
+ "academy_core_daily_rewards_contracts",
+ "academy_di",
+ "academy_models",
+ "academy_persistence_contracts",
+ "academy_shared_contracts",
+ "academy_utils",
+ "anyhow",
+ "bb8",
+ "bb8-postgres",
+ "chrono",
+ "mockall",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tokio-postgres",
+ "tracing",
+ "uuid",
 ]
 
 [[package]]
@@ -650,6 +692,7 @@ dependencies = [
  "hex",
  "lettre",
  "nutype",
+ "postgres-types",
  "regex",
  "schemars",
  "serde",
@@ -668,7 +711,9 @@ dependencies = [
  "chrono",
  "futures",
  "mockall",
+ "serde_json",
  "thiserror 2.0.17",
+ "uuid",
 ]
 
 [[package]]
@@ -688,8 +733,11 @@ dependencies = [
  "clorinde",
  "futures",
  "ouroboros",
+ "postgres-types",
  "pretty_assertions",
+ "serde_json",
  "tokio",
+ "tokio-postgres",
  "tracing",
  "uuid",
 ]
@@ -2914,6 +2962,8 @@ dependencies = [
  "fallible-iterator",
  "postgres-derive",
  "postgres-protocol",
+ "serde_core",
+ "serde_json",
  "uuid",
 ]
 
@@ -3513,6 +3563,7 @@ version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4cd191f9397d57d581cddd31014772520aa448f65ef991055d7f61582c65165f"
 dependencies = [
+ "chrono",
  "dyn-clone",
  "indexmap",
  "ref-cast",

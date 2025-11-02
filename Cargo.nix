@@ -1080,7 +1080,6 @@ rec {
         edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_assets; };
         libPath = "src/lib.rs";
-
       };
       "academy_auth_contracts" = rec {
         crateName = "academy_auth_contracts";
@@ -14943,7 +14942,6 @@ rec {
         version = "1.0.69";
         edition = "2021";
         sha256 = "0lizjay08agcr5hs9yfzzj6axs53a2rgx070a1dsi3jpkcrzbamn";
-        libPath = "src/lib.rs";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -14960,7 +14958,6 @@ rec {
         version = "2.0.17";
         edition = "2021";
         sha256 = "1j2gixhm2c3s6g96vd0b01v0i0qz1101vfmw0032mdqj1z58fdgn";
-        libPath = "src/lib.rs";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -14982,7 +14979,6 @@ rec {
         sha256 = "1h84fmn2nai41cxbhk6pqf46bxqq1b344v8yz089w1chzi76rvjg";
         procMacro = true;
         libName = "thiserror_impl";
-        libPath = "src/lib.rs";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -15009,7 +15005,6 @@ rec {
         sha256 = "04y92yjwg1a4piwk9nayzjfs07sps8c4vq9jnsfq9qvxrn75rw9z";
         procMacro = true;
         libName = "thiserror_impl";
-        libPath = "src/lib.rs";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -20172,4 +20167,3 @@ rec {
   #
   };
 }
-

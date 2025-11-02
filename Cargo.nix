@@ -1077,6 +1077,7 @@ rec {
         version = "0.0.0";
         edition = "2024";
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_assets; };
+
       };
       "academy_auth_contracts" = rec {
         crateName = "academy_auth_contracts";
@@ -14126,8 +14127,7 @@ rec {
         crateName = "slug";
         version = "0.1.6";
         edition = "2021";
-        sha256 = "0977cyp88xrwbpmqwzafkvv8vm9i0gdb5zjskb6f6pg45vvq0al8";
-        type = [ "cdylib" "rlib" ];
+        sha256 = "0977cyp88xrwbpmqwzafkvv8vm9i0gdb5zjskb6f6pg45vvq0al8";type = [ "cdylib" "rlib" ];
         authors = [
           "Steven Allen <steven@stebalien.com>"
         ];
@@ -19081,8 +19081,8 @@ rec {
 
         # Filter out editor backup / swap files.
         || lib.hasSuffix "~" baseName
-        || builtins.match "^/.sw[a-z]$$" baseName != null
-        || builtins.match "^/..*/.sw[a-z]$$" baseName != null
+        || builtins.match "^\.sw[a-z]$$" baseName != null
+        || builtins.match "^\..*\.sw[a-z]$$" baseName != null
         || lib.hasSuffix ".tmp" baseName
         || lib.hasSuffix ".bak" baseName
         || baseName == "tests.nix"

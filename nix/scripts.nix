@@ -17,11 +17,9 @@ in
 
   generate-clorinde =
     let
-      rustfmtWrapper =
-        pkgs.runCommandNoCC "rustfmt-wrapper" { nativeBuildInputs = [ pkgs.makeWrapper ]; }
-          ''
-            makeWrapper ${lib.getExe' toolchain.toolchain "rustfmt"} $out/bin/rustfmt --add-flags --config-path=/dev/null
-          '';
+      rustfmtWrapper = pkgs.runCommand "rustfmt-wrapper" { nativeBuildInputs = [ pkgs.makeWrapper ]; } ''
+        makeWrapper ${lib.getExe' toolchain.toolchain "rustfmt"} $out/bin/rustfmt --add-flags --config-path=/dev/null
+      '';
       runtimeDependencies = lib.attrValues {
         inherit (pkgs)
           coreutils

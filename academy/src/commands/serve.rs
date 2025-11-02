@@ -59,8 +59,12 @@ pub async fn serve(config: Config) -> anyhow::Result<()> {
 
     let config_provider = ConfigProvider::new(&config)?;
     let activity_configs = config_provider.daily_reward_activity_configs();
-    let daily_reward_activity =
-        DailyRewardActivity::new(activity_configs.skills, activity_configs.challenges).await?;
+    let daily_reward_activity = DailyRewardActivity::new(
+        activity_configs.skills,
+        activity_configs.challenges,
+        activity_configs.skills_recommendations,
+    )
+    .await?;
 
     let mut provider = Provider::new(
         config_provider,

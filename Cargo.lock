@@ -266,6 +266,7 @@ name = "academy_core_daily_rewards_impl"
 version = "0.0.0"
 dependencies = [
  "academy_auth_contracts",
+ "academy_cache_contracts",
  "academy_core_coin_contracts",
  "academy_core_daily_rewards_contracts",
  "academy_di",
@@ -278,6 +279,7 @@ dependencies = [
  "bb8-postgres",
  "chrono",
  "mockall",
+ "reqwest",
  "serde",
  "serde_json",
  "tokio",

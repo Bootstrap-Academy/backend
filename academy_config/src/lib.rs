@@ -233,6 +233,8 @@ pub struct DailyRewardsConfig {
     pub cache_ttl: Option<Duration>,
     #[serde(default)]
     pub activity_sources: DailyRewardsActivitySourcesConfig,
+    #[serde(default)]
+    pub recommendations: DailyRewardsRecommendationsConfig,
 }
 
 #[derive(Debug, Deserialize)]
@@ -251,6 +253,12 @@ pub struct DailyRewardsActivitySourcesConfig {
     pub challenges: Option<DailyRewardsPostgresConfig>,
 }
 
+#[derive(Debug, Default, Deserialize)]
+pub struct DailyRewardsRecommendationsConfig {
+    #[serde(default)]
+    pub skills: Option<DailyRewardsSkillsRecommendationsConfig>,
+}
+
 #[derive(Debug, Deserialize)]
 pub struct DailyRewardsPostgresConfig {
     pub dsn: String,
@@ -264,6 +272,13 @@ pub struct DailyRewardsPostgresConfig {
     pub idle_timeout: Option<Duration>,
     #[serde(default)]
     pub max_lifetime: Option<Duration>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct DailyRewardsSkillsRecommendationsConfig {
+    pub base_url: String,
+    #[serde(default)]
+    pub timeout: Option<Duration>,
 }
 
 #[derive(Debug, Deserialize)]

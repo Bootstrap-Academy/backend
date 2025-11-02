@@ -1,6 +1,7 @@
 use std::future;
 
 use academy_auth_contracts::{Authentication, MockAuthService};
+use academy_cache_contracts::MockCacheService;
 use academy_core_coin_contracts::coin::MockCoinService;
 use academy_core_daily_rewards_contracts::{
     DailyRewardActivitySnapshot, DailyRewardClaimError, DailyRewardFeatureService,
@@ -71,7 +72,10 @@ fn activity_service() -> MockDailyRewardActivityService {
     activity
         .expect_detect()
         .once()
-        .return_once(|_, _, _| Box::pin(future::ready(Ok(DailyRewardActivitySnapshot::default()))));
+        .withf(|token, _, _, _| token.is_some())
+        .return_once(|_, _, _, _| {
+            Box::pin(future::ready(Ok(DailyRewardActivitySnapshot::default())))
+        });
     activity
 }
 
@@ -167,6 +171,7 @@ async fn claim_success() {
         auth,
         repo,
         coin,
+        MockCacheService::new(),
         activity,
         MockIdService::new(),
         time,
@@ -217,6 +222,7 @@ async fn claim_already_claimed() {
         auth,
         repo,
         coin,
+        MockCacheService::new(),
         activity,
         MockIdService::new(),
         time,

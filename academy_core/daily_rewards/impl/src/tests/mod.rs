@@ -1,6 +1,8 @@
 use crate::{DailyRewardCoinsConfig, DailyRewardFeatureConfig};
 
+pub mod activity;
 pub mod claim;
+pub mod ready;
 pub mod snapshot;
 
 impl Default for DailyRewardFeatureConfig {

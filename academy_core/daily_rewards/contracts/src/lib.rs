@@ -155,6 +155,7 @@ pub struct DailyRewardActivity {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonSchema)]
 pub struct DailyRewardActivityState {
     pub detected: Option<DailyRewardActivity>,
+    pub pending_sample: Option<Value>,
     pub unavailable_reason: Option<DailyRewardUnavailableReason>,
 }
 
@@ -167,8 +168,13 @@ pub struct DailyRewardActivitySnapshot {
 
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait DailyRewardActivityService: Send + Sync + 'static {
-    fn detect(
+    #[allow(
+        clippy::needless_lifetimes,
+        reason = "mockall requires explicit lifetime parameter"
+    )]
+    fn detect<'a>(
         &self,
+        token: Option<&'a AccessToken>,
         user_id: UserId,
         day_start: DateTime<Utc>,
         day_end: DateTime<Utc>,

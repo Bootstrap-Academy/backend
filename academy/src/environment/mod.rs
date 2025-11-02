@@ -2,12 +2,12 @@ use std::{collections::HashMap, sync::Arc};
 
 use academy_api_rest::{RestServerConfig, RestServerRealIpConfig};
 use academy_auth_impl::AuthServiceConfig;
-use academy_config::{Config, DailyRewardsPostgresConfig};
+use academy_config::{Config, DailyRewardsPostgresConfig, DailyRewardsSkillsRecommendationsConfig};
 use academy_core_contact_impl::ContactFeatureConfig;
 use academy_core_daily_rewards_impl::{
     ChallengesActivityConfig, DailyRewardActivityServiceImpl,
     DailyRewardCoinsConfig as CoreDailyRewardCoinsConfig, DailyRewardFeatureConfig,
-    SkillsActivityConfig,
+    SkillsActivityConfig, SkillsRecommendationConfig,
 };
 use academy_core_finance_impl::FinanceFeatureConfig;
 use academy_core_health_impl::HealthFeatureConfig;
@@ -37,6 +37,7 @@ pub mod types;
 pub struct DailyRewardActivityConfigs {
     pub skills: Option<SkillsActivityConfig>,
     pub challenges: Option<ChallengesActivityConfig>,
+    pub skills_recommendations: Option<SkillsRecommendationConfig>,
 }
 
 provider! {
@@ -115,6 +116,7 @@ impl Provider {
         let daily_reward_activity = DailyRewardActivityServiceImpl::new(
             activity_configs.skills,
             activity_configs.challenges,
+            activity_configs.skills_recommendations,
         )
         .await
         .context("Failed to initialise daily reward activity service")?;
@@ -309,6 +311,12 @@ impl ConfigProvider {
                 .challenges
                 .as_ref()
                 .map(map_daily_rewards_source),
+            skills_recommendations: config
+                .daily_rewards
+                .recommendations
+                .skills
+                .as_ref()
+                .map(map_daily_rewards_recommendations),
         };
         let finance_feature_config = FinanceFeatureConfig {
             vat_percent: config.finance.vat_percent,
@@ -379,6 +387,15 @@ fn map_daily_rewards_source(cfg: &DailyRewardsPostgresConfig) -> SkillsActivityC
     }
 }
 
+fn map_daily_rewards_recommendations(
+    cfg: &DailyRewardsSkillsRecommendationsConfig,
+) -> SkillsRecommendationConfig {
+    SkillsRecommendationConfig {
+        base_url: cfg.base_url.clone(),
+        timeout: cfg.timeout.map(Into::into),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use academy_cache_valkey::ValkeyCache;
@@ -398,7 +415,7 @@ mod tests {
         let cache = ValkeyCache::dummy().await;
         let email = EmailServiceImpl::dummy().await;
 
-        let daily_reward_activity = DailyRewardActivityServiceImpl::new(None, None)
+        let daily_reward_activity = DailyRewardActivityServiceImpl::new(None, None, None)
             .await
             .unwrap();
         let mut provider = Provider::new(

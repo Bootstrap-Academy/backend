@@ -31,6 +31,10 @@ dsn = "postgres://academy@127.0.0.1:5432/academy-skills"
 [daily_rewards.activity_sources.challenges]
 dsn = "postgres://academy@127.0.0.1:5432/academy-challenges"
 
+[daily_rewards.recommendations.skills]
+base_url = "http://127.0.0.1:8001/"
+timeout = "5s"
+
 [session]
 access_token_ttl = "1d"
 

@@ -242,6 +242,7 @@ pub type DailyRewardFeature = CoreDailyRewardFeatureServiceImpl<
     Auth,
     DailyRewardRepo,
     Coin,
+    Cache,
     DailyRewardActivity,
     Id,
     Time,

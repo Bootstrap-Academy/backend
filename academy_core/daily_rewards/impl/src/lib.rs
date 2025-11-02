@@ -6,6 +6,7 @@ mod tests;
 
 pub use activity::{
     ChallengesActivityConfig, DailyRewardActivityServiceImpl, SkillsActivityConfig,
+    SkillsRecommendationConfig,
 };
 pub use service::{
     DailyRewardCoinsConfig, DailyRewardFeatureConfig, DailyRewardFeatureServiceImpl,

@@ -1,6 +1,7 @@
 use std::{collections::HashMap, time::Duration};
 
 use academy_auth_contracts::{AuthResultExt, AuthService};
+use academy_cache_contracts::CacheService;
 use academy_core_coin_contracts::coin::CoinService;
 use academy_core_daily_rewards_contracts::{
     DailyRewardActivityService, DailyRewardActivitySnapshot, DailyRewardActivityState,
@@ -57,11 +58,12 @@ pub struct DailyRewardFeatureConfig {
 }
 
 #[derive(Debug, Clone, Build)]
-pub struct DailyRewardFeatureServiceImpl<Db, Auth, Repo, Coin, Activity, Id, Time> {
+pub struct DailyRewardFeatureServiceImpl<Db, Auth, Repo, Coin, Cache, Activity, Id, Time> {
     db: Db,
     auth: Auth,
     repo: Repo,
     coin: Coin,
+    cache: Cache,
     activity: Activity,
     id: Id,
     time: Time,
@@ -73,13 +75,14 @@ pub(crate) struct RefreshedRewards {
     pub(crate) unavailability: HashMap<DailyRewardCategory, Option<DailyRewardUnavailableReason>>,
 }
 
-impl<Db, Auth, Repo, Coin, Activity, Id, Time> DailyRewardFeatureService
-    for DailyRewardFeatureServiceImpl<Db, Auth, Repo, Coin, Activity, Id, Time>
+impl<Db, Auth, Repo, Coin, Cache, Activity, Id, Time> DailyRewardFeatureService
+    for DailyRewardFeatureServiceImpl<Db, Auth, Repo, Coin, Cache, Activity, Id, Time>
 where
     Db: Database,
     Auth: AuthService<Db::Transaction>,
     Repo: DailyRewardRepository<Db::Transaction>,
     Coin: CoinService<Db::Transaction>,
+    Cache: CacheService,
     Activity: DailyRewardActivityService,
     Id: IdService,
     Time: TimeService,
@@ -98,6 +101,28 @@ where
 
         let now = self.time.now();
         let date = now.date_naive();
+        let cache_ttl = self.config.cache_ttl;
+        let cache_key = cache_ttl.map(|_| cache_key(user_id, date));
+
+        let mut cached_snapshot = None;
+
+        if let Some(cache_key) = cache_key.as_ref() {
+            match self.cache.get::<DailyRewardsSnapshot>(cache_key).await {
+                Ok(Some(snapshot)) => {
+                    cached_snapshot = Some(snapshot);
+                }
+                Ok(None) => {}
+                Err(err) => {
+                    warn!(
+                        error = %err,
+                        user_id = ?user_id,
+                        date = %date,
+                        "Failed to retrieve daily rewards snapshot from cache"
+                    );
+                }
+            }
+        }
+
         let day_start = start_of_day_utc(date);
         let day_end = day_start + chrono::Duration::days(1);
 
@@ -107,14 +132,49 @@ where
             .await
             .map_err(DailyRewardGetError::Other)?;
 
-        let refreshed = self
-            .refresh_entries(&mut txn, user_id, date, day_start, day_end)
+        let refreshed = match self
+            .refresh_entries(&mut txn, Some(token), user_id, date, day_start, day_end)
             .await
-            .map_err(DailyRewardGetError::Other)?;
+        {
+            Ok(refreshed) => refreshed,
+            Err(err) => {
+                if let Some(snapshot) = cached_snapshot {
+                    warn!(
+                        error = %err,
+                        user_id = ?user_id,
+                        date = %date,
+                        "Failed to refresh daily rewards; returning cached snapshot"
+                    );
+                    if let Err(rollback_err) = txn.rollback().await {
+                        warn!(
+                            error = %rollback_err,
+                            user_id = ?user_id,
+                            date = %date,
+                            "Failed to rollback transaction after refresh failure"
+                        );
+                    }
+                    self.emit_view_event(user_id, &snapshot);
+                    return Ok(DailyRewardGetResponse { snapshot });
+                }
+                return Err(DailyRewardGetError::Other(err));
+            }
+        };
 
         txn.commit().await.map_err(DailyRewardGetError::Other)?;
 
         let snapshot = build_snapshot(date, refreshed);
+
+        if let (Some(ttl), Some(cache_key)) = (cache_ttl, cache_key.as_ref())
+            && let Err(err) = self.cache.set(cache_key, &snapshot, Some(ttl)).await
+        {
+            warn!(
+                error = %err,
+                user_id = ?user_id,
+                date = %date,
+                "Failed to store daily rewards snapshot in cache"
+            );
+        }
+
         self.emit_view_event(user_id, &snapshot);
 
         Ok(DailyRewardGetResponse { snapshot })
@@ -146,7 +206,7 @@ where
             .map_err(DailyRewardClaimError::Other)?;
 
         let refreshed = self
-            .refresh_entries(&mut txn, user_id, date, day_start, day_end)
+            .refresh_entries(&mut txn, Some(token), user_id, date, day_start, day_end)
             .await
             .map_err(DailyRewardClaimError::Other)?;
 
@@ -197,6 +257,8 @@ where
 
         txn.commit().await.map_err(DailyRewardClaimError::Other)?;
 
+        self.invalidate_cache(user_id, date).await;
+
         self.emit_claim_event(user_id, category, coins, claimed_at, &claimed_entry);
 
         Ok(DailyRewardClaimResponse {
@@ -232,7 +294,7 @@ where
             .map_err(DailyRewardClaimAllError::Other)?;
 
         let refreshed = self
-            .refresh_entries(&mut txn, user_id, date, day_start, day_end)
+            .refresh_entries(&mut txn, Some(token), user_id, date, day_start, day_end)
             .await
             .map_err(DailyRewardClaimAllError::Other)?;
 
@@ -331,6 +393,10 @@ where
             .await
             .map_err(DailyRewardClaimAllError::Other)?;
 
+        if !claimed_entries.is_empty() {
+            self.invalidate_cache(user_id, date).await;
+        }
+
         for (category, coins, claimed_at, entry) in &claimed_entries {
             self.emit_claim_event(user_id, *category, *coins, *claimed_at, entry);
         }
@@ -340,8 +406,15 @@ where
     }
 }
 
-impl<Db, Auth, Repo, Coin, Activity, Id, Time>
-    DailyRewardFeatureServiceImpl<Db, Auth, Repo, Coin, Activity, Id, Time>
+impl<Db, Auth, Repo, Coin, Cache, Activity, Id, Time>
+    DailyRewardFeatureServiceImpl<Db, Auth, Repo, Coin, Cache, Activity, Id, Time>
+where
+    Db: Database,
+    Repo: DailyRewardRepository<Db::Transaction>,
+    Cache: CacheService,
+    Activity: DailyRewardActivityService,
+    Id: IdService,
+    Time: TimeService,
 {
     fn emit_view_event(&self, user_id: UserId, snapshot: &DailyRewardsSnapshot) {
         let ready_categories = snapshot
@@ -434,17 +507,83 @@ impl<Db, Auth, Repo, Coin, Activity, Id, Time>
             activity_sample = ?entry.activity_sample,
         );
     }
+
+    async fn invalidate_cache(&self, user_id: UserId, date: NaiveDate) {
+        if self.config.cache_ttl.is_none() {
+            return;
+        }
+
+        let cache_key = cache_key(user_id, date);
+        if let Err(err) = self.cache.remove(&cache_key).await {
+            warn!(
+                error = %err,
+                user_id = ?user_id,
+                date = %date,
+                "Failed to remove daily rewards snapshot from cache"
+            );
+        }
+    }
+
+    pub async fn rebuild_snapshot(
+        &self,
+        user_id: UserId,
+        date: NaiveDate,
+    ) -> Result<DailyRewardsSnapshot> {
+        let cache_ttl = self.config.cache_ttl;
+        let cache_key = cache_ttl.map(|_| cache_key(user_id, date));
+
+        let day_start = start_of_day_utc(date);
+        let day_end = day_start + chrono::Duration::days(1);
+
+        let mut txn = self.db.begin_transaction().await?;
+        let refreshed = self
+            .refresh_entries(&mut txn, None, user_id, date, day_start, day_end)
+            .await?;
+        txn.commit().await?;
+
+        self.invalidate_cache(user_id, date).await;
+
+        let snapshot = build_snapshot(date, refreshed);
+
+        if let (Some(ttl), Some(cache_key)) = (cache_ttl, cache_key.as_ref()) {
+            match self.cache.set(cache_key, &snapshot, Some(ttl)).await {
+                Ok(()) => {}
+                Err(err) => {
+                    warn!(
+                        error = %err,
+                        user_id = ?user_id,
+                        date = %date,
+                        "Failed to store rebuilt daily rewards snapshot in cache"
+                    );
+                }
+            }
+        }
+
+        Ok(snapshot)
+    }
 }
 
 #[cfg(test)]
-impl<Db, Auth, Repo, Coin, Activity, Id, Time>
-    DailyRewardFeatureServiceImpl<Db, Auth, Repo, Coin, Activity, Id, Time>
+impl<Db, Auth, Repo, Coin, Cache, Activity, Id, Time>
+    DailyRewardFeatureServiceImpl<Db, Auth, Repo, Coin, Cache, Activity, Id, Time>
+where
+    Db: Database,
+    Repo: DailyRewardRepository<Db::Transaction>,
+    Cache: CacheService,
+    Activity: DailyRewardActivityService,
+    Id: IdService,
+    Time: TimeService,
 {
+    #[allow(
+        clippy::too_many_arguments,
+        reason = "Test helper wiring all dependencies explicitly for clarity"
+    )]
     pub(crate) fn new_for_tests(
         db: Db,
         auth: Auth,
         repo: Repo,
         coin: Coin,
+        cache: Cache,
         activity: Activity,
         id: Id,
         time: Time,
@@ -455,6 +594,7 @@ impl<Db, Auth, Repo, Coin, Activity, Id, Time>
             auth,
             repo,
             coin,
+            cache,
             activity,
             id,
             time,
@@ -465,6 +605,10 @@ impl<Db, Auth, Repo, Coin, Activity, Id, Time>
 
 fn start_of_day_utc(date: NaiveDate) -> DateTime<Utc> {
     date.and_time(NaiveTime::MIN).and_utc()
+}
+
+fn cache_key(user_id: UserId, date: NaiveDate) -> String {
+    format!("daily_rewards:{}:{}", user_id.into_inner(), date)
 }
 
 fn map_claim_error(
@@ -495,10 +639,11 @@ pub(crate) fn build_snapshot(date: NaiveDate, refreshed: RefreshedRewards) -> Da
                 available_total += entry.coins;
             }
 
-            if let Some(claimed_at) = entry.claimed_at {
-                if claimed_at.date_naive() == date {
-                    claimed_total += entry.coins;
-                }
+            if entry
+                .claimed_at
+                .is_some_and(|claimed_at| claimed_at.date_naive() == date)
+            {
+                claimed_total += entry.coins;
             }
 
             rewards.push(DailyRewardItem {
@@ -540,11 +685,12 @@ fn determine_status(
     }
 }
 
-impl<Db, Auth, Repo, Coin, Activity, Id, Time>
-    DailyRewardFeatureServiceImpl<Db, Auth, Repo, Coin, Activity, Id, Time>
+impl<Db, Auth, Repo, Coin, Cache, Activity, Id, Time>
+    DailyRewardFeatureServiceImpl<Db, Auth, Repo, Coin, Cache, Activity, Id, Time>
 where
     Db: Database,
     Repo: DailyRewardRepository<Db::Transaction>,
+    Cache: CacheService,
     Activity: DailyRewardActivityService,
     Id: IdService,
     Time: TimeService,
@@ -552,6 +698,7 @@ where
     async fn refresh_entries(
         &self,
         txn: &mut Db::Transaction,
+        token: Option<&AccessToken>,
         user_id: UserId,
         date: NaiveDate,
         day_start: DateTime<Utc>,
@@ -618,14 +765,60 @@ where
 
         let activity = self
             .activity
-            .detect(user_id, day_start, day_end)
+            .detect(token, user_id, day_start, day_end)
             .await
             .unwrap_or_else(|err| {
                 warn!(error = %err, "Failed to fetch activity data");
                 DailyRewardActivitySnapshot::default()
             });
 
-        if apply_activity(
+        if let (true, Some(entry)) = (
+            apply_activity(
+                txn,
+                user_id,
+                date,
+                DailyRewardCategory::Lecture,
+                &activity.lecture,
+                &self.repo,
+                &mut map,
+            )
+            .await?,
+            map.get(&DailyRewardCategory::Lecture),
+        ) {
+            self.emit_category_ready_event(user_id, DailyRewardCategory::Lecture, entry);
+        }
+        if let (true, Some(entry)) = (
+            apply_activity(
+                txn,
+                user_id,
+                date,
+                DailyRewardCategory::Practice,
+                &activity.practice,
+                &self.repo,
+                &mut map,
+            )
+            .await?,
+            map.get(&DailyRewardCategory::Practice),
+        ) {
+            self.emit_category_ready_event(user_id, DailyRewardCategory::Practice, entry);
+        }
+        if let (true, Some(entry)) = (
+            apply_activity(
+                txn,
+                user_id,
+                date,
+                DailyRewardCategory::Lab,
+                &activity.lab,
+                &self.repo,
+                &mut map,
+            )
+            .await?,
+            map.get(&DailyRewardCategory::Lab),
+        ) {
+            self.emit_category_ready_event(user_id, DailyRewardCategory::Lab, entry);
+        }
+
+        apply_pending_sample(
             txn,
             user_id,
             date,
@@ -634,13 +827,8 @@ where
             &self.repo,
             &mut map,
         )
-        .await?
-        {
-            if let Some(entry) = map.get(&DailyRewardCategory::Lecture) {
-                self.emit_category_ready_event(user_id, DailyRewardCategory::Lecture, entry);
-            }
-        }
-        if apply_activity(
+        .await?;
+        apply_pending_sample(
             txn,
             user_id,
             date,
@@ -649,13 +837,8 @@ where
             &self.repo,
             &mut map,
         )
-        .await?
-        {
-            if let Some(entry) = map.get(&DailyRewardCategory::Practice) {
-                self.emit_category_ready_event(user_id, DailyRewardCategory::Practice, entry);
-            }
-        }
-        if apply_activity(
+        .await?;
+        apply_pending_sample(
             txn,
             user_id,
             date,
@@ -664,12 +847,7 @@ where
             &self.repo,
             &mut map,
         )
-        .await?
-        {
-            if let Some(entry) = map.get(&DailyRewardCategory::Lab) {
-                self.emit_category_ready_event(user_id, DailyRewardCategory::Lab, entry);
-            }
-        }
+        .await?;
 
         let mut unavailability = HashMap::new();
         unavailability.insert(
@@ -728,11 +906,173 @@ where
     Ok(!was_ready && is_ready)
 }
 
+async fn apply_pending_sample<Repo, Txn>(
+    txn: &mut Txn,
+    user_id: UserId,
+    date: NaiveDate,
+    category: DailyRewardCategory,
+    state: &DailyRewardActivityState,
+    repo: &Repo,
+    map: &mut HashMap<DailyRewardCategory, DailyRewardEntry>,
+) -> Result<()>
+where
+    Repo: DailyRewardRepository<Txn>,
+    Txn: Transaction,
+{
+    if state.detected.is_some() {
+        return Ok(());
+    }
+
+    let Some(sample) = state.pending_sample.clone() else {
+        return Ok(());
+    };
+
+    let Some(entry) = map.get(&category) else {
+        return Ok(());
+    };
+
+    if entry.claimable_since.is_some() || entry.claimed_at.is_some() {
+        // The reward is already ready or claimed; keep the existing activity sample.
+        return Ok(());
+    }
+
+    let params = DailyRewardMarkReady {
+        user_id,
+        date_utc: date,
+        category,
+        first_detected_at: None,
+        last_detected_at: None,
+        claimable_since: None,
+        activity_sample: Some(sample),
+    };
+
+    let updated = repo.mark_ready(txn, params).await?;
+    map.insert(category, updated);
+    Ok(())
+}
+
+#[cfg(test)]
+mod get_today_cache_tests {
+    use super::*;
+    use academy_auth_contracts::{Authentication, MockAuthService};
+    use academy_cache_contracts::MockCacheService;
+    use academy_core_coin_contracts::coin::MockCoinService;
+    use academy_core_daily_rewards_contracts::{
+        DailyRewardClaimTotals, DailyRewardsSnapshot, MockDailyRewardActivityService,
+    };
+    use academy_models::{
+        Sha256Hash,
+        auth::AccessToken,
+        session::{SessionId, SessionRefreshTokenHash},
+        user::UserId,
+    };
+    use academy_persistence_contracts::{
+        MockDatabase, MockTransaction, daily_rewards::MockDailyRewardRepository,
+    };
+    use academy_shared_contracts::{id::MockIdService, time::MockTimeService};
+    use chrono::NaiveDate;
+    use mockall::predicate;
+    use std::future;
+
+    #[tokio::test]
+    async fn returns_cached_snapshot_without_refreshing() {
+        let user_id = UserId::from(uuid::Uuid::new_v4());
+        let date = NaiveDate::from_ymd_opt(2025, 11, 1).unwrap();
+        let now = date.and_hms_opt(12, 0, 0).unwrap().and_utc();
+        let token = AccessToken::new("token");
+
+        let snapshot = DailyRewardsSnapshot {
+            date_utc: date,
+            feature_enabled: true,
+            rewards: Vec::new(),
+            claim_totals: DailyRewardClaimTotals {
+                available_coins: 0,
+                claimed_today: 0,
+            },
+        };
+
+        let mut auth = MockAuthService::new();
+        auth.expect_authenticate()
+            .once()
+            .with(predicate::eq(token.clone()))
+            .return_once(move |_| {
+                Box::pin(future::ready(Ok(Authentication {
+                    user_id,
+                    session_id: SessionId::from(uuid::Uuid::new_v4()),
+                    refresh_token_hash: SessionRefreshTokenHash::new(Sha256Hash::default()),
+                    admin: false,
+                    email_verified: true,
+                })))
+            });
+
+        let cache_key = cache_key(user_id, date);
+        let mut cache = MockCacheService::new();
+        {
+            let expected_snapshot = snapshot.clone();
+            cache
+                .expect_get()
+                .once()
+                .with(predicate::eq(cache_key.clone()))
+                .return_once(move |_| Box::pin(future::ready(Ok(Some(expected_snapshot)))));
+            cache.expect_set::<DailyRewardsSnapshot>().never();
+        }
+
+        let db = MockDatabase::build_expect_rollback();
+
+        let mut repo = MockDailyRewardRepository::new();
+        repo.expect_list_by_user_and_date()
+            .once()
+            .return_once(move |_, _, _| {
+                Box::pin(future::ready(Err(anyhow::anyhow!(
+                    "failed to load entries"
+                ))))
+            });
+        repo.expect_upsert_entry().never();
+        repo.expect_mark_ready().never();
+        repo.expect_mark_claimed().never();
+
+        let mut activity = MockDailyRewardActivityService::new();
+        activity.expect_detect().never();
+
+        let coin = MockCoinService::<MockTransaction>::new();
+
+        let time = MockTimeService::new().with_now(now);
+
+        let sut = DailyRewardFeatureServiceImpl::new_for_tests(
+            db,
+            auth,
+            repo,
+            coin,
+            cache,
+            activity,
+            MockIdService::new(),
+            time,
+            DailyRewardFeatureConfig {
+                enable: true,
+                coins: DailyRewardCoinsConfig {
+                    arrival: 5,
+                    lecture: 20,
+                    practice: 10,
+                    lab: 30,
+                },
+                cache_ttl: Some(Duration::from_secs(60)),
+            },
+        );
+
+        let response = sut.get_today(&token).await.unwrap();
+        assert_eq!(response.snapshot.date_utc, date);
+        assert!(response.snapshot.rewards.is_empty());
+        assert_eq!(response.snapshot.claim_totals.available_coins, 0);
+        assert_eq!(response.snapshot.claim_totals.claimed_today, 0);
+    }
+}
+
 #[cfg(test)]
 mod refresh_entries_tests {
     use super::*;
     use crate::DailyRewardFeatureConfig;
     use academy_auth_contracts::MockAuthService;
+    use academy_cache_contracts::MockCacheService;
     use academy_core_coin_contracts::coin::MockCoinService;
     use academy_core_daily_rewards_contracts::DailyRewardActivitySnapshot;
     use academy_core_daily_rewards_contracts::MockDailyRewardActivityService;
@@ -797,10 +1137,10 @@ mod refresh_entries_tests {
         let day_end = day_start + chrono::Duration::days(1);
         let claimed_at = Utc.with_ymd_and_hms(2025, 11, 1, 8, 0, 0).unwrap();
 
-        let arrival_entry = claimed_entry(user_id.clone(), date, claimed_at, 20);
-        let lecture_entry = entry(user_id.clone(), DailyRewardCategory::Lecture, date, 20);
-        let practice_entry = entry(user_id.clone(), DailyRewardCategory::Practice, date, 10);
-        let lab_entry = entry(user_id.clone(), DailyRewardCategory::Lab, date, 30);
+        let arrival_entry = claimed_entry(user_id, date, claimed_at, 20);
+        let lecture_entry = entry(user_id, DailyRewardCategory::Lecture, date, 20);
+        let practice_entry = entry(user_id, DailyRewardCategory::Practice, date, 10);
+        let lab_entry = entry(user_id, DailyRewardCategory::Lab, date, 30);
 
         let entries = vec![
             arrival_entry.clone(),
@@ -816,7 +1156,7 @@ mod refresh_entries_tests {
                 .once()
                 .with(
                     predicate::always(),
-                    predicate::eq(user_id.clone()),
+                    predicate::eq(user_id),
                     predicate::eq(date),
                 )
                 .return_once(move |_, _, _| Box::pin(future::ready(Ok(entries))));
@@ -826,15 +1166,17 @@ mod refresh_entries_tests {
         let mut activity = MockDailyRewardActivityService::new();
         let expected_day_start = day_start;
         let expected_day_end = day_end;
+        let expected_user = user_id;
         activity
             .expect_detect()
             .once()
-            .with(
-                predicate::eq(user_id.clone()),
-                predicate::eq(expected_day_start),
-                predicate::eq(expected_day_end),
-            )
-            .return_once(|_, _, _| {
+            .withf(move |token, user, start, end| {
+                token.is_none()
+                    && user == &expected_user
+                    && start == &expected_day_start
+                    && end == &expected_day_end
+            })
+            .return_once(|_, _, _, _| {
                 Box::pin(future::ready(Ok(DailyRewardActivitySnapshot::default())))
             });
 
@@ -843,6 +1185,7 @@ mod refresh_entries_tests {
             MockAuthService::<MockTransaction>::new(),
             repo,
             MockCoinService::<MockTransaction>::new(),
+            MockCacheService::new(),
             activity,
             MockIdService::new(),
             MockTimeService::new(),
@@ -861,7 +1204,7 @@ mod refresh_entries_tests {
         let mut txn = MockTransaction::new();
 
         let refreshed = sut
-            .refresh_entries(&mut txn, user_id.clone(), date, day_start, day_end)
+            .refresh_entries(&mut txn, None, user_id, date, day_start, day_end)
             .await
             .unwrap();
 

@@ -177,6 +177,26 @@ rec {
       # File a bug if you depend on any for non-debug work!
       debug = internal.debugCrate { inherit packageId; };
     };
+    "academy_core_daily_rewards_contracts" = rec {
+      packageId = "academy_core_daily_rewards_contracts";
+      build = internal.buildRustCrateWithFeatures {
+        packageId = "academy_core_daily_rewards_contracts";
+      };
+
+      # Debug support which might change between releases.
+      # File a bug if you depend on any for non-debug work!
+      debug = internal.debugCrate { inherit packageId; };
+    };
+    "academy_core_daily_rewards_impl" = rec {
+      packageId = "academy_core_daily_rewards_impl";
+      build = internal.buildRustCrateWithFeatures {
+        packageId = "academy_core_daily_rewards_impl";
+      };
+
+      # Debug support which might change between releases.
+      # File a bug if you depend on any for non-debug work!
+      debug = internal.debugCrate { inherit packageId; };
+    };
     "academy_core_finance_contracts" = rec {
       packageId = "academy_core_finance_contracts";
       build = internal.buildRustCrateWithFeatures {
@@ -600,11 +620,12 @@ rec {
         crateBin = [
           {
             name = "academy";
-            path = "src/main.rs";
+            path = "src\\main.rs";
             requiredFeatures = [ ];
           }
         ];
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_api_rest";
@@ -641,6 +662,10 @@ rec {
           {
             name = "academy_core_contact_impl";
             packageId = "academy_core_contact_impl";
+          }
+          {
+            name = "academy_core_daily_rewards_impl";
+            packageId = "academy_core_daily_rewards_impl";
           }
           {
             name = "academy_core_finance_contracts";
@@ -861,7 +886,8 @@ rec {
         crateName = "academy_api_rest";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_api/rest; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_api\rest; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_assets";
@@ -882,6 +908,10 @@ rec {
           {
             name = "academy_core_contact_contracts";
             packageId = "academy_core_contact_contracts";
+          }
+          {
+            name = "academy_core_daily_rewards_contracts";
+            packageId = "academy_core_daily_rewards_contracts";
           }
           {
             name = "academy_core_finance_contracts";
@@ -965,6 +995,12 @@ rec {
             usesDefaultFeatures = false;
           }
           {
+            name = "chrono";
+            packageId = "chrono";
+            usesDefaultFeatures = false;
+            features = [ "serde" "clock" ];
+          }
+          {
             name = "futures";
             packageId = "futures";
             usesDefaultFeatures = false;
@@ -984,7 +1020,7 @@ rec {
             name = "schemars";
             packageId = "schemars";
             usesDefaultFeatures = false;
-            features = [ "derive" "preserve_order" "uuid1" "url2" ];
+            features = [ "chrono04" "derive" "preserve_order" "uuid1" "url2" ];
           }
           {
             name = "serde";
@@ -1042,14 +1078,16 @@ rec {
         crateName = "academy_assets";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_assets; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_assets; };
+        libPath = "src\\lib.rs";
 
       };
       "academy_auth_contracts" = rec {
         crateName = "academy_auth_contracts";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_auth/contracts; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_auth\contracts; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_models";
@@ -1082,7 +1120,8 @@ rec {
         crateName = "academy_auth_impl";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_auth/impl; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_auth\impl; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_auth_contracts";
@@ -1179,7 +1218,8 @@ rec {
         crateName = "academy_cache_contracts";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_cache/contracts; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_cache\contracts; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "anyhow";
@@ -1209,7 +1249,8 @@ rec {
         crateName = "academy_cache_valkey";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_cache/valkey; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_cache\valkey; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_cache_contracts";
@@ -1282,7 +1323,8 @@ rec {
         crateName = "academy_config";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_config; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_config; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_assets";
@@ -1342,7 +1384,8 @@ rec {
         crateName = "academy_core_coin_contracts";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/coin/contracts; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_core\coin\contracts; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_models";
@@ -1375,7 +1418,8 @@ rec {
         crateName = "academy_core_coin_impl";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/coin/impl; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_core\coin\impl; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_auth_contracts";
@@ -1445,7 +1489,8 @@ rec {
         crateName = "academy_core_config_contracts";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/config/contracts; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_core\config\contracts; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "mockall";
@@ -1463,7 +1508,8 @@ rec {
         crateName = "academy_core_config_impl";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/config/impl; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_core\config\impl; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_core_config_contracts";
@@ -1501,7 +1547,8 @@ rec {
         crateName = "academy_core_contact_contracts";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/contact/contracts; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_core\contact\contracts; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_models";
@@ -1534,7 +1581,8 @@ rec {
         crateName = "academy_core_contact_impl";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/contact/impl; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_core\contact\impl; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_core_contact_contracts";
@@ -1598,11 +1646,227 @@ rec {
         ];
 
       };
+      "academy_core_daily_rewards_contracts" = rec {
+        crateName = "academy_core_daily_rewards_contracts";
+        version = "0.0.0";
+        edition = "2024";
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_core\daily_rewards\contracts; };
+        libPath = "src\\lib.rs";
+        dependencies = [
+          {
+            name = "academy_models";
+            packageId = "academy_models";
+          }
+          {
+            name = "anyhow";
+            packageId = "anyhow";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "chrono";
+            packageId = "chrono";
+            usesDefaultFeatures = false;
+            features = [ "serde" "clock" ];
+          }
+          {
+            name = "mockall";
+            packageId = "mockall";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "schemars";
+            packageId = "schemars";
+            usesDefaultFeatures = false;
+            features = [ "chrono04" "derive" "preserve_order" "uuid1" "url2" ];
+          }
+          {
+            name = "serde";
+            packageId = "serde";
+            usesDefaultFeatures = false;
+            features = [ "derive" "std" ];
+          }
+          {
+            name = "serde_json";
+            packageId = "serde_json";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "thiserror";
+            packageId = "thiserror 2.0.17";
+            usesDefaultFeatures = false;
+          }
+        ];
+        features = {
+          "mock" = [ "dep:mockall" ];
+        };
+        resolvedDefaultFeatures = [ "mock" ];
+      };
+      "academy_core_daily_rewards_impl" = rec {
+        crateName = "academy_core_daily_rewards_impl";
+        version = "0.0.0";
+        edition = "2024";
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_core\daily_rewards\impl; };
+        libPath = "src\\lib.rs";
+        dependencies = [
+          {
+            name = "academy_auth_contracts";
+            packageId = "academy_auth_contracts";
+          }
+          {
+            name = "academy_cache_contracts";
+            packageId = "academy_cache_contracts";
+          }
+          {
+            name = "academy_core_coin_contracts";
+            packageId = "academy_core_coin_contracts";
+          }
+          {
+            name = "academy_core_daily_rewards_contracts";
+            packageId = "academy_core_daily_rewards_contracts";
+          }
+          {
+            name = "academy_di";
+            packageId = "academy_di";
+          }
+          {
+            name = "academy_models";
+            packageId = "academy_models";
+          }
+          {
+            name = "academy_persistence_contracts";
+            packageId = "academy_persistence_contracts";
+          }
+          {
+            name = "academy_shared_contracts";
+            packageId = "academy_shared_contracts";
+          }
+          {
+            name = "academy_utils";
+            packageId = "academy_utils";
+          }
+          {
+            name = "anyhow";
+            packageId = "anyhow";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "bb8";
+            packageId = "bb8";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "bb8-postgres";
+            packageId = "bb8-postgres";
+            usesDefaultFeatures = false;
+            features = [ "with-chrono-0_4" "with-uuid-1" "with-serde_json-1" ];
+          }
+          {
+            name = "chrono";
+            packageId = "chrono";
+            usesDefaultFeatures = false;
+            features = [ "serde" "clock" ];
+          }
+          {
+            name = "reqwest";
+            packageId = "reqwest";
+            usesDefaultFeatures = false;
+            features = [ "http2" "rustls-tls" "json" ];
+          }
+          {
+            name = "serde";
+            packageId = "serde";
+            usesDefaultFeatures = false;
+            features = [ "derive" "std" ];
+          }
+          {
+            name = "serde_json";
+            packageId = "serde_json";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "tokio-postgres";
+            packageId = "tokio-postgres";
+            features = [ "with-chrono-0_4" "with-uuid-1" "with-serde_json-1" ];
+          }
+          {
+            name = "tracing";
+            packageId = "tracing";
+            usesDefaultFeatures = false;
+            features = [ "attributes" ];
+          }
+          {
+            name = "uuid";
+            packageId = "uuid";
+            usesDefaultFeatures = false;
+            features = [ "v4" "v7" "serde" ];
+          }
+        ];
+        devDependencies = [
+          {
+            name = "academy_auth_contracts";
+            packageId = "academy_auth_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_cache_contracts";
+            packageId = "academy_cache_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_core_coin_contracts";
+            packageId = "academy_core_coin_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_core_daily_rewards_contracts";
+            packageId = "academy_core_daily_rewards_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_models";
+            packageId = "academy_models";
+          }
+          {
+            name = "academy_persistence_contracts";
+            packageId = "academy_persistence_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_shared_contracts";
+            packageId = "academy_shared_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "mockall";
+            packageId = "mockall";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "serde_json";
+            packageId = "serde_json";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "tokio";
+            packageId = "tokio";
+            usesDefaultFeatures = false;
+            features = [ "rt-multi-thread" "macros" "sync" "fs" "process" ];
+          }
+        ];
+
+      };
       "academy_core_finance_contracts" = rec {
         crateName = "academy_core_finance_contracts";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/finance/contracts; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_core\finance\contracts; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_models";
@@ -1641,7 +1905,8 @@ rec {
         crateName = "academy_core_finance_impl";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/finance/impl; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_core\finance\impl; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_auth_contracts";
@@ -1758,14 +2023,16 @@ rec {
         crateName = "academy_core_health_contracts";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/health/contracts; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_core\health\contracts; };
+        libPath = "src\\lib.rs";
 
       };
       "academy_core_health_impl" = rec {
         crateName = "academy_core_health_impl";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/health/impl; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_core\health\impl; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_cache_contracts";
@@ -1820,7 +2087,8 @@ rec {
         crateName = "academy_core_heart_contracts";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/heart/contracts; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_core\heart\contracts; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_models";
@@ -1853,7 +2121,8 @@ rec {
         crateName = "academy_core_heart_impl";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/heart/impl; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_core\heart\impl; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_auth_contracts";
@@ -1949,7 +2218,8 @@ rec {
         crateName = "academy_core_internal_contracts";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/internal/contracts; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_core\internal\contracts; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_auth_contracts";
@@ -1986,7 +2256,8 @@ rec {
         crateName = "academy_core_internal_impl";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/internal/impl; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_core\internal\impl; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_auth_contracts";
@@ -2095,7 +2366,8 @@ rec {
         crateName = "academy_core_mfa_contracts";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/mfa/contracts; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_core\mfa\contracts; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_models";
@@ -2128,7 +2400,8 @@ rec {
         crateName = "academy_core_mfa_impl";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/mfa/impl; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_core\mfa\impl; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_auth_contracts";
@@ -2209,7 +2482,8 @@ rec {
         crateName = "academy_core_oauth2_contracts";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/oauth2/contracts; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_core\oauth2\contracts; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_models";
@@ -2242,7 +2516,8 @@ rec {
         crateName = "academy_core_oauth2_impl";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/oauth2/impl; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_core\oauth2\impl; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_auth_contracts";
@@ -2350,7 +2625,8 @@ rec {
         crateName = "academy_core_paypal_contracts";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/paypal/contracts; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_core\paypal\contracts; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_models";
@@ -2383,7 +2659,8 @@ rec {
         crateName = "academy_core_paypal_impl";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/paypal/impl; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_core\paypal\impl; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_auth_contracts";
@@ -2520,7 +2797,8 @@ rec {
         crateName = "academy_core_premium_contracts";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/premium/contracts; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_core\premium\contracts; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_models";
@@ -2553,7 +2831,8 @@ rec {
         crateName = "academy_core_premium_impl";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/premium/impl; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_core\premium\impl; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_auth_contracts";
@@ -2649,7 +2928,8 @@ rec {
         crateName = "academy_core_session_contracts";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/session/contracts; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_core\session\contracts; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_models";
@@ -2682,7 +2962,8 @@ rec {
         crateName = "academy_core_session_impl";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/session/impl; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_core\session\impl; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_auth_contracts";
@@ -2796,7 +3077,8 @@ rec {
         crateName = "academy_core_user_contracts";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/user/contracts; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_core\user\contracts; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_models";
@@ -2843,7 +3125,8 @@ rec {
         crateName = "academy_core_user_impl";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/user/impl; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_core\user\impl; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_auth_contracts";
@@ -2994,7 +3277,8 @@ rec {
         crateName = "academy_demo";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_demo; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_demo; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_models";
@@ -3046,7 +3330,8 @@ rec {
         crateName = "academy_di";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_di; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_di; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_di_derive";
@@ -3059,8 +3344,9 @@ rec {
         crateName = "academy_di_derive";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_di_derive; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_di_derive; };
         procMacro = true;
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "darling";
@@ -3087,7 +3373,8 @@ rec {
         crateName = "academy_email_contracts";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_email/contracts; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_email\contracts; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_models";
@@ -3119,7 +3406,8 @@ rec {
         crateName = "academy_email_impl";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_email/impl; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_email\impl; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_assets";
@@ -3202,7 +3490,8 @@ rec {
         crateName = "academy_extern_contracts";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_extern/contracts; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_extern\contracts; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_models";
@@ -3235,7 +3524,8 @@ rec {
         crateName = "academy_extern_impl";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_extern/impl; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_extern\impl; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_auth_contracts";
@@ -3325,7 +3615,8 @@ rec {
         crateName = "academy_models";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_models; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_models; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_utils";
@@ -3362,6 +3653,12 @@ rec {
             features = [ "std" "regex" "serde" "schemars08" ];
           }
           {
+            name = "postgres-types";
+            packageId = "postgres-types";
+            usesDefaultFeatures = false;
+            features = [ "derive" ];
+          }
+          {
             name = "regex";
             packageId = "regex";
             usesDefaultFeatures = false;
@@ -3370,13 +3667,19 @@ rec {
             name = "schemars";
             packageId = "schemars";
             usesDefaultFeatures = false;
-            features = [ "derive" "preserve_order" "uuid1" "url2" ];
+            features = [ "chrono04" "derive" "preserve_order" "uuid1" "url2" ];
           }
           {
             name = "serde";
             packageId = "serde";
             usesDefaultFeatures = false;
             features = [ "derive" "std" ];
+          }
+          {
+            name = "serde_json";
+            packageId = "serde_json";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
           }
           {
             name = "thiserror";
@@ -3396,21 +3699,14 @@ rec {
             features = [ "v4" "v7" "serde" ];
           }
         ];
-        devDependencies = [
-          {
-            name = "serde_json";
-            packageId = "serde_json";
-            usesDefaultFeatures = false;
-            features = [ "std" ];
-          }
-        ];
 
       };
       "academy_persistence_contracts" = rec {
         crateName = "academy_persistence_contracts";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_persistence/contracts; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_persistence\contracts; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_models";
@@ -3441,9 +3737,21 @@ rec {
             usesDefaultFeatures = false;
           }
           {
+            name = "serde_json";
+            packageId = "serde_json";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
             name = "thiserror";
             packageId = "thiserror 2.0.17";
             usesDefaultFeatures = false;
+          }
+          {
+            name = "uuid";
+            packageId = "uuid";
+            usesDefaultFeatures = false;
+            features = [ "v4" "v7" "serde" ];
           }
         ];
         features = {
@@ -3455,7 +3763,8 @@ rec {
         crateName = "academy_persistence_postgres";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_persistence/postgres; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_persistence\postgres; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_di";
@@ -3488,7 +3797,7 @@ rec {
             name = "bb8-postgres";
             packageId = "bb8-postgres";
             usesDefaultFeatures = false;
-            features = [ "with-chrono-0_4" "with-uuid-1" ];
+            features = [ "with-chrono-0_4" "with-uuid-1" "with-serde_json-1" ];
           }
           {
             name = "chrono";
@@ -3510,6 +3819,24 @@ rec {
             name = "ouroboros";
             packageId = "ouroboros";
             usesDefaultFeatures = false;
+          }
+          {
+            name = "postgres-types";
+            packageId = "postgres-types";
+            usesDefaultFeatures = false;
+            features = [ "derive" "with-serde_json-1" "with-chrono-0_4" "with-uuid-1" ];
+          }
+          {
+            name = "serde_json";
+            packageId = "serde_json";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "tokio-postgres";
+            packageId = "tokio-postgres";
+            usesDefaultFeatures = false;
+            features = [ "with-chrono-0_4" "with-uuid-1" "with-serde_json-1" ];
           }
           {
             name = "tracing";
@@ -3557,11 +3884,11 @@ rec {
         crateBin = [
           {
             name = "academy-render-daemon";
-            path = "src/main.rs";
+            path = "src\\main.rs";
             requiredFeatures = [ ];
           }
         ];
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_render_daemon; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_render_daemon; };
         dependencies = [
           {
             name = "academy_utils";
@@ -3620,7 +3947,8 @@ rec {
         crateName = "academy_shared_contracts";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_shared/contracts; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_shared\contracts; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_models";
@@ -3671,7 +3999,8 @@ rec {
         crateName = "academy_shared_impl";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_shared/impl; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_shared\impl; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_cache_contracts";
@@ -3809,7 +4138,8 @@ rec {
         crateName = "academy_templates_contracts";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_templates/contracts; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_templates\contracts; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_assets";
@@ -3864,7 +4194,8 @@ rec {
         crateName = "academy_templates_impl";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_templates/impl; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_templates\impl; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_assets";
@@ -3916,11 +4247,12 @@ rec {
         crateBin = [
           {
             name = "academy-testing";
-            path = "src/main.rs";
+            path = "src\\main.rs";
             requiredFeatures = [ ];
           }
         ];
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_testing; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_testing; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_utils";
@@ -4010,7 +4342,8 @@ rec {
         crateName = "academy_utils";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_utils; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_utils; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "academy_utils_derive";
@@ -4043,8 +4376,9 @@ rec {
         crateName = "academy_utils_derive";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_utils_derive; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_utils_derive; };
         procMacro = true;
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "proc-macro2";
@@ -4073,6 +4407,7 @@ rec {
         edition = "2018";
         crateBin = [];
         sha256 = "0jwb96gv17vdr29hbzi0ha5q6jkpgjyn7rjlg5nis65k41rk0p8v";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "gimli";
@@ -4102,6 +4437,7 @@ rec {
         version = "2.0.1";
         edition = "2021";
         sha256 = "1ymy18s9hs7ya1pjc9864l30wk8p2qfqdi7mhhcc5nfakxbij09j";
+        libPath = "src\\lib.rs";
         authors = [
           "Jonas Schievink <jonasschievink@gmail.com>"
           "oyvindln <oyvindln@users.noreply.github.com>"
@@ -4117,6 +4453,7 @@ rec {
         version = "0.7.8";
         edition = "2018";
         sha256 = "1y9014qsy6gs9xld4ch7a6xi9bpki8vaciawxq4p75d8qvh7f549";
+        libPath = "src\\lib.rs";
         authors = [
           "Tom Kaitchuck <Tom.Kaitchuck@gmail.com>"
         ];
@@ -4153,6 +4490,7 @@ rec {
         version = "0.8.12";
         edition = "2018";
         sha256 = "0xbsp9rlm5ki017c0w6ay8kjwinwm8knjncci95mii30rmwz25as";
+        libPath = "src\\lib.rs";
         authors = [
           "Tom Kaitchuck <Tom.Kaitchuck@gmail.com>"
         ];
@@ -4197,6 +4535,7 @@ rec {
         edition = "2021";
         sha256 = "05mrpkvdgp5d20y2p989f187ry9diliijgwrs254fs9s1m1x6q4f";
         libName = "aho_corasick";
+        libPath = "src\\lib.rs";
         authors = [
           "Andrew Gallant <jamslam@gmail.com>"
         ];
@@ -4221,6 +4560,7 @@ rec {
         version = "0.15.1";
         edition = "2021";
         sha256 = "18p3n7dihh4ys1rp16yf7vxlla91s2as2009ik2m9zndi1qk2rk9";
+        libPath = "src\\lib.rs";
         authors = [
           "tamasfe"
         ];
@@ -4323,6 +4663,7 @@ rec {
         version = "0.1.3";
         edition = "2018";
         sha256 = "1z8548zdjlm4ps1k0d7x68lfdyji02crwcc9rw3q3bb106f643r5";
+        libPath = "src\\lib.rs";
         authors = [
           "avitex <avitex@wfxlabs.com>"
         ];
@@ -4340,6 +4681,7 @@ rec {
         edition = "2018";
         sha256 = "08zrzs022xwndihvzdn78yqarv2b9696y67i6h78nla3ww87jgb8";
         libName = "allocator_api2";
+        libPath = "src\\lib.rs";
         authors = [
           "Zakarum <zaq.dev@icloud.com>"
         ];
@@ -4355,6 +4697,7 @@ rec {
         version = "0.1.5";
         edition = "2018";
         sha256 = "04b3wrz12837j7mdczqd95b732gw5q7q66cv4yn4646lvccp57l1";
+        libPath = "src\\lib.rs";
         authors = [
           "Nicolas Silva <nical@fastmail.com>"
         ];
@@ -4371,6 +4714,7 @@ rec {
         version = "0.6.21";
         edition = "2021";
         sha256 = "0jjgixms4qjj58dzr846h2s29p8w7ynwr9b9x6246m1pwy0v5ma3";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "anstyle";
@@ -4416,6 +4760,7 @@ rec {
         version = "1.0.13";
         edition = "2021";
         sha256 = "0y2ynjqajpny6q0amvfzzgw0gfw3l47z85km4gvx87vg02lcr4ji";
+        libPath = "src\\lib.rs";
         features = {
           "default" = [ "std" ];
         };
@@ -4427,6 +4772,7 @@ rec {
         edition = "2021";
         sha256 = "1hhmkkfr95d462b3zf6yl2vfzdqfy5726ya572wwg8ha9y148xjf";
         libName = "anstyle_parse";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "utf8parse";
@@ -4447,6 +4793,7 @@ rec {
         edition = "2021";
         sha256 = "1qir6d6fl5a4y2gmmw9a5w93ckwx6xn51aryd83p26zn6ihiy8wy";
         libName = "anstyle_query";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "windows-sys";
@@ -4463,6 +4810,7 @@ rec {
         edition = "2021";
         sha256 = "0ajz9wsf46a2l3pds7v62xbhq2cffj7wrilamkx2z8r28m0k61iy";
         libName = "anstyle_wincon";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "anstyle";
@@ -4487,6 +4835,7 @@ rec {
         version = "1.0.100";
         edition = "2018";
         sha256 = "0qbfmw4hhv2ampza1csyvf1jqjs2dgrj29cv3h3sh623c6qvcgm2";
+        libPath = "src\\lib.rs";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -4501,6 +4850,7 @@ rec {
         version = "0.5.3";
         edition = "2021";
         sha256 = "0wn0kk97k49wxidfigmz1pdqmygqzi4h6w72ib7cpq765s4i0diw";
+        libPath = "src\\lib.rs";
         authors = [
           "RustCrypto Developers"
         ];
@@ -4548,6 +4898,7 @@ rec {
         version = "0.7.6";
         edition = "2018";
         sha256 = "0l1fz4ccgv6pm609rif37sl5nv5k6lbzi7kkppgzqzh1vwix20kw";
+        libPath = "src\\lib.rs";
         authors = [
           "bluss"
         ];
@@ -4566,6 +4917,7 @@ rec {
         sha256 = "1fsxxmz3rzx1prn1h3rs7kyjhkap60i7xvi0ldapkvbb14nssdch";
         procMacro = true;
         libName = "async_trait";
+        libPath = "src\\lib.rs";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -4593,6 +4945,7 @@ rec {
         edition = "2018";
         sha256 = "1h5av1lw56m0jf0fd3bchxq8a30xv0b4wv8s4zkp4s0i7mfvs18m";
         libName = "atomic_waker";
+        libPath = "src\\lib.rs";
         authors = [
           "Stjepan Glavina <stjepang@gmail.com>"
           "Contributors to futures-rs"
@@ -4606,6 +4959,7 @@ rec {
         version = "1.5.0";
         edition = "2015";
         sha256 = "1s77f98id9l4af4alklmzq46f21c980v13z2r1pcxx6bqgw0d1n0";
+        libPath = "src\\lib.rs";
         authors = [
           "Josh Stone <cuviper@gmail.com>"
         ];
@@ -4616,6 +4970,7 @@ rec {
         version = "0.8.6";
         edition = "2021";
         sha256 = "0w9qyxcp77gwswc9sz3pf2rzpm4jycpxvd70yh8i60sjccrys64a";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "axum-core";
@@ -4787,6 +5142,7 @@ rec {
         edition = "2021";
         sha256 = "08pa4752h96pai7j5avr2hnq35xh7qgv6vl57y1zhhnikkhnqi2r";
         libName = "axum_core";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "bytes";
@@ -4847,6 +5203,7 @@ rec {
         edition = "2021";
         sha256 = "15mb28f49y4g434ry9c7gnamh3ac0130mvsncz3h4q8cyhczyqwr";
         libName = "axum_extra";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "axum";
@@ -4945,6 +5302,7 @@ rec {
         version = "0.3.76";
         edition = "2021";
         sha256 = "1mibx75x4jf6wz7qjifynld3hpw3vq6sy3d3c9y5s88sg59ihlxv";
+        libPath = "src\\lib.rs";
         authors = [
           "The Rust Project Developers"
         ];
@@ -5002,6 +5360,7 @@ rec {
         version = "0.5.1";
         edition = "2015";
         sha256 = "0xp0a3xml25xw2bp5pyac2nld7vmmfjl02qynnyfn6aznfggwb82";
+        libPath = "src\\lib.rs";
         authors = [
           "Andreas Ots <qrpth@qrpth.eu>"
           "Tim Dumol <tim@timdumol.com>"
@@ -5014,6 +5373,7 @@ rec {
         version = "0.13.1";
         edition = "2018";
         sha256 = "1s494mqmzjb766fy1kqlccgfg2sdcjb6hzbvzqv2jw65fdi5h6wy";
+        libPath = "src\\lib.rs";
         authors = [
           "Alice Maz <alice@alicemaz.com>"
           "Marshall Pierce <marshall@mpierce.org>"
@@ -5028,6 +5388,7 @@ rec {
         version = "0.22.1";
         edition = "2018";
         sha256 = "1imqzgh7bxcikp5vx3shqvw9j09g9ly0xr0jma0q66i52r7jbcvj";
+        libPath = "src\\lib.rs";
         authors = [
           "Marshall Pierce <marshall@mpierce.org>"
         ];
@@ -5042,6 +5403,7 @@ rec {
         version = "1.8.0";
         edition = "2024";
         sha256 = "1fj4vc6ghy3j1120r7dwn4xw90crfy46b448g5pm9w6an13qn92m";
+        libPath = "src\\lib.rs";
         authors = [
           "RustCrypto Developers"
         ];
@@ -5055,6 +5417,7 @@ rec {
         version = "0.9.0";
         edition = "2021";
         sha256 = "1ralsazlyyj7gsmqc73p6kpqz76g4al6np2p8693sx123a78nb91";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "futures-util";
@@ -5092,6 +5455,7 @@ rec {
         edition = "2021";
         sha256 = "175a6r01q0mjcpsnsr92viq1l9vk91j7dyiascl8vy6hgiaycw75";
         libName = "bb8_postgres";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "bb8";
@@ -5125,7 +5489,7 @@ rec {
           "with-uuid-0_8" = [ "tokio-postgres/with-uuid-0_8" ];
           "with-uuid-1" = [ "tokio-postgres/with-uuid-1" ];
         };
-        resolvedDefaultFeatures = [ "with-chrono-0_4" "with-uuid-1" ];
+        resolvedDefaultFeatures = [ "with-chrono-0_4" "with-serde_json-1" "with-uuid-1" ];
       };
       "bb8-redis" = rec {
         crateName = "bb8-redis";
@@ -5133,6 +5497,7 @@ rec {
         edition = "2021";
         sha256 = "1abxld7w80931hyvq1z3wlan7nkpcwdx5qz3h6la3vp1ymm96hsi";
         libName = "bb8_redis";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "bb8";
@@ -5152,6 +5517,7 @@ rec {
         version = "2.10.0";
         edition = "2021";
         sha256 = "1lqxwc3625lcjrjm5vygban9v8a6dlxisp1aqylibiaw52si4bl1";
+        libPath = "src\\lib.rs";
         authors = [
           "The Rust Project Developers"
         ];
@@ -5168,6 +5534,7 @@ rec {
         version = "1.0.1";
         edition = "2021";
         sha256 = "173ydyj2q5vwj88k6xgjnfsshs4x9wbvjjv7sm0h36r34hn87hhv";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "funty";
@@ -5200,6 +5567,7 @@ rec {
         version = "0.10.6";
         edition = "2018";
         sha256 = "1zlf7w7gql12v61d9jcbbswa3dw8qxsjglylsiljp9f9b3a2ll26";
+        libPath = "src\\lib.rs";
         authors = [
           "RustCrypto Developers"
         ];
@@ -5230,6 +5598,7 @@ rec {
         edition = "2018";
         sha256 = "0w9sa2ypmrsqqvc20nhwr75wbb5cjr4kkyhpjm1z1lv2kdicfy1h";
         libName = "block_buffer";
+        libPath = "src\\lib.rs";
         authors = [
           "RustCrypto Developers"
         ];
@@ -5247,6 +5616,7 @@ rec {
         edition = "2018";
         crateBin = [];
         sha256 = "1kikljm5yr3l9qsw5xvdccragxj4445s4s3fqsgy6hmmipwld1md";
+        libPath = "src\\lib.rs";
         authors = [
           "Near Inc <hello@near.org>"
         ];
@@ -5283,6 +5653,7 @@ rec {
         sha256 = "1hwsznww7d01bh1fzpndzmcpyp00xpl2y9bg70i3z0zmqb0d7lgx";
         procMacro = true;
         libName = "borsh_derive";
+        libPath = "src\\lib.rs";
         authors = [
           "Near Inc <hello@nearprotocol.com>"
         ];
@@ -5325,6 +5696,7 @@ rec {
         version = "1.12.1";
         edition = "2021";
         sha256 = "1arc1v7h5l86vd6z76z3xykjzldqd5icldn7j9d3p7z6x0d4w133";
+        libPath = "src\\lib.rs";
         authors = [
           "Andrew Gallant <jamslam@gmail.com>"
         ];
@@ -5355,6 +5727,7 @@ rec {
         version = "3.19.0";
         edition = "2021";
         sha256 = "0hsdndvcpqbjb85ghrhska2qxvp9i75q2vb70hma9fxqawdy9ia6";
+        libPath = "src\\lib.rs";
         authors = [
           "Nick Fitzgerald <fitzgen@gmail.com>"
         ];
@@ -5370,6 +5743,7 @@ rec {
         version = "0.6.12";
         edition = "2021";
         sha256 = "1hmipv4yyxgbamcbw5r65wagv9khs033v9483s9kri9sw9ycbk93";
+        libPath = "src\\lib.rs";
         authors = [
           "David Koloski <djkoloski@gmail.com>"
         ];
@@ -5405,6 +5779,7 @@ rec {
         edition = "2021";
         sha256 = "0ng6230brd0hvqpbgcx83inn74mdv3abwn95x515bndwkz90dd1x";
         procMacro = true;
+        libPath = "src\\lib.rs";
         authors = [
           "David Koloski <djkoloski@gmail.com>"
         ];
@@ -5432,6 +5807,7 @@ rec {
         version = "1.5.0";
         edition = "2021";
         sha256 = "0jzncxyf404mwqdbspihyzpkndfgda450l0893pz5xj685cg5l0z";
+        libPath = "src\\lib.rs";
         authors = [
           "Andrew Gallant <jamslam@gmail.com>"
         ];
@@ -5445,6 +5821,7 @@ rec {
         version = "1.10.1";
         edition = "2018";
         sha256 = "0smd4wi2yrhp5pmq571yiaqx84bjqlm1ixqhnvfwzzc6pqkn26yp";
+        libPath = "src\\lib.rs";
         authors = [
           "Carl Lerche <me@carllerche.com>"
           "Sean McArthur <sean@seanmonstar.com>"
@@ -5461,6 +5838,7 @@ rec {
         version = "1.2.43";
         edition = "2018";
         sha256 = "1hpg1f1srgd5bfivvln1s3kcajdxpqvjsvd8m4y4nmap8pwv17kk";
+        libPath = "src\\lib.rs";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -5484,6 +5862,7 @@ rec {
         edition = "2018";
         sha256 = "008q28ajc546z5p2hcwdnckmg0hia7rnx52fni04bwqkzyrghc4k";
         libName = "cfg_if";
+        libPath = "src\\lib.rs";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -5497,6 +5876,7 @@ rec {
         version = "0.2.1";
         edition = "2018";
         sha256 = "092pxdc1dbgjb6qvh83gk56rkic2n2ybm4yvy76cgynmzi3zwfk1";
+        libPath = "src\\lib.rs";
         authors = [
           "Zicklag <zicklag@katharostech.com>"
         ];
@@ -5507,6 +5887,7 @@ rec {
         version = "0.4.42";
         edition = "2021";
         sha256 = "1lp8iz9js9jwxw0sj8yi59v54lgvwdvm49b9wch77f25sfym4l0l";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "iana-time-zone";
@@ -5574,6 +5955,7 @@ rec {
         edition = "2021";
         sha256 = "1fvicqrlmdsjkrgxr7bxfd62i9w2qi2b6iv4w85av5syvqlqnsck";
         libName = "chrono_tz";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "chrono";
@@ -5615,6 +5997,7 @@ rec {
         edition = "2021";
         sha256 = "1c8ixwwwsn9kgs1dr5mz963p0fgw9j9p7fzb3w2c7y8xhkp8l20c";
         libName = "chrono_tz_build";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "parse-zoneinfo";
@@ -5643,6 +6026,7 @@ rec {
         version = "0.9.3";
         edition = "2018";
         sha256 = "1jcnafc8rjfs1al08gqzyn0kpbaizgdwrd0ajqafspd18ikxdswf";
+        libPath = "src\\lib.rs";
         authors = [
           "Joshua Barretto <joshua.s.barretto@gmail.com>"
         ];
@@ -5670,6 +6054,7 @@ rec {
         edition = "2021";
         crateBin = [];
         sha256 = "1xg5fa4lcl2pmdhlns1qzw5dpz1yz6hxk6x6j7qra0hf2whxf9jc";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "clap_builder";
@@ -5711,6 +6096,7 @@ rec {
         version = "4.5.51";
         edition = "2021";
         sha256 = "06h10byk8dl8b4nypil6aad9kshgfrjyji5ybb8bz0gngc65z0vm";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "anstream";
@@ -5750,6 +6136,7 @@ rec {
         version = "4.5.59";
         edition = "2021";
         sha256 = "0g64s6ws3kkzh74fxwp7r8qlvb1q1nscsk6nrsb1cqylvix4hj13";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "clap";
@@ -5795,6 +6182,7 @@ rec {
         edition = "2021";
         sha256 = "0wbngw649138v3jwx8pm5x9sq0qsml3sh0sfzyrdxcpamy3m82ra";
         procMacro = true;
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "heck";
@@ -5826,13 +6214,15 @@ rec {
         version = "0.7.6";
         edition = "2021";
         sha256 = "13cxw9m2rqvplgazgkq2awms0rgf34myc19bz6gywfngi762imx1";
+        libPath = "src\\lib.rs";
 
       };
       "clorinde" = rec {
         crateName = "clorinde";
         version = "0.0.0";
         edition = "2024";
-        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_persistence/postgres/clorinde; };
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = C:\Users\cmoe4\Documents\Projects\BootstrapAcademy\backend\academy_persistence\postgres\clorinde; };
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "chrono";
@@ -5878,6 +6268,7 @@ rec {
         version = "1.0.4";
         edition = "2021";
         sha256 = "0x8ymkz1xr77rcj1cfanhf416pc4v681gmkc9dzb3jqja7f62nxh";
+        libPath = "src\\lib.rs";
 
       };
       "combine" = rec {
@@ -5885,6 +6276,7 @@ rec {
         version = "4.6.7";
         edition = "2018";
         sha256 = "1z8rh8wp59gf8k23ar010phgs0wgf5i8cx4fg01gwcnzfn5k0nms";
+        libPath = "src\\lib.rs";
         authors = [
           "Markus Westerlind <marwes91@gmail.com>"
         ];
@@ -5964,6 +6356,7 @@ rec {
         version = "0.15.18";
         edition = "2018";
         sha256 = "060rrj5fl3n1vfrng4r8dbzqay5mnvripm1fngwp80q88j9m83hq";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "pathdiff";
@@ -6012,6 +6405,7 @@ rec {
         version = "0.16.1";
         edition = "2021";
         sha256 = "1x4x6vfi1s55nbr4i77b9r87s213h46lq396sij9fkmidqx78c5l";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "encode_unicode";
@@ -6053,6 +6447,7 @@ rec {
         version = "0.3.1";
         edition = "2021";
         sha256 = "19nwwczii762pwlsm7bpizgjg8hkg1kqi32b2g4rglijklsbhx3w";
+        libPath = "src\\lib.rs";
         authors = [
           "Cesar Eduardo Barros <cesarb@cesarb.eti.br>"
         ];
@@ -6064,6 +6459,7 @@ rec {
         version = "0.6.0";
         edition = "2018";
         sha256 = "1jn1pq6fp3rri88zyw6jlhwwgf6qiyc08d6gjv0qypgkl862n67c";
+        libPath = "src\\lib.rs";
         authors = [
           "Rutrum <dave@rutrum.net>"
         ];
@@ -6084,6 +6480,7 @@ rec {
         edition = "2018";
         sha256 = "12w8j73lazxmr1z0h98hf3z623kl8ms7g07jch7n4p8f9nwlhdkp";
         libName = "core_foundation_sys";
+        libPath = "src\\lib.rs";
         authors = [
           "The Servo Project Developers"
         ];
@@ -6097,6 +6494,7 @@ rec {
         version = "0.2.17";
         edition = "2018";
         sha256 = "10023dnnaghhdl70xcds12fsx2b966sxbxjq5sxs49mvxqw5ivar";
+        libPath = "src\\lib.rs";
         authors = [
           "RustCrypto Developers"
         ];
@@ -6134,6 +6532,7 @@ rec {
         edition = "2021";
         sha256 = "0l9f1saqp1gn5qy0rxvkmz4m6n7fc0b3dbm6q1r5pmgpnyvi3lcx";
         libName = "crossbeam_deque";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "crossbeam-epoch";
@@ -6158,6 +6557,7 @@ rec {
         edition = "2021";
         sha256 = "03j2np8llwf376m3fxqx859mgp9f83hj1w34153c7a9c7i5ar0jv";
         libName = "crossbeam_epoch";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "crossbeam-utils";
@@ -6180,6 +6580,7 @@ rec {
         edition = "2021";
         sha256 = "0a3aa2bmc8q35fb67432w16wvi54sfmb69rk9h5bhd18vw0c99fh";
         libName = "crossbeam_utils";
+        libPath = "src\\lib.rs";
         features = {
           "default" = [ "std" ];
           "loom" = [ "dep:loom" ];
@@ -6192,6 +6593,7 @@ rec {
         edition = "2018";
         sha256 = "1cvby95a6xg7kxdz5ln3rl9xh66nz66w46mm3g56ri1z5x815yqv";
         libName = "crypto_common";
+        libPath = "src\\lib.rs";
         authors = [
           "RustCrypto Developers"
         ];
@@ -6217,6 +6619,7 @@ rec {
         version = "0.21.3";
         edition = "2021";
         sha256 = "1h281ah78pz05450r71h3gwm2n24hy8yngbz58g426l4j1q37pww";
+        libPath = "src\\lib.rs";
         authors = [
           "Ted Driggs <ted.driggs@outlook.com>"
         ];
@@ -6243,6 +6646,7 @@ rec {
         version = "0.21.3";
         edition = "2021";
         sha256 = "193ya45qgac0a4siwghk0bl8im8h89p3cald7kw8ag3yrmg1jiqj";
+        libPath = "src\\lib.rs";
         authors = [
           "Ted Driggs <ted.driggs@outlook.com>"
         ];
@@ -6287,6 +6691,7 @@ rec {
         edition = "2021";
         sha256 = "10ac85n4lnx3rmf5rw8lijl2c0sbl6ghcpgfmzh0s26ihbghi0yk";
         procMacro = true;
+        libPath = "src\\lib.rs";
         authors = [
           "Ted Driggs <ted.driggs@outlook.com>"
         ];
@@ -6311,6 +6716,7 @@ rec {
         version = "0.8.0";
         edition = "2018";
         sha256 = "13f15dfvn07fa7087pmacixqqv0lmj4hv93biw4ldr48ypk55xdy";
+        libPath = "src\\lib.rs";
         authors = [
           "Sentry <hello@sentry.io>"
         ];
@@ -6335,6 +6741,7 @@ rec {
         version = "0.5.5";
         edition = "2021";
         sha256 = "11z5939gv2klp1r1lgrp4w5fnlkj18jqqf0h9zxmia3vkrjwpv7c";
+        libPath = "src\\lib.rs";
         authors = [
           "Jacob Pratt <jacob@jhpratt.dev>"
         ];
@@ -6363,6 +6770,7 @@ rec {
         version = "1.6.2";
         edition = "2021";
         sha256 = "013biy7hhy59jcbry4dqn2pf4qhaw083ksn8xxiw373wjc37imdb";
+        libPath = "src\\lib.rs";
         authors = [
           "Kornel Lesinski <kornel@geekhood.net>"
           "Amit Chowdhury <amitc97@gmail.com>"
@@ -6377,6 +6785,7 @@ rec {
         version = "0.1.13";
         edition = "2015";
         sha256 = "1j0nzjxci2zqx63hdcihkp0a4dkdmzxd7my4m7zk6cjyfy34j9an";
+        libPath = "src\\lib.rs";
         authors = [
           "Utkarsh Kukreti <utkarshkukreti@gmail.com>"
         ];
@@ -6387,6 +6796,7 @@ rec {
         version = "0.10.7";
         edition = "2018";
         sha256 = "14p2n6ih29x81akj097lvz7wi9b6b9hvls0lwrv7b6xwyy0s5ncy";
+        libPath = "src\\lib.rs";
         authors = [
           "RustCrypto Developers"
         ];
@@ -6428,6 +6838,7 @@ rec {
         edition = "2021";
         sha256 = "1q0alair462j21iiqwrr21iabkfnb13d6x5w95lkdg21q2xrqdlp";
         procMacro = true;
+        libPath = "src\\lib.rs";
         authors = [
           "Jane Lusby <jlusby@yaah.dev>"
         ];
@@ -6454,6 +6865,7 @@ rec {
         version = "0.11.0";
         edition = "2018";
         sha256 = "1wa78ahlc57wmqyq2ncr80l7plrkgz57xsg7kfzgpcnqac8gld8l";
+        libPath = "src\\lib.rs";
         authors = [
           "Felix Köpge <fkoep@mailbox.org>"
         ];
@@ -6468,6 +6880,7 @@ rec {
         edition = "2018";
         sha256 = "0m956cxcg8v2n8kmz6xs5zl13k2fak3zkapzfzzp7pxih6hix26h";
         libName = "dyn_clone";
+        libPath = "src\\lib.rs";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -6479,6 +6892,7 @@ rec {
         edition = "2021";
         sha256 = "1dkhcqmhgc25m437fzxhkvhd135yc4xd9pzpsc77i7lv9m8fd64j";
         libName = "email_encoding";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "base64";
@@ -6502,6 +6916,7 @@ rec {
         version = "0.2.9";
         edition = "2018";
         sha256 = "0jf4v3npa524c7npy7w3jl0a6gng26f51a4bgzs3jqna12dz2yg0";
+        libPath = "src\\lib.rs";
         authors = [
           "Simon Johnston <johnstonskj@gmail.com>"
         ];
@@ -6516,6 +6931,7 @@ rec {
         version = "1.0.0";
         edition = "2021";
         sha256 = "1h5j7j7byi289by63s3w4a8b3g6l5ccdrws7a67nn07vdxj77ail";
+        libPath = "src\\lib.rs";
         authors = [
           "Torbjørn Birch Moltu <t.b.moltu@lyse.net>"
         ];
@@ -6530,6 +6946,7 @@ rec {
         version = "1.0.2";
         edition = "2015";
         sha256 = "03swzqznragy8n0x31lqc78g2af054jwivp7lkrbrc0khz74lyl7";
+        libPath = "src\\lib.rs";
 
       };
       "errno" = rec {
@@ -6537,6 +6954,7 @@ rec {
         version = "0.3.14";
         edition = "2018";
         sha256 = "1szgccmh8vgryqyadg8xd58mnwwicf39zmin3bsn63df2wbbgjir";
+        libPath = "src\\lib.rs";
         authors = [
           "Chris Wong <lambda.fairy@gmail.com>"
           "Dan Gohman <dev@sunfishcode.online>"
@@ -6579,6 +6997,7 @@ rec {
         edition = "2018";
         sha256 = "1xq759lsr8gqss7hva42azn3whgrbrs2sd9xpn92c5ickxm1fhs4";
         libName = "fallible_iterator";
+        libPath = "src\\lib.rs";
         authors = [
           "Steven Fackler <sfackler@gmail.com>"
         ];
@@ -6592,6 +7011,7 @@ rec {
         version = "2.3.0";
         edition = "2018";
         sha256 = "1ghiahsw1jd68df895cy5h3gzwk30hndidn3b682zmshpgmrx41p";
+        libPath = "src\\lib.rs";
         authors = [
           "Stjepan Glavina <stjepang@gmail.com>"
         ];
@@ -6609,6 +7029,7 @@ rec {
         edition = "2018";
         sha256 = "09x1sfinrz86bkm6i2d85lpsfnxn0w797g5zisv1nwhaz1w1h1aj";
         libName = "find_msvc_tools";
+        libPath = "src\\lib.rs";
 
       };
       "findshlibs" = rec {
@@ -6616,6 +7037,7 @@ rec {
         version = "0.10.2";
         edition = "2018";
         sha256 = "0r3zy2r12rxzwqgz53830bk38r6b7rl8kq2br9n81q7ps2ffbfa0";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "lazy_static";
@@ -6660,6 +7082,7 @@ rec {
         version = "1.2.2";
         edition = "2018";
         sha256 = "1kqzb2qn608rxl3dws04zahcklpplkd5r1vpabwga5l50d2v4k6b";
+        libPath = "src\\lib.rs";
         authors = [
           "The rust-url developers"
         ];
@@ -6682,6 +7105,7 @@ rec {
         version = "2.0.1";
         edition = "2018";
         sha256 = "06g69s9w3hmdnjp5b60ph15v367278mgxy1shijrllarc2pnrp98";
+        libPath = "src\\lib.rs";
         authors = [
           "Armin Ronacher <armin.ronacher@active-4.com>"
         ];
@@ -6694,6 +7118,7 @@ rec {
         version = "2.0.0";
         edition = "2018";
         sha256 = "177w048bm0046qlzvp33ag3ghqkqw4ncpzcm5lq36gxf2lla7mg6";
+        libPath = "src\\lib.rs";
         authors = [
           "myrrlyn <self@myrrlyn.dev>"
         ];
@@ -6706,6 +7131,7 @@ rec {
         version = "0.3.31";
         edition = "2018";
         sha256 = "0xh8ddbkm9jy8kc5gbvjp9a4b6rqqxvc8471yb2qaz5wm2qhgg35";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "futures-channel";
@@ -6768,6 +7194,7 @@ rec {
         edition = "2018";
         sha256 = "040vpqpqlbk099razq8lyn74m0f161zd0rp36hciqrwcg2zibzrd";
         libName = "futures_channel";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "futures-core";
@@ -6796,6 +7223,7 @@ rec {
         edition = "2018";
         sha256 = "0gk6yrxgi5ihfanm2y431jadrll00n5ifhnpx090c2f2q1cr1wh5";
         libName = "futures_core";
+        libPath = "src\\lib.rs";
         features = {
           "default" = [ "std" ];
           "portable-atomic" = [ "dep:portable-atomic" ];
@@ -6809,6 +7237,7 @@ rec {
         edition = "2018";
         sha256 = "17vcci6mdfzx4gbk0wx64chr2f13wwwpvyf3xd5fb1gmjzcx2a0y";
         libName = "futures_executor";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "futures-core";
@@ -6840,6 +7269,7 @@ rec {
         edition = "2018";
         sha256 = "1ikmw1yfbgvsychmsihdkwa8a1knank2d9a8dk01mbjar9w1np4y";
         libName = "futures_io";
+        libPath = "src\\lib.rs";
         features = {
           "default" = [ "std" ];
         };
@@ -6852,6 +7282,7 @@ rec {
         sha256 = "0l1n7kqzwwmgiznn0ywdc5i24z72zvh9q1dwps54mimppi7f6bhn";
         procMacro = true;
         libName = "futures_macro";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "proc-macro2";
@@ -6875,6 +7306,7 @@ rec {
         edition = "2018";
         sha256 = "1xyly6naq6aqm52d5rh236snm08kw8zadydwqz8bip70s6vzlxg5";
         libName = "futures_sink";
+        libPath = "src\\lib.rs";
         features = {
           "default" = [ "std" ];
           "std" = [ "alloc" ];
@@ -6887,6 +7319,7 @@ rec {
         edition = "2018";
         sha256 = "124rv4n90f5xwfsm9qw6y99755y021cmi5dhzh253s920z77s3zr";
         libName = "futures_task";
+        libPath = "src\\lib.rs";
         features = {
           "default" = [ "std" ];
           "std" = [ "alloc" ];
@@ -6899,6 +7332,7 @@ rec {
         edition = "2018";
         sha256 = "10aa1ar8bgkgbr4wzxlidkqkcxf77gffyj8j7768h831pcaq784z";
         libName = "futures_util";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "futures-channel";
@@ -6985,6 +7419,7 @@ rec {
         edition = "2015";
         sha256 = "1wpdn5ngpqkkyyibbg7wa4cfg0y8zjc57spaia2h47jkk0qp9djb";
         libName = "generic_array";
+        libPath = "src\\lib.rs";
         authors = [
           "Bartłomiej Kamiński <fizyk20@gmail.com>"
           "Aaron Trent <novacrazy@gmail.com>"
@@ -7012,6 +7447,7 @@ rec {
         version = "0.2.16";
         edition = "2018";
         sha256 = "14l5aaia20cc6cc08xdlhrzmfcylmrnprwnna20lqf746pqzjprk";
+        libPath = "src\\lib.rs";
         authors = [
           "The Rand Project Developers"
         ];
@@ -7061,6 +7497,7 @@ rec {
         version = "0.3.4";
         edition = "2021";
         sha256 = "1zbpvpicry9lrbjmkd4msgj3ihff1q92i334chk7pzf46xffz7c9";
+        libPath = "src\\lib.rs";
         authors = [
           "The Rand Project Developers"
         ];
@@ -7154,6 +7591,7 @@ rec {
         version = "0.32.3";
         edition = "2018";
         sha256 = "1iqk5xznimn5bfa8jy4h7pa1dv3c624hzgd2dkz8mpgkiswvjag6";
+        libPath = "src\\lib.rs";
         features = {
           "default" = [ "read-all" "write" ];
           "endian-reader" = [ "read" "dep:stable_deref_trait" ];
@@ -7171,6 +7609,7 @@ rec {
         version = "0.4.18";
         edition = "2024";
         sha256 = "1qsp3wg0mgxzmshcgymdlpivqlc1bihm6133pl6dx2x4af8w3psj";
+        libPath = "src\\lib.rs";
         authors = [
           "Andrew Gallant <jamslam@gmail.com>"
         ];
@@ -7217,6 +7656,7 @@ rec {
         version = "0.9.1";
         edition = "2021";
         sha256 = "0mz7bsa66p2rrgnz3l94ac4kbklh7mq8j30iizyxjy4qyvmn1xqb";
+        libPath = "src\\lib.rs";
         authors = [
           "Gilad Naaman <gilad@naaman.io>"
         ];
@@ -7241,6 +7681,7 @@ rec {
         version = "0.4.12";
         edition = "2021";
         sha256 = "11hk5mpid8757z6n3v18jwb62ikffrgzjlrgpzqvkqdlzjfbdh7k";
+        libPath = "src\\lib.rs";
         authors = [
           "Carl Lerche <me@carllerche.com>"
           "Sean McArthur <sean@seanmonstar.com>"
@@ -7313,6 +7754,7 @@ rec {
         version = "0.12.3";
         edition = "2021";
         sha256 = "1268ka4750pyg2pbgsr43f0289l5zah4arir2k4igx5a8c6fg7la";
+        libPath = "src\\lib.rs";
         authors = [
           "Amanieu d'Antras <amanieu@gmail.com>"
         ];
@@ -7343,6 +7785,7 @@ rec {
         version = "0.14.5";
         edition = "2021";
         sha256 = "1wa1vy1xs3mp11bn3z9dv0jricgr6a2j0zkf1g19yz3vw4il89z5";
+        libPath = "src\\lib.rs";
         authors = [
           "Amanieu d'Antras <amanieu@gmail.com>"
         ];
@@ -7382,6 +7825,7 @@ rec {
         version = "0.16.0";
         edition = "2021";
         sha256 = "13blh9j2yv77a6ni236ixiwdzbc1sh2bc4bdpaz7y859yv2bs6al";
+        libPath = "src\\lib.rs";
         authors = [
           "Amanieu d'Antras <amanieu@gmail.com>"
         ];
@@ -7403,6 +7847,7 @@ rec {
         version = "0.4.1";
         edition = "2018";
         sha256 = "1sr4zygaq1b2f0k7b5l8vx5vp05wvd82w7vpavgvr52xvdd4scdk";
+        libPath = "src\\lib.rs";
         authors = [
           "Sean McArthur <sean@seanmonstar.com>"
         ];
@@ -7445,6 +7890,7 @@ rec {
         edition = "2015";
         sha256 = "1r1w80i2bhmyh8s5mjr2dz6baqlrm6cak6yvzm4jq96lacjs5d2l";
         libName = "headers_core";
+        libPath = "src\\lib.rs";
         authors = [
           "Sean McArthur <sean@seanmonstar.com>"
         ];
@@ -7461,6 +7907,7 @@ rec {
         version = "0.4.1";
         edition = "2018";
         sha256 = "1a7mqsnycv5z4z5vnv1k34548jzmc0ajic7c1j8jsaspnhw5ql4m";
+        libPath = "src\\lib.rs";
         authors = [
           "Without Boats <woboats@gmail.com>"
         ];
@@ -7475,6 +7922,7 @@ rec {
         version = "0.5.0";
         edition = "2021";
         sha256 = "1sjmpsdl8czyh9ywl3qcsfsq9a307dg4ni2vnlwgnzzqhc4y0113";
+        libPath = "src\\lib.rs";
 
       };
       "hex" = rec {
@@ -7482,6 +7930,7 @@ rec {
         version = "0.4.3";
         edition = "2018";
         sha256 = "0w1a4davm1lgzpamwnba907aysmlrnygbqmfis2mqjx5m552a93z";
+        libPath = "src\\lib.rs";
         authors = [
           "KokaKiwi <kokakiwi@kokakiwi.net>"
         ];
@@ -7497,6 +7946,7 @@ rec {
         version = "0.12.1";
         edition = "2018";
         sha256 = "0pmbr069sfg76z7wsssfk5ddcqd9ncp79fyz6zcm6yn115yc6jbc";
+        libPath = "src\\lib.rs";
         authors = [
           "RustCrypto Developers"
         ];
@@ -7524,6 +7974,7 @@ rec {
         version = "0.4.1";
         edition = "2021";
         sha256 = "0rbxryl68bwv8hkjdjd8f37kdb10fncgsqrqksv64qy7s4y20vx5";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "cfg-if";
@@ -7549,6 +8000,7 @@ rec {
         version = "1.3.1";
         edition = "2018";
         sha256 = "0r95i5h7dr1xadp1ac9453w0s62s27hzkam356nyx2d9mqqmva7l";
+        libPath = "src\\lib.rs";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
           "Carl Lerche <me@carllerche.com>"
@@ -7579,6 +8031,7 @@ rec {
         edition = "2018";
         sha256 = "111ir5k2b9ihz5nr9cz7cwm7fnydca7dx4hc7vr16scfzghxrzhy";
         libName = "http_body";
+        libPath = "src\\lib.rs";
         authors = [
           "Carl Lerche <me@carllerche.com>"
           "Lucio Franco <luciofranco14@gmail.com>"
@@ -7602,6 +8055,7 @@ rec {
         edition = "2018";
         sha256 = "0jm6jv4gxsnlsi1kzdyffjrj8cfr3zninnxpw73mvkxy4qzdj8dh";
         libName = "http_body_util";
+        libPath = "src\\lib.rs";
         authors = [
           "Carl Lerche <me@carllerche.com>"
           "Lucio Franco <luciofranco14@gmail.com>"
@@ -7641,6 +8095,7 @@ rec {
         version = "1.10.1";
         edition = "2018";
         sha256 = "11ycd554bw2dkgw0q61xsa7a4jn1wb1xbfacmf3dbwsikvkkvgvd";
+        libPath = "src\\lib.rs";
         authors = [
           "Sean McArthur <sean@seanmonstar.com>"
         ];
@@ -7654,6 +8109,7 @@ rec {
         version = "1.0.3";
         edition = "2021";
         sha256 = "1aa9rd2sac0zhjqh24c9xvir96g188zldkx0hr6dnnlx5904cfyz";
+        libPath = "src\\lib.rs";
         authors = [
           "Pyfisch <pyfisch@posteo.org>"
         ];
@@ -7664,6 +8120,7 @@ rec {
         version = "2.1.3";
         edition = "2021";
         sha256 = "1msxd1akb3dydsa8qs461sds9krwnn31szvqgaq93p4x0ad1rdbc";
+        libPath = "src\\lib.rs";
         authors = [
           "Leopold Arkham <leopold.arkham@gmail.com>"
         ];
@@ -7681,6 +8138,7 @@ rec {
         version = "1.7.0";
         edition = "2021";
         sha256 = "07n59pxzlq621z611cbpvh7p4h9h15v0r7m5wgxygpx02d5aafpb";
+        libPath = "src\\lib.rs";
         authors = [
           "Sean McArthur <sean@seanmonstar.com>"
         ];
@@ -7792,6 +8250,7 @@ rec {
         edition = "2021";
         sha256 = "0n6g8998szbzhnvcs1b7ibn745grxiqmlpg53xz206v826v3xjg3";
         libName = "hyper_rustls";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "http";
@@ -7880,6 +8339,7 @@ rec {
         edition = "2021";
         sha256 = "1a5fcnz0alrg4lx9xf6ja66ihaab58jnm5msnky804wg39cras9w";
         libName = "hyper_util";
+        libPath = "src\\lib.rs";
         authors = [
           "Sean McArthur <sean@seanmonstar.com>"
         ];
@@ -8009,6 +8469,7 @@ rec {
         edition = "2021";
         sha256 = "1yz980fmhaq9bdkasz35z63az37ci6kzzfhya83kgdqba61pzr9k";
         libName = "iana_time_zone";
+        libPath = "src\\lib.rs";
         authors = [
           "Andrew Straw <strawman@astraw.com>"
           "René Kijewski <rene.kijewski@fu-berlin.de>"
@@ -8061,6 +8522,7 @@ rec {
         edition = "2018";
         sha256 = "17r6jmj31chn7xs9698r122mapq85mfnv98bb4pg6spm0si2f67k";
         libName = "iana_time_zone_haiku";
+        libPath = "src\\lib.rs";
         authors = [
           "René Kijewski <crates.io@k6i.de>"
         ];
@@ -8077,6 +8539,7 @@ rec {
         version = "2.0.0";
         edition = "2021";
         sha256 = "0izfgypv1hsxlz1h8fc2aak641iyvkak16aaz5b4aqg3s3sp4010";
+        libPath = "src\\lib.rs";
         authors = [
           "The ICU4X Project Developers"
         ];
@@ -8122,6 +8585,7 @@ rec {
         version = "2.0.0";
         edition = "2021";
         sha256 = "02phv7vwhyx6vmaqgwkh2p4kc2kciykv2px6g4h8glxfrh02gphc";
+        libPath = "src\\lib.rs";
         authors = [
           "The ICU4X Project Developers"
         ];
@@ -8167,6 +8631,7 @@ rec {
         version = "2.0.0";
         edition = "2021";
         sha256 = "0ybrnfnxx4sf09gsrxri8p48qifn54il6n3dq2xxgx4dw7l80s23";
+        libPath = "src\\lib.rs";
         authors = [
           "The ICU4X Project Developers"
         ];
@@ -8226,6 +8691,7 @@ rec {
         version = "2.0.0";
         edition = "2021";
         sha256 = "1lvjpzxndyhhjyzd1f6vi961gvzhj244nribfpdqxjdgjdl0s880";
+        libPath = "src\\lib.rs";
         authors = [
           "The ICU4X Project Developers"
         ];
@@ -8236,6 +8702,7 @@ rec {
         version = "2.0.1";
         edition = "2021";
         sha256 = "0az349pjg8f18lrjbdmxcpg676a7iz2ibc09d2wfz57b3sf62v01";
+        libPath = "src\\lib.rs";
         authors = [
           "The ICU4X Project Developers"
         ];
@@ -8301,6 +8768,7 @@ rec {
         version = "2.0.1";
         edition = "2021";
         sha256 = "0cnn3fkq6k88w7p86w7hsd1254s4sl783rpz4p6hlccq74a5k119";
+        libPath = "src\\lib.rs";
         authors = [
           "The ICU4X Project Developers"
         ];
@@ -8311,6 +8779,7 @@ rec {
         version = "2.0.0";
         edition = "2021";
         sha256 = "1bz5v02gxv1i06yhdhs2kbwxkw3ny9r2vvj9j288fhazgfi0vj03";
+        libPath = "src\\lib.rs";
         authors = [
           "The ICU4X Project Developers"
         ];
@@ -8384,6 +8853,7 @@ rec {
         version = "1.0.1";
         edition = "2015";
         sha256 = "0fac21q6pwns8gh1hz3nbq15j8fi441ncl6w4vlnd1cmc55kiq5r";
+        libPath = "src\\lib.rs";
         authors = [
           "Ted Driggs <ted.driggs@outlook.com>"
         ];
@@ -8394,6 +8864,7 @@ rec {
         version = "1.1.0";
         edition = "2018";
         sha256 = "1pp4n7hppm480zcx411dsv9wfibai00wbpgnjj4qj0xa7kr7a21v";
+        libPath = "src\\lib.rs";
         authors = [
           "The rust-url developers"
         ];
@@ -8424,6 +8895,7 @@ rec {
         version = "1.2.1";
         edition = "2021";
         sha256 = "0i0339pxig6mv786nkqcxnwqa87v4m94b2653f6k3aj0jmhfkjis";
+        libPath = "src\\lib.rs";
         authors = [
           "The rust-url developers"
         ];
@@ -8449,6 +8921,7 @@ rec {
         version = "0.4.24";
         edition = "2024";
         sha256 = "00q41xq3wri74kpjmxb60mpkpj81n4pfa0wdqby2lhv4jipnwxw1";
+        libPath = "src\\lib.rs";
         authors = [
           "Andrew Gallant <jamslam@gmail.com>"
         ];
@@ -8497,6 +8970,7 @@ rec {
         version = "2.12.0";
         edition = "2021";
         sha256 = "17xs7cqf9nzv8iw8yzpvpjh43lcf9492i8a3xfia2ad9lp9ah5v7";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "equivalent";
@@ -8546,6 +9020,7 @@ rec {
         version = "0.18.2";
         edition = "2021";
         sha256 = "0rcbiqkvv4mr7lz783lys97z6alir0g29rsrkvajmdnzl35xzrmd";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "console";
@@ -8590,6 +9065,7 @@ rec {
         version = "2.11.0";
         edition = "2018";
         sha256 = "0c5i9sfi2asai28m8xp48k5gvwkqrg5ffpi767py6mzsrswv17s6";
+        libPath = "src\\lib.rs";
         authors = [
           "Kris Price <kris@krisprice.nz>"
         ];
@@ -8609,6 +9085,7 @@ rec {
         edition = "2021";
         sha256 = "1cl0wfq97wq4s1p4dl0ix5cfgsc5fn7l22ljgw9ab9x1qglypifv";
         libName = "iri_string";
+        libPath = "src\\lib.rs";
         authors = [
           "YOSHIOKA Takuma <nop_thread@nops.red>"
         ];
@@ -8641,6 +9118,7 @@ rec {
         version = "1.0.5";
         edition = "2021";
         sha256 = "1i78ss45h94nwabbn6ki64a91djlli8zdwwbh56jj9kvhssbiaxs";
+        libPath = "src\\lib.rs";
         authors = [
           "Nick Fitzgerald <fitzgen@gmail.com>"
         ];
@@ -8659,6 +9137,7 @@ rec {
         version = "1.70.2";
         edition = "2021";
         sha256 = "15anlc47sbz0jfs9q8fhwf0h3vs2w4imc030shdnq54sny5i7jx6";
+        libPath = "src\\lib.rs";
         features = {
         };
         resolvedDefaultFeatures = [ "default" ];
@@ -8668,6 +9147,7 @@ rec {
         version = "1.0.15";
         edition = "2018";
         sha256 = "0b4fj9kz54dr3wam0vprjwgygvycyw8r0qwg7vp19ly8b2w16psa";
+        libPath = "src\\lib.rs";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -8681,6 +9161,7 @@ rec {
         edition = "2021";
         sha256 = "01ckbf16iwh7qj92fax9zh8vf2y9sk60cli6999cn7a1jxx96j7c";
         libName = "js_sys";
+        libPath = "src\\lib.rs";
         authors = [
           "The wasm-bindgen Developers"
         ];
@@ -8707,6 +9188,7 @@ rec {
         version = "0.16.0";
         edition = "2018";
         sha256 = "0pq13h0r58n7qi0ml7d54x4i3871rjg49p1zvf29fzgyfxgjh132";
+        libPath = "src\\lib.rs";
         authors = [
           "Michael Yang <mikkyangg@gmail.com>"
         ];
@@ -8751,6 +9233,7 @@ rec {
         version = "0.3.0";
         edition = "2021";
         sha256 = "0k7kc8jy5qxflg80r12zvpc34ir1h98i3xz9y0chnri3yjrdnjyf";
+        libPath = "src\\lib.rs";
         authors = [
           "Serhii Potapov <blake131313@gmail.com>"
         ];
@@ -8768,6 +9251,7 @@ rec {
         edition = "2021";
         sha256 = "13982c6nrvym7kk2g151cjcxnbx5l9nn0vrxmifz8cnbbpf4sfx1";
         procMacro = true;
+        libPath = "src\\lib.rs";
         authors = [
           "Serhii Potapov <blake131313@gmail.com>"
         ];
@@ -8797,6 +9281,7 @@ rec {
         version = "1.5.0";
         edition = "2015";
         sha256 = "1zk6dqqni0193xg6iijh7i3i44sryglwgvx20spdvwk3r6sbrlmv";
+        libPath = "src\\lib.rs";
         authors = [
           "Marvin Löbel <loebel.marvin@gmail.com>"
         ];
@@ -8810,6 +9295,7 @@ rec {
         version = "0.11.19";
         edition = "2021";
         sha256 = "0zzg5wk25ymgrvljp9ln7agvi26k85q15jsj1ykb5y0qi07f24wy";
+        libPath = "src\\lib.rs";
         authors = [
           "Alexis Mousset <contact@amousset.me>"
           "Paolo Barbolini <paolo@paolo565.org>"
@@ -8994,6 +9480,7 @@ rec {
         version = "0.2.177";
         edition = "2021";
         sha256 = "0xjrn69cywaii1iq2lib201bhlvan7czmrm604h5qcm28yps4x18";
+        libPath = "src\\lib.rs";
         authors = [
           "The Rust Project Developers"
         ];
@@ -9010,6 +9497,7 @@ rec {
         version = "0.2.15";
         edition = "2021";
         sha256 = "1plpzf0p829viazdj57yw5dhmlr8ywf3apayxc2f2bq5a6mvryzr";
+        libPath = "src\\lib.rs";
         authors = [
           "Jorge Aparicio <jorge@japaric.io>"
         ];
@@ -9024,6 +9512,7 @@ rec {
         version = "0.1.10";
         edition = "2021";
         sha256 = "1jswil4ai90s4rh91fg8580x8nikni1zl3wnch4h01nvidqpwvs1";
+        libPath = "src\\lib.rs";
         authors = [
           "4lDO2 <4lDO2@protonmail.com>"
         ];
@@ -9056,6 +9545,7 @@ rec {
         edition = "2021";
         sha256 = "0fghx0nn8nvbz5yzgizfcwd6ap2pislp68j8c1bwyr6sacxkq7fz";
         libName = "linux_raw_sys";
+        libPath = "src\\lib.rs";
         authors = [
           "Dan Gohman <dev@sunfishcode.online>"
         ];
@@ -9071,6 +9561,7 @@ rec {
         version = "0.8.0";
         edition = "2021";
         sha256 = "0mlrlskwwhirxk3wsz9psh6nxcy491n0dh8zl02qgj0jzpssw7i4";
+        libPath = "src\\lib.rs";
         authors = [
           "The ICU4X Project Developers"
         ];
@@ -9088,6 +9579,7 @@ rec {
         version = "0.4.14";
         edition = "2021";
         sha256 = "0rg9mhx7vdpajfxvdjmgmlyrn20ligzqvn8ifmaz7dc79gkrjhr2";
+        libPath = "src\\lib.rs";
         authors = [
           "Amanieu d'Antras <amanieu@gmail.com>"
         ];
@@ -9110,6 +9602,7 @@ rec {
         version = "0.4.28";
         edition = "2021";
         sha256 = "0cklpzrpxafbaq1nyxarhnmcw9z3xcjrad3ch55mmr58xw2ha21l";
+        libPath = "src\\lib.rs";
         authors = [
           "The Rust Project Developers"
         ];
@@ -9133,6 +9626,7 @@ rec {
         edition = "2021";
         sha256 = "0m2139k466qj3bnpk66bwivgcx3z88qkxvlzk70vd65jq373jaqi";
         libName = "lru_slab";
+        libPath = "src\\lib.rs";
         authors = [
           "Benjamin Saunders <ben.e.saunders@gmail.com>"
         ];
@@ -9143,6 +9637,7 @@ rec {
         version = "0.2.0";
         edition = "2018";
         sha256 = "1sasssspdj2vwcwmbq3ra18d3qniapkimfcbr47zmx6750m5llni";
+        libPath = "src\\lib.rs";
         authors = [
           "Eliza Weisman <eliza@buoyant.io>"
         ];
@@ -9163,6 +9658,7 @@ rec {
         version = "0.8.4";
         edition = "2021";
         sha256 = "1hzl48fwq1cn5dvshfly6vzkzqhfihya65zpj7nz7lfx82mgzqa7";
+        libPath = "src\\lib.rs";
         authors = [
           "Ibraheem Ahmed <ibraheem@ibraheem.ca>"
         ];
@@ -9176,6 +9672,7 @@ rec {
         edition = "2018";
         sha256 = "1kvq5rnpm4fzwmyv5nmnxygdhhb2369888a06gdc9pxyrzh7x7nq";
         libName = "md5";
+        libPath = "src\\lib.rs";
         authors = [
           "RustCrypto Developers"
         ];
@@ -9210,6 +9707,7 @@ rec {
         version = "2.7.6";
         edition = "2021";
         sha256 = "0wy29kf6pb4fbhfksjbs05jy2f32r2f3r1ga6qkmpz31k79h0azm";
+        libPath = "src\\lib.rs";
         authors = [
           "Andrew Gallant <jamslam@gmail.com>"
           "bluss"
@@ -9229,6 +9727,7 @@ rec {
         version = "0.3.17";
         edition = "2015";
         sha256 = "16hkibgvb9klh0w0jk5crr5xv90l3wlf77ggymzjmvl1818vnxv8";
+        libPath = "src\\lib.rs";
         authors = [
           "Sean McArthur <sean@seanmonstar.com>"
         ];
@@ -9239,6 +9738,7 @@ rec {
         version = "0.8.9";
         edition = "2021";
         sha256 = "05k3pdg8bjjzayq3rf0qhpirq9k37pxnasfn4arbs17phqn6m9qz";
+        libPath = "src\\lib.rs";
         authors = [
           "Frommi <daniil.liferenko@gmail.com>"
           "oyvindln <oyvindln@users.noreply.github.com>"
@@ -9266,6 +9766,7 @@ rec {
         version = "1.1.0";
         edition = "2021";
         sha256 = "0wr816q3jrjwiajvw807lgi540i9s6r78a5fx4ycz3nwhq03pn39";
+        libPath = "src\\lib.rs";
         authors = [
           "Carl Lerche <me@carllerche.com>"
           "Thomas de Zeeuw <thomasdezeeuw@gmail.com>"
@@ -9311,6 +9812,7 @@ rec {
         version = "0.13.1";
         edition = "2021";
         sha256 = "1lir70dd9cnsjlf20gi3i51ha9n7mlrkx74bx5gfszlcdk6bz9ir";
+        libPath = "src\\lib.rs";
         authors = [
           "Alan Somers <asomers@gmail.com>"
         ];
@@ -9351,6 +9853,7 @@ rec {
         edition = "2021";
         sha256 = "1608qajqrz23xbvv81alc6wm4l24as1bsqg4shdh3sggq8231ji5";
         procMacro = true;
+        libPath = "src\\lib.rs";
         authors = [
           "Alan Somers <asomers@gmail.com>"
         ];
@@ -9382,6 +9885,7 @@ rec {
         version = "8.0.0";
         edition = "2021";
         sha256 = "01cl5xng9d0gxf26h39m0l8lprgpa00fcc75ps1yzgbib1vn35yz";
+        libPath = "src\\lib.rs";
         authors = [
           "contact@geoffroycouprie.com"
         ];
@@ -9404,6 +9908,7 @@ rec {
         edition = "2021";
         sha256 = "1ra088d885lbd21q1bxgpqdlk1zlndblmarn948jz2a40xsbjmvr";
         libName = "nu_ansi_term";
+        libPath = "src\\lib.rs";
         authors = [
           "ogham@bsago.me"
           "Ryan Scheel (Havvy) <ryan.havvy@gmail.com>"
@@ -9432,6 +9937,7 @@ rec {
         edition = "2021";
         sha256 = "1f903zd33i6hkjpsgwhqwi2wffnvkxbn6rv4mkgcjcqi7xr4zr55";
         libName = "num_bigint";
+        libPath = "src\\lib.rs";
         authors = [
           "The Rust Project Developers"
         ];
@@ -9465,6 +9971,7 @@ rec {
         edition = "2021";
         sha256 = "1ndiyg82q73783jq18isi71a7mjh56wxrk52rlvyx0mi5z9ibmai";
         libName = "num_conv";
+        libPath = "src\\lib.rs";
         authors = [
           "Jacob Pratt <jacob@jhpratt.dev>"
         ];
@@ -9476,6 +9983,7 @@ rec {
         edition = "2018";
         sha256 = "13w5g54a9184cqlbsq80rnxw4jj4s0d8wv75jsq5r2lms8gncsbr";
         libName = "num_integer";
+        libPath = "src\\lib.rs";
         authors = [
           "The Rust Project Developers"
         ];
@@ -9499,6 +10007,7 @@ rec {
         edition = "2021";
         sha256 = "0h984rhdkkqd4ny9cif7y2azl3xdfb7768hb9irhpsch4q3gq787";
         libName = "num_traits";
+        libPath = "src\\lib.rs";
         authors = [
           "The Rust Project Developers"
         ];
@@ -9519,6 +10028,7 @@ rec {
         version = "0.6.2";
         edition = "2024";
         sha256 = "1ddvp7zr8cp0gn5ys3cc9mmhj5jnbj3jnwmz66npvil801w7ln3h";
+        libPath = "src\\lib.rs";
         authors = [
           "Serhii Potapov <blake131313@gmail.com>"
         ];
@@ -9546,6 +10056,7 @@ rec {
         edition = "2024";
         sha256 = "015lfhl96z7hv8myfvsx972w8l0b508wzmvr0s7xvvgsfnwk928l";
         procMacro = true;
+        libPath = "src\\lib.rs";
         authors = [
           "Serhii Potapov <blake131313@gmail.com>"
         ];
@@ -9597,6 +10108,7 @@ rec {
         version = "5.0.0";
         edition = "2021";
         sha256 = "0zfn67m93qfh9gyxxx1hj6yprk9dkr3hm1mi4ni23pqlj3kikqji";
+        libPath = "src\\lib.rs";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
           "Florin Lipan <florinlipan@gmail.com>"
@@ -9676,6 +10188,7 @@ rec {
         version = "0.37.3";
         edition = "2018";
         sha256 = "1zikiy9xhk6lfx1dn2gn2pxbnfpmlkn0byd7ib1n720x0cgj0xpz";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "memchr";
@@ -9709,6 +10222,7 @@ rec {
         version = "1.21.3";
         edition = "2021";
         sha256 = "0b9x77lb9f1j6nqgf5aka4s2qj0nly176bpbrv6f9iakk5ff3xa2";
+        libPath = "src\\lib.rs";
         authors = [
           "Aleksey Kladov <aleksey.kladov@gmail.com>"
         ];
@@ -9728,6 +10242,7 @@ rec {
         version = "1.70.2";
         edition = "2021";
         sha256 = "1zmla628f0sk3fhjdjqzgxhalr2xrfna958s632z65bjsfv8ljrq";
+        libPath = "src\\lib.rs";
         features = {
         };
         resolvedDefaultFeatures = [ "default" ];
@@ -9737,6 +10252,7 @@ rec {
         version = "3.12.0";
         edition = "2018";
         sha256 = "1hzzmxj8z69q5l1hzlnqnaa56ip9kvmghp8k750w6hwdvrgsrqfh";
+        libPath = "src\\lib.rs";
         authors = [
           "Jan Schulte <hello@unexpected-co.de>"
           "Stanislav Tkach <stanislav.tkach@gmail.com>"
@@ -9775,6 +10291,7 @@ rec {
         version = "0.18.5";
         edition = "2018";
         sha256 = "0ndy8hvp24gs7yxw9wj81hs5rb36wxmpw4i38ylrfjy4p46ha3qy";
+        libPath = "src\\lib.rs";
         authors = [
           "Josh <someguynamedjosh@github.com>"
         ];
@@ -9803,6 +10320,7 @@ rec {
         edition = "2018";
         sha256 = "1l343ss6hlh0abbwjk6zah6mdlyhh1v1imflv3v86c6lsfyjhw1w";
         procMacro = true;
+        libPath = "src\\lib.rs";
         authors = [
           "Josh <someguynamedjosh@github.com>"
         ];
@@ -9837,6 +10355,7 @@ rec {
         version = "0.12.5";
         edition = "2021";
         sha256 = "06jsqh9aqmc94j2rlm8gpccilqm6bskbd67zf6ypfc0f4m9p91ck";
+        libPath = "src\\lib.rs";
         authors = [
           "Amanieu d'Antras <amanieu@gmail.com>"
         ];
@@ -9864,6 +10383,7 @@ rec {
         version = "0.9.12";
         edition = "2021";
         sha256 = "1hb4rggy70fwa1w9nb0svbyflzdc69h047482v2z3sx2hmcnh896";
+        libPath = "src\\lib.rs";
         authors = [
           "Amanieu d'Antras <amanieu@gmail.com>"
         ];
@@ -9904,6 +10424,7 @@ rec {
         edition = "2021";
         sha256 = "093cs8slbd6kyfi6h12isz0mnaayf5ha8szri1xrbqj4inqhaahz";
         libName = "parse_zoneinfo";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "regex";
@@ -9920,6 +10441,7 @@ rec {
         edition = "2021";
         sha256 = "0ri1mim11zk0a9s40zdi288dfqvmdiryc7lw8vl46b59ifa08vrl";
         libName = "password_hash";
+        libPath = "src\\lib.rs";
         authors = [
           "RustCrypto Developers"
         ];
@@ -9955,6 +10477,7 @@ rec {
         edition = "2018";
         sha256 = "02pxffpdqkapy292harq6asfjvadgp1s005fip9ljfsn9fvxgh2p";
         procMacro = true;
+        libPath = "src\\lib.rs";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -9965,6 +10488,7 @@ rec {
         version = "0.2.3";
         edition = "2018";
         sha256 = "1lrqp4ip05df8dzldq6gb2c1sq2gs54gly8lcnv3rhav1qhwx56z";
+        libPath = "src\\lib.rs";
         authors = [
           "Manish Goregaokar <manishsmail@gmail.com>"
         ];
@@ -9978,6 +10502,7 @@ rec {
         edition = "2018";
         sha256 = "083jv1ai930azvawz2khv7w73xh8mnylk7i578cifndjn5y64kwv";
         libName = "percent_encoding";
+        libPath = "src\\lib.rs";
         authors = [
           "The rust-url developers"
         ];
@@ -9992,6 +10517,7 @@ rec {
         version = "2.8.3";
         edition = "2021";
         sha256 = "1x3xc1s5vhwswmmr51i60kfbcnp1zgdblsxbqd8dxvs0l0hpb7lq";
+        libPath = "src\\lib.rs";
         authors = [
           "Dragoș Tiselice <dragostiselice@gmail.com>"
         ];
@@ -10022,6 +10548,7 @@ rec {
         edition = "2021";
         sha256 = "1pp2g39k2vjdyzr89k8zx5y7pp3np4iv635jpyxzmfhd0fisjz8q";
         procMacro = true;
+        libPath = "src\\lib.rs";
         authors = [
           "Dragoș Tiselice <dragostiselice@gmail.com>"
         ];
@@ -10050,6 +10577,7 @@ rec {
         version = "2.8.3";
         edition = "2021";
         sha256 = "0hr80m5xzzrhzjvnmbawk72cxvn0ssc5j216gblynmspizch3d29";
+        libPath = "src\\lib.rs";
         authors = [
           "Dragoș Tiselice <dragostiselice@gmail.com>"
         ];
@@ -10089,6 +10617,7 @@ rec {
         version = "2.8.3";
         edition = "2021";
         sha256 = "0nh6w1mv8hx0p1jli8s12j2w62ia2apsbyl69nf07yg9zqn7mwkj";
+        libPath = "src\\lib.rs";
         authors = [
           "Dragoș Tiselice <dragostiselice@gmail.com>"
         ];
@@ -10115,6 +10644,7 @@ rec {
         version = "0.11.3";
         edition = "2021";
         sha256 = "0y6hxp1d48rx2434wgi5g8j1pr8s5jja29ha2b65435fh057imhz";
+        libPath = "src\\lib.rs";
         authors = [
           "Steven Fackler <sfackler@gmail.com>"
         ];
@@ -10140,6 +10670,7 @@ rec {
         version = "0.13.1";
         edition = "2021";
         sha256 = "1pzswx5gdglgjgp4azyzwyr4gh031r0kcnpqq6jblga72z3jsmn1";
+        libPath = "src\\lib.rs";
         authors = [
           "Steven Fackler <sfackler@gmail.com>"
         ];
@@ -10172,6 +10703,7 @@ rec {
         version = "0.11.3";
         edition = "2021";
         sha256 = "0si1n6zr93kzjs3wah04ikw8z6npsr39jw4dam8yi9czg2609y5f";
+        libPath = "src\\lib.rs";
         authors = [
           "Steven Fackler <sfackler@gmail.com>"
         ];
@@ -10193,6 +10725,7 @@ rec {
         edition = "2021";
         crateBin = [];
         sha256 = "0gc4np7s91ynrgw73s2i7iakhb4lzdv1gcyx7yhlc0n214a2701w";
+        libPath = "src\\lib.rs";
         authors = [
           "Steven Fackler <sfackler@gmail.com>"
         ];
@@ -10218,6 +10751,7 @@ rec {
         version = "0.11.3";
         edition = "2021";
         sha256 = "1rallyvh28jqd9i916gk5gk2igdmzlgvv5q0l3xbf3m6y8pbrsk7";
+        libPath = "src\\lib.rs";
         authors = [
           "Steven Fackler <sfackler@gmail.com>"
         ];
@@ -10239,6 +10773,7 @@ rec {
         version = "0.13.1";
         edition = "2021";
         sha256 = "0rpjchnswm0x5l4mz9xqfpw0j4w68sjvyqrdrv13h7lqqmmyyzz5";
+        libPath = "src\\lib.rs";
         authors = [
           "Steven Fackler <sfackler@gmail.com>"
         ];
@@ -10261,6 +10796,7 @@ rec {
         edition = "2018";
         sha256 = "16wzc7z7dfkf9bmjin22f5282783f6mdksnr0nv0j5ym5f9gyg1v";
         libName = "pin_project_lite";
+        libPath = "src\\lib.rs";
 
       };
       "pin-utils" = rec {
@@ -10269,6 +10805,7 @@ rec {
         edition = "2018";
         sha256 = "117ir7vslsl2z1a7qzhws4pd01cg2d3338c47swjyvqv2n60v1wb";
         libName = "pin_utils";
+        libPath = "src\\lib.rs";
         authors = [
           "Josef Brandl <mail@josefbrandl.de>"
         ];
@@ -10279,6 +10816,7 @@ rec {
         version = "1.8.0";
         edition = "2021";
         sha256 = "01qyv51ljbvhjbg8mva5c802b3dzrr95y6nd23wjh52xbjhvw3kl";
+        libPath = "src\\lib.rs";
         authors = [
           "Ed Barnard <eabarnard@gmail.com>"
         ];
@@ -10319,6 +10857,7 @@ rec {
         edition = "2018";
         sha256 = "10s4cx9y3jvw0idip09ar52s2kymq8rq9a668f793shn1ar6fhpq";
         libName = "portable_atomic";
+        libPath = "src\\lib.rs";
         features = {
           "critical-section" = [ "dep:critical-section" ];
           "default" = [ "fallback" ];
@@ -10331,6 +10870,7 @@ rec {
         version = "0.19.12";
         edition = "2021";
         sha256 = "0xmimkn7scd1kwri94hf2iani9wd6whig3053fv0vnkc3k78xi77";
+        libPath = "src\\lib.rs";
         authors = [
           "Steven Fackler <sfackler@gmail.com>"
         ];
@@ -10392,6 +10932,7 @@ rec {
         sha256 = "1rna7k5zxsk5sv4lkx2hwydal9bckrpi9pj91srd2w2377srdpsn";
         procMacro = true;
         libName = "postgres_derive";
+        libPath = "src\\lib.rs";
         authors = [
           "Steven Fackler <sfackler@palantir.com>"
         ];
@@ -10421,6 +10962,7 @@ rec {
         edition = "2021";
         sha256 = "1m6g7zzcdj4pgw2gs3anh57ylzbabpynq9s8h23fn5mrar86bvzv";
         libName = "postgres_protocol";
+        libPath = "src\\lib.rs";
         authors = [
           "Steven Fackler <sfackler@gmail.com>"
         ];
@@ -10478,6 +11020,7 @@ rec {
         edition = "2021";
         sha256 = "15bh03mqaclmv9jhzvrb3xdrgr1q0c6ardmfbg9ns1apq2vhaipg";
         libName = "postgres_types";
+        libPath = "src\\lib.rs";
         authors = [
           "Steven Fackler <sfackler@gmail.com>"
         ];
@@ -10506,6 +11049,18 @@ rec {
           {
             name = "postgres-protocol";
             packageId = "postgres-protocol";
+          }
+          {
+            name = "serde_core";
+            packageId = "serde_core";
+            rename = "serde-1";
+            optional = true;
+          }
+          {
+            name = "serde_json";
+            packageId = "serde_json";
+            rename = "serde_json-1";
+            optional = true;
           }
           {
             name = "uuid";
@@ -10558,13 +11113,14 @@ rec {
           "with-uuid-0_8" = [ "uuid-08" ];
           "with-uuid-1" = [ "uuid-1" ];
         };
-        resolvedDefaultFeatures = [ "chrono-04" "derive" "postgres-derive" "uuid-1" "with-chrono-0_4" "with-uuid-1" ];
+        resolvedDefaultFeatures = [ "chrono-04" "derive" "postgres-derive" "serde-1" "serde_json-1" "uuid-1" "with-chrono-0_4" "with-serde_json-1" "with-uuid-1" ];
       };
       "potential_utf" = rec {
         crateName = "potential_utf";
         version = "0.1.3";
         edition = "2021";
         sha256 = "12mhwvhpvvim6xqp6ifgkh1sniv9j2cmid6axn10fnjvpsnikpw4";
+        libPath = "src\\lib.rs";
         authors = [
           "The ICU4X Project Developers"
         ];
@@ -10590,6 +11146,7 @@ rec {
         version = "0.2.0";
         edition = "2021";
         sha256 = "14ckj2xdpkhv3h6l5sdmb9f1d57z8hbfpdldjc2vl5givq2y77j3";
+        libPath = "src\\lib.rs";
         authors = [
           "Jacob Pratt <jacob@jhpratt.dev>"
         ];
@@ -10605,6 +11162,7 @@ rec {
         edition = "2021";
         sha256 = "1abxx6qz5qnd43br1dd9b2savpihzjza8gb4fbzdql1gxp2f7sl5";
         libName = "ppv_lite86";
+        libPath = "src\\lib.rs";
         authors = [
           "The CryptoCorrosion Contributors"
         ];
@@ -10625,6 +11183,7 @@ rec {
         version = "3.1.3";
         edition = "2021";
         sha256 = "0wrm57acvagx0xmh5xffx5xspsr2kbggm698x0vks132fpjrxld5";
+        libPath = "src\\lib.rs";
         authors = [
           "Nick Stevens <nick@bitcurry.com>"
         ];
@@ -10652,6 +11211,7 @@ rec {
         edition = "2021";
         sha256 = "1yjz144yn3imq2r4mh7k9h0r8wv4yyjjj57bs0zwkscz24mlczkj";
         libName = "predicates_core";
+        libPath = "src\\lib.rs";
         authors = [
           "Nick Stevens <nick@bitcurry.com>"
         ];
@@ -10663,6 +11223,7 @@ rec {
         edition = "2021";
         sha256 = "0p223d9y02ywwxs3yl68kziswz4da4vabz67jfhp7yqx71njvpbj";
         libName = "predicates_tree";
+        libPath = "src\\lib.rs";
         authors = [
           "Nick Stevens <nick@bitcurry.com>"
         ];
@@ -10683,6 +11244,7 @@ rec {
         version = "1.4.1";
         edition = "2018";
         sha256 = "0v8iq35ca4rw3rza5is3wjxwsf88303ivys07anc5yviybi31q9s";
+        libPath = "src\\lib.rs";
         authors = [
           "Colin Kiegel <kiegel@gmx.de>"
           "Florent Fayolle <florent.fayolle69@gmail.com>"
@@ -10709,6 +11271,7 @@ rec {
         edition = "2021";
         sha256 = "10v9qi51n4phn1lrj5r94kjq7yhci9jrkqnn6wpan05yjsgb3711";
         libName = "proc_macro_crate";
+        libPath = "src\\lib.rs";
         authors = [
           "Bastian Köcher <git@kchr.de>"
         ];
@@ -10728,6 +11291,7 @@ rec {
         edition = "2021";
         sha256 = "1s29bz20xl2qk5ffs2mbdqknaj43ri673dz86axdbf47xz25psay";
         libName = "proc_macro2";
+        libPath = "src\\lib.rs";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
           "Alex Crichton <alex@alexcrichton.com>"
@@ -10749,6 +11313,7 @@ rec {
         edition = "2018";
         sha256 = "1j48ipc80pykvhx6yhndfa774s58ax1h6sm6mlhf09ls76f6l1mg";
         libName = "proc_macro2_diagnostics";
+        libPath = "src\\lib.rs";
         authors = [
           "Sergio Benitez <sb@sergio.bz>"
         ];
@@ -10789,6 +11354,7 @@ rec {
         version = "0.1.27";
         edition = "2021";
         sha256 = "075v7pcl538avywd81irir8v05isr368pccggm4lidskhhlcsvz6";
+        libPath = "src\\lib.rs";
         authors = [
           "Simonas Kazlauskas <psm@kazlauskas.me>"
         ];
@@ -10805,6 +11371,7 @@ rec {
         version = "0.1.4";
         edition = "2018";
         sha256 = "1wd4wy0wxrcays4f1gy8gwcmxg7mskmivcv40p0hidh6xbvwqf07";
+        libPath = "src\\lib.rs";
         authors = [
           "David Koloski <djkoloski@gmail.com>"
         ];
@@ -10825,6 +11392,7 @@ rec {
         edition = "2018";
         sha256 = "1b69cav9wn67cixshizii0q5mlbl0lihx706vcrzm259zkdlbf0n";
         procMacro = true;
+        libPath = "src\\lib.rs";
         authors = [
           "David Koloski <djkoloski@gmail.com>"
         ];
@@ -10851,6 +11419,7 @@ rec {
         edition = "2021";
         sha256 = "12bvsbnnmlnq9xg9in3h3080ag3sisafgpcn7lqyzhkz93kk58j2";
         libName = "quick_xml";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "memchr";
@@ -10875,6 +11444,7 @@ rec {
         version = "0.11.9";
         edition = "2021";
         sha256 = "086gzj666dr3slmlynkvxlndy28hahgl361d6bf93hk3i6ahmqmr";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "bytes";
@@ -10977,6 +11547,7 @@ rec {
         edition = "2021";
         sha256 = "0cca3mgja9p4w66f6sl1kfhj8rdf4mwsg1jxzssh9g63n14np47i";
         libName = "quinn_proto";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "bytes";
@@ -11074,6 +11645,7 @@ rec {
         edition = "2021";
         sha256 = "1gacawr17a2zkyri0r3m0lc9spzmxbq1by3ilyb8v2mdvjhcdpmd";
         libName = "quinn_udp";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "libc";
@@ -11122,6 +11694,7 @@ rec {
         version = "1.0.41";
         edition = "2018";
         sha256 = "1lg108nb57lwbqlnpsii89cchk6i8pkcvrv88xh1p7a9gdz7c9ff";
+        libPath = "src\\lib.rs";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -11143,6 +11716,7 @@ rec {
         version = "0.5.1";
         edition = "2018";
         sha256 = "0wvwq6w6rdsx1yxzr7ckspff0qk0q9252dzmxrd4c0kv97c9n334";
+        libPath = "src\\lib.rs";
         authors = [
           "Kartikaya Gupta <kats@seldon.staktrace.com>"
         ];
@@ -11157,6 +11731,7 @@ rec {
         edition = "2018";
         sha256 = "03sbfm3g7myvzyylff6qaxk4z6fy76yv860yy66jiswc2m6b7kb9";
         libName = "r_efi";
+        libPath = "src\\lib.rs";
         features = {
           "core" = [ "dep:core" ];
           "examples" = [ "native" ];
@@ -11168,6 +11743,7 @@ rec {
         version = "0.7.0";
         edition = "2018";
         sha256 = "02cxfi3ky3c4yhyqx9axqwhyaca804ws46nn4gc1imbk94nzycyw";
+        libPath = "src\\lib.rs";
         authors = [
           "Nika Layzell <nika@thelayzells.com>"
           "myrrlyn <self@myrrlyn.dev>"
@@ -11179,6 +11755,7 @@ rec {
         version = "0.8.5";
         edition = "2018";
         sha256 = "013l6931nn7gkc23jz5mm3qdhf93jjf0fg64nz2lp4i51qd8vbrl";
+        libPath = "src\\lib.rs";
         authors = [
           "The Rand Project Developers"
           "The Rust Project Developers"
@@ -11223,6 +11800,7 @@ rec {
         version = "0.9.2";
         edition = "2021";
         sha256 = "1lah73ainvrgl7brcxx0pwhpnqa3sm3qaj672034jz8i0q7pgckd";
+        libPath = "src\\lib.rs";
         authors = [
           "The Rand Project Developers"
           "The Rust Project Developers"
@@ -11256,6 +11834,7 @@ rec {
         version = "0.3.1";
         edition = "2018";
         sha256 = "123x2adin558xbhvqb8w4f6syjsdkmqff8cxwhmjacpsl1ihmhg6";
+        libPath = "src\\lib.rs";
         authors = [
           "The Rand Project Developers"
           "The Rust Project Developers"
@@ -11286,6 +11865,7 @@ rec {
         version = "0.9.0";
         edition = "2021";
         sha256 = "1jr5ygix7r60pz0s1cv3ms1f6pd1i9pcdmnxzzhjc3zn3mgjn0nk";
+        libPath = "src\\lib.rs";
         authors = [
           "The Rand Project Developers"
           "The Rust Project Developers"
@@ -11323,6 +11903,7 @@ rec {
         version = "0.6.4";
         edition = "2018";
         sha256 = "0b4j2v4cb5krak1pv6kakv4sz6xcwbrmy2zckc32hsigbrwy82zc";
+        libPath = "src\\lib.rs";
         authors = [
           "The Rand Project Developers"
           "The Rust Project Developers"
@@ -11347,6 +11928,7 @@ rec {
         version = "0.9.3";
         edition = "2021";
         sha256 = "0f3xhf16yks5ic6kmgxcpv1ngdhp48mmfy4ag82i1wnwh8ws3ncr";
+        libPath = "src\\lib.rs";
         authors = [
           "The Rand Project Developers"
           "The Rust Project Developers"
@@ -11370,6 +11952,7 @@ rec {
         version = "0.32.7";
         edition = "2021";
         sha256 = "0i7grxrnqwa201r4kgcg4476x75drhmi2ifak3ks7dpszrkwfk01";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "bytes";
@@ -11486,6 +12069,7 @@ rec {
         edition = "2021";
         sha256 = "0b9n38zsxylql36vybw18if68yc9jczxmbyzdwyhb9sifmag4azd";
         libName = "syscall";
+        libPath = "src\\lib.rs";
         authors = [
           "Jeremy Soller <jackpot51@gmail.com>"
         ];
@@ -11508,6 +12092,7 @@ rec {
         edition = "2021";
         sha256 = "0zdzc34qjva9xxgs889z5iz787g81hznk12zbk4g2xkgwq530m7k";
         libName = "ref_cast";
+        libPath = "src\\lib.rs";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -11526,6 +12111,7 @@ rec {
         sha256 = "1nkhn1fklmn342z5c4mzfzlxddv3x8yhxwwk02cj06djvh36065p";
         procMacro = true;
         libName = "ref_cast_impl";
+        libPath = "src\\lib.rs";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -11550,6 +12136,7 @@ rec {
         version = "1.12.2";
         edition = "2021";
         sha256 = "1m14zkg6xmkb0q5ah3y39cmggclsjdr1wpxfa4kf5wvm3wcw0fw4";
+        libPath = "src\\lib.rs";
         authors = [
           "The Rust Project Developers"
           "Andrew Gallant <jamslam@gmail.com>"
@@ -11609,6 +12196,7 @@ rec {
         edition = "2021";
         sha256 = "070z0j23pjfidqz0z89id1fca4p572wxpcr20a0qsv68bbrclxjj";
         libName = "regex_automata";
+        libPath = "src\\lib.rs";
         authors = [
           "The Rust Project Developers"
           "Andrew Gallant <jamslam@gmail.com>"
@@ -11670,6 +12258,7 @@ rec {
         edition = "2021";
         sha256 = "0n7ggnpk0r32rzgnycy5xrc1yp2kq19m6pz98ch3c6dkaxw9hbbs";
         libName = "regex_syntax";
+        libPath = "src\\lib.rs";
         authors = [
           "The Rust Project Developers"
           "Andrew Gallant <jamslam@gmail.com>"
@@ -11686,6 +12275,7 @@ rec {
         version = "0.4.2";
         edition = "2018";
         sha256 = "0z4rrkycva0lcw0hxq479h4amxj9syn5vq4vb2qid5v2ylj3izki";
+        libPath = "src\\lib.rs";
         authors = [
           "David Koloski <djkoloski@gmail.com>"
         ];
@@ -11711,6 +12301,7 @@ rec {
         version = "0.12.24";
         edition = "2021";
         sha256 = "0vx3f2n6hfnv81y66v5wayrqh6jlzz4gakky88m0hywz1d0lc2cx";
+        libPath = "src\\lib.rs";
         authors = [
           "Sean McArthur <sean@seanmonstar.com>"
         ];
@@ -11996,6 +12587,7 @@ rec {
         edition = "2021";
         links = "ring_core_0_17_14_";
         sha256 = "1dw32gv19ccq4hsx3ribhpdzri1vnrlcfqb2vj41xn4l49n9ws54";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "cfg-if";
@@ -12056,6 +12648,7 @@ rec {
         version = "0.7.45";
         edition = "2021";
         sha256 = "16vp6m4sq41smhvym8ijy4id1hr3vm4na7wy4bc63qdrhmiws24h";
+        libPath = "src\\lib.rs";
         authors = [
           "David Koloski <djkoloski@gmail.com>"
         ];
@@ -12145,6 +12738,7 @@ rec {
         edition = "2021";
         sha256 = "1h1jwmyivx7g88d41gzcjrqnax98m9algjd49hx0laqab4kisgah";
         procMacro = true;
+        libPath = "src\\lib.rs";
         authors = [
           "David Koloski <djkoloski@gmail.com>"
         ];
@@ -12171,6 +12765,7 @@ rec {
         version = "0.8.14";
         edition = "2021";
         sha256 = "1i1l6dhv7vws5vp0ikakj44fk597xi59g3j6ng1q55x3dz0xg3i2";
+        libPath = "src\\lib.rs";
         authors = [
           "Evgeny Safronov <division494@gmail.com>"
         ];
@@ -12202,6 +12797,7 @@ rec {
         edition = "2021";
         sha256 = "1nylmh7w2vpa1bwrnx1jfp2l4yz6i5qrmpic5zll166gfyj9kraj";
         libName = "rmp_serde";
+        libPath = "src\\lib.rs";
         authors = [
           "Evgeny Safronov <division494@gmail.com>"
         ];
@@ -12233,6 +12829,7 @@ rec {
         version = "1.39.0";
         edition = "2021";
         sha256 = "10i20blk3gma74qjl29c58dx4ma3cnbls9qjcy2bvac72x0gxbrm";
+        libPath = "src\\lib.rs";
         authors = [
           "Paul Mason <paul@form1.co.nz>"
         ];
@@ -12351,6 +12948,7 @@ rec {
         edition = "2021";
         sha256 = "18v9227aybig2rvr47817sx0kgpgw248f51dvhjbwgj1iys0r35f";
         procMacro = true;
+        libPath = "src\\lib.rs";
         authors = [
           "Paul Mason <paul@form1.co.nz>"
         ];
@@ -12374,6 +12972,7 @@ rec {
         edition = "2015";
         sha256 = "1kja3nb0yhlm4j2p1hl8d7sjmn2g9fa1s4pj0qma5kj2lcndkxsn";
         libName = "rustc_demangle";
+        libPath = "src\\lib.rs";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -12388,6 +12987,7 @@ rec {
         edition = "2021";
         sha256 = "03gz5lvd9ghcwsal022cgkq67dmimcgdjghfb5yb5d352ga06xrm";
         libName = "rustc_hash";
+        libPath = "src\\lib.rs";
         authors = [
           "The Rust Project Developers"
         ];
@@ -12402,6 +13002,7 @@ rec {
         version = "0.4.1";
         edition = "2018";
         sha256 = "14lvdsmr5si5qbqzrajgb6vfn69k0sfygrvfvr2mps26xwi3mjyg";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "semver";
@@ -12415,6 +13016,7 @@ rec {
         version = "1.1.2";
         edition = "2021";
         sha256 = "0gpz343xfzx16x82s1x336n0kr49j02cvhgxdvaq86jmqnigh5fd";
+        libPath = "src\\lib.rs";
         authors = [
           "Dan Gohman <dev@sunfishcode.online>"
           "Jakub Konka <kubkon@jakubkonka.com>"
@@ -12522,6 +13124,7 @@ rec {
         version = "0.23.34";
         edition = "2021";
         sha256 = "19vzmdybp5rlgr0bjb4fykp28w2d6fkqq150aamqykrbxvlqd5ba";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "log";
@@ -12592,6 +13195,7 @@ rec {
         edition = "2018";
         sha256 = "0l3f3mrfkgdjrava7ibwzgwc4h3dljw3pdkbsi9rkwz3zvji9qyw";
         libName = "rustls_pemfile";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "rustls-pki-types";
@@ -12611,6 +13215,7 @@ rec {
         edition = "2021";
         sha256 = "0yawbdpix8jif6s8zj1p2hbyb7y3bj66fhx0y7hyf4qh4964m6i2";
         libName = "rustls_pki_types";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "web-time";
@@ -12639,6 +13244,7 @@ rec {
         edition = "2021";
         sha256 = "1gqlsd0yqiqch97g0wbsnbmyrp75j6nbzfpf8dmhxa78j50ky2z1";
         libName = "webpki";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "ring";
@@ -12674,7 +13280,8 @@ rec {
         edition = "2018";
         sha256 = "0vfl70jhv72scd9rfqgr2n11m5i9l1acnk684m2w83w0zbqdx75k";
         procMacro = true;
-        build = "build/build.rs";
+        build = "build\\build.rs";
+        libPath = "src\\lib.rs";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -12685,6 +13292,7 @@ rec {
         version = "1.0.20";
         edition = "2018";
         sha256 = "07s855l8sb333h6bpn24pka5sp7hjk2w667xy6a0khkf6sqv5lr8";
+        libPath = "src\\lib.rs";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -12698,6 +13306,7 @@ rec {
         edition = "2018";
         sha256 = "00h5j1w87dmhnvbv9l8bic3y7xxsnjmssvifw2ayvgx9mb1ivz4k";
         libName = "same_file";
+        libPath = "src\\lib.rs";
         authors = [
           "Andrew Gallant <jamslam@gmail.com>"
         ];
@@ -12715,10 +13324,18 @@ rec {
         version = "0.9.0";
         edition = "2021";
         sha256 = "0pqncln5hqbzbl2r3yayyr4a82jjf93h2cfxrn0xamvx77wr3lac";
+        libPath = "src\\lib.rs";
         authors = [
           "Graham Esau <gesau@hotmail.co.uk>"
         ];
         dependencies = [
+          {
+            name = "chrono";
+            packageId = "chrono";
+            rename = "chrono04";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
           {
             name = "dyn-clone";
             packageId = "dyn-clone";
@@ -12768,6 +13385,13 @@ rec {
         ];
         devDependencies = [
           {
+            name = "chrono";
+            packageId = "chrono";
+            rename = "chrono04";
+            usesDefaultFeatures = false;
+            features = [ "serde" ];
+          }
+          {
             name = "indexmap";
             packageId = "indexmap";
             rename = "indexmap2";
@@ -12814,7 +13438,7 @@ rec {
           "url2" = [ "dep:url2" ];
           "uuid1" = [ "dep:uuid1" ];
         };
-        resolvedDefaultFeatures = [ "default" "derive" "indexmap2" "preserve_order" "schemars_derive" "std" "url2" "uuid1" ];
+        resolvedDefaultFeatures = [ "chrono04" "default" "derive" "indexmap2" "preserve_order" "schemars_derive" "std" "url2" "uuid1" ];
       };
       "schemars_derive" = rec {
         crateName = "schemars_derive";
@@ -12822,6 +13446,7 @@ rec {
         edition = "2021";
         sha256 = "1ziqhh5c2yw0q8n4fxsfgl0c544avkvq3dq8iq5jzly6fx6dj5jh";
         procMacro = true;
+        libPath = "src\\lib.rs";
         authors = [
           "Graham Esau <gesau@hotmail.co.uk>"
         ];
@@ -12851,6 +13476,7 @@ rec {
         version = "1.2.0";
         edition = "2015";
         sha256 = "0jcz9sd47zlsgcnm1hdw0664krxwb5gczlif4qngj2aif8vky54l";
+        libPath = "src\\lib.rs";
         authors = [
           "bluss"
         ];
@@ -12863,6 +13489,7 @@ rec {
         version = "4.1.0";
         edition = "2015";
         sha256 = "0sxsb64np6bvnppjz5hg4rqpnkczhsl8w8kf2a5lr1c08xppn40w";
+        libPath = "src\\lib.rs";
         authors = [
           "ticki <ticki@users.noreply.github.com>"
           "Tom Almeida <tom@tommoa.me>"
@@ -12876,6 +13503,7 @@ rec {
         version = "1.0.27";
         edition = "2018";
         sha256 = "1qmi3akfrnqc2hfkdgcxhld5bv961wbk8my3ascv5068mc5fnryp";
+        libPath = "src\\lib.rs";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -12890,6 +13518,7 @@ rec {
         version = "0.45.0";
         edition = "2021";
         sha256 = "083fbmszf1b4bp8ax4v9qharx878mc9vzs45i2917z51x0jmxf28";
+        libPath = "src\\lib.rs";
         authors = [
           "Sentry <hello@sentry.io>"
         ];
@@ -13015,6 +13644,7 @@ rec {
         edition = "2021";
         sha256 = "1s0k2mmw9cirb4n3r144pjjga0nw6171cs2s0sd483rv44127lfg";
         libName = "sentry_anyhow";
+        libPath = "src\\lib.rs";
         authors = [
           "Sentry <hello@sentry.io>"
         ];
@@ -13043,6 +13673,7 @@ rec {
         edition = "2021";
         sha256 = "1q3s0wwnhdgvls64n6lfw1spvdr4g1fqv9a62zggcdmmb94kl9gk";
         libName = "sentry_backtrace";
+        libPath = "src\\lib.rs";
         authors = [
           "Sentry <hello@sentry.io>"
         ];
@@ -13070,6 +13701,7 @@ rec {
         edition = "2021";
         sha256 = "0029h4zxkgpwl1xfn12vd7i3anpdyl86lrh7ijw6cvl352kq2zq2";
         libName = "sentry_contexts";
+        libPath = "src\\lib.rs";
         authors = [
           "Sentry <hello@sentry.io>"
         ];
@@ -13111,6 +13743,7 @@ rec {
         edition = "2021";
         sha256 = "19c4p8ddwkp20wmwvfjj5dajw5lw23a2vgz9vf79db3iisf75dnk";
         libName = "sentry_core";
+        libPath = "src\\lib.rs";
         authors = [
           "Sentry <hello@sentry.io>"
         ];
@@ -13153,6 +13786,7 @@ rec {
         edition = "2021";
         sha256 = "0k6h6crspbq5p3n7j6i4ms659rg2jajp7bx1zcmr26gv3nfbb1fw";
         libName = "sentry_debug_images";
+        libPath = "src\\lib.rs";
         authors = [
           "Sentry <hello@sentry.io>"
         ];
@@ -13174,6 +13808,7 @@ rec {
         edition = "2021";
         sha256 = "0h1dii4cxnbi8g35p9bi08falgz22v2s5v3yq7q7mygq0hglgh0s";
         libName = "sentry_panic";
+        libPath = "src\\lib.rs";
         authors = [
           "Sentry <hello@sentry.io>"
         ];
@@ -13196,6 +13831,7 @@ rec {
         edition = "2021";
         sha256 = "00zbfjcll5frvpbvc8nzyibc1lg439azidw1rhni84x6cq47i3s2";
         libName = "sentry_tracing";
+        libPath = "src\\lib.rs";
         authors = [
           "Sentry <hello@sentry.io>"
         ];
@@ -13244,6 +13880,7 @@ rec {
         edition = "2021";
         sha256 = "1hdfmmswd16k4zbwg12z8j6lhxihmbqx11l86nf6ambvjv8x269c";
         libName = "sentry_types";
+        libPath = "src\\lib.rs";
         authors = [
           "Sentry <hello@sentry.io>"
         ];
@@ -13300,6 +13937,7 @@ rec {
         version = "1.0.228";
         edition = "2021";
         sha256 = "17mf4hhjxv5m90g42wmlbc61hdhlm6j9hwfkpcnd72rpgzm993ls";
+        libPath = "src\\lib.rs";
         authors = [
           "Erick Tryzelaar <erick.tryzelaar@gmail.com>"
           "David Tolnay <dtolnay@gmail.com>"
@@ -13333,6 +13971,7 @@ rec {
         version = "1.0.228";
         edition = "2021";
         sha256 = "1bb7id2xwx8izq50098s5j2sqrrvk31jbbrjqygyan6ask3qbls1";
+        libPath = "src\\lib.rs";
         authors = [
           "Erick Tryzelaar <erick.tryzelaar@gmail.com>"
           "David Tolnay <dtolnay@gmail.com>"
@@ -13361,6 +14000,7 @@ rec {
         edition = "2021";
         sha256 = "0y8xm7fvmr2kjcd029g9fijpndh8csv5m20g4bd76w8qschg4h6m";
         procMacro = true;
+        libPath = "src\\lib.rs";
         authors = [
           "Erick Tryzelaar <erick.tryzelaar@gmail.com>"
           "David Tolnay <dtolnay@gmail.com>"
@@ -13424,6 +14064,7 @@ rec {
         version = "1.0.145";
         edition = "2021";
         sha256 = "1767y6kxjf7gwpbv8bkhgwc50nhg46mqwm9gy9n122f7v1k6yaj0";
+        libPath = "src\\lib.rs";
         authors = [
           "Erick Tryzelaar <erick.tryzelaar@gmail.com>"
           "David Tolnay <dtolnay@gmail.com>"
@@ -13480,6 +14121,7 @@ rec {
         version = "0.1.20";
         edition = "2021";
         sha256 = "0mxls44p2ycmnxh03zpnlxxygq42w61ws7ir7r0ba6rp5s1gza8h";
+        libPath = "src\\lib.rs";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -13514,6 +14156,7 @@ rec {
         version = "0.14.0";
         edition = "2018";
         sha256 = "19ha3lk8mdhzjavm09my9c8j96c554nlig5lsvvbvb08q3npnhcb";
+        libPath = "src\\lib.rs";
         authors = [
           "Sam Scott <sam@osohq.com>"
         ];
@@ -13563,6 +14206,7 @@ rec {
         version = "1.0.3";
         edition = "2021";
         sha256 = "14j32cqcs6jjdl1c111lz6s0hr913dnmy2kpfd75k2761ym4ahz2";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "serde_core";
@@ -13584,6 +14228,7 @@ rec {
         version = "0.7.1";
         edition = "2018";
         sha256 = "1zgklbdaysj3230xivihs30qi5vkhigg323a9m62k8jwf4a1qjfk";
+        libPath = "src\\lib.rs";
         authors = [
           "Anthony Ramine <n.oxyde@gmail.com>"
         ];
@@ -13612,6 +14257,7 @@ rec {
         version = "0.10.6";
         edition = "2018";
         sha256 = "1fnnxlfg08xhkmwf2ahv634as30l1i3xhlhkvxflmasi5nd85gz3";
+        libPath = "src\\lib.rs";
         authors = [
           "RustCrypto Developers"
         ];
@@ -13651,6 +14297,7 @@ rec {
         version = "0.10.9";
         edition = "2018";
         sha256 = "10xjj843v31ghsksd9sl9y12qfc48157j1xpb8v1ml39jy0psl57";
+        libPath = "src\\lib.rs";
         authors = [
           "RustCrypto Developers"
         ];
@@ -13692,6 +14339,7 @@ rec {
         edition = "2018";
         sha256 = "1xipjr4nqsgw34k7a2cgj9zaasl2ds6jwn89886kww93d32a637l";
         libName = "sharded_slab";
+        libPath = "src\\lib.rs";
         authors = [
           "Eliza Weisman <eliza@buoyant.io>"
         ];
@@ -13710,6 +14358,7 @@ rec {
         version = "1.3.0";
         edition = "2015";
         sha256 = "0r1y6bv26c1scpxvhg2cabimrmwgbp4p3wy6syj9n0c4s3q2znhg";
+        libPath = "src\\lib.rs";
         authors = [
           "comex <comexk@gmail.com>"
           "Fenhl <fenhl@fenhl.net>"
@@ -13729,6 +14378,7 @@ rec {
         edition = "2015";
         sha256 = "12y2v1ms5z111fymaw1v8k93m5chnkp21h0jknrydkj8zydp395j";
         libName = "signal_hook_registry";
+        libPath = "src\\lib.rs";
         authors = [
           "Michal 'vorner' Vaner <vorner@vorner.cz>"
           "Masaki Hara <ackie.h.gmai@gmail.com>"
@@ -13746,6 +14396,7 @@ rec {
         version = "0.1.5";
         edition = "2018";
         sha256 = "0vmpf7xaa0dnaikib5jlx6y4dxd3hxqz6l830qb079g7wcsgxag3";
+        libPath = "src\\lib.rs";
         authors = [
           "Hans Kratz <hans@appfour.com>"
         ];
@@ -13759,6 +14410,7 @@ rec {
         version = "1.0.1";
         edition = "2018";
         sha256 = "17f35782ma3fn6sh21c027kjmd227xyrx06ffi8gw4xzv9yry6an";
+        libPath = "src\\lib.rs";
         authors = [
           "Frank Denis <github@pureftpd.org>"
         ];
@@ -13776,6 +14428,7 @@ rec {
         version = "0.4.11";
         edition = "2018";
         sha256 = "12bm4s88rblq02jjbi1dw31984w61y2ldn13ifk5gsqgy97f8aks";
+        libPath = "src\\lib.rs";
         authors = [
           "Carl Lerche <me@carllerche.com>"
         ];
@@ -13789,7 +14442,8 @@ rec {
         crateName = "slug";
         version = "0.1.6";
         edition = "2021";
-        sha256 = "0977cyp88xrwbpmqwzafkvv8vm9i0gdb5zjskb6f6pg45vvq0al8";type = [ "cdylib" "rlib" ];
+        sha256 = "0977cyp88xrwbpmqwzafkvv8vm9i0gdb5zjskb6f6pg45vvq0al8";
+        libPath = "src\\lib.rs";type = [ "cdylib" "rlib" ];
         authors = [
           "Steven Allen <steven@stebalien.com>"
         ];
@@ -13811,6 +14465,7 @@ rec {
         version = "1.15.1";
         edition = "2018";
         sha256 = "00xxdxxpgyq5vjnpljvkmy99xij5rxgh913ii1v16kzynnivgcb7";
+        libPath = "src\\lib.rs";
         authors = [
           "The Servo Project Developers"
         ];
@@ -13831,6 +14486,7 @@ rec {
         version = "0.6.1";
         edition = "2021";
         sha256 = "109qn0kjhqi5zds84qyqi5wn72g8azjhmf4b04fkgkrkd48rw4hp";
+        libPath = "src\\lib.rs";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
           "Thomas de Zeeuw <thomasdezeeuw@gmail.com>"
@@ -13857,6 +14513,7 @@ rec {
         version = "1.2.1";
         edition = "2015";
         sha256 = "15h5h73ppqyhdhx6ywxfj88azmrpml9gl6zp3pwy2malqa6vxqkc";
+        libPath = "src\\lib.rs";
         authors = [
           "Robert Grosse <n210241048576@gmail.com>"
         ];
@@ -13871,6 +14528,7 @@ rec {
         version = "0.1.22";
         edition = "2021";
         sha256 = "0nbfvmqw9bsawv9g0k4bqilxkl7cszrb5dpfxnjcxbranjgv5y71";
+        libPath = "src\\lib.rs";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
           "Simonas Kazlauskas <stacker@kazlauskas.me>"
@@ -13914,6 +14572,7 @@ rec {
         version = "1.1.0";
         edition = "2015";
         sha256 = "0gsl6xmw10gvn3zs1rv99laj5ig7ylffnh71f9l34js4nr4r7sx2";
+        libPath = "src\\lib.rs";
         authors = [
           "Nikolai Vazquez"
         ];
@@ -13925,6 +14584,7 @@ rec {
         version = "0.1.5";
         edition = "2015";
         sha256 = "1cb3jis4h2b767csk272zw92lc6jzfzvh8d6m1cd86yqjb9z6kbv";
+        libPath = "src\\lib.rs";
         authors = [
           "Steven Fackler <sfackler@gmail.com>"
         ];
@@ -13949,6 +14609,7 @@ rec {
         version = "0.11.1";
         edition = "2015";
         sha256 = "0kzvqlw8hxqb7y598w1s0hxlnmi84sg5vsipp3yg5na5d1rvba3x";
+        libPath = "src\\lib.rs";
         authors = [
           "Danny Guo <danny@dannyguo.com>"
           "maxbachmann <oss@maxbachmann.de>"
@@ -13960,6 +14621,7 @@ rec {
         version = "2.6.1";
         edition = "2018";
         sha256 = "14ijxaymghbl1p0wql9cib5zlwiina7kall6w7g89csprkgbvhhk";
+        libPath = "src\\lib.rs";
         authors = [
           "Isis Lovecruft <isis@patternsinthevoid.net>"
           "Henry de Valence <hdevalence@hdevalence.ca>"
@@ -13973,6 +14635,7 @@ rec {
         version = "1.0.109";
         edition = "2018";
         sha256 = "0ds2if4600bd59wsv7jjgfkayfzy3hnazs394kz6zdkmna8l3dkj";
+        libPath = "src\\lib.rs";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -14007,6 +14670,7 @@ rec {
         version = "2.0.108";
         edition = "2021";
         sha256 = "05z908svb0yw5wzrlv27l2i8j1d8l16hd5r8bjh809146myr2n6s";
+        libPath = "src\\lib.rs";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -14040,6 +14704,7 @@ rec {
         version = "1.0.2";
         edition = "2021";
         sha256 = "0qvjyasd6w18mjg5xlaq5jgy84jsjfsvmnn12c13gypxbv75dwhb";
+        libPath = "src\\lib.rs";
         authors = [
           "Actyx AG <developer@actyx.io>"
         ];
@@ -14062,6 +14727,7 @@ rec {
         version = "0.13.2";
         edition = "2018";
         sha256 = "1lh9lx3r3jb18f8sbj29am5hm9jymvbwh6jb1izsnnxgvgrp12kj";
+        libPath = "src\\lib.rs";
         authors = [
           "Nika Layzell <nika@thelayzells.com>"
         ];
@@ -14094,6 +14760,7 @@ rec {
         version = "1.0.1";
         edition = "2015";
         sha256 = "0sc3gl4nldqpvyhqi3bbd0l9k7fngrcl4zs47n314nqqk4bpx4sm";
+        libPath = "src\\lib.rs";
         authors = [
           "Elliott Linder <elliott.darfink@gmail.com>"
           "myrrlyn <self@myrrlyn.dev>"
@@ -14105,6 +14772,7 @@ rec {
         version = "3.23.0";
         edition = "2021";
         sha256 = "05igl2gml6z6i2va1bv49f9f1wb3f752c2i63lvlb9s2vxxwfc9d";
+        libPath = "src\\lib.rs";
         authors = [
           "Steven Allen <steven@stebalien.com>"
           "The Rust Project Developers"
@@ -14145,6 +14813,7 @@ rec {
         version = "1.20.0";
         edition = "2018";
         sha256 = "1vnj9imw2h9szkd1izsrhwrc9jvazvdsp84x65wg2rg88ldqb7db";
+        libPath = "src\\lib.rs";
         authors = [
           "Vincent Prouillet <hello@prouilletvincent.com>"
         ];
@@ -14234,6 +14903,7 @@ rec {
         version = "0.5.1";
         edition = "2021";
         sha256 = "10s610ax6nb70yi7xfmwcb6d3wi9sj5isd0m63gy2pizr2zgwl4g";
+        libPath = "src\\lib.rs";
 
       };
       "thiserror 1.0.69" = rec {
@@ -14241,6 +14911,7 @@ rec {
         version = "1.0.69";
         edition = "2021";
         sha256 = "0lizjay08agcr5hs9yfzzj6axs53a2rgx070a1dsi3jpkcrzbamn";
+        libPath = "src\\lib.rs";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -14257,6 +14928,7 @@ rec {
         version = "2.0.17";
         edition = "2021";
         sha256 = "1j2gixhm2c3s6g96vd0b01v0i0qz1101vfmw0032mdqj1z58fdgn";
+        libPath = "src\\lib.rs";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -14278,6 +14950,7 @@ rec {
         sha256 = "1h84fmn2nai41cxbhk6pqf46bxqq1b344v8yz089w1chzi76rvjg";
         procMacro = true;
         libName = "thiserror_impl";
+        libPath = "src\\lib.rs";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -14304,6 +14977,7 @@ rec {
         sha256 = "04y92yjwg1a4piwk9nayzjfs07sps8c4vq9jnsfq9qvxrn75rw9z";
         procMacro = true;
         libName = "thiserror_impl";
+        libPath = "src\\lib.rs";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -14328,6 +15002,7 @@ rec {
         version = "1.1.9";
         edition = "2021";
         sha256 = "1191jvl8d63agnq06pcnarivf63qzgpws5xa33hgc92gjjj4c0pn";
+        libPath = "src\\lib.rs";
         authors = [
           "Amanieu d'Antras <amanieu@gmail.com>"
         ];
@@ -14345,6 +15020,7 @@ rec {
         version = "0.3.44";
         edition = "2021";
         sha256 = "179awlwb36zly3nmz5h9awai1h4pbf1d83g2pmvlw4v1pgixkrwi";
+        libPath = "src\\lib.rs";
         authors = [
           "Jacob Pratt <open-source@jhpratt.dev>"
           "Time contributors"
@@ -14427,6 +15103,7 @@ rec {
         edition = "2021";
         sha256 = "0sqwhg7n47gbffyr0zhipqcnskxgcgzz1ix8wirqs2rg3my8x1j0";
         libName = "time_core";
+        libPath = "src\\lib.rs";
         authors = [
           "Jacob Pratt <open-source@jhpratt.dev>"
           "Time contributors"
@@ -14440,6 +15117,7 @@ rec {
         sha256 = "1wzb6hnl35856f58cx259q7ijc4c7yis0qsnydvw5n8jbw9b1krh";
         procMacro = true;
         libName = "time_macros";
+        libPath = "src\\lib.rs";
         authors = [
           "Jacob Pratt <open-source@jhpratt.dev>"
           "Time contributors"
@@ -14463,6 +15141,7 @@ rec {
         version = "0.8.1";
         edition = "2021";
         sha256 = "12sc6h3hnn6x78iycm5v6wrs2xhxph0ydm43yyn7gdfw8l8nsksx";
+        libPath = "src\\lib.rs";
         authors = [
           "The ICU4X Project Developers"
         ];
@@ -14493,6 +15172,7 @@ rec {
         version = "1.10.0";
         edition = "2018";
         sha256 = "1yhk0qdqyiaa4v2j9h8pzax5gxgwpz4da0lcphfil6g6pk1zv9dz";
+        libPath = "src\\lib.rs";
         authors = [
           "Lokathor <zefria@gmail.com>"
         ];
@@ -14522,6 +15202,7 @@ rec {
         version = "0.1.1";
         edition = "2018";
         sha256 = "081gag86208sc3y6sdkshgw3vysm5d34p431dzw0bshz66ncng0z";
+        libPath = "src\\lib.rs";
         authors = [
           "Soveu <marx.tomasz@gmail.com>"
         ];
@@ -14532,6 +15213,7 @@ rec {
         version = "1.48.0";
         edition = "2021";
         sha256 = "0244qva5pksy8gam6llf7bd6wbk2vkab9lx26yyf08dix810wdpz";
+        libPath = "src\\lib.rs";
         authors = [
           "Tokio Contributors <team@tokio.rs>"
         ];
@@ -14649,6 +15331,7 @@ rec {
         sha256 = "19czvgliginbzyhhfbmj77wazqn2y8g27y2nirfajdlm41bphh5g";
         procMacro = true;
         libName = "tokio_macros";
+        libPath = "src\\lib.rs";
         authors = [
           "Tokio Contributors <team@tokio.rs>"
         ];
@@ -14675,6 +15358,7 @@ rec {
         edition = "2021";
         sha256 = "17kc1zr0j7dsqvkb1lxvvn77w92qiqv0jd0p52v09zickdnxch1b";
         libName = "tokio_postgres";
+        libPath = "src\\lib.rs";
         authors = [
           "Steven Fackler <sfackler@gmail.com>"
         ];
@@ -14796,7 +15480,7 @@ rec {
           "with-uuid-0_8" = [ "postgres-types/with-uuid-0_8" ];
           "with-uuid-1" = [ "postgres-types/with-uuid-1" ];
         };
-        resolvedDefaultFeatures = [ "default" "runtime" "with-chrono-0_4" "with-uuid-1" ];
+        resolvedDefaultFeatures = [ "default" "runtime" "with-chrono-0_4" "with-serde_json-1" "with-uuid-1" ];
       };
       "tokio-rustls" = rec {
         crateName = "tokio-rustls";
@@ -14804,6 +15488,7 @@ rec {
         edition = "2021";
         sha256 = "0qggwknz9w4bbsv1z158hlnpkm97j3w8v31586jipn99byaala8p";
         libName = "tokio_rustls";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "rustls";
@@ -14842,6 +15527,7 @@ rec {
         edition = "2021";
         sha256 = "1r9wdrg1k5hna3m0kc8kcb8jdb6n52g7vnw93kw2xxw4cyc7qc0l";
         libName = "tokio_util";
+        libPath = "src\\lib.rs";
         authors = [
           "Tokio Contributors <team@tokio.rs>"
         ];
@@ -14897,6 +15583,7 @@ rec {
         version = "0.9.8";
         edition = "2021";
         sha256 = "1n569s0dgdmqjy21wf85df7kx3vb1zgin3pc2rvy4j8lnqgqpp7h";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "serde_core";
@@ -14948,6 +15635,7 @@ rec {
         version = "0.7.3";
         edition = "2021";
         sha256 = "0cs5f8y4rdsmmwipjclmq97lrwppjy2qa3vja4f9d5xwxcwvdkgj";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "serde_core";
@@ -14969,6 +15657,7 @@ rec {
         version = "0.23.7";
         edition = "2021";
         sha256 = "13cgp4y6prad1lh18bbg64zkq48hafq7xzs4fb0hwpcv1mnyz1b4";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "indexmap";
@@ -15004,6 +15693,7 @@ rec {
         version = "1.0.4";
         edition = "2021";
         sha256 = "03l0750d1cyliij9vac4afpp1syh1a6yhbbalnslpnsvsdlf5jy0";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "winnow";
@@ -15025,6 +15715,7 @@ rec {
         edition = "2021";
         sha256 = "0wmz0ri3d9ml04wrd5qk5a6xq70g8zlzc2g9k61gi3pm10hka97i";
         libName = "totp_rs";
+        libPath = "src\\lib.rs";
         authors = [
           "Cleo Rebert <cleo.rebert@gmail.com>"
         ];
@@ -15067,6 +15758,7 @@ rec {
         version = "0.5.2";
         edition = "2018";
         sha256 = "1ybmd59nm4abl9bsvy6rx31m4zvzp5rja2slzpn712y9b68ssffh";
+        libPath = "src\\lib.rs";
         authors = [
           "Tower Maintainers <team@tower-rs.com>"
         ];
@@ -15158,6 +15850,7 @@ rec {
         edition = "2018";
         sha256 = "1wh51y4rf03f91c6rvli6nwzsarx7097yx6sqlm75ag27pbjzj5d";
         libName = "tower_http";
+        libPath = "src\\lib.rs";
         authors = [
           "Tower Maintainers <team@tower-rs.com>"
         ];
@@ -15279,6 +15972,7 @@ rec {
         edition = "2018";
         sha256 = "03kq92fdzxin51w8iqix06dcfgydyvx7yr6izjq0p626v9n2l70j";
         libName = "tower_layer";
+        libPath = "src\\lib.rs";
         authors = [
           "Tower Maintainers <team@tower-rs.com>"
         ];
@@ -15290,6 +15984,7 @@ rec {
         edition = "2018";
         sha256 = "1hzfkvkci33ra94xjx64vv3pp0sq346w06fpkcdwjcid7zhvdycd";
         libName = "tower_service";
+        libPath = "src\\lib.rs";
         authors = [
           "Tower Maintainers <team@tower-rs.com>"
         ];
@@ -15300,6 +15995,7 @@ rec {
         version = "0.1.41";
         edition = "2018";
         sha256 = "1l5xrzyjfyayrwhvhldfnwdyligi1mpqm8mzbi2m1d6y6p2hlkkq";
+        libPath = "src\\lib.rs";
         authors = [
           "Eliza Weisman <eliza@buoyant.io>"
           "Tokio Contributors <team@tokio.rs>"
@@ -15338,6 +16034,7 @@ rec {
         sha256 = "00v9bhfgfg3v101nmmy7s3vdwadb7ngc8c1iw6wai9vj9sv3lf41";
         procMacro = true;
         libName = "tracing_attributes";
+        libPath = "src\\lib.rs";
         authors = [
           "Tokio Contributors <team@tokio.rs>"
           "Eliza Weisman <eliza@buoyant.io>"
@@ -15368,6 +16065,7 @@ rec {
         edition = "2018";
         sha256 = "0y3nc4mpnr79rzkrcylv5f5bnjjp19lsxwis9l4kzs97ya0jbldr";
         libName = "tracing_core";
+        libPath = "src\\lib.rs";
         authors = [
           "Tokio Contributors <team@tokio.rs>"
         ];
@@ -15399,6 +16097,7 @@ rec {
         edition = "2018";
         sha256 = "1m9447bxq7236avgl6n5yb2aqwplrghm61dgipw03mh7ad7s2m10";
         libName = "tracing_subscriber";
+        libPath = "src\\lib.rs";
         authors = [
           "Eliza Weisman <eliza@buoyant.io>"
           "David Barsky <me@davidbarsky.com>"
@@ -15490,6 +16189,7 @@ rec {
         edition = "2015";
         sha256 = "0jqijrrvm1pyq34zn1jmy2vihd4jcrjlvsh4alkjahhssjnsn8g4";
         libName = "try_lock";
+        libPath = "src\\lib.rs";
         authors = [
           "Sean McArthur <sean@seanmonstar.com>"
         ];
@@ -15500,6 +16200,7 @@ rec {
         version = "1.19.0";
         edition = "2018";
         sha256 = "1fw2mpbn2vmqan56j1b3fbpcdg80mz26fm53fs16bq5xcq84hban";
+        libPath = "src\\lib.rs";
         authors = [
           "Paho Lurie-Gregg <paho@paholg.com>"
           "Andre Bogus <bogusandre@gmail.com>"
@@ -15515,6 +16216,7 @@ rec {
         edition = "2021";
         sha256 = "0wc9p07sqwz320848i52nvyjvpsxkx3kv5bfbmm6s35809fdk5i8";
         libName = "ucd_trie";
+        libPath = "src\\lib.rs";
         authors = [
           "Andrew Gallant <jamslam@gmail.com>"
         ];
@@ -15528,6 +16230,7 @@ rec {
         version = "0.1.1";
         edition = "2015";
         sha256 = "1j1xd1rryml4j1hf07kahva9d5ym8m9jz9z20hfdpr1jrbq8jbxp";
+        libPath = "src\\lib.rs";
         authors = [
           "Ignacio Corderi <icorderi@msn.com>"
         ];
@@ -15545,6 +16248,7 @@ rec {
         edition = "2018";
         sha256 = "08g21dn3wwix3ycfl0vrbahn0835nv2q3swm8wms0vwvgm07mid8";
         libName = "unic_char_property";
+        libPath = "src\\lib.rs";
         authors = [
           "The UNIC Project Developers"
         ];
@@ -15562,6 +16266,7 @@ rec {
         edition = "2018";
         sha256 = "1g0z7iwvjhqspi6194zsff8vy6i3921hpqcrp3v1813hbwnh5603";
         libName = "unic_char_range";
+        libPath = "src\\lib.rs";
         authors = [
           "The UNIC Project Developers"
         ];
@@ -15577,6 +16282,7 @@ rec {
         edition = "2018";
         sha256 = "1g1mm954m0zr497dl4kx3vr09yaly290zs33bbl4wrbaba1gzmw0";
         libName = "unic_common";
+        libPath = "src\\lib.rs";
         authors = [
           "The UNIC Project Developers"
         ];
@@ -15590,6 +16296,7 @@ rec {
         edition = "2018";
         sha256 = "08wgz2q6vrdvmbd23kf9pbg8cyzm5q8hq9spc4blzy2ppqk5vvg4";
         libName = "unic_segment";
+        libPath = "src\\lib.rs";
         authors = [
           "The UNIC Project Developers"
         ];
@@ -15607,6 +16314,7 @@ rec {
         edition = "2018";
         sha256 = "0027lczcg0r401g6fnzm2bq9fxhgxvri1nlryhhv8192lqic2y90";
         libName = "unic_ucd_segment";
+        libPath = "src\\lib.rs";
         authors = [
           "The UNIC Project Developers"
         ];
@@ -15632,6 +16340,7 @@ rec {
         edition = "2018";
         sha256 = "1i5hnzpfnxkp4ijfk8kvhpvj84bij575ybqx1b6hyigy6wi2zgcn";
         libName = "unic_ucd_version";
+        libPath = "src\\lib.rs";
         authors = [
           "The UNIC Project Developers"
         ];
@@ -15649,6 +16358,7 @@ rec {
         edition = "2018";
         sha256 = "1xcxwbsqa24b8vfchhzyyzgj0l6bn51ib5v8j6krha0m77dva72w";
         libName = "unicode_bidi";
+        libPath = "src\\lib.rs";
         authors = [
           "The Servo Project Developers"
         ];
@@ -15669,6 +16379,7 @@ rec {
         edition = "2018";
         sha256 = "01lafj17xwizrlvn006zz8ip99hqisf77kjk0a8flfmpmrsynbj6";
         libName = "unicode_ident";
+        libPath = "src\\lib.rs";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -15680,6 +16391,7 @@ rec {
         edition = "2018";
         sha256 = "0mnrk809z3ix1wspcqy97ld5wxdb31f3xz6nsvg5qcv289ycjcsh";
         libName = "unicode_normalization";
+        libPath = "src\\lib.rs";
         authors = [
           "kwantam <kwantam@gmail.com>"
           "Manish Goregaokar <manishsmail@gmail.com>"
@@ -15702,6 +16414,7 @@ rec {
         edition = "2021";
         sha256 = "1l3mbgzwz8g14xcs09p4ww3hjkjcf0i1ih13nsg72bhj8n5jl3z7";
         libName = "unicode_properties";
+        libPath = "src\\lib.rs";
         authors = [
           "Charles Lew <crlf0710@gmail.com>"
           "Manish Goregaokar <manishsmail@gmail.com>"
@@ -15717,6 +16430,7 @@ rec {
         edition = "2018";
         sha256 = "14qla2jfx74yyb9ds3d2mpwpa4l4lzb9z57c6d2ba511458z5k7n";
         libName = "unicode_segmentation";
+        libPath = "src\\lib.rs";
         authors = [
           "kwantam <kwantam@gmail.com>"
           "Manish Goregaokar <manishsmail@gmail.com>"
@@ -15730,6 +16444,7 @@ rec {
         edition = "2021";
         sha256 = "0m7jjzlcccw716dy9423xxh0clys8pfpllc5smvfxrzdf66h9b5l";
         libName = "unicode_width";
+        libPath = "src\\lib.rs";
         authors = [
           "kwantam <kwantam@gmail.com>"
           "Manish Goregaokar <manishsmail@gmail.com>"
@@ -15748,6 +16463,7 @@ rec {
         edition = "2018";
         sha256 = "05rq0asf2f1q5vrcv4bwf0c3y6q20asqkiqpr8wqyrfxyb7h4d1j";
         libName = "unit_prefix";
+        libPath = "src\\lib.rs";
         authors = [
           "Fabio Valentini <decathorpe@gmail.com>"
           "Benjamin Sago <ogham@bsago.me>"
@@ -15762,6 +16478,7 @@ rec {
         version = "0.9.0";
         edition = "2018";
         sha256 = "1ha7ib98vkc538x0z60gfn0fc5whqdd85mb87dvisdcaifi6vjwf";
+        libPath = "src\\lib.rs";
         authors = [
           "Brian Smith <brian@briansmith.org>"
         ];
@@ -15772,6 +16489,7 @@ rec {
         version = "3.1.2";
         edition = "2018";
         sha256 = "0dv5yhcl3g96vax2b8xinks28kzbkf78d35lx71kyjlay4ji1flr";
+        libPath = "src\\lib.rs";
         authors = [
           "Martin Algesten <martin@algesten.se>"
           "Jacob Hoffman-Andrews <ureq@hoffman-andrews.com>"
@@ -15860,6 +16578,7 @@ rec {
         edition = "2021";
         sha256 = "1lpm7075y1bkg1snc678sxmwhk75n3flhq1l6hhncdc324f57d30";
         libName = "ureq_proto";
+        libPath = "src\\lib.rs";
         authors = [
           "Martin Algesten <martin@algesten.se>"
         ];
@@ -15896,6 +16615,7 @@ rec {
         version = "2.5.7";
         edition = "2018";
         sha256 = "0nzghdv0kcksyvri0npxbjzyx2ihprks5k590y77bld355m17g08";
+        libPath = "src\\lib.rs";
         authors = [
           "The rust-url developers"
         ];
@@ -15945,6 +16665,7 @@ rec {
         version = "2.1.3";
         edition = "2021";
         sha256 = "1nj99jp37k47n0hvaz5fvz7z6jd0sb4ppvfy3nphr1zbnyixpy6s";
+        libPath = "src\\lib.rs";
         authors = [
           "Kornel <kornel@geekhood.net>"
           "Bertram Truong <b@bertramtruong.com>"
@@ -15957,6 +16678,7 @@ rec {
         edition = "2015";
         sha256 = "1a9ns3fvgird0snjkd3wbdhwd3zdpc2h5gpyybrfr6ra5pkqxk09";
         libName = "utf8";
+        libPath = "src\\lib.rs";
         authors = [
           "Simon Sapin <simon.sapin@exyr.org>"
         ];
@@ -15967,6 +16689,7 @@ rec {
         version = "1.0.4";
         edition = "2021";
         sha256 = "1gmna9flnj8dbyd8ba17zigrp9c4c3zclngf5lnb5yvz1ri41hdn";
+        libPath = "src\\lib.rs";
         authors = [
           "Henri Sivonen <hsivonen@hsivonen.fi>"
         ];
@@ -15977,6 +16700,7 @@ rec {
         version = "0.2.2";
         edition = "2018";
         sha256 = "088807qwjq46azicqwbhlmzwrbkz7l4hpw43sdkdyyk524vdxaq6";
+        libPath = "src\\lib.rs";
         authors = [
           "Joe Wilm <joe@jwilm.com>"
           "Christian Duerr <contact@christianduerr.com>"
@@ -15990,6 +16714,7 @@ rec {
         version = "1.18.1";
         edition = "2018";
         sha256 = "18kh01qmfayn4psap52x8xdjkzw2q8bcbpnhhxjs05dr22mbi1rg";
+        libPath = "src\\lib.rs";
         authors = [
           "Ashley Mannix<ashleymannix@live.com.au>"
           "Dylan DPC<dylan.dpc@gmail.com>"
@@ -16064,6 +16789,7 @@ rec {
         version = "0.1.1";
         edition = "2021";
         sha256 = "0r9srp55v7g27s5bg7a2m095fzckrcdca5maih6dy9bay6fflwxs";
+        libPath = "src\\lib.rs";
         features = {
           "default" = [ "std" ];
           "derive" = [ "valuable-derive" ];
@@ -16077,6 +16803,7 @@ rec {
         version = "0.9.5";
         edition = "2015";
         sha256 = "0nhhi4i5x89gm911azqbn7avs9mdacw2i3vcz3cnmz3mv4rqz4hb";
+        libPath = "src\\lib.rs";
         authors = [
           "Sergio Benitez <sb@sergio.bz>"
         ];
@@ -16087,6 +16814,7 @@ rec {
         version = "2.5.0";
         edition = "2018";
         sha256 = "0jsy7a710qv8gld5957ybrnc07gavppp963gs32xk4ag8130jy99";
+        libPath = "src\\lib.rs";
         authors = [
           "Andrew Gallant <jamslam@gmail.com>"
         ];
@@ -16108,6 +16836,7 @@ rec {
         version = "0.3.1";
         edition = "2018";
         sha256 = "03hbfrnvqqdchb5kgxyavb9jabwza0dmh2vw5kg0dq8rxl57d9xz";
+        libPath = "src\\lib.rs";
         authors = [
           "Sean McArthur <sean@seanmonstar.com>"
         ];
@@ -16124,6 +16853,7 @@ rec {
         version = "0.11.1+wasi-snapshot-preview1";
         edition = "2018";
         sha256 = "0jx49r7nbkbhyfrfyhz0bm4817yrnxgd3jiwwwfv0zl439jyrwyc";
+        libPath = "src\\lib.rs";
         authors = [
           "The Cranelift Project Developers"
         ];
@@ -16140,6 +16870,7 @@ rec {
         version = "1.0.1+wasi-0.2.4";
         edition = "2021";
         sha256 = "1rsqmpspwy0zja82xx7kbkbg9fv34a4a2if3sbd76dy64a244qh5";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "wit-bindgen";
@@ -16160,6 +16891,7 @@ rec {
         version = "0.1.0";
         edition = "2018";
         sha256 = "0nw5h9nmcl4fyf4j5d4mfdjfgvwi1cakpi349wc4zrr59wxxinmq";
+        libPath = "src\\lib.rs";
 
       };
       "wasm-bindgen" = rec {
@@ -16168,6 +16900,7 @@ rec {
         edition = "2021";
         sha256 = "0b8f4l6pqm0bz0lj5xgwmchb6977n71vmh7srd0axwg93b011nn1";
         libName = "wasm_bindgen";
+        libPath = "src\\lib.rs";
         authors = [
           "The wasm-bindgen Developers"
         ];
@@ -16219,6 +16952,7 @@ rec {
         edition = "2021";
         sha256 = "069vnhhn2j4w2gwd8rch6g8d3iwkrgi45fas6i3qm7glcrd9l737";
         libName = "wasm_bindgen_backend";
+        libPath = "src\\lib.rs";
         authors = [
           "The wasm-bindgen Developers"
         ];
@@ -16259,6 +16993,7 @@ rec {
         edition = "2021";
         sha256 = "0p5c10vfd7p7c607x3cgyfw9h77z1k33d6zzw2x77k3qwi0qs0vy";
         libName = "wasm_bindgen_futures";
+        libPath = "src\\lib.rs";
         authors = [
           "The wasm-bindgen Developers"
         ];
@@ -16305,6 +17040,7 @@ rec {
         sha256 = "06d1m5bg272h6jabq0snm7c50fifjz6r20f5hqlmz7y5wivh99kw";
         procMacro = true;
         libName = "wasm_bindgen_macro";
+        libPath = "src\\lib.rs";
         authors = [
           "The wasm-bindgen Developers"
         ];
@@ -16328,6 +17064,7 @@ rec {
         edition = "2021";
         sha256 = "1mr18kx7ima1pmsqlkk982q4a0vf3r8s1x6901jb59sd1prd41wz";
         libName = "wasm_bindgen_macro_support";
+        libPath = "src\\lib.rs";
         authors = [
           "The wasm-bindgen Developers"
         ];
@@ -16365,6 +17102,7 @@ rec {
         links = "wasm_bindgen";
         sha256 = "1la1xj9v3gmawnlyi7lc3mb3xi447r6frb98hi2fb9m1nb47vmms";
         libName = "wasm_bindgen_shared";
+        libPath = "src\\lib.rs";
         authors = [
           "The wasm-bindgen Developers"
         ];
@@ -16382,6 +17120,7 @@ rec {
         edition = "2021";
         sha256 = "0871ifd79ni9813sp5amk7wb3avznkijlsly2ap4r9r4m4bw8rwk";
         libName = "web_sys";
+        libPath = "src\\lib.rs";
         authors = [
           "The wasm-bindgen Developers"
         ];
@@ -16867,6 +17606,7 @@ rec {
         edition = "2021";
         sha256 = "1fx05yqx83dhx628wb70fyy10yjfq1jpl20qfqhdkymi13rq0ras";
         libName = "web_time";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "js-sys";
@@ -16890,6 +17630,7 @@ rec {
         edition = "2021";
         sha256 = "1f49w0s7f3fgczvjri179wh2a9g8jpkmdi5bi5l8p7ylsb031c9j";
         libName = "webpki_roots";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "rustls-pki-types";
@@ -16905,6 +17646,7 @@ rec {
         version = "1.6.1";
         edition = "2018";
         sha256 = "0zg9sz669vhqyxysn4lymnianj29jxs2vl6k2lqcl0kp0yslsjjx";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "libredox";
@@ -16936,6 +17678,7 @@ rec {
         version = "0.3.9";
         edition = "2015";
         sha256 = "06gl025x418lchw1wxj64ycr7gha83m44cjr5sarhynd9xkrm0sw";
+        libPath = "src\\lib.rs";
         authors = [
           "Peter Atashian <retep998@gmail.com>"
         ];
@@ -16962,6 +17705,7 @@ rec {
         edition = "2015";
         sha256 = "1dmpa6mvcvzz16zg6d5vrfy4bxgg541wxrcip7cnshi06v38ffxc";
         libName = "winapi_i686_pc_windows_gnu";
+        libPath = "src\\lib.rs";
         authors = [
           "Peter Atashian <retep998@gmail.com>"
         ];
@@ -16973,6 +17717,7 @@ rec {
         edition = "2021";
         sha256 = "08hdl7mkll7pz8whg869h58c1r9y7in0w0pk8fm24qc77k0b39y2";
         libName = "winapi_util";
+        libPath = "src\\lib.rs";
         authors = [
           "Andrew Gallant <jamslam@gmail.com>"
         ];
@@ -16992,6 +17737,7 @@ rec {
         edition = "2015";
         sha256 = "0gqq64czqb64kskjryj8isp62m2sgvx25yyj3kpc2myh85w24bki";
         libName = "winapi_x86_64_pc_windows_gnu";
+        libPath = "src\\lib.rs";
         authors = [
           "Peter Atashian <retep998@gmail.com>"
         ];
@@ -17003,6 +17749,7 @@ rec {
         edition = "2021";
         sha256 = "1swxpv1a8qvn3bkxv8cn663238h2jccq35ff3nsj61jdsca3ms5q";
         libName = "windows_core";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "windows-implement";
@@ -17043,6 +17790,7 @@ rec {
         sha256 = "1psxhmklzcf3wjs4b8qb42qb6znvc142cb5pa74rsyxm1822wgh5";
         procMacro = true;
         libName = "windows_implement";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "proc-macro2";
@@ -17070,6 +17818,7 @@ rec {
         sha256 = "0n73cwrn4247d0axrk7gjp08p34x1723483jxjxjdfkh4m56qc9z";
         procMacro = true;
         libName = "windows_interface";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "proc-macro2";
@@ -17096,6 +17845,7 @@ rec {
         edition = "2021";
         sha256 = "12kr1p46dbhpijr4zbwr2spfgq8i8c5x55mvvfmyl96m01cx4sjy";
         libName = "windows_link";
+        libPath = "src\\lib.rs";
         authors = [
           "Microsoft"
         ];
@@ -17107,6 +17857,7 @@ rec {
         edition = "2021";
         sha256 = "1rag186yfr3xx7piv5rg8b6im2dwcf8zldiflvb22xbzwli5507h";
         libName = "windows_link";
+        libPath = "src\\lib.rs";
 
       };
       "windows-result" = rec {
@@ -17115,6 +17866,7 @@ rec {
         edition = "2021";
         sha256 = "1d9yhmrmmfqh56zlj751s5wfm9a2aa7az9rd7nn5027nxa4zm0bp";
         libName = "windows_result";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "windows-link";
@@ -17133,6 +17885,7 @@ rec {
         edition = "2021";
         sha256 = "14bhng9jqv4fyl7lqjz3az7vzh8pw0w4am49fsqgcz67d67x0dvq";
         libName = "windows_strings";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "windows-link";
@@ -17151,6 +17904,7 @@ rec {
         edition = "2021";
         sha256 = "0gd3v4ji88490zgb6b5mq5zgbvwv7zx1ibn8v3x83rwcdbryaar8";
         libName = "windows_sys";
+        libPath = "src\\lib.rs";
         authors = [
           "Microsoft"
         ];
@@ -17399,6 +18153,7 @@ rec {
         edition = "2021";
         sha256 = "0fw5672ziw8b3zpmnbp9pdv1famk74f1l9fcbc3zsrzdg56vqf0y";
         libName = "windows_sys";
+        libPath = "src\\lib.rs";
         authors = [
           "Microsoft"
         ];
@@ -17658,6 +18413,7 @@ rec {
         edition = "2021";
         sha256 = "1jrbc615ihqnhjhxplr2kw7rasrskv9wj3lr80hgfd42sbj01xgj";
         libName = "windows_sys";
+        libPath = "src\\lib.rs";
         authors = [
           "Microsoft"
         ];
@@ -17923,6 +18679,7 @@ rec {
         edition = "2021";
         sha256 = "1z7k3y9b6b5h52kid57lvmvm05362zv1v8w0gc7xyv5xphlp44xf";
         libName = "windows_sys";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "windows-link";
@@ -18185,6 +18942,7 @@ rec {
         edition = "2021";
         sha256 = "0wwrx625nwlfp7k93r2rra568gad1mwd888h1jwnl0vfg5r4ywlv";
         libName = "windows_targets";
+        libPath = "src\\lib.rs";
         authors = [
           "Microsoft"
         ];
@@ -18238,6 +18996,7 @@ rec {
         edition = "2021";
         sha256 = "1wv9j2gv3l6wj3gkw5j1kr6ymb5q6dfc42yvydjhv3mqa7szjia9";
         libName = "windows_targets";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "windows-link";
@@ -18293,6 +19052,7 @@ rec {
         version = "0.52.6";
         edition = "2021";
         sha256 = "1lrcq38cr2arvmz19v32qaggvj8bh1640mdm9c2fr877h0hn591j";
+        libPath = "src\\lib.rs";
         authors = [
           "Microsoft"
         ];
@@ -18303,6 +19063,7 @@ rec {
         version = "0.53.1";
         edition = "2021";
         sha256 = "0lqvdm510mka9w26vmga7hbkmrw9glzc90l4gya5qbxlm1pl3n59";
+        libPath = "src\\lib.rs";
 
       };
       "windows_aarch64_msvc 0.52.6" = rec {
@@ -18310,6 +19071,7 @@ rec {
         version = "0.52.6";
         edition = "2021";
         sha256 = "0sfl0nysnz32yyfh773hpi49b1q700ah6y7sacmjbqjjn5xjmv09";
+        libPath = "src\\lib.rs";
         authors = [
           "Microsoft"
         ];
@@ -18320,6 +19082,7 @@ rec {
         version = "0.53.1";
         edition = "2021";
         sha256 = "01jh2adlwx043rji888b22whx4bm8alrk3khjpik5xn20kl85mxr";
+        libPath = "src\\lib.rs";
 
       };
       "windows_i686_gnu 0.52.6" = rec {
@@ -18327,6 +19090,7 @@ rec {
         version = "0.52.6";
         edition = "2021";
         sha256 = "02zspglbykh1jh9pi7gn8g1f97jh1rrccni9ivmrfbl0mgamm6wf";
+        libPath = "src\\lib.rs";
         authors = [
           "Microsoft"
         ];
@@ -18337,6 +19101,7 @@ rec {
         version = "0.53.1";
         edition = "2021";
         sha256 = "18wkcm82ldyg4figcsidzwbg1pqd49jpm98crfz0j7nqd6h6s3ln";
+        libPath = "src\\lib.rs";
 
       };
       "windows_i686_gnullvm 0.52.6" = rec {
@@ -18344,6 +19109,7 @@ rec {
         version = "0.52.6";
         edition = "2021";
         sha256 = "0rpdx1537mw6slcpqa0rm3qixmsb79nbhqy5fsm3q2q9ik9m5vhf";
+        libPath = "src\\lib.rs";
         authors = [
           "Microsoft"
         ];
@@ -18354,6 +19120,7 @@ rec {
         version = "0.53.1";
         edition = "2021";
         sha256 = "030qaxqc4salz6l4immfb6sykc6gmhyir9wzn2w8mxj8038mjwzs";
+        libPath = "src\\lib.rs";
 
       };
       "windows_i686_msvc 0.52.6" = rec {
@@ -18361,6 +19128,7 @@ rec {
         version = "0.52.6";
         edition = "2021";
         sha256 = "0rkcqmp4zzmfvrrrx01260q3xkpzi6fzi2x2pgdcdry50ny4h294";
+        libPath = "src\\lib.rs";
         authors = [
           "Microsoft"
         ];
@@ -18371,6 +19139,7 @@ rec {
         version = "0.53.1";
         edition = "2021";
         sha256 = "1hi6scw3mn2pbdl30ji5i4y8vvspb9b66l98kkz350pig58wfyhy";
+        libPath = "src\\lib.rs";
 
       };
       "windows_x86_64_gnu 0.52.6" = rec {
@@ -18378,6 +19147,7 @@ rec {
         version = "0.52.6";
         edition = "2021";
         sha256 = "0y0sifqcb56a56mvn7xjgs8g43p33mfqkd8wj1yhrgxzma05qyhl";
+        libPath = "src\\lib.rs";
         authors = [
           "Microsoft"
         ];
@@ -18388,6 +19158,7 @@ rec {
         version = "0.53.1";
         edition = "2021";
         sha256 = "16d4yiysmfdlsrghndr97y57gh3kljkwhfdbcs05m1jasz6l4f4w";
+        libPath = "src\\lib.rs";
 
       };
       "windows_x86_64_gnullvm 0.52.6" = rec {
@@ -18395,6 +19166,7 @@ rec {
         version = "0.52.6";
         edition = "2021";
         sha256 = "03gda7zjx1qh8k9nnlgb7m3w3s1xkysg55hkd1wjch8pqhyv5m94";
+        libPath = "src\\lib.rs";
         authors = [
           "Microsoft"
         ];
@@ -18405,6 +19177,7 @@ rec {
         version = "0.53.1";
         edition = "2021";
         sha256 = "1qbspgv4g3q0vygkg8rnql5c6z3caqv38japiynyivh75ng1gyhg";
+        libPath = "src\\lib.rs";
 
       };
       "windows_x86_64_msvc 0.52.6" = rec {
@@ -18412,6 +19185,7 @@ rec {
         version = "0.52.6";
         edition = "2021";
         sha256 = "1v7rb5cibyzx8vak29pdrk8nx9hycsjs4w0jgms08qk49jl6v7sq";
+        libPath = "src\\lib.rs";
         authors = [
           "Microsoft"
         ];
@@ -18422,6 +19196,7 @@ rec {
         version = "0.53.1";
         edition = "2021";
         sha256 = "0l6npq76vlq4ksn4bwsncpr8508mk0gmznm6wnhjg95d19gzzfyn";
+        libPath = "src\\lib.rs";
 
       };
       "winnow" = rec {
@@ -18429,6 +19204,7 @@ rec {
         version = "0.7.13";
         edition = "2021";
         sha256 = "1krrjc1wj2vx0r57m9nwnlc1zrhga3fq41d8w9hysvvqb5mj7811";
+        libPath = "src\\lib.rs";
         dependencies = [
           {
             name = "memchr";
@@ -18452,6 +19228,7 @@ rec {
         edition = "2021";
         sha256 = "0ngysw50gp2wrrfxbwgp6dhw1g6sckknsn3wm7l00vaf7n48aypi";
         libName = "wit_bindgen";
+        libPath = "src\\lib.rs";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -18468,6 +19245,7 @@ rec {
         version = "0.6.1";
         edition = "2021";
         sha256 = "1fx29zncvbrqzgz7li88vzdm8zvgwgwy2r9bnjqxya09pfwi0bza";
+        libPath = "src\\lib.rs";
         authors = [
           "The ICU4X Project Developers"
         ];
@@ -18480,6 +19258,7 @@ rec {
         version = "0.5.1";
         edition = "2018";
         sha256 = "1vdrfy7i2bznnzjdl9vvrzljvs4s3qm8bnlgqwln6a941gy61wq5";
+        libPath = "src\\lib.rs";
         authors = [
           "myrrlyn <self@myrrlyn.dev>"
         ];
@@ -18502,6 +19281,7 @@ rec {
         version = "1.0.1";
         edition = "2021";
         sha256 = "0jdh55jyv0dpd38ij4qh60zglbw9aa8wafqai6m0wa7xaxk3mrfg";
+        libPath = "src\\lib.rs";
         authors = [
           "Sergio Benitez <sb@sergio.bz>"
         ];
@@ -18520,6 +19300,7 @@ rec {
         version = "0.8.0";
         edition = "2021";
         sha256 = "1k4mfr48vgi7wh066y11b7v1ilakghlnlhw9snzz8vi2p00vnhaz";
+        libPath = "src\\lib.rs";
         authors = [
           "Manish Goregaokar <manishsmail@gmail.com>"
         ];
@@ -18571,6 +19352,7 @@ rec {
         sha256 = "1dha5jrjz9jaq8kmxq1aag86b98zbnm9lyjrihy5sv716sbkrniq";
         procMacro = true;
         libName = "yoke_derive";
+        libPath = "src\\lib.rs";
         authors = [
           "Manish Goregaokar <manishsmail@gmail.com>"
         ];
@@ -18600,6 +19382,7 @@ rec {
         version = "0.8.27";
         edition = "2021";
         sha256 = "0b1870gf2zzlckca69v2k4mqwmf8yh2li37qldnzvvd3by58g508";
+        libPath = "src\\lib.rs";
         authors = [
           "Joshua Liebow-Feeser <joshlf@google.com>"
           "Jack Wrenn <jswrenn@amazon.com>"
@@ -18638,6 +19421,7 @@ rec {
         sha256 = "0c9qrylm2p55dvaplxsl24ma48add9qk4y0d6kjbkllaqvcvill8";
         procMacro = true;
         libName = "zerocopy_derive";
+        libPath = "src\\lib.rs";
         authors = [
           "Joshua Liebow-Feeser <joshlf@google.com>"
           "Jack Wrenn <jswrenn@amazon.com>"
@@ -18664,6 +19448,7 @@ rec {
         version = "0.1.6";
         edition = "2021";
         sha256 = "19dyky67zkjichsb7ykhv0aqws3q0jfvzww76l66c19y6gh45k2h";
+        libPath = "src\\lib.rs";
         authors = [
           "Manish Goregaokar <manishsmail@gmail.com>"
         ];
@@ -18688,6 +19473,7 @@ rec {
         sha256 = "00l5niw7c1b0lf1vhvajpjmcnbdp2vn96jg4nmkhq2db0rp5s7np";
         procMacro = true;
         libName = "zerofrom_derive";
+        libPath = "src\\lib.rs";
         authors = [
           "Manish Goregaokar <manishsmail@gmail.com>"
         ];
@@ -18717,6 +19503,7 @@ rec {
         version = "1.8.2";
         edition = "2021";
         sha256 = "1l48zxgcv34d7kjskr610zqsm6j2b4fcr2vfh9jm9j1jgvk58wdr";
+        libPath = "src\\lib.rs";
         authors = [
           "The RustCrypto Project Developers"
         ];
@@ -18734,6 +19521,7 @@ rec {
         version = "0.2.2";
         edition = "2021";
         sha256 = "15gmka7vw5k0d24s0vxgymr2j6zn2iwl12wpmpnpjgsqg3abpw1n";
+        libPath = "src\\lib.rs";
         authors = [
           "The ICU4X Project Developers"
         ];
@@ -18772,6 +19560,7 @@ rec {
         version = "0.11.4";
         edition = "2021";
         sha256 = "0fz7j1ns8d86m2fqg2a4bzi5gnh5892bxv4kcr9apwc6a3ajpap7";
+        libPath = "src\\lib.rs";
         authors = [
           "The ICU4X Project Developers"
         ];
@@ -18818,6 +19607,7 @@ rec {
         sha256 = "13zms8hj7vzpfswypwggyfr4ckmyc7v3di49pmj8r1qcz9z275jv";
         procMacro = true;
         libName = "zerovec_derive";
+        libPath = "src\\lib.rs";
         authors = [
           "Manish Goregaokar <manishsmail@gmail.com>"
         ];

@@ -102,7 +102,7 @@ async fn get_today_marks_practice_and_lab_ready() {
     let shared_entries = Arc::new(Mutex::new(entries_map));
 
     let mut repo = MockDailyRewardRepository::new();
-    let list_entries = shared_entries.clone();
+    let list_entries = Arc::clone(&shared_entries);
     repo.expect_list_by_user_and_date()
         .once()
         .with(
@@ -122,7 +122,7 @@ async fn get_today_marks_practice_and_lab_ready() {
 
     repo.expect_upsert_entry().never();
 
-    let mark_ready_entries = shared_entries.clone();
+    let mark_ready_entries = Arc::clone(&shared_entries);
     repo.expect_mark_ready()
         .times(2)
         .returning(move |_, params: DailyRewardMarkReady| {
@@ -152,16 +152,18 @@ async fn get_today_marks_practice_and_lab_ready() {
                 last_detected_at: lab_ready_at,
                 activity_sample: Some(json!({"taskId": "lab"})),
             };
-            let mut snapshot = DailyRewardActivitySnapshot::default();
-            snapshot.practice = DailyRewardActivityState {
-                detected: Some(practice_activity),
-                pending_sample: None,
-                unavailable_reason: None,
-            };
-            snapshot.lab = DailyRewardActivityState {
-                detected: Some(lab_activity),
-                pending_sample: None,
-                unavailable_reason: None,
+            let snapshot = DailyRewardActivitySnapshot {
+                practice: DailyRewardActivityState {
+                    detected: Some(practice_activity),
+                    pending_sample: None,
+                    unavailable_reason: None,
+                },
+                lab: DailyRewardActivityState {
+                    detected: Some(lab_activity),
+                    pending_sample: None,
+                    unavailable_reason: None,
+                },
+                ..Default::default()
             };
             Box::pin(future::ready(Ok(snapshot)))
         });

@@ -19081,8 +19081,8 @@ rec {
 
         # Filter out editor backup / swap files.
         || lib.hasSuffix "~" baseName
-        || builtins.match "^\.sw[a-z]$$" baseName != null
-        || builtins.match "^\..*\.sw[a-z]$$" baseName != null
+        || builtins.match "^\\.sw[a-z]$$" baseName != null
+        || builtins.match "^\\..*\\.sw[a-z]$$" baseName != null
         || lib.hasSuffix ".tmp" baseName
         || lib.hasSuffix ".bak" baseName
         || baseName == "tests.nix"

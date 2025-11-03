@@ -5481,9 +5481,9 @@ rec {
       };
       "cc" = rec {
         crateName = "cc";
-        version = "1.2.43";
+        version = "1.2.44";
         edition = "2018";
-        sha256 = "1hpg1f1srgd5bfivvln1s3kcajdxpqvjsvd8m4y4nmap8pwv17kk";
+        sha256 = "1wxhvq65g8j0acx5pk9ckllnyhf940z4k0n35l916gdymb3illip";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -8441,9 +8441,9 @@ rec {
       };
       "ignore" = rec {
         crateName = "ignore";
-        version = "0.4.24";
+        version = "0.4.25";
         edition = "2024";
-        sha256 = "00q41xq3wri74kpjmxb60mpkpj81n4pfa0wdqby2lhv4jipnwxw1";
+        sha256 = "0jlv2s4fxqj9fsz6y015j5vbz6i475hj80j9q3sy05d0cniq5myk";
         authors = [
           "Andrew Gallant <jamslam@gmail.com>"
         ];
@@ -14868,9 +14868,9 @@ rec {
       };
       "tokio-util" = rec {
         crateName = "tokio-util";
-        version = "0.7.16";
+        version = "0.7.17";
         edition = "2021";
-        sha256 = "1r9wdrg1k5hna3m0kc8kcb8jdb6n52g7vnw93kw2xxw4cyc7qc0l";
+        sha256 = "152m2rp40bjphca5j581csczarvvr974zvwpzpldcwv0wygi9yif";
         libName = "tokio_util";
         authors = [
           "Tokio Contributors <team@tokio.rs>"
@@ -15602,9 +15602,9 @@ rec {
       };
       "unicode-normalization" = rec {
         crateName = "unicode-normalization";
-        version = "0.1.24";
+        version = "0.1.25";
         edition = "2018";
-        sha256 = "0mnrk809z3ix1wspcqy97ld5wxdb31f3xz6nsvg5qcv289ycjcsh";
+        sha256 = "1s76dcrxw7vs32yhpi0p074apdc3s7lak7809f3qvclwij3zdm2z";
         libName = "unicode_normalization";
         authors = [
           "kwantam <kwantam@gmail.com>"
@@ -15624,9 +15624,9 @@ rec {
       };
       "unicode-properties" = rec {
         crateName = "unicode-properties";
-        version = "0.1.3";
+        version = "0.1.4";
         edition = "2021";
-        sha256 = "1l3mbgzwz8g14xcs09p4ww3hjkjcf0i1ih13nsg72bhj8n5jl3z7";
+        sha256 = "07fpm3sqq7lm9gmgpxa93z31q933h3c3ypfwy4cdh6l42g3miw3x";
         libName = "unicode_properties";
         authors = [
           "Charles Lew <crlf0710@gmail.com>"
@@ -16775,9 +16775,9 @@ rec {
       };
       "webpki-roots" = rec {
         crateName = "webpki-roots";
-        version = "1.0.3";
+        version = "1.0.4";
         edition = "2021";
-        sha256 = "1f49w0s7f3fgczvjri179wh2a9g8jpkmdi5bi5l8p7ylsb031c9j";
+        sha256 = "07jp2zgj3hjb60m1nwrasixdwazmzhh9y4bryy66wz6457q8x1xj";
         libName = "webpki_roots";
         dependencies = [
           {

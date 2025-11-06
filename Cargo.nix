@@ -11150,9 +11150,9 @@ rec {
       };
       "quote" = rec {
         crateName = "quote";
-        version = "1.0.41";
+        version = "1.0.42";
         edition = "2018";
-        sha256 = "1lg108nb57lwbqlnpsii89cchk6i8pkcvrv88xh1p7a9gdz7c9ff";
+        sha256 = "0zq6yc7dhpap669m27rb4qfbiywxfah17z6fwvfccv3ys90wqf53";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];

@@ -8600,9 +8600,9 @@ rec {
       };
       "iri-string" = rec {
         crateName = "iri-string";
-        version = "0.7.8";
+        version = "0.7.9";
         edition = "2021";
-        sha256 = "1cl0wfq97wq4s1p4dl0ix5cfgsc5fn7l22ljgw9ab9x1qglypifv";
+        sha256 = "15s3s6k99ci52d7qdplhllpa6xyvdyiys645n6z6fsw93nfpp1jg";
         libName = "iri_string";
         authors = [
           "YOSHIOKA Takuma <nop_thread@nops.red>"
@@ -12550,9 +12550,9 @@ rec {
       };
       "rustls" = rec {
         crateName = "rustls";
-        version = "0.23.34";
+        version = "0.23.35";
         edition = "2021";
-        sha256 = "19vzmdybp5rlgr0bjb4fykp28w2d6fkqq150aamqykrbxvlqd5ba";
+        sha256 = "13xxk2qqchibd7pr0laqq6pzayx9xm4rb45d8rz68kvxday58gsk";
         dependencies = [
           {
             name = "log";

@@ -5481,9 +5481,9 @@ rec {
       };
       "cc" = rec {
         crateName = "cc";
-        version = "1.2.44";
+        version = "1.2.45";
         edition = "2018";
-        sha256 = "1wxhvq65g8j0acx5pk9ckllnyhf940z4k0n35l916gdymb3illip";
+        sha256 = "1ziazvka63d434b4wdhvn3wc5vm9x9xf46k7akcb37vhimn0p41m";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -12617,25 +12617,6 @@ rec {
         };
         resolvedDefaultFeatures = [ "log" "logging" "ring" "std" "tls12" ];
       };
-      "rustls-pemfile" = rec {
-        crateName = "rustls-pemfile";
-        version = "2.2.0";
-        edition = "2018";
-        sha256 = "0l3f3mrfkgdjrava7ibwzgwc4h3dljw3pdkbsi9rkwz3zvji9qyw";
-        libName = "rustls_pemfile";
-        dependencies = [
-          {
-            name = "rustls-pki-types";
-            packageId = "rustls-pki-types";
-            rename = "pki-types";
-          }
-        ];
-        features = {
-          "default" = [ "std" ];
-          "std" = [ "pki-types/std" ];
-        };
-        resolvedDefaultFeatures = [ "std" ];
-      };
       "rustls-pki-types" = rec {
         crateName = "rustls-pki-types";
         version = "1.13.0";
@@ -15695,9 +15676,9 @@ rec {
       };
       "ureq" = rec {
         crateName = "ureq";
-        version = "3.1.2";
+        version = "3.1.4";
         edition = "2018";
-        sha256 = "0dv5yhcl3g96vax2b8xinks28kzbkf78d35lx71kyjlay4ji1flr";
+        sha256 = "0njqfnfqbahady0357va33cqn64yq7x2yff0fylq4bb9mgdv376k";
         authors = [
           "Martin Algesten <martin@algesten.se>"
           "Jacob Hoffman-Andrews <ureq@hoffman-andrews.com>"
@@ -15721,13 +15702,6 @@ rec {
             optional = true;
             usesDefaultFeatures = false;
             features = [ "logging" "std" "tls12" ];
-          }
-          {
-            name = "rustls-pemfile";
-            packageId = "rustls-pemfile";
-            optional = true;
-            usesDefaultFeatures = false;
-            features = [ "std" ];
           }
           {
             name = "rustls-pki-types";
@@ -15763,7 +15737,7 @@ rec {
         features = {
           "_doc" = [ "rustls?/aws-lc-rs" ];
           "_ring" = [ "rustls?/ring" ];
-          "_tls" = [ "dep:rustls-pemfile" "dep:rustls-pki-types" ];
+          "_tls" = [ "dep:rustls-pki-types" ];
           "_url" = [ "dep:url" ];
           "brotli" = [ "dep:brotli-decompressor" ];
           "charset" = [ "dep:encoding_rs" ];
@@ -15771,6 +15745,7 @@ rec {
           "default" = [ "rustls" "gzip" ];
           "gzip" = [ "dep:flate2" ];
           "json" = [ "dep:serde" "dep:serde_json" "cookie_store?/serde_json" ];
+          "multipart" = [ "dep:mime_guess" "dep:getrandom" ];
           "native-tls" = [ "dep:native-tls" "dep:der" "_tls" "dep:webpki-root-certs" ];
           "platform-verifier" = [ "dep:rustls-platform-verifier" ];
           "rustls" = [ "rustls-no-provider" "_ring" ];

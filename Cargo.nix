@@ -6211,9 +6211,9 @@ rec {
       };
       "crypto-common" = rec {
         crateName = "crypto-common";
-        version = "0.1.6";
+        version = "0.1.7";
         edition = "2018";
-        sha256 = "1cvby95a6xg7kxdz5ln3rl9xh66nz66w46mm3g56ri1z5x815yqv";
+        sha256 = "02nn2rhfy7kvdkdjl457q2z0mklcvj9h662xrq6dzhfialh2kj3q";
         libName = "crypto_common";
         authors = [
           "RustCrypto Developers"
@@ -7004,9 +7004,9 @@ rec {
       };
       "generic-array" = rec {
         crateName = "generic-array";
-        version = "0.14.9";
+        version = "0.14.7";
         edition = "2015";
-        sha256 = "1wpdn5ngpqkkyyibbg7wa4cfg0y8zjc57spaia2h47jkk0qp9djb";
+        sha256 = "16lyyrzrljfq424c3n8kfwkqihlimmsg5nhshbbp48np3yjrqr45";
         libName = "generic_array";
         authors = [
           "Bartłomiej Kamiński <fizyk20@gmail.com>"
@@ -7701,9 +7701,9 @@ rec {
       };
       "hyper" = rec {
         crateName = "hyper";
-        version = "1.7.0";
+        version = "1.8.0";
         edition = "2021";
-        sha256 = "07n59pxzlq621z611cbpvh7p4h9h15v0r7m5wgxygpx02d5aafpb";
+        sha256 = "17yn1c1mjpwarmqw3wfqcpdallx4mfp25niymwsxw2vgyinl6i0p";
         authors = [
           "Sean McArthur <sean@seanmonstar.com>"
         ];
@@ -10878,9 +10878,9 @@ rec {
       };
       "quick-xml" = rec {
         crateName = "quick-xml";
-        version = "0.38.3";
+        version = "0.38.4";
         edition = "2021";
-        sha256 = "12bvsbnnmlnq9xg9in3h3080ag3sisafgpcn7lqyzhkz93kk58j2";
+        sha256 = "0772siy4d9vlq77842012c8cycs3y0szxkv62rh9sh2sqmc20v5n";
         libName = "quick_xml";
         dependencies = [
           {

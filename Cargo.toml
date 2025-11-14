@@ -96,7 +96,7 @@ academy_utils_derive.path = "academy_utils_derive"
 
 anyhow = { version = "1.0.100", default-features = false, features = ["std"] }
 argon2 = { version = "0.5.3", default-features = false, features = ["std", "password-hash"] }
-axum = { version = "0.8.6", default-features = false, features = [
+axum = { version = "0.8.7", default-features = false, features = [
   "http1",
   "http2",
   "tokio",
@@ -106,7 +106,7 @@ axum = { version = "0.8.6", default-features = false, features = [
   "original-uri",
   "matched-path",
 ] }
-axum-extra = { version = "0.10.3", default-features = false, features = ["typed-header"] }
+axum-extra = { version = "0.12.2", default-features = false, features = ["typed-header"] }
 base32 = { version = "0.5.1", default-features = false }
 base64 = { version = "0.22.1", default-features = false }
 chrono = { version = "0.4.42", default-features = false, features = ["serde", "clock"] }

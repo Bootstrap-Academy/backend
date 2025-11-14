@@ -955,7 +955,7 @@ rec {
           }
           {
             name = "axum-extra";
-            packageId = "axum-extra";
+            packageId = "axum-extra 0.12.2";
             usesDefaultFeatures = false;
             features = [ "typed-header" ];
           }
@@ -3940,7 +3940,7 @@ rec {
           }
           {
             name = "axum-extra";
-            packageId = "axum-extra";
+            packageId = "axum-extra 0.12.2";
             usesDefaultFeatures = false;
             features = [ "typed-header" ];
           }
@@ -4233,7 +4233,7 @@ rec {
           }
           {
             name = "axum-extra";
-            packageId = "axum-extra";
+            packageId = "axum-extra 0.10.3";
             optional = true;
           }
           {
@@ -4636,9 +4636,9 @@ rec {
       };
       "axum" = rec {
         crateName = "axum";
-        version = "0.8.6";
+        version = "0.8.7";
         edition = "2021";
-        sha256 = "0w9qyxcp77gwswc9sz3pf2rzpm4jycpxvd70yh8i60sjccrys64a";
+        sha256 = "09fl42x9j3h2kgw9ddznpvnl8vhscd4jgwy79z8vcz77xdsqa2av";
         dependencies = [
           {
             name = "axum-core";
@@ -4864,7 +4864,7 @@ rec {
         };
         resolvedDefaultFeatures = [ "tracing" ];
       };
-      "axum-extra" = rec {
+      "axum-extra 0.10.3" = rec {
         crateName = "axum-extra";
         version = "0.10.3";
         edition = "2021";
@@ -4890,11 +4890,6 @@ rec {
             packageId = "futures-util";
             usesDefaultFeatures = false;
             features = [ "alloc" ];
-          }
-          {
-            name = "headers";
-            packageId = "headers";
-            optional = true;
           }
           {
             name = "http";
@@ -4961,7 +4956,96 @@ rec {
           "typed-header" = [ "dep:headers" ];
           "typed-routing" = [ "dep:axum-macros" "dep:percent-encoding" "dep:serde_html_form" "dep:form_urlencoded" ];
         };
-        resolvedDefaultFeatures = [ "default" "tracing" "typed-header" ];
+        resolvedDefaultFeatures = [ "default" "tracing" ];
+      };
+      "axum-extra 0.12.2" = rec {
+        crateName = "axum-extra";
+        version = "0.12.2";
+        edition = "2021";
+        sha256 = "06yj7nqz6cgpbr3q0kbizqbcca1wqvwcq0ydrzq9rsg41xhrzznv";
+        libName = "axum_extra";
+        dependencies = [
+          {
+            name = "axum-core";
+            packageId = "axum-core";
+          }
+          {
+            name = "bytes";
+            packageId = "bytes";
+          }
+          {
+            name = "futures-core";
+            packageId = "futures-core";
+          }
+          {
+            name = "futures-util";
+            packageId = "futures-util";
+            usesDefaultFeatures = false;
+            features = [ "alloc" ];
+          }
+          {
+            name = "headers";
+            packageId = "headers";
+            optional = true;
+          }
+          {
+            name = "http";
+            packageId = "http";
+          }
+          {
+            name = "http-body";
+            packageId = "http-body";
+          }
+          {
+            name = "http-body-util";
+            packageId = "http-body-util";
+          }
+          {
+            name = "mime";
+            packageId = "mime";
+          }
+          {
+            name = "pin-project-lite";
+            packageId = "pin-project-lite";
+          }
+          {
+            name = "tower-layer";
+            packageId = "tower-layer";
+          }
+          {
+            name = "tower-service";
+            packageId = "tower-service";
+          }
+        ];
+        features = {
+          "__private_docs" = [ "axum/json" "dep:serde" "dep:tower" ];
+          "async-read-body" = [ "dep:tokio-util" "tokio-util?/io" "dep:tokio" ];
+          "attachment" = [ "dep:tracing" ];
+          "cached" = [ "dep:axum" ];
+          "cookie" = [ "dep:cookie" ];
+          "cookie-key-expansion" = [ "cookie" "cookie?/key-expansion" ];
+          "cookie-private" = [ "cookie" "cookie?/private" ];
+          "cookie-signed" = [ "cookie" "cookie?/signed" ];
+          "default" = [ "tracing" ];
+          "erased-json" = [ "dep:serde_core" "dep:serde_json" "dep:typed-json" ];
+          "error-response" = [ "dep:tracing" "tracing/std" ];
+          "file-stream" = [ "dep:tokio-util" "tokio-util?/io" "dep:tokio" "tokio?/fs" "tokio?/io-util" ];
+          "form" = [ "dep:axum" "dep:form_urlencoded" "dep:serde_core" "dep:serde_html_form" "dep:serde_path_to_error" ];
+          "handler" = [ "dep:axum" ];
+          "json-deserializer" = [ "dep:serde_core" "dep:serde_json" "dep:serde_path_to_error" ];
+          "json-lines" = [ "dep:serde_core" "dep:serde_json" "dep:tokio-util" "dep:tokio-stream" "tokio-util?/io" "tokio-stream?/io-util" "dep:tokio" ];
+          "middleware" = [ "dep:axum" ];
+          "multipart" = [ "dep:multer" "dep:fastrand" ];
+          "optional-path" = [ "dep:axum" "dep:serde_core" ];
+          "protobuf" = [ "dep:prost" ];
+          "query" = [ "dep:form_urlencoded" "dep:serde_core" "dep:serde_html_form" "dep:serde_path_to_error" ];
+          "routing" = [ "axum/original-uri" "dep:rustversion" ];
+          "tracing" = [ "axum-core/tracing" "axum/tracing" "dep:tracing" ];
+          "typed-header" = [ "dep:headers" ];
+          "typed-routing" = [ "dep:axum-macros" "dep:percent-encoding" "dep:serde_core" "dep:serde_html_form" "dep:form_urlencoded" ];
+          "with-rejection" = [ "dep:axum" ];
+        };
+        resolvedDefaultFeatures = [ "typed-header" ];
       };
       "backtrace" = rec {
         crateName = "backtrace";

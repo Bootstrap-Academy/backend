@@ -15,6 +15,26 @@ from = "Bootstrap Academy DEV <dev@bootstrap.academy>"
 [jwt]
 secret = "changeme"
 
+[daily_rewards]
+enable = true
+cache_ttl = "5m"
+
+[daily_rewards.coins]
+arrival = 20
+lecture = 20
+practice = 10
+lab = 30
+
+[daily_rewards.activity_sources.skills]
+dsn = "postgres://academy@127.0.0.1:5432/academy-skills"
+
+[daily_rewards.activity_sources.challenges]
+dsn = "postgres://academy@127.0.0.1:5432/academy-challenges"
+
+[daily_rewards.recommendations.skills]
+base_url = "http://127.0.0.1:8001/"
+timeout = "5s"
+
 [session]
 access_token_ttl = "1d"
 

@@ -11,8 +11,8 @@ use bb8_postgres::{
 };
 use ouroboros::self_referencing;
 use tracing::trace;
-
 pub mod coin;
+pub mod daily_rewards;
 pub mod heart;
 pub mod mfa;
 pub mod oauth2;
@@ -20,7 +20,6 @@ pub mod paypal;
 pub mod premium;
 pub mod session;
 pub mod user;
-
 type PgClient = tokio_postgres::Client;
 type PgPooledConnection = PooledConnection<'static, PostgresConnectionManager<NoTls>>;
 type PgTransaction<'a> = tokio_postgres::Transaction<'a>;

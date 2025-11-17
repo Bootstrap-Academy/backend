@@ -177,6 +177,26 @@ rec {
       # File a bug if you depend on any for non-debug work!
       debug = internal.debugCrate { inherit packageId; };
     };
+    "academy_core_daily_rewards_contracts" = rec {
+      packageId = "academy_core_daily_rewards_contracts";
+      build = internal.buildRustCrateWithFeatures {
+        packageId = "academy_core_daily_rewards_contracts";
+      };
+
+      # Debug support which might change between releases.
+      # File a bug if you depend on any for non-debug work!
+      debug = internal.debugCrate { inherit packageId; };
+    };
+    "academy_core_daily_rewards_impl" = rec {
+      packageId = "academy_core_daily_rewards_impl";
+      build = internal.buildRustCrateWithFeatures {
+        packageId = "academy_core_daily_rewards_impl";
+      };
+
+      # Debug support which might change between releases.
+      # File a bug if you depend on any for non-debug work!
+      debug = internal.debugCrate { inherit packageId; };
+    };
     "academy_core_finance_contracts" = rec {
       packageId = "academy_core_finance_contracts";
       build = internal.buildRustCrateWithFeatures {
@@ -643,6 +663,10 @@ rec {
             packageId = "academy_core_contact_impl";
           }
           {
+            name = "academy_core_daily_rewards_impl";
+            packageId = "academy_core_daily_rewards_impl";
+          }
+          {
             name = "academy_core_finance_contracts";
             packageId = "academy_core_finance_contracts";
           }
@@ -884,6 +908,10 @@ rec {
             packageId = "academy_core_contact_contracts";
           }
           {
+            name = "academy_core_daily_rewards_contracts";
+            packageId = "academy_core_daily_rewards_contracts";
+          }
+          {
             name = "academy_core_finance_contracts";
             packageId = "academy_core_finance_contracts";
           }
@@ -965,6 +993,12 @@ rec {
             usesDefaultFeatures = false;
           }
           {
+            name = "chrono";
+            packageId = "chrono";
+            usesDefaultFeatures = false;
+            features = [ "serde" "clock" ];
+          }
+          {
             name = "futures";
             packageId = "futures";
             usesDefaultFeatures = false;
@@ -984,7 +1018,7 @@ rec {
             name = "schemars";
             packageId = "schemars";
             usesDefaultFeatures = false;
-            features = [ "derive" "preserve_order" "uuid1" "url2" ];
+            features = [ "chrono04" "derive" "preserve_order" "uuid1" "url2" ];
           }
           {
             name = "serde";
@@ -1588,6 +1622,219 @@ rec {
             name = "academy_shared_contracts";
             packageId = "academy_shared_contracts";
             features = [ "mock" ];
+          }
+          {
+            name = "tokio";
+            packageId = "tokio";
+            usesDefaultFeatures = false;
+            features = [ "rt-multi-thread" "macros" "sync" "fs" "process" ];
+          }
+        ];
+
+      };
+      "academy_core_daily_rewards_contracts" = rec {
+        crateName = "academy_core_daily_rewards_contracts";
+        version = "0.0.0";
+        edition = "2024";
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/daily_rewards/contracts; };
+        dependencies = [
+          {
+            name = "academy_models";
+            packageId = "academy_models";
+          }
+          {
+            name = "anyhow";
+            packageId = "anyhow";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "chrono";
+            packageId = "chrono";
+            usesDefaultFeatures = false;
+            features = [ "serde" "clock" ];
+          }
+          {
+            name = "mockall";
+            packageId = "mockall";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "schemars";
+            packageId = "schemars";
+            usesDefaultFeatures = false;
+            features = [ "chrono04" "derive" "preserve_order" "uuid1" "url2" ];
+          }
+          {
+            name = "serde";
+            packageId = "serde";
+            usesDefaultFeatures = false;
+            features = [ "derive" "std" ];
+          }
+          {
+            name = "serde_json";
+            packageId = "serde_json";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "thiserror";
+            packageId = "thiserror 2.0.17";
+            usesDefaultFeatures = false;
+          }
+        ];
+        features = {
+          "mock" = [ "dep:mockall" ];
+        };
+        resolvedDefaultFeatures = [ "mock" ];
+      };
+      "academy_core_daily_rewards_impl" = rec {
+        crateName = "academy_core_daily_rewards_impl";
+        version = "0.0.0";
+        edition = "2024";
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/daily_rewards/impl; };
+        dependencies = [
+          {
+            name = "academy_auth_contracts";
+            packageId = "academy_auth_contracts";
+          }
+          {
+            name = "academy_cache_contracts";
+            packageId = "academy_cache_contracts";
+          }
+          {
+            name = "academy_core_coin_contracts";
+            packageId = "academy_core_coin_contracts";
+          }
+          {
+            name = "academy_core_daily_rewards_contracts";
+            packageId = "academy_core_daily_rewards_contracts";
+          }
+          {
+            name = "academy_di";
+            packageId = "academy_di";
+          }
+          {
+            name = "academy_models";
+            packageId = "academy_models";
+          }
+          {
+            name = "academy_persistence_contracts";
+            packageId = "academy_persistence_contracts";
+          }
+          {
+            name = "academy_shared_contracts";
+            packageId = "academy_shared_contracts";
+          }
+          {
+            name = "academy_utils";
+            packageId = "academy_utils";
+          }
+          {
+            name = "anyhow";
+            packageId = "anyhow";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "bb8";
+            packageId = "bb8";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "bb8-postgres";
+            packageId = "bb8-postgres";
+            usesDefaultFeatures = false;
+            features = [ "with-chrono-0_4" "with-uuid-1" "with-serde_json-1" ];
+          }
+          {
+            name = "chrono";
+            packageId = "chrono";
+            usesDefaultFeatures = false;
+            features = [ "serde" "clock" ];
+          }
+          {
+            name = "reqwest";
+            packageId = "reqwest";
+            usesDefaultFeatures = false;
+            features = [ "http2" "rustls-tls" "json" ];
+          }
+          {
+            name = "serde";
+            packageId = "serde";
+            usesDefaultFeatures = false;
+            features = [ "derive" "std" ];
+          }
+          {
+            name = "serde_json";
+            packageId = "serde_json";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "tokio-postgres";
+            packageId = "tokio-postgres";
+            features = [ "with-chrono-0_4" "with-uuid-1" "with-serde_json-1" ];
+          }
+          {
+            name = "tracing";
+            packageId = "tracing";
+            usesDefaultFeatures = false;
+            features = [ "attributes" ];
+          }
+          {
+            name = "uuid";
+            packageId = "uuid";
+            usesDefaultFeatures = false;
+            features = [ "v4" "v7" "serde" ];
+          }
+        ];
+        devDependencies = [
+          {
+            name = "academy_auth_contracts";
+            packageId = "academy_auth_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_cache_contracts";
+            packageId = "academy_cache_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_core_coin_contracts";
+            packageId = "academy_core_coin_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_core_daily_rewards_contracts";
+            packageId = "academy_core_daily_rewards_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_models";
+            packageId = "academy_models";
+          }
+          {
+            name = "academy_persistence_contracts";
+            packageId = "academy_persistence_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_shared_contracts";
+            packageId = "academy_shared_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "mockall";
+            packageId = "mockall";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "serde_json";
+            packageId = "serde_json";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
           }
           {
             name = "tokio";
@@ -3362,6 +3609,12 @@ rec {
             features = [ "std" "regex" "serde" "schemars08" ];
           }
           {
+            name = "postgres-types";
+            packageId = "postgres-types";
+            usesDefaultFeatures = false;
+            features = [ "derive" ];
+          }
+          {
             name = "regex";
             packageId = "regex";
             usesDefaultFeatures = false;
@@ -3370,13 +3623,19 @@ rec {
             name = "schemars";
             packageId = "schemars";
             usesDefaultFeatures = false;
-            features = [ "derive" "preserve_order" "uuid1" "url2" ];
+            features = [ "chrono04" "derive" "preserve_order" "uuid1" "url2" ];
           }
           {
             name = "serde";
             packageId = "serde";
             usesDefaultFeatures = false;
             features = [ "derive" "std" ];
+          }
+          {
+            name = "serde_json";
+            packageId = "serde_json";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
           }
           {
             name = "thiserror";
@@ -3394,14 +3653,6 @@ rec {
             packageId = "uuid";
             usesDefaultFeatures = false;
             features = [ "v4" "v7" "serde" ];
-          }
-        ];
-        devDependencies = [
-          {
-            name = "serde_json";
-            packageId = "serde_json";
-            usesDefaultFeatures = false;
-            features = [ "std" ];
           }
         ];
 
@@ -3441,9 +3692,21 @@ rec {
             usesDefaultFeatures = false;
           }
           {
+            name = "serde_json";
+            packageId = "serde_json";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
             name = "thiserror";
             packageId = "thiserror 2.0.17";
             usesDefaultFeatures = false;
+          }
+          {
+            name = "uuid";
+            packageId = "uuid";
+            usesDefaultFeatures = false;
+            features = [ "v4" "v7" "serde" ];
           }
         ];
         features = {
@@ -3488,7 +3751,7 @@ rec {
             name = "bb8-postgres";
             packageId = "bb8-postgres";
             usesDefaultFeatures = false;
-            features = [ "with-chrono-0_4" "with-uuid-1" ];
+            features = [ "with-chrono-0_4" "with-uuid-1" "with-serde_json-1" ];
           }
           {
             name = "chrono";
@@ -3510,6 +3773,24 @@ rec {
             name = "ouroboros";
             packageId = "ouroboros";
             usesDefaultFeatures = false;
+          }
+          {
+            name = "postgres-types";
+            packageId = "postgres-types";
+            usesDefaultFeatures = false;
+            features = [ "derive" "with-serde_json-1" "with-chrono-0_4" "with-uuid-1" ];
+          }
+          {
+            name = "serde_json";
+            packageId = "serde_json";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "tokio-postgres";
+            packageId = "tokio-postgres";
+            usesDefaultFeatures = false;
+            features = [ "with-chrono-0_4" "with-uuid-1" "with-serde_json-1" ];
           }
           {
             name = "tracing";
@@ -5232,7 +5513,7 @@ rec {
           "with-uuid-0_8" = [ "tokio-postgres/with-uuid-0_8" ];
           "with-uuid-1" = [ "tokio-postgres/with-uuid-1" ];
         };
-        resolvedDefaultFeatures = [ "with-chrono-0_4" "with-uuid-1" ];
+        resolvedDefaultFeatures = [ "with-chrono-0_4" "with-serde_json-1" "with-uuid-1" ];
       };
       "bb8-redis" = rec {
         crateName = "bb8-redis";
@@ -12001,6 +12282,18 @@ rec {
             packageId = "postgres-protocol";
           }
           {
+            name = "serde_core";
+            packageId = "serde_core";
+            rename = "serde-1";
+            optional = true;
+          }
+          {
+            name = "serde_json";
+            packageId = "serde_json";
+            rename = "serde_json-1";
+            optional = true;
+          }
+          {
             name = "uuid";
             packageId = "uuid";
             rename = "uuid-1";
@@ -12051,7 +12344,7 @@ rec {
           "with-uuid-0_8" = [ "uuid-08" ];
           "with-uuid-1" = [ "uuid-1" ];
         };
-        resolvedDefaultFeatures = [ "chrono-04" "derive" "postgres-derive" "uuid-1" "with-chrono-0_4" "with-uuid-1" ];
+        resolvedDefaultFeatures = [ "chrono-04" "derive" "postgres-derive" "serde-1" "serde_json-1" "uuid-1" "with-chrono-0_4" "with-serde_json-1" "with-uuid-1" ];
       };
       "potential_utf" = rec {
         crateName = "potential_utf";
@@ -14174,6 +14467,13 @@ rec {
         ];
         dependencies = [
           {
+            name = "chrono";
+            packageId = "chrono";
+            rename = "chrono04";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+          {
             name = "dyn-clone";
             packageId = "dyn-clone";
           }
@@ -14222,6 +14522,13 @@ rec {
         ];
         devDependencies = [
           {
+            name = "chrono";
+            packageId = "chrono";
+            rename = "chrono04";
+            usesDefaultFeatures = false;
+            features = [ "serde" ];
+          }
+          {
             name = "indexmap";
             packageId = "indexmap";
             rename = "indexmap2";
@@ -14268,7 +14575,7 @@ rec {
           "url2" = [ "dep:url2" ];
           "uuid1" = [ "dep:uuid1" ];
         };
-        resolvedDefaultFeatures = [ "default" "derive" "indexmap2" "preserve_order" "schemars_derive" "std" "url2" "uuid1" ];
+        resolvedDefaultFeatures = [ "chrono04" "default" "derive" "indexmap2" "preserve_order" "schemars_derive" "std" "url2" "uuid1" ];
       };
       "schemars_derive" = rec {
         crateName = "schemars_derive";
@@ -16249,7 +16556,7 @@ rec {
           "with-uuid-0_8" = [ "postgres-types/with-uuid-0_8" ];
           "with-uuid-1" = [ "postgres-types/with-uuid-1" ];
         };
-        resolvedDefaultFeatures = [ "default" "runtime" "with-chrono-0_4" "with-uuid-1" ];
+        resolvedDefaultFeatures = [ "default" "runtime" "with-chrono-0_4" "with-serde_json-1" "with-uuid-1" ];
       };
       "tokio-rustls" = rec {
         crateName = "tokio-rustls";

@@ -8,6 +8,10 @@ use academy_cache_valkey::ValkeyCache;
 use academy_core_coin_impl::{CoinFeatureServiceImpl, coin::CoinServiceImpl};
 use academy_core_config_impl::ConfigFeatureServiceImpl;
 use academy_core_contact_impl::ContactFeatureServiceImpl;
+use academy_core_daily_rewards_impl::{
+    DailyRewardActivityServiceImpl,
+    DailyRewardFeatureServiceImpl as CoreDailyRewardFeatureServiceImpl,
+};
 use academy_core_finance_impl::{
     FinanceFeatureServiceImpl, coin::FinanceCoinServiceImpl, invoice::FinanceInvoiceServiceImpl,
 };
@@ -42,10 +46,10 @@ use academy_extern_impl::{
     render::RenderApiServiceImpl, vat::VatApiServiceImpl,
 };
 use academy_persistence_postgres::{
-    PostgresDatabase, coin::PostgresCoinRepository, heart::PostgresHeartRepository,
-    mfa::PostgresMfaRepository, oauth2::PostgresOAuth2Repository, paypal::PostgresPaypalRepository,
-    premium::PostgresPremiumRepository, session::PostgresSessionRepository,
-    user::PostgresUserRepository,
+    PostgresDatabase, coin::PostgresCoinRepository, daily_rewards::PostgresDailyRewardRepository,
+    heart::PostgresHeartRepository, mfa::PostgresMfaRepository, oauth2::PostgresOAuth2Repository,
+    paypal::PostgresPaypalRepository, premium::PostgresPremiumRepository,
+    session::PostgresSessionRepository, user::PostgresUserRepository,
 };
 use academy_shared_impl::{
     captcha::CaptchaServiceImpl, fs::FsServiceImpl, hash::HashServiceImpl, id::IdServiceImpl,
@@ -64,6 +68,7 @@ pub type RestServer = academy_api_rest::RestServer<
     MfaFeature,
     OAuth2Feature,
     CoinFeature,
+    DailyRewardFeature,
     PaypalFeature,
     FinanceFeature,
     HeartFeature,
@@ -111,6 +116,7 @@ pub type CoinRepo = PostgresCoinRepository;
 pub type PaypalRepo = PostgresPaypalRepository;
 pub type HeartRepo = PostgresHeartRepository;
 pub type PremiumRepo = PostgresPremiumRepository;
+pub type DailyRewardRepo = PostgresDailyRewardRepository;
 
 // Auth
 pub type Auth =
@@ -230,5 +236,17 @@ pub type PremiumFeature = PremiumFeatureServiceImpl<
 pub type PremiumPlan = PremiumPlanServiceImpl;
 pub type Premium = PremiumServiceImpl<Time, PremiumPurchase, PremiumRepo>;
 pub type PremiumPurchase = PremiumPurchaseServiceImpl<Id, Time, Coin, PremiumPlan, PremiumRepo>;
+
+pub type DailyRewardFeature = CoreDailyRewardFeatureServiceImpl<
+    Database,
+    Auth,
+    DailyRewardRepo,
+    Coin,
+    Cache,
+    DailyRewardActivity,
+    Id,
+    Time,
+>;
+pub type DailyRewardActivity = DailyRewardActivityServiceImpl;
 
 pub type Internal = InternalServiceImpl<Database, AuthInternal, UserRepo, Coin, Heart, Premium>;

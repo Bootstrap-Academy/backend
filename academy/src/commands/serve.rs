@@ -8,7 +8,10 @@ use tracing::{info, warn};
 
 use crate::{
     cache, database, email,
-    environment::{ConfigProvider, Provider, types::RestServer},
+    environment::{
+        ConfigProvider, Provider,
+        types::{DailyRewardActivity, RestServer},
+    },
 };
 
 pub async fn serve(config: Config) -> anyhow::Result<()> {
@@ -55,7 +58,21 @@ pub async fn serve(config: Config) -> anyhow::Result<()> {
     email.ping().await?;
 
     let config_provider = ConfigProvider::new(&config)?;
-    let mut provider = Provider::new(config_provider, database, cache, email);
+    let activity_configs = config_provider.daily_reward_activity_configs();
+    let daily_reward_activity = DailyRewardActivity::new(
+        activity_configs.skills,
+        activity_configs.challenges,
+        activity_configs.skills_recommendations,
+    )
+    .await?;
+
+    let mut provider = Provider::new(
+        config_provider,
+        database,
+        cache,
+        email,
+        daily_reward_activity,
+    );
 
     let server: RestServer = provider.provide();
     server.serve().await

@@ -28,6 +28,20 @@ max_lifetime = "30m"
 # secret = ""
 download_token_ttl = "10m"
 
+[daily_rewards]
+enable = true
+cache_ttl = "5m"
+
+[daily_rewards.coins]
+arrival = 20
+lecture = 20
+practice = 10
+lab = 30
+
+[daily_rewards.recommendations.skills]
+base_url = "http://127.0.0.1:8001/"
+timeout = "5s"
+
 [internal]
 jwt_ttl = "10s"
 

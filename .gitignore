@@ -9,3 +9,6 @@ repl-result-*
 .invoices
 .credit_notes
 .nixos-test-history
+/.tmp/
+.idea/
+dump.rdb

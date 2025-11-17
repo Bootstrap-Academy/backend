@@ -2,8 +2,13 @@ use std::{collections::HashMap, sync::Arc};
 
 use academy_api_rest::{RestServerConfig, RestServerRealIpConfig};
 use academy_auth_impl::AuthServiceConfig;
-use academy_config::Config;
+use academy_config::{Config, DailyRewardsPostgresConfig, DailyRewardsSkillsRecommendationsConfig};
 use academy_core_contact_impl::ContactFeatureConfig;
+use academy_core_daily_rewards_impl::{
+    ChallengesActivityConfig, DailyRewardActivityServiceImpl,
+    DailyRewardCoinsConfig as CoreDailyRewardCoinsConfig, DailyRewardFeatureConfig,
+    SkillsActivityConfig, SkillsRecommendationConfig,
+};
 use academy_core_finance_impl::FinanceFeatureConfig;
 use academy_core_health_impl::HealthFeatureConfig;
 use academy_core_heart_impl::HeartFeatureConfig;
@@ -24,9 +29,16 @@ use academy_shared_impl::{
     totp::TotpServiceConfig,
 };
 use anyhow::Context;
-use types::{Cache, Database, Email};
+use types::{Cache, DailyRewardActivity, Database, Email};
 
 pub mod types;
+
+#[derive(Debug, Clone)]
+pub struct DailyRewardActivityConfigs {
+    pub skills: Option<SkillsActivityConfig>,
+    pub challenges: Option<ChallengesActivityConfig>,
+    pub skills_recommendations: Option<SkillsRecommendationConfig>,
+}
 
 provider! {
     /// The default provider, capable of providing all the dependencies
@@ -34,6 +46,7 @@ provider! {
         database: Database,
         cache: Cache,
         email: Email,
+        daily_reward_activity: DailyRewardActivity,
         ..config: ConfigProvider {
             // API
             RestServerConfig,
@@ -60,19 +73,28 @@ provider! {
             UserFeatureConfig,
             PaypalFeatureConfig,
             FinanceFeatureConfig,
+            DailyRewardFeatureConfig,
             HeartFeatureConfig,
             PremiumFeatureConfig,
+            DailyRewardActivityConfigs,
         }
     }
 }
 
 impl Provider {
-    pub fn new(config: ConfigProvider, database: Database, cache: Cache, email: Email) -> Self {
+    pub fn new(
+        config: ConfigProvider,
+        database: Database,
+        cache: Cache,
+        email: Email,
+        daily_reward_activity: DailyRewardActivity,
+    ) -> Self {
         Self {
             _cache: Default::default(),
             database,
             cache,
             email,
+            daily_reward_activity,
             config,
         }
     }
@@ -90,7 +112,22 @@ impl Provider {
             .await
             .context("Failed to connect to email server")?;
 
-        Ok(Self::new(config_provider, database, cache, email))
+        let activity_configs = config_provider.daily_reward_activity_configs();
+        let daily_reward_activity = DailyRewardActivityServiceImpl::new(
+            activity_configs.skills,
+            activity_configs.challenges,
+            activity_configs.skills_recommendations,
+        )
+        .await
+        .context("Failed to initialise daily reward activity service")?;
+
+        Ok(Self::new(
+            config_provider,
+            database,
+            cache,
+            email,
+            daily_reward_activity,
+        ))
     }
 }
 
@@ -124,6 +161,8 @@ provider! {
         finance_feature_config: FinanceFeatureConfig,
         heart_feature_config: HeartFeatureConfig,
         premium_feature_config: PremiumFeatureConfig,
+        daily_reward_feature_config: DailyRewardFeatureConfig,
+        daily_reward_activity_configs: DailyRewardActivityConfigs,
     }
 }
 
@@ -248,6 +287,37 @@ impl ConfigProvider {
             purchase_range: config.coin.purchase_min..=config.coin.purchase_max,
         };
 
+        let daily_reward_feature_config = DailyRewardFeatureConfig {
+            enable: config.daily_rewards.enable,
+            coins: CoreDailyRewardCoinsConfig {
+                arrival: config.daily_rewards.coins.arrival,
+                lecture: config.daily_rewards.coins.lecture,
+                practice: config.daily_rewards.coins.practice,
+                lab: config.daily_rewards.coins.lab,
+            },
+            cache_ttl: config.daily_rewards.cache_ttl.map(Into::into),
+        };
+
+        let daily_reward_activity_configs = DailyRewardActivityConfigs {
+            skills: config
+                .daily_rewards
+                .activity_sources
+                .skills
+                .as_ref()
+                .map(map_daily_rewards_source),
+            challenges: config
+                .daily_rewards
+                .activity_sources
+                .challenges
+                .as_ref()
+                .map(map_daily_rewards_source),
+            skills_recommendations: config
+                .daily_rewards
+                .recommendations
+                .skills
+                .as_ref()
+                .map(map_daily_rewards_recommendations),
+        };
         let finance_feature_config = FinanceFeatureConfig {
             vat_percent: config.finance.vat_percent,
             invoices_archive: config.finance.invoices_archive.clone().into(),
@@ -293,10 +363,36 @@ impl ConfigProvider {
             session_feature_config,
             user_feature_config,
             paypal_feature_config,
+            daily_reward_feature_config,
             finance_feature_config,
             heart_feature_config,
             premium_feature_config,
+            daily_reward_activity_configs,
         })
+    }
+
+    pub fn daily_reward_activity_configs(&self) -> DailyRewardActivityConfigs {
+        self.daily_reward_activity_configs.clone()
+    }
+}
+
+fn map_daily_rewards_source(cfg: &DailyRewardsPostgresConfig) -> SkillsActivityConfig {
+    SkillsActivityConfig {
+        dsn: cfg.dsn.clone(),
+        max_connections: cfg.max_connections,
+        min_connections: cfg.min_connections,
+        acquire_timeout: cfg.acquire_timeout.into(),
+        idle_timeout: cfg.idle_timeout.map(Into::into),
+        max_lifetime: cfg.max_lifetime.map(Into::into),
+    }
+}
+
+fn map_daily_rewards_recommendations(
+    cfg: &DailyRewardsSkillsRecommendationsConfig,
+) -> SkillsRecommendationConfig {
+    SkillsRecommendationConfig {
+        base_url: cfg.base_url.clone(),
+        timeout: cfg.timeout.map(Into::into),
     }
 }
 
@@ -319,7 +415,16 @@ mod tests {
         let cache = ValkeyCache::dummy().await;
         let email = EmailServiceImpl::dummy().await;
 
-        let mut provider = Provider::new(config_provider, database, cache, email);
+        let daily_reward_activity = DailyRewardActivityServiceImpl::new(None, None, None)
+            .await
+            .unwrap();
+        let mut provider = Provider::new(
+            config_provider,
+            database,
+            cache,
+            email,
+            daily_reward_activity,
+        );
         let _: RestServer = provider.provide();
     }
 }

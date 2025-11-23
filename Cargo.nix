@@ -3076,7 +3076,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
             usesDefaultFeatures = false;
             features = [ "parsing" "proc-macro" "derive" "printing" "full" ];
           }
@@ -4060,7 +4060,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
             usesDefaultFeatures = false;
             features = [ "parsing" "proc-macro" "derive" "printing" "full" ];
           }
@@ -4603,7 +4603,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
             usesDefaultFeatures = false;
             features = [ "clone-impls" "full" "parsing" "printing" "proc-macro" "visit-mut" ];
           }
@@ -5441,14 +5441,14 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
             features = [ "full" "fold" ];
           }
         ];
         devDependencies = [
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
             features = [ "full" "fold" "parsing" ];
           }
         ];
@@ -5946,7 +5946,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
             features = [ "full" ];
           }
         ];
@@ -6406,7 +6406,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
             features = [ "full" "extra-traits" ];
           }
         ];
@@ -6437,7 +6437,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
           }
         ];
 
@@ -6611,7 +6611,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
           }
         ];
         features = {
@@ -7032,7 +7032,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
             features = [ "full" ];
           }
         ];
@@ -8927,7 +8927,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
             features = [ "extra-traits" "full" ];
           }
         ];
@@ -9509,7 +9509,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
             features = [ "extra-traits" "full" ];
           }
         ];
@@ -9761,7 +9761,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
             features = [ "extra-traits" "full" ];
           }
           {
@@ -11357,7 +11357,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
             features = [ "full" ];
           }
         ];
@@ -11605,7 +11605,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
           }
         ];
         features = {
@@ -11903,7 +11903,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
           }
         ];
 
@@ -12257,7 +12257,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
           }
           {
             name = "yansi";
@@ -13013,7 +13013,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
           }
         ];
 
@@ -13834,7 +13834,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
             features = [ "full" ];
           }
         ];
@@ -14294,7 +14294,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
             features = [ "extra-traits" ];
           }
         ];
@@ -14834,7 +14834,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
             usesDefaultFeatures = false;
             features = [ "clone-impls" "derive" "parsing" "printing" "proc-macro" ];
           }
@@ -14866,7 +14866,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
             usesDefaultFeatures = false;
             features = [ "clone-impls" "derive" "parsing" "printing" ];
           }
@@ -15455,11 +15455,11 @@ rec {
         };
         resolvedDefaultFeatures = [ "clone-impls" "default" "derive" "full" "parsing" "printing" "proc-macro" "quote" ];
       };
-      "syn 2.0.110" = rec {
+      "syn 2.0.111" = rec {
         crateName = "syn";
-        version = "2.0.110";
+        version = "2.0.111";
         edition = "2021";
-        sha256 = "1sha51dh3rh3jlsn8ijah7ja9zk8jf8wb2667z7y9v9lpnsh3659";
+        sha256 = "11rf9l6435w525vhqmnngcnwsly7x4xx369fmaqvswdbjjicj31r";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -15531,7 +15531,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
             usesDefaultFeatures = false;
             features = [ "derive" "parsing" "printing" "clone-impls" "visit" "extra-traits" ];
           }
@@ -15745,7 +15745,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
           }
         ];
 
@@ -15771,7 +15771,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
           }
         ];
 
@@ -16116,7 +16116,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
             features = [ "full" ];
           }
         ];
@@ -16807,7 +16807,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
             usesDefaultFeatures = false;
             features = [ "full" "parsing" "printing" "visit-mut" "clone-impls" "extra-traits" "proc-macro" ];
           }
@@ -17649,7 +17649,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
             features = [ "visit" "visit-mut" "full" ];
           }
           {
@@ -18362,7 +18362,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
             usesDefaultFeatures = false;
             features = [ "parsing" "proc-macro" "printing" "full" "clone-impls" ];
           }
@@ -18389,7 +18389,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
             usesDefaultFeatures = false;
             features = [ "parsing" "proc-macro" "printing" "full" "clone-impls" ];
           }
@@ -19878,7 +19878,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
             features = [ "fold" ];
           }
           {
@@ -19946,7 +19946,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
             features = [ "full" ];
           }
         ];
@@ -19995,7 +19995,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
             features = [ "fold" ];
           }
           {
@@ -20118,7 +20118,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.110";
+            packageId = "syn 2.0.111";
             features = [ "extra-traits" ];
           }
         ];

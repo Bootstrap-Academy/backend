@@ -5159,9 +5159,9 @@ rec {
       };
       "bb8" = rec {
         crateName = "bb8";
-        version = "0.9.0";
+        version = "0.9.1";
         edition = "2021";
-        sha256 = "1ralsazlyyj7gsmqc73p6kpqz76g4al6np2p8693sx123a78nb91";
+        sha256 = "0433rixgalj3dpnxzkdxfhpn4g74mmf9gm2nmz3x5pw8z39pwza5";
         dependencies = [
           {
             name = "futures-util";
@@ -5173,6 +5173,11 @@ rec {
             name = "parking_lot";
             packageId = "parking_lot";
             optional = true;
+          }
+          {
+            name = "portable-atomic";
+            packageId = "portable-atomic";
+            target = { target, features }: (!("64" == target."has_atomic" or null));
           }
           {
             name = "tokio";

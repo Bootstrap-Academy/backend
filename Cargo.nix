@@ -5594,9 +5594,9 @@ rec {
       };
       "cc" = rec {
         crateName = "cc";
-        version = "1.2.46";
+        version = "1.2.47";
         edition = "2018";
-        sha256 = "0diynsnlmw8fr032dxci5a79il5br2ws1l2a730v3cac0vhn6x5r";
+        sha256 = "01yg4yc86s1mpmwdrk441rx6idwzidyzcxgi75bz7xsgr215sh6d";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -7546,11 +7546,11 @@ rec {
         };
         resolvedDefaultFeatures = [ "ahash" "allocator-api2" "default" "inline-more" ];
       };
-      "hashbrown 0.16.0" = rec {
+      "hashbrown 0.16.1" = rec {
         crateName = "hashbrown";
-        version = "0.16.0";
+        version = "0.16.1";
         edition = "2021";
-        sha256 = "13blh9j2yv77a6ni236ixiwdzbc1sh2bc4bdpaz7y859yv2bs6al";
+        sha256 = "004i3njw38ji3bzdp9z178ba9x3k0c1pgy8x69pj7yfppv4iq7c4";
         authors = [
           "Amanieu d'Antras <amanieu@gmail.com>"
         ];
@@ -7564,7 +7564,7 @@ rec {
           "nightly" = [ "foldhash?/nightly" "bumpalo/allocator_api" ];
           "rayon" = [ "dep:rayon" ];
           "rustc-dep-of-std" = [ "nightly" "core" "alloc" "rustc-internal-api" ];
-          "serde" = [ "dep:serde" ];
+          "serde" = [ "dep:serde_core" "dep:serde" ];
         };
       };
       "headers" = rec {
@@ -8635,9 +8635,9 @@ rec {
       };
       "indexmap" = rec {
         crateName = "indexmap";
-        version = "2.12.0";
+        version = "2.12.1";
         edition = "2021";
-        sha256 = "17xs7cqf9nzv8iw8yzpvpjh43lcf9492i8a3xfia2ad9lp9ah5v7";
+        sha256 = "1wmcfk7g7d9wz1dninlijx70kfkzz6d5r36nyi2hdjjvaqmvpm0a";
         dependencies = [
           {
             name = "equivalent";
@@ -8646,7 +8646,7 @@ rec {
           }
           {
             name = "hashbrown";
-            packageId = "hashbrown 0.16.0";
+            packageId = "hashbrown 0.16.1";
             usesDefaultFeatures = false;
           }
           {
@@ -11521,9 +11521,9 @@ rec {
       };
       "pest" = rec {
         crateName = "pest";
-        version = "2.8.3";
+        version = "2.8.4";
         edition = "2021";
-        sha256 = "1x3xc1s5vhwswmmr51i60kfbcnp1zgdblsxbqd8dxvs0l0hpb7lq";
+        sha256 = "08ky7sxla38qbzq8m3nf0ppxlayk99w3amzhg40s9ssfdl5d5kyb";
         authors = [
           "Dragoș Tiselice <dragostiselice@gmail.com>"
         ];
@@ -11550,9 +11550,9 @@ rec {
       };
       "pest_derive" = rec {
         crateName = "pest_derive";
-        version = "2.8.3";
+        version = "2.8.4";
         edition = "2021";
-        sha256 = "1pp2g39k2vjdyzr89k8zx5y7pp3np4iv635jpyxzmfhd0fisjz8q";
+        sha256 = "0zsdv4ipr8fsk24m1irrb0mkyilzpqhw4vn2mnk1qyz6mn0jkxsi";
         procMacro = true;
         authors = [
           "Dragoș Tiselice <dragostiselice@gmail.com>"
@@ -11579,9 +11579,9 @@ rec {
       };
       "pest_generator" = rec {
         crateName = "pest_generator";
-        version = "2.8.3";
+        version = "2.8.4";
         edition = "2021";
-        sha256 = "0hr80m5xzzrhzjvnmbawk72cxvn0ssc5j216gblynmspizch3d29";
+        sha256 = "098n4wyqi0wg2x8ffbjjdpnl2z7c3bw7d2q8h2d723dmrpcfzsfy";
         authors = [
           "Dragoș Tiselice <dragostiselice@gmail.com>"
         ];
@@ -11618,9 +11618,9 @@ rec {
       };
       "pest_meta" = rec {
         crateName = "pest_meta";
-        version = "2.8.3";
+        version = "2.8.4";
         edition = "2021";
-        sha256 = "0nh6w1mv8hx0p1jli8s12j2w62ia2apsbyl69nf07yg9zqn7mwkj";
+        sha256 = "10jvy17rin1xwh3nb2a3irfdi4z7khisdbrfllxw3gbn1s4707dz";
         authors = [
           "Dragoș Tiselice <dragostiselice@gmail.com>"
         ];
@@ -15179,9 +15179,9 @@ rec {
       };
       "signal-hook-registry" = rec {
         crateName = "signal-hook-registry";
-        version = "1.4.6";
+        version = "1.4.7";
         edition = "2015";
-        sha256 = "12y2v1ms5z111fymaw1v8k93m5chnkp21h0jknrydkj8zydp395j";
+        sha256 = "1bgdimrfqcldbplryknv87gywcdj9v29l3nwqbybs5p6p2ca0r3n";
         libName = "signal_hook_registry";
         authors = [
           "Michal 'vorner' Vaner <vorner@vorner.cz>"
@@ -17199,9 +17199,9 @@ rec {
       };
       "ureq-proto" = rec {
         crateName = "ureq-proto";
-        version = "0.5.2";
+        version = "0.5.3";
         edition = "2021";
-        sha256 = "1lpm7075y1bkg1snc678sxmwhk75n3flhq1l6hhncdc324f57d30";
+        sha256 = "0vzdcxabp5qs1b5mhsjb94mh82m12n40csm46icvwcphkpx9w7yq";
         libName = "ureq_proto";
         authors = [
           "Martin Algesten <martin@algesten.se>"
@@ -19890,9 +19890,9 @@ rec {
       };
       "zerocopy" = rec {
         crateName = "zerocopy";
-        version = "0.8.27";
+        version = "0.8.28";
         edition = "2021";
-        sha256 = "0b1870gf2zzlckca69v2k4mqwmf8yh2li37qldnzvvd3by58g508";
+        sha256 = "147vb8scr7yf977v19fjlxqc8s52rzpcvg5g0xsfbmilxna6dyj3";
         authors = [
           "Joshua Liebow-Feeser <joshlf@google.com>"
           "Jack Wrenn <jswrenn@amazon.com>"
@@ -19926,9 +19926,9 @@ rec {
       };
       "zerocopy-derive" = rec {
         crateName = "zerocopy-derive";
-        version = "0.8.27";
+        version = "0.8.28";
         edition = "2021";
-        sha256 = "0c9qrylm2p55dvaplxsl24ma48add9qk4y0d6kjbkllaqvcvill8";
+        sha256 = "09mw5jn2g6s5biq1d79idign1xqi1gwx5w42psaswzw1v4nb4h66";
         procMacro = true;
         libName = "zerocopy_derive";
         authors = [

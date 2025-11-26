@@ -158,8 +158,8 @@ tokio = { version = "1.48.0", default-features = false, features = [
   "fs",
   "process",
 ] }
-tracing = { version = "0.1.41", default-features = false, features = ["attributes"] }
-tracing-subscriber = { version = "0.3.20", default-features = false, features = ["ansi", "fmt", "env-filter"] }
+tracing = { version = "0.1.42", default-features = false, features = ["attributes"] }
+tracing-subscriber = { version = "0.3.21", default-features = false, features = ["ansi", "fmt", "env-filter"] }
 url = { version = "2.5.7", default-features = false, features = ["serde"] }
 uuid = { version = "1.18.1", default-features = false, features = ["v4", "v7", "serde"] }
 

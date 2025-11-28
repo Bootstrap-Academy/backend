@@ -16755,9 +16755,9 @@ rec {
       };
       "tracing" = rec {
         crateName = "tracing";
-        version = "0.1.42";
+        version = "0.1.43";
         edition = "2018";
-        sha256 = "19pdqlxb20irplp3mvq2fryiahq6f5vvayzl55wkpqikp6yird4f";
+        sha256 = "0iy6dyqk9ign880xw52snixrs507hj2xqyflaa4kf6aw1c5dj59d";
         authors = [
           "Eliza Weisman <eliza@buoyant.io>"
           "Tokio Contributors <team@tokio.rs>"
@@ -16853,9 +16853,9 @@ rec {
       };
       "tracing-subscriber" = rec {
         crateName = "tracing-subscriber";
-        version = "0.3.21";
+        version = "0.3.22";
         edition = "2018";
-        sha256 = "07f040c4qdv8i4n8yqn6qpfjn0bw29fx17q95agph02xf49vzr5y";
+        sha256 = "07hz575a0p1c2i4xw3gs3hkrykhndnkbfhyqdwjhvayx4ww18c1g";
         libName = "tracing_subscriber";
         authors = [
           "Eliza Weisman <eliza@buoyant.io>"

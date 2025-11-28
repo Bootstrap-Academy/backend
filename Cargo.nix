@@ -5384,10 +5384,10 @@ rec {
       };
       "borsh" = rec {
         crateName = "borsh";
-        version = "1.5.7";
+        version = "1.6.0";
         edition = "2018";
         crateBin = [];
-        sha256 = "1kikljm5yr3l9qsw5xvdccragxj4445s4s3fqsgy6hmmipwld1md";
+        sha256 = "0vvsmxiksyw5fq3ap7i7f9hpdrr9hyb8vj7pxwg70dqlgjvmmnni";
         authors = [
           "Near Inc <hello@near.org>"
         ];
@@ -5419,9 +5419,9 @@ rec {
       };
       "borsh-derive" = rec {
         crateName = "borsh-derive";
-        version = "1.5.7";
+        version = "1.6.0";
         edition = "2018";
-        sha256 = "1hwsznww7d01bh1fzpndzmcpyp00xpl2y9bg70i3z0zmqb0d7lgx";
+        sha256 = "0b2ybhmhc60hdn84sgn02kv91xidl3bdfdprk120rb3am9bci1h6";
         procMacro = true;
         libName = "borsh_derive";
         authors = [
@@ -5599,9 +5599,9 @@ rec {
       };
       "cc" = rec {
         crateName = "cc";
-        version = "1.2.47";
+        version = "1.2.48";
         edition = "2018";
-        sha256 = "01yg4yc86s1mpmwdrk441rx6idwzidyzcxgi75bz7xsgr215sh6d";
+        sha256 = "0fk37741p34v904a49zcli9b65fmmir7sa06z3v95f6k1szvv0f4";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -7720,9 +7720,9 @@ rec {
       };
       "http" = rec {
         crateName = "http";
-        version = "1.3.1";
-        edition = "2018";
-        sha256 = "0r95i5h7dr1xadp1ac9453w0s62s27hzkam356nyx2d9mqqmva7l";
+        version = "1.4.0";
+        edition = "2021";
+        sha256 = "06iind4cwsj1d6q8c2xgq8i2wka4ps74kmws24gsi1bzdlw2mfp3";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
           "Carl Lerche <me@carllerche.com>"
@@ -7732,10 +7732,6 @@ rec {
           {
             name = "bytes";
             packageId = "bytes";
-          }
-          {
-            name = "fnv";
-            packageId = "fnv";
           }
           {
             name = "itoa";
@@ -8823,9 +8819,9 @@ rec {
       };
       "js-sys" = rec {
         crateName = "js-sys";
-        version = "0.3.82";
+        version = "0.3.83";
         edition = "2021";
-        sha256 = "0rcfkz7r28r01a8m6n2q13aglm44q5g6gzsw5nmjmninrk4fw4dh";
+        sha256 = "1n71vpxrzclly0530lwkcsx6mg73lipam2ak3rr1ypzmqw4kfjj6";
         libName = "js_sys";
         authors = [
           "The wasm-bindgen Developers"
@@ -14066,9 +14062,9 @@ rec {
       };
       "rustls-pki-types" = rec {
         crateName = "rustls-pki-types";
-        version = "1.13.0";
+        version = "1.13.1";
         edition = "2021";
-        sha256 = "0yjzsnpv1sjbnfxbbmrnyimd23jip48nav6l9hr1rjd06vcjl64l";
+        sha256 = "134hjrwxzrkiag11psaml4gv75f4a9m307cc8rr05fjlbyfhz33h";
         libName = "rustls_pki_types";
         dependencies = [
           {
@@ -17512,9 +17508,9 @@ rec {
       };
       "wasm-bindgen" = rec {
         crateName = "wasm-bindgen";
-        version = "0.2.105";
+        version = "0.2.106";
         edition = "2021";
-        sha256 = "0q7aqnjwl9dn5sql46nbhzz63v3q0mdp3rsv7zcvn7s1zhypk5fs";
+        sha256 = "1zc0pcyv0w1dhp8r7ybmmfjsf4g18q784h0k7mv2sjm67x1ryx8d";
         libName = "wasm_bindgen";
         authors = [
           "The wasm-bindgen Developers"
@@ -17563,9 +17559,9 @@ rec {
       };
       "wasm-bindgen-futures" = rec {
         crateName = "wasm-bindgen-futures";
-        version = "0.4.55";
+        version = "0.4.56";
         edition = "2021";
-        sha256 = "186l2nhznpbxcl2475dlm1pd7dfk5lqnz8frgk67qpkddh88h7sm";
+        sha256 = "0z6f0zkylpgbfb7dkh7a85dxdwm57q7c2np2bngfxzh4sqi9cvc3";
         libName = "wasm_bindgen_futures";
         authors = [
           "The wasm-bindgen Developers"
@@ -17608,9 +17604,9 @@ rec {
       };
       "wasm-bindgen-macro" = rec {
         crateName = "wasm-bindgen-macro";
-        version = "0.2.105";
+        version = "0.2.106";
         edition = "2021";
-        sha256 = "1hjrmfnnjcksmf4kizsb78a0apr6ym73iwlhhszsf14ya0s469h4";
+        sha256 = "1czfwzhqrkzyyhd3g58mdwb2jjk4q2pl9m1fajyfvfpq70k0vjs8";
         procMacro = true;
         libName = "wasm_bindgen_macro";
         authors = [
@@ -17632,9 +17628,9 @@ rec {
       };
       "wasm-bindgen-macro-support" = rec {
         crateName = "wasm-bindgen-macro-support";
-        version = "0.2.105";
+        version = "0.2.106";
         edition = "2021";
-        sha256 = "1g3ydkp5js5qg56a30w9v090v5byslay2lidjiifa8pkv4ww62s2";
+        sha256 = "0h6ddq6cc6jf9phsdh2a3x8lpjhmkya86ihfz3fdk4jzrpamkyyf";
         libName = "wasm_bindgen_macro_support";
         authors = [
           "The wasm-bindgen Developers"
@@ -17668,10 +17664,10 @@ rec {
       };
       "wasm-bindgen-shared" = rec {
         crateName = "wasm-bindgen-shared";
-        version = "0.2.105";
+        version = "0.2.106";
         edition = "2021";
         links = "wasm_bindgen";
-        sha256 = "0xmgnvf5m91lw6avjxha1v76bm27g2q5jw7c4lyb7g44ijiiiwkn";
+        sha256 = "1d0dh3jn77qz67n5zh0s3rvzlbjv926p0blq5bvng2v4gq2kiifb";
         libName = "wasm_bindgen_shared";
         authors = [
           "The wasm-bindgen Developers"
@@ -17686,9 +17682,9 @@ rec {
       };
       "web-sys" = rec {
         crateName = "web-sys";
-        version = "0.3.82";
+        version = "0.3.83";
         edition = "2021";
-        sha256 = "18d9k5f92czaj27zmw20nzcnax5rdcx68r3s3ypg8irss309a7rs";
+        sha256 = "1b1pw450ig62xr0cy1wfjlbahvmi725jl64d150j0hacfy6q4clv";
         libName = "web_sys";
         authors = [
           "The wasm-bindgen Developers"
@@ -19737,9 +19733,9 @@ rec {
       };
       "winnow" = rec {
         crateName = "winnow";
-        version = "0.7.13";
+        version = "0.7.14";
         edition = "2021";
-        sha256 = "1krrjc1wj2vx0r57m9nwnlc1zrhga3fq41d8w9hysvvqb5mj7811";
+        sha256 = "0a88ahjqhyn2ln1yplq2xsigm09kxqkdkkk2c2mfxkbzszln8lss";
         dependencies = [
           {
             name = "memchr";
@@ -19895,9 +19891,9 @@ rec {
       };
       "zerocopy" = rec {
         crateName = "zerocopy";
-        version = "0.8.28";
+        version = "0.8.30";
         edition = "2021";
-        sha256 = "147vb8scr7yf977v19fjlxqc8s52rzpcvg5g0xsfbmilxna6dyj3";
+        sha256 = "0p063618ffkgnf1p7sb58mlprx1ll95vn5pgbyra5s5g8k4pka2f";
         authors = [
           "Joshua Liebow-Feeser <joshlf@google.com>"
           "Jack Wrenn <jswrenn@amazon.com>"
@@ -19931,9 +19927,9 @@ rec {
       };
       "zerocopy-derive" = rec {
         crateName = "zerocopy-derive";
-        version = "0.8.28";
+        version = "0.8.30";
         edition = "2021";
-        sha256 = "09mw5jn2g6s5biq1d79idign1xqi1gwx5w42psaswzw1v4nb4h66";
+        sha256 = "1x9l3xy9xay4pc4wp8rb4znhl0xi9i2894wfviq0y16n0jlmm5fg";
         procMacro = true;
         libName = "zerocopy_derive";
         authors = [

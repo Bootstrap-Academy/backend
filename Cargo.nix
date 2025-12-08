@@ -5146,9 +5146,9 @@ rec {
       };
       "base64ct" = rec {
         crateName = "base64ct";
-        version = "1.8.0";
+        version = "1.8.1";
         edition = "2024";
-        sha256 = "1fj4vc6ghy3j1120r7dwn4xw90crfy46b448g5pm9w6an13qn92m";
+        sha256 = "12h6iwd0ib6xxwd0814wf3x6nd91r851xcycvlkpm199cii0y18f";
         authors = [
           "RustCrypto Developers"
         ];
@@ -5599,9 +5599,9 @@ rec {
       };
       "cc" = rec {
         crateName = "cc";
-        version = "1.2.48";
+        version = "1.2.49";
         edition = "2018";
-        sha256 = "0fk37741p34v904a49zcli9b65fmmir7sa06z3v95f6k1szvv0f4";
+        sha256 = "05929ra8a2q81w45f932nr4blifnxkpr8i7lmcba28bm0c4k0n4h";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -9402,9 +9402,9 @@ rec {
       };
       "mio" = rec {
         crateName = "mio";
-        version = "1.1.0";
+        version = "1.1.1";
         edition = "2021";
-        sha256 = "0wr816q3jrjwiajvw807lgi540i9s6r78a5fx4ycz3nwhq03pn39";
+        sha256 = "1z2phpalqbdgihrcjp8y09l3kgq6309jnhnr6h11l9s7mnqcm6x6";
         authors = [
           "Carl Lerche <me@carllerche.com>"
           "Thomas de Zeeuw <thomasdezeeuw@gmail.com>"
@@ -16418,9 +16418,9 @@ rec {
       };
       "toml_edit" = rec {
         crateName = "toml_edit";
-        version = "0.23.7";
+        version = "0.23.9";
         edition = "2021";
-        sha256 = "13cgp4y6prad1lh18bbg64zkq48hafq7xzs4fb0hwpcv1mnyz1b4";
+        sha256 = "0ckqh02lfhacna9m09icwc5fh3d5ihah74shl1bksqs99cxvqz2x";
         dependencies = [
           {
             name = "indexmap";

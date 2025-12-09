@@ -4519,6 +4519,21 @@ rec {
         ];
 
       };
+      "arcstr" = rec {
+        crateName = "arcstr";
+        version = "1.2.0";
+        edition = "2021";
+        sha256 = "0vbyslhqr5fh84w5dd2hqck5y5r154p771wqddfah0bpplyqr483";
+        authors = [
+          "Thom Chiovoloni <chiovolonit@gmail.com>"
+        ];
+        features = {
+          "default" = [ "substr" ];
+          "serde" = [ "dep:serde" ];
+          "substr-usize-indices" = [ "substr" ];
+        };
+        resolvedDefaultFeatures = [ "default" "substr" ];
+      };
       "argon2" = rec {
         crateName = "argon2";
         version = "0.5.3";
@@ -5241,9 +5256,9 @@ rec {
       };
       "bb8-redis" = rec {
         crateName = "bb8-redis";
-        version = "0.24.0";
+        version = "0.26.0";
         edition = "2021";
-        sha256 = "1abxld7w80931hyvq1z3wlan7nkpcwdx5qz3h6la3vp1ymm96hsi";
+        sha256 = "0rkgc4yn8z3014qpsn1mb0hpbgk2b4dy7imwpi4ghv3zzkpn646w";
         libName = "bb8_redis";
         dependencies = [
           {
@@ -9613,39 +9628,6 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" "std" ];
       };
-      "num-bigint" = rec {
-        crateName = "num-bigint";
-        version = "0.4.6";
-        edition = "2021";
-        sha256 = "1f903zd33i6hkjpsgwhqwi2wffnvkxbn6rv4mkgcjcqi7xr4zr55";
-        libName = "num_bigint";
-        authors = [
-          "The Rust Project Developers"
-        ];
-        dependencies = [
-          {
-            name = "num-integer";
-            packageId = "num-integer";
-            usesDefaultFeatures = false;
-            features = [ "i128" ];
-          }
-          {
-            name = "num-traits";
-            packageId = "num-traits";
-            usesDefaultFeatures = false;
-            features = [ "i128" ];
-          }
-        ];
-        features = {
-          "arbitrary" = [ "dep:arbitrary" ];
-          "default" = [ "std" ];
-          "quickcheck" = [ "dep:quickcheck" ];
-          "rand" = [ "dep:rand" ];
-          "serde" = [ "dep:serde" ];
-          "std" = [ "num-integer/std" "num-traits/std" ];
-        };
-        resolvedDefaultFeatures = [ "default" "std" ];
-      };
       "num-conv" = rec {
         crateName = "num-conv";
         version = "0.1.0";
@@ -9656,29 +9638,6 @@ rec {
           "Jacob Pratt <jacob@jhpratt.dev>"
         ];
 
-      };
-      "num-integer" = rec {
-        crateName = "num-integer";
-        version = "0.1.46";
-        edition = "2018";
-        sha256 = "13w5g54a9184cqlbsq80rnxw4jj4s0d8wv75jsq5r2lms8gncsbr";
-        libName = "num_integer";
-        authors = [
-          "The Rust Project Developers"
-        ];
-        dependencies = [
-          {
-            name = "num-traits";
-            packageId = "num-traits";
-            usesDefaultFeatures = false;
-            features = [ "i128" ];
-          }
-        ];
-        features = {
-          "default" = [ "std" ];
-          "std" = [ "num-traits/std" ];
-        };
-        resolvedDefaultFeatures = [ "i128" "std" ];
       };
       "num-traits" = rec {
         crateName = "num-traits";
@@ -12839,10 +12798,14 @@ rec {
       };
       "redis" = rec {
         crateName = "redis";
-        version = "0.32.7";
+        version = "1.0.0";
         edition = "2021";
-        sha256 = "0i7grxrnqwa201r4kgcg4476x75drhmi2ifak3ks7dpszrkwfk01";
+        sha256 = "0f829rvih5mhblym4aaikcc0cjm2ylh04xf2pzzkn1dq766kgfj7";
         dependencies = [
+          {
+            name = "arcstr";
+            packageId = "arcstr";
+          }
           {
             name = "bytes";
             packageId = "bytes";
@@ -12871,10 +12834,6 @@ rec {
             packageId = "itoa";
           }
           {
-            name = "num-bigint";
-            packageId = "num-bigint";
-          }
-          {
             name = "percent-encoding";
             packageId = "percent-encoding";
           }
@@ -12890,6 +12849,7 @@ rec {
           {
             name = "socket2";
             packageId = "socket2";
+            target = { target, features }: (!(builtins.elem "wasm" target."family"));
             features = [ "all" ];
           }
           {
@@ -12907,6 +12867,11 @@ rec {
             name = "url";
             packageId = "url";
           }
+          {
+            name = "xxhash-rust";
+            packageId = "xxhash-rust";
+            features = [ "xxh3" ];
+          }
         ];
         devDependencies = [
           {
@@ -12918,20 +12883,17 @@ rec {
         features = {
           "ahash" = [ "dep:ahash" ];
           "aio" = [ "bytes" "dep:pin-project-lite" "dep:futures-util" "dep:tokio" "dep:tokio-util" "tokio-util/codec" "combine/tokio" "dep:cfg-if" ];
-          "async-std-comp" = [ "aio" "dep:async-std" ];
-          "async-std-native-tls-comp" = [ "async-std-comp" "dep:async-native-tls" "tls-native-tls" ];
-          "async-std-rustls-comp" = [ "async-std-comp" "dep:futures-rustls" "tls-rustls" ];
-          "async-std-tls-comp" = [ "async-std-native-tls-comp" ];
           "bb8" = [ "dep:bb8" ];
           "bigdecimal" = [ "dep:bigdecimal" ];
           "bytes" = [ "dep:bytes" ];
           "cache-aio" = [ "aio" "dep:lru" ];
           "cluster" = [ "dep:crc16" "dep:rand" ];
-          "cluster-async" = [ "aio" "cluster" "dep:futures-sink" "dep:log" ];
+          "cluster-async" = [ "aio" "cluster" "dep:log" ];
           "connection-manager" = [ "dep:arc-swap" "dep:futures-channel" "aio" "dep:backon" ];
-          "default" = [ "acl" "streams" "geospatial" "script" "keep-alive" "num-bigint" ];
+          "default" = [ "acl" "streams" "geospatial" "script" "num-bigint" ];
           "hashbrown" = [ "dep:hashbrown" ];
           "json" = [ "dep:serde" "serde/derive" "dep:serde_json" ];
+          "num-bigint" = [ "dep:num-bigint" ];
           "r2d2" = [ "dep:r2d2" ];
           "rust_decimal" = [ "dep:rust_decimal" ];
           "script" = [ "dep:sha1_smol" ];
@@ -12939,7 +12901,6 @@ rec {
           "smol-comp" = [ "aio" "dep:smol" "dep:smol-timeout" "dep:async-io" ];
           "smol-native-tls-comp" = [ "smol-comp" "dep:async-native-tls" "tls-native-tls" ];
           "smol-rustls-comp" = [ "smol-comp" "dep:futures-rustls" "tls-rustls" ];
-          "tls" = [ "tls-native-tls" ];
           "tls-native-tls" = [ "dep:native-tls" ];
           "tls-rustls" = [ "dep:rustls" "rustls/std" "dep:rustls-native-certs" ];
           "tls-rustls-insecure" = [ "tls-rustls" ];
@@ -19791,6 +19752,19 @@ rec {
           "std" = [ "alloc" ];
           "typemap" = [ "dep:typemap" ];
         };
+      };
+      "xxhash-rust" = rec {
+        crateName = "xxhash-rust";
+        version = "0.8.15";
+        edition = "2018";
+        sha256 = "1lrmffpn45d967afw7f1p300rsx7ill66irrskxpcm1p41a0rlpx";
+        libName = "xxhash_rust";
+        authors = [
+          "Douman <douman@gmx.se>"
+        ];
+        features = {
+        };
+        resolvedDefaultFeatures = [ "xxh3" ];
       };
       "yansi" = rec {
         crateName = "yansi";

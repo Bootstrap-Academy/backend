@@ -8408,9 +8408,9 @@ rec {
       };
       "icu_properties" = rec {
         crateName = "icu_properties";
-        version = "2.1.1";
+        version = "2.1.2";
         edition = "2021";
-        sha256 = "16gvnnxr1xry6vn5275a1s0z0c8scp7gdkzqla6hqv3nawqwsgz9";
+        sha256 = "1v3lbmhhi7i6jgw51ikjb1p50qh5rb67grlkdnkc63l7zq1gq2q2";
         authors = [
           "The ICU4X Project Developers"
         ];
@@ -8462,9 +8462,9 @@ rec {
       };
       "icu_properties_data" = rec {
         crateName = "icu_properties_data";
-        version = "2.1.1";
+        version = "2.1.2";
         edition = "2021";
-        sha256 = "16a80p8j371jkl10x26rh9gw6d1gyl7limpc008my15v8wv5p102";
+        sha256 = "1bvpkh939rgzrjfdb7hz47v4wijngk0snmcgrnpwc9fpz162jv31";
         authors = [
           "The ICU4X Project Developers"
         ];

@@ -11196,9 +11196,9 @@ rec {
       };
       "os_info" = rec {
         crateName = "os_info";
-        version = "3.13.0";
+        version = "3.14.0";
         edition = "2018";
-        sha256 = "14l34rda46f6wg9xyy914f6whv561561dfjsdn269m82hj8vafbw";
+        sha256 = "09122f72665q30qsaq4r6c57zpphhgjdlvr3d6ixc02sb4bjl0p4";
         authors = [
           "Jan Schulte <hello@unexpected-co.de>"
           "Stanislav Tkach <stanislav.tkach@gmail.com>"
@@ -11256,6 +11256,7 @@ rec {
         ];
         features = {
           "default" = [ "serde" ];
+          "schemars" = [ "dep:schemars" ];
           "serde" = [ "dep:serde" ];
         };
         resolvedDefaultFeatures = [ "default" "serde" ];
@@ -12798,9 +12799,9 @@ rec {
       };
       "redis" = rec {
         crateName = "redis";
-        version = "1.0.0";
+        version = "1.0.1";
         edition = "2021";
-        sha256 = "0f829rvih5mhblym4aaikcc0cjm2ylh04xf2pzzkn1dq766kgfj7";
+        sha256 = "172f7ai3l0gcz6fxmdiq61h9pp9hm7i4pir5n6d9a4i88jdm1p72";
         dependencies = [
           {
             name = "arcstr";

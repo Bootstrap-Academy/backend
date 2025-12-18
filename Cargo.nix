@@ -5508,9 +5508,9 @@ rec {
       };
       "bumpalo" = rec {
         crateName = "bumpalo";
-        version = "3.19.0";
+        version = "3.19.1";
         edition = "2021";
-        sha256 = "0hsdndvcpqbjb85ghrhska2qxvp9i75q2vb70hma9fxqawdy9ia6";
+        sha256 = "044555i277xcinmqs7nnv8n5y4fqfi4l4lp1mp3i30vsidrxrnax";
         authors = [
           "Nick Fitzgerald <fitzgen@gmail.com>"
         ];
@@ -6165,9 +6165,9 @@ rec {
       };
       "console" = rec {
         crateName = "console";
-        version = "0.16.1";
+        version = "0.16.2";
         edition = "2021";
-        sha256 = "1x4x6vfi1s55nbr4i77b9r87s213h46lq396sij9fkmidqx78c5l";
+        sha256 = "1i5y6h3myz38jl9p3gglx5vh9c69kxxajsv3jx0pw8i6i555mr03";
         dependencies = [
           {
             name = "encode_unicode";
@@ -9175,9 +9175,9 @@ rec {
       };
       "libredox" = rec {
         crateName = "libredox";
-        version = "0.1.10";
+        version = "0.1.11";
         edition = "2021";
-        sha256 = "1jswil4ai90s4rh91fg8580x8nikni1zl3wnch4h01nvidqpwvs1";
+        sha256 = "0l7dm6b069y5skdipxg74z1ffmwz75hfxcb5b3r1rvciqbmgc5fz";
         authors = [
           "4lDO2 <4lDO2@protonmail.com>"
         ];
@@ -9192,7 +9192,7 @@ rec {
           }
           {
             name = "redox_syscall";
-            packageId = "redox_syscall";
+            packageId = "redox_syscall 0.6.0";
             optional = true;
           }
         ];
@@ -11370,7 +11370,7 @@ rec {
           }
           {
             name = "redox_syscall";
-            packageId = "redox_syscall";
+            packageId = "redox_syscall 0.5.18";
             target = { target, features }: ("redox" == target."os" or null);
           }
           {
@@ -12914,11 +12914,33 @@ rec {
         };
         resolvedDefaultFeatures = [ "aio" "bytes" "tokio-comp" ];
       };
-      "redox_syscall" = rec {
+      "redox_syscall 0.5.18" = rec {
         crateName = "redox_syscall";
         version = "0.5.18";
         edition = "2021";
         sha256 = "0b9n38zsxylql36vybw18if68yc9jczxmbyzdwyhb9sifmag4azd";
+        libName = "syscall";
+        authors = [
+          "Jeremy Soller <jackpot51@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "bitflags";
+            packageId = "bitflags";
+          }
+        ];
+        features = {
+          "core" = [ "dep:core" ];
+          "default" = [ "userspace" ];
+          "rustc-dep-of-std" = [ "core" "bitflags/rustc-dep-of-std" ];
+        };
+        resolvedDefaultFeatures = [ "default" "userspace" ];
+      };
+      "redox_syscall 0.6.0" = rec {
+        crateName = "redox_syscall";
+        version = "0.6.0";
+        edition = "2021";
+        sha256 = "1da39gkh50ygwb0rfpqkyaz0y66fps4a7h713yw6x250mxnid5pc";
         libName = "syscall";
         authors = [
           "Jeremy Soller <jackpot51@gmail.com>"
@@ -14022,9 +14044,9 @@ rec {
       };
       "rustls-pki-types" = rec {
         crateName = "rustls-pki-types";
-        version = "1.13.1";
+        version = "1.13.2";
         edition = "2021";
-        sha256 = "134hjrwxzrkiag11psaml4gv75f4a9m307cc8rr05fjlbyfhz33h";
+        sha256 = "10hjgkw4y5bjkm08j5dskcwpl9qajayshdk7p28l5ji856mz5ri1";
         libName = "rustls_pki_types";
         dependencies = [
           {
@@ -14975,9 +14997,9 @@ rec {
       };
       "serde_spanned" = rec {
         crateName = "serde_spanned";
-        version = "1.0.3";
+        version = "1.0.4";
         edition = "2021";
-        sha256 = "14j32cqcs6jjdl1c111lz6s0hr913dnmy2kpfd75k2761ym4ahz2";
+        sha256 = "0xkp0qdzams5sqwndbw3xrhf4c0bb5r46w2ywkp1aqsdb8ggkfzq";
         dependencies = [
           {
             name = "serde_core";
@@ -16308,9 +16330,9 @@ rec {
       };
       "toml" = rec {
         crateName = "toml";
-        version = "0.9.8";
+        version = "0.9.9+spec-1.0.0";
         edition = "2021";
-        sha256 = "1n569s0dgdmqjy21wf85df7kx3vb1zgin3pc2rvy4j8lnqgqpp7h";
+        sha256 = "1pbrpjvx3s7xa7mb74ivnrs2v4ci599y2lz7szas2d7w8gk3hlpb";
         dependencies = [
           {
             name = "serde_core";
@@ -16359,9 +16381,9 @@ rec {
       };
       "toml_datetime" = rec {
         crateName = "toml_datetime";
-        version = "0.7.3";
+        version = "0.7.4+spec-1.0.0";
         edition = "2021";
-        sha256 = "0cs5f8y4rdsmmwipjclmq97lrwppjy2qa3vja4f9d5xwxcwvdkgj";
+        sha256 = "1dpj9bn1dbdflvlsa2qpkigsnks6x99l1gba5w4i1fd359mylg7y";
         dependencies = [
           {
             name = "serde_core";
@@ -16380,9 +16402,9 @@ rec {
       };
       "toml_edit" = rec {
         crateName = "toml_edit";
-        version = "0.23.9";
+        version = "0.23.10+spec-1.0.0";
         edition = "2021";
-        sha256 = "0ckqh02lfhacna9m09icwc5fh3d5ihah74shl1bksqs99cxvqz2x";
+        sha256 = "0saj5c676j8a3sqaj9akkp09wambg8aflji4zblwwa70azvvkj44";
         dependencies = [
           {
             name = "indexmap";
@@ -16415,9 +16437,9 @@ rec {
       };
       "toml_parser" = rec {
         crateName = "toml_parser";
-        version = "1.0.4";
+        version = "1.0.5+spec-1.0.0";
         edition = "2021";
-        sha256 = "03l0750d1cyliij9vac4afpp1syh1a6yhbbalnslpnsvsdlf5jy0";
+        sha256 = "0k4qi77jmfvwy38jxnz8w0f30hxw33zvl2yva09g75inrvjvw0sc";
         dependencies = [
           {
             name = "winnow";

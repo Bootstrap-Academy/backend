@@ -955,7 +955,7 @@ rec {
           }
           {
             name = "axum-extra";
-            packageId = "axum-extra 0.12.2";
+            packageId = "axum-extra 0.12.3";
             usesDefaultFeatures = false;
             features = [ "typed-header" ];
           }
@@ -3940,7 +3940,7 @@ rec {
           }
           {
             name = "axum-extra";
-            packageId = "axum-extra 0.12.2";
+            packageId = "axum-extra 0.12.3";
             usesDefaultFeatures = false;
             features = [ "typed-header" ];
           }
@@ -4651,9 +4651,9 @@ rec {
       };
       "axum" = rec {
         crateName = "axum";
-        version = "0.8.7";
+        version = "0.8.8";
         edition = "2021";
-        sha256 = "09fl42x9j3h2kgw9ddznpvnl8vhscd4jgwy79z8vcz77xdsqa2av";
+        sha256 = "1f4p0m04mgwpn8b40i9r5mgqxk6w11sv4yri6xfqk305nhyayllb";
         dependencies = [
           {
             name = "axum-core";
@@ -4973,11 +4973,11 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" "tracing" ];
       };
-      "axum-extra 0.12.2" = rec {
+      "axum-extra 0.12.3" = rec {
         crateName = "axum-extra";
-        version = "0.12.2";
+        version = "0.12.3";
         edition = "2021";
-        sha256 = "06yj7nqz6cgpbr3q0kbizqbcca1wqvwcq0ydrzq9rsg41xhrzznv";
+        sha256 = "1lc3b75bk92l1rndnld4lxjw91gdwym0dpsnziajsw4ikl8ddyvd";
         libName = "axum_extra";
         dependencies = [
           {
@@ -5057,7 +5057,7 @@ rec {
           "routing" = [ "axum/original-uri" "dep:rustversion" ];
           "tracing" = [ "axum-core/tracing" "axum/tracing" "dep:tracing" ];
           "typed-header" = [ "dep:headers" ];
-          "typed-routing" = [ "dep:axum-macros" "dep:percent-encoding" "dep:serde_core" "dep:serde_html_form" "dep:form_urlencoded" ];
+          "typed-routing" = [ "routing" "dep:axum-macros" "dep:percent-encoding" "dep:serde_core" "dep:serde_html_form" "dep:form_urlencoded" ];
           "with-rejection" = [ "dep:axum" ];
         };
         resolvedDefaultFeatures = [ "typed-header" ];

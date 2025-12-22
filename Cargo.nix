@@ -5614,9 +5614,9 @@ rec {
       };
       "cc" = rec {
         crateName = "cc";
-        version = "1.2.49";
+        version = "1.2.50";
         edition = "2018";
-        sha256 = "05929ra8a2q81w45f932nr4blifnxkpr8i7lmcba28bm0c4k0n4h";
+        sha256 = "0g1q2k30bwnym5hlhk2y3k08hhrklgn68gr61b63f73s49ixal4z";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -8819,9 +8819,9 @@ rec {
       };
       "itoa" = rec {
         crateName = "itoa";
-        version = "1.0.15";
-        edition = "2018";
-        sha256 = "0b4fj9kz54dr3wam0vprjwgygvycyw8r0qwg7vp19ly8b2w16psa";
+        version = "1.0.16";
+        edition = "2021";
+        sha256 = "040hqvfkxl7mpjs54y495ch2qkxx26kbfxyydmi42k7vk8rvbrby";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -11767,9 +11767,9 @@ rec {
       };
       "portable-atomic" = rec {
         crateName = "portable-atomic";
-        version = "1.11.1";
+        version = "1.12.0";
         edition = "2018";
-        sha256 = "10s4cx9y3jvw0idip09ar52s2kymq8rq9a668f793shn1ar6fhpq";
+        sha256 = "1p9rrnq6fdk8byqf1q7x5jbzqwx9yaj99zg8qabmgrgimv2717pm";
         libName = "portable_atomic";
         features = {
           "critical-section" = [ "dep:critical-section" ];
@@ -14119,9 +14119,9 @@ rec {
       };
       "ryu" = rec {
         crateName = "ryu";
-        version = "1.0.20";
-        edition = "2018";
-        sha256 = "07s855l8sb333h6bpn24pka5sp7hjk2w667xy6a0khkf6sqv5lr8";
+        version = "1.0.21";
+        edition = "2021";
+        sha256 = "1sja0gi4s0h3yjrx7hky72vivhzx73p5dllsiwg844mzfwl9n132";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -16330,9 +16330,9 @@ rec {
       };
       "toml" = rec {
         crateName = "toml";
-        version = "0.9.9+spec-1.0.0";
+        version = "0.9.10+spec-1.1.0";
         edition = "2021";
-        sha256 = "1pbrpjvx3s7xa7mb74ivnrs2v4ci599y2lz7szas2d7w8gk3hlpb";
+        sha256 = "0j1g01s2wby792jmy8ibzmddmwh1r35qc33c9n5ilji8b4hha988";
         dependencies = [
           {
             name = "serde_core";
@@ -16381,9 +16381,9 @@ rec {
       };
       "toml_datetime" = rec {
         crateName = "toml_datetime";
-        version = "0.7.4+spec-1.0.0";
+        version = "0.7.5+spec-1.1.0";
         edition = "2021";
-        sha256 = "1dpj9bn1dbdflvlsa2qpkigsnks6x99l1gba5w4i1fd359mylg7y";
+        sha256 = "0iqkgvgsxmszpai53dbip7sf2igic39s4dby29dbqf1h9bnwzqcj";
         dependencies = [
           {
             name = "serde_core";
@@ -16437,9 +16437,9 @@ rec {
       };
       "toml_parser" = rec {
         crateName = "toml_parser";
-        version = "1.0.5+spec-1.0.0";
+        version = "1.0.6+spec-1.1.0";
         edition = "2021";
-        sha256 = "0k4qi77jmfvwy38jxnz8w0f30hxw33zvl2yva09g75inrvjvw0sc";
+        sha256 = "0i5zxv5y3z9g6r3gm6ly4q0hhkahh013q4rys2fz04cf195qn6d3";
         dependencies = [
           {
             name = "winnow";

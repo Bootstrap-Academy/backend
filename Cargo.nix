@@ -14858,9 +14858,9 @@ rec {
       };
       "serde_json" = rec {
         crateName = "serde_json";
-        version = "1.0.146";
+        version = "1.0.147";
         edition = "2021";
-        sha256 = "1n5dkmk4kyp5z63qvk4j12lqamfhvrbwj0maak1al1q2mrsahz11";
+        sha256 = "1r3s8hqwqrrmb8ikdf8yg6lnm8z8sxycp7iycwz3852ka0jlgwba";
         authors = [
           "Erick Tryzelaar <erick.tryzelaar@gmail.com>"
           "David Tolnay <dtolnay@gmail.com>"
@@ -14881,10 +14881,6 @@ rec {
             usesDefaultFeatures = false;
           }
           {
-            name = "ryu";
-            packageId = "ryu";
-          }
-          {
             name = "serde";
             packageId = "serde";
             usesDefaultFeatures = false;
@@ -14894,6 +14890,10 @@ rec {
             name = "serde_core";
             packageId = "serde_core";
             usesDefaultFeatures = false;
+          }
+          {
+            name = "zmij";
+            packageId = "zmij";
           }
         ];
         devDependencies = [
@@ -20108,6 +20108,18 @@ rec {
           }
         ];
 
+      };
+      "zmij" = rec {
+        crateName = "zmij";
+        version = "0.1.7";
+        edition = "2021";
+        sha256 = "1fpkchlx0q3qsws01xnfqf098gvlbbld6scja9p01bzxib6lnh4y";
+        authors = [
+          "David Tolnay <dtolnay@gmail.com>"
+        ];
+        features = {
+          "no-panic" = [ "dep:no-panic" ];
+        };
       };
     };
 

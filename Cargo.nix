@@ -13654,18 +13654,14 @@ rec {
       };
       "rmp-serde" = rec {
         crateName = "rmp-serde";
-        version = "1.3.0";
-        edition = "2021";
-        sha256 = "1nylmh7w2vpa1bwrnx1jfp2l4yz6i5qrmpic5zll166gfyj9kraj";
+        version = "1.3.1";
+        edition = "2024";
+        sha256 = "0md1cx5w0hwc40nb55z3c4j26b4npkmp06k8s5vvbycfikp1py3j";
         libName = "rmp_serde";
         authors = [
           "Evgeny Safronov <division494@gmail.com>"
         ];
         dependencies = [
-          {
-            name = "byteorder";
-            packageId = "byteorder";
-          }
           {
             name = "rmp";
             packageId = "rmp";

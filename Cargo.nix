@@ -11440,17 +11440,6 @@ rec {
         };
         resolvedDefaultFeatures = [ "alloc" "default" "rand_core" "std" ];
       };
-      "paste" = rec {
-        crateName = "paste";
-        version = "1.0.15";
-        edition = "2018";
-        sha256 = "02pxffpdqkapy292harq6asfjvadgp1s005fip9ljfsn9fvxgh2p";
-        procMacro = true;
-        authors = [
-          "David Tolnay <dtolnay@gmail.com>"
-        ];
-
-      };
       "pathdiff" = rec {
         crateName = "pathdiff";
         version = "0.2.3";
@@ -13624,31 +13613,23 @@ rec {
       };
       "rmp" = rec {
         crateName = "rmp";
-        version = "0.8.14";
-        edition = "2021";
-        sha256 = "1i1l6dhv7vws5vp0ikakj44fk597xi59g3j6ng1q55x3dz0xg3i2";
+        version = "0.8.15";
+        edition = "2024";
+        sha256 = "033rwyzxyj5f7iviacvcz1y2wmlbadw1cma2anrwkckjsdrbxa2b";
         authors = [
           "Evgeny Safronov <division494@gmail.com>"
+          "Kornel <kornel@geekhood.net>"
         ];
         dependencies = [
-          {
-            name = "byteorder";
-            packageId = "byteorder";
-            usesDefaultFeatures = false;
-          }
           {
             name = "num-traits";
             packageId = "num-traits";
             usesDefaultFeatures = false;
           }
-          {
-            name = "paste";
-            packageId = "paste";
-          }
         ];
         features = {
           "default" = [ "std" ];
-          "std" = [ "byteorder/std" "num-traits/std" ];
+          "std" = [ "num-traits/std" ];
         };
         resolvedDefaultFeatures = [ "default" "std" ];
       };
@@ -20107,9 +20088,9 @@ rec {
       };
       "zmij" = rec {
         crateName = "zmij";
-        version = "0.1.7";
+        version = "0.1.8";
         edition = "2021";
-        sha256 = "1fpkchlx0q3qsws01xnfqf098gvlbbld6scja9p01bzxib6lnh4y";
+        sha256 = "1al1jwkf0gsvrd2sh5qhh0bwrw8xk652bmg1xd5mw82vn93czp7i";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];

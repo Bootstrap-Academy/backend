@@ -84,7 +84,7 @@ dependencies = [
  "aide",
  "anyhow",
  "axum",
- "axum-extra 0.12.3",
+ "axum-extra 0.12.4",
  "base64 0.22.1",
  "futures",
  "mime",
@@ -783,7 +783,7 @@ dependencies = [
  "academy_utils",
  "anyhow",
  "axum",
- "axum-extra 0.12.3",
+ "axum-extra 0.12.4",
  "clap",
  "clap_complete",
  "oauth2",
@@ -1093,9 +1093,9 @@ dependencies = [
 
 [[package]]
 name = "axum-extra"
-version = "0.12.3"
+version = "0.12.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6dfbd6109d91702d55fc56df06aae7ed85c465a7a451db6c0e54a4b9ca5983d1"
+checksum = "64b53391462e934d4163c8907f59662cf5833f38a15c85853fb8d8bcbffc9ba1"
 dependencies = [
  "axum-core",
  "bytes",

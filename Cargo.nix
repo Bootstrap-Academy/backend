@@ -14835,9 +14835,9 @@ rec {
       };
       "serde_json" = rec {
         crateName = "serde_json";
-        version = "1.0.147";
+        version = "1.0.148";
         edition = "2021";
-        sha256 = "1r3s8hqwqrrmb8ikdf8yg6lnm8z8sxycp7iycwz3852ka0jlgwba";
+        sha256 = "1ni2d8rv2ilz3p2h52wfx9k3i5xs5ai85wcnb53qjqnxl53bb11h";
         authors = [
           "Erick Tryzelaar <erick.tryzelaar@gmail.com>"
           "David Tolnay <dtolnay@gmail.com>"
@@ -20088,9 +20088,9 @@ rec {
       };
       "zmij" = rec {
         crateName = "zmij";
-        version = "0.1.8";
+        version = "1.0.0";
         edition = "2021";
-        sha256 = "1al1jwkf0gsvrd2sh5qhh0bwrw8xk652bmg1xd5mw82vn93czp7i";
+        sha256 = "0rx1drj2rmk4ngmfrxcwq4grgqv3srxgklc90ra3abl5c9fhimp6";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];

@@ -4821,9 +4821,9 @@ rec {
       };
       "axum-core" = rec {
         crateName = "axum-core";
-        version = "0.5.5";
+        version = "0.5.6";
         edition = "2021";
-        sha256 = "08pa4752h96pai7j5avr2hnq35xh7qgv6vl57y1zhhnikkhnqi2r";
+        sha256 = "1lcjhxysnbc64rh21ag9m9fpiryd1iwcdh9mwxz1yadiswqqziq8";
         libName = "axum_core";
         dependencies = [
           {
@@ -5614,9 +5614,9 @@ rec {
       };
       "cc" = rec {
         crateName = "cc";
-        version = "1.2.50";
+        version = "1.2.51";
         edition = "2018";
-        sha256 = "0g1q2k30bwnym5hlhk2y3k08hhrklgn68gr61b63f73s49ixal4z";
+        sha256 = "00zj303al745qymzfx3qp4wnj5s5wncaadc8c64hbagi9zzyl2ks";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -6756,7 +6756,7 @@ rec {
           "default" = [ "std" ];
           "std" = [ "libc/std" ];
         };
-        resolvedDefaultFeatures = [ "std" ];
+        resolvedDefaultFeatures = [ "default" "std" ];
       };
       "fallible-iterator" = rec {
         crateName = "fallible-iterator";
@@ -6790,9 +6790,9 @@ rec {
       };
       "find-msvc-tools" = rec {
         crateName = "find-msvc-tools";
-        version = "0.1.5";
+        version = "0.1.6";
         edition = "2018";
-        sha256 = "0i1ql02y37bc7xywkqz10kx002vpz864vc4qq88h1jam190pcc1s";
+        sha256 = "1zwdxinsg7i0agvapxa5cj7k09vygzjy8nkxc4qpa2z6hhxbnp34";
         libName = "find_msvc_tools";
 
       };
@@ -8759,9 +8759,9 @@ rec {
       };
       "iri-string" = rec {
         crateName = "iri-string";
-        version = "0.7.9";
+        version = "0.7.10";
         edition = "2021";
-        sha256 = "15s3s6k99ci52d7qdplhllpa6xyvdyiys645n6z6fsw93nfpp1jg";
+        sha256 = "06kk3a5jz576p7vrpf7zz9jv3lrgcyp7pczcblcxdnryg3q3h4y9";
         libName = "iri_string";
         authors = [
           "YOSHIOKA Takuma <nop_thread@nops.red>"
@@ -8819,9 +8819,9 @@ rec {
       };
       "itoa" = rec {
         crateName = "itoa";
-        version = "1.0.16";
+        version = "1.0.17";
         edition = "2021";
-        sha256 = "040hqvfkxl7mpjs54y495ch2qkxx26kbfxyydmi42k7vk8rvbrby";
+        sha256 = "1lh93xydrdn1g9x547bd05g0d3hra7pd1k4jfd2z1pl1h5hwdv4j";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -9175,9 +9175,9 @@ rec {
       };
       "libredox" = rec {
         crateName = "libredox";
-        version = "0.1.11";
+        version = "0.1.12";
         edition = "2021";
-        sha256 = "0l7dm6b069y5skdipxg74z1ffmwz75hfxcb5b3r1rvciqbmgc5fz";
+        sha256 = "05h6fb2y05h74zwaafmnf7gv3bxilzp7syqlfzw524w55kh9a2rx";
         authors = [
           "4lDO2 <4lDO2@protonmail.com>"
         ];
@@ -9192,7 +9192,7 @@ rec {
           }
           {
             name = "redox_syscall";
-            packageId = "redox_syscall 0.6.0";
+            packageId = "redox_syscall 0.7.0";
             optional = true;
           }
         ];
@@ -11756,9 +11756,9 @@ rec {
       };
       "portable-atomic" = rec {
         crateName = "portable-atomic";
-        version = "1.12.0";
+        version = "1.13.0";
         edition = "2018";
-        sha256 = "1p9rrnq6fdk8byqf1q7x5jbzqwx9yaj99zg8qabmgrgimv2717pm";
+        sha256 = "0l79rf3pzlxmmrylr1c4k61qn8hzs6hzz69yk738pdcvsvj7d5zq";
         libName = "portable_atomic";
         features = {
           "critical-section" = [ "dep:critical-section" ];
@@ -12788,9 +12788,9 @@ rec {
       };
       "redis" = rec {
         crateName = "redis";
-        version = "1.0.1";
+        version = "1.0.2";
         edition = "2021";
-        sha256 = "172f7ai3l0gcz6fxmdiq61h9pp9hm7i4pir5n6d9a4i88jdm1p72";
+        sha256 = "0lf26dh2q7c4l63n0dms9f6zs77dy7xicyl1x7030f79gybj1zjx";
         dependencies = [
           {
             name = "arcstr";
@@ -12925,11 +12925,11 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" "userspace" ];
       };
-      "redox_syscall 0.6.0" = rec {
+      "redox_syscall 0.7.0" = rec {
         crateName = "redox_syscall";
-        version = "0.6.0";
+        version = "0.7.0";
         edition = "2021";
-        sha256 = "1da39gkh50ygwb0rfpqkyaz0y66fps4a7h713yw6x250mxnid5pc";
+        sha256 = "09zfw2jp6hgpn5pkayv9wh01sw410566qk8zwkljm7p6i44gxws9";
         libName = "syscall";
         authors = [
           "Jeremy Soller <jackpot51@gmail.com>"
@@ -14096,9 +14096,9 @@ rec {
       };
       "ryu" = rec {
         crateName = "ryu";
-        version = "1.0.21";
+        version = "1.0.22";
         edition = "2021";
-        sha256 = "1sja0gi4s0h3yjrx7hky72vivhzx73p5dllsiwg844mzfwl9n132";
+        sha256 = "1139acr2kd4n8p36bp1n42xrpaphn6dhwklnazh8hpdnfps4q3x5";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -15139,15 +15139,19 @@ rec {
       };
       "signal-hook-registry" = rec {
         crateName = "signal-hook-registry";
-        version = "1.4.7";
+        version = "1.4.8";
         edition = "2015";
-        sha256 = "1bgdimrfqcldbplryknv87gywcdj9v29l3nwqbybs5p6p2ca0r3n";
+        sha256 = "06vc7pmnki6lmxar3z31gkyg9cw7py5x9g7px70gy2hil75nkny4";
         libName = "signal_hook_registry";
         authors = [
           "Michal 'vorner' Vaner <vorner@vorner.cz>"
           "Masaki Hara <ackie.h.gmai@gmail.com>"
         ];
         dependencies = [
+          {
+            name = "errno";
+            packageId = "errno";
+          }
           {
             name = "libc";
             packageId = "libc";
@@ -20088,9 +20092,9 @@ rec {
       };
       "zmij" = rec {
         crateName = "zmij";
-        version = "1.0.0";
+        version = "1.0.2";
         edition = "2021";
-        sha256 = "0rx1drj2rmk4ngmfrxcwq4grgqv3srxgklc90ra3abl5c9fhimp6";
+        sha256 = "0795wc0mal0ipxa4gass848bfgscgzhdpz04kwajvin5kn74wjhg";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];

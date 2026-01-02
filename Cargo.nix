@@ -18156,9 +18156,9 @@ rec {
       };
       "webpki-roots" = rec {
         crateName = "webpki-roots";
-        version = "1.0.4";
+        version = "1.0.5";
         edition = "2021";
-        sha256 = "07jp2zgj3hjb60m1nwrasixdwazmzhh9y4bryy66wz6457q8x1xj";
+        sha256 = "0b3j9ngc8fca3kg24f4jb4v9969vmdngv6s2i4wccxijhs0ddghj";
         libName = "webpki_roots";
         dependencies = [
           {
@@ -20092,9 +20092,9 @@ rec {
       };
       "zmij" = rec {
         crateName = "zmij";
-        version = "1.0.2";
+        version = "1.0.8";
         edition = "2021";
-        sha256 = "0795wc0mal0ipxa4gass848bfgscgzhdpz04kwajvin5kn74wjhg";
+        sha256 = "1kgjm36h22sh9gbfaz92dnlwka394w6ijync2xgm3i0s17zifzri";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];

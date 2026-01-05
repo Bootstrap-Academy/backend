@@ -5161,9 +5161,9 @@ rec {
       };
       "base64ct" = rec {
         crateName = "base64ct";
-        version = "1.8.1";
+        version = "1.8.2";
         edition = "2024";
-        sha256 = "12h6iwd0ib6xxwd0814wf3x6nd91r851xcycvlkpm199cii0y18f";
+        sha256 = "10jxz6vx6f7shz1fvvi8hpgjnkdr74jga1qvqkki0i3zcs09g03x";
         authors = [
           "RustCrypto Developers"
         ];
@@ -9145,9 +9145,9 @@ rec {
       };
       "libc" = rec {
         crateName = "libc";
-        version = "0.2.178";
+        version = "0.2.179";
         edition = "2021";
-        sha256 = "1490yks6mria93i3xdva1gm05cjz824g14mbv0ph32lxma6kvj9p";
+        sha256 = "07s3mxl54kimb55qp0q51pcbm6i3bv8k4chkilix2c55p9vd78n5";
         authors = [
           "The Rust Project Developers"
         ];
@@ -11469,9 +11469,9 @@ rec {
       };
       "pest" = rec {
         crateName = "pest";
-        version = "2.8.4";
+        version = "2.8.5";
         edition = "2021";
-        sha256 = "08ky7sxla38qbzq8m3nf0ppxlayk99w3amzhg40s9ssfdl5d5kyb";
+        sha256 = "1xvm5gz0b2r629rilfpnn9fl5riii8sqs5ak9dqflr5445fb17ic";
         authors = [
           "Dragoș Tiselice <dragostiselice@gmail.com>"
         ];
@@ -11498,9 +11498,9 @@ rec {
       };
       "pest_derive" = rec {
         crateName = "pest_derive";
-        version = "2.8.4";
+        version = "2.8.5";
         edition = "2021";
-        sha256 = "0zsdv4ipr8fsk24m1irrb0mkyilzpqhw4vn2mnk1qyz6mn0jkxsi";
+        sha256 = "1v9ln8pklrinkd8vhlrm29bpwb0s9dv7416qg7x43i19sg7dpyb8";
         procMacro = true;
         authors = [
           "Dragoș Tiselice <dragostiselice@gmail.com>"
@@ -11527,9 +11527,9 @@ rec {
       };
       "pest_generator" = rec {
         crateName = "pest_generator";
-        version = "2.8.4";
+        version = "2.8.5";
         edition = "2021";
-        sha256 = "098n4wyqi0wg2x8ffbjjdpnl2z7c3bw7d2q8h2d723dmrpcfzsfy";
+        sha256 = "1rcfp9inzxm7alkfvj9zjazhxnqah672swcg7ks493x7a586vf9v";
         authors = [
           "Dragoș Tiselice <dragostiselice@gmail.com>"
         ];
@@ -11566,9 +11566,9 @@ rec {
       };
       "pest_meta" = rec {
         crateName = "pest_meta";
-        version = "2.8.4";
+        version = "2.8.5";
         edition = "2021";
-        sha256 = "10jvy17rin1xwh3nb2a3irfdi4z7khisdbrfllxw3gbn1s4707dz";
+        sha256 = "0r93xxn1hvgbhfnlj3ibpllsp14z1gcwz46lrxq1fqp8nnsi68b0";
         authors = [
           "Dragoș Tiselice <dragostiselice@gmail.com>"
         ];
@@ -16255,9 +16255,9 @@ rec {
       };
       "tokio-util" = rec {
         crateName = "tokio-util";
-        version = "0.7.17";
+        version = "0.7.18";
         edition = "2021";
-        sha256 = "152m2rp40bjphca5j581csczarvvr974zvwpzpldcwv0wygi9yif";
+        sha256 = "1600rd47pylwn7cap1k7s5nvdaa9j7w8kqigzp1qy7mh0p4cxscs";
         libName = "tokio_util";
         authors = [
           "Tokio Contributors <team@tokio.rs>"
@@ -20092,9 +20092,9 @@ rec {
       };
       "zmij" = rec {
         crateName = "zmij";
-        version = "1.0.8";
+        version = "1.0.10";
         edition = "2021";
-        sha256 = "1kgjm36h22sh9gbfaz92dnlwka394w6ijync2xgm3i0s17zifzri";
+        sha256 = "0s2q2k40d8gj81w039mmlxrzdbhz74l8x8xxch7q8gdfzggxiq1h";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];

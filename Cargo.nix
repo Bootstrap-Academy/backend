@@ -12166,9 +12166,9 @@ rec {
       };
       "proc-macro2" = rec {
         crateName = "proc-macro2";
-        version = "1.0.104";
+        version = "1.0.105";
         edition = "2021";
-        sha256 = "1w5xdq7b4dvzyvrxa0rd6cc96mjz6qr7b9lm5hi3skxv87gzi5cn";
+        sha256 = "1rvgs5qdznlrqrgicmv24nybnrnv8kyvk2vi7s52ddna1q71hpak";
         libName = "proc_macro2";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"

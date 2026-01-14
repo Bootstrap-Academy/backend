@@ -7219,7 +7219,7 @@ rec {
           }
           {
             name = "wasi";
-            packageId = "wasi";
+            packageId = "wasi 0.11.1+wasi-snapshot-preview1";
             usesDefaultFeatures = false;
             target = { target, features }: ("wasi" == target."os" or null);
           }
@@ -9190,11 +9190,6 @@ rec {
             name = "libc";
             packageId = "libc";
           }
-          {
-            name = "redox_syscall";
-            packageId = "redox_syscall 0.7.0";
-            optional = true;
-          }
         ];
         features = {
           "default" = [ "call" "std" "redox_syscall" ];
@@ -9202,7 +9197,7 @@ rec {
           "mkns" = [ "ioslice" ];
           "redox_syscall" = [ "dep:redox_syscall" ];
         };
-        resolvedDefaultFeatures = [ "call" "default" "redox_syscall" "std" ];
+        resolvedDefaultFeatures = [ "call" ];
       };
       "linux-raw-sys" = rec {
         crateName = "linux-raw-sys";
@@ -9443,7 +9438,7 @@ rec {
           }
           {
             name = "wasi";
-            packageId = "wasi";
+            packageId = "wasi 0.11.1+wasi-snapshot-preview1";
             target = { target, features }: ("wasi" == target."os" or null);
           }
           {
@@ -11370,7 +11365,7 @@ rec {
           }
           {
             name = "redox_syscall";
-            packageId = "redox_syscall 0.5.18";
+            packageId = "redox_syscall";
             target = { target, features }: ("redox" == target."os" or null);
           }
           {
@@ -11858,9 +11853,9 @@ rec {
       };
       "postgres-protocol" = rec {
         crateName = "postgres-protocol";
-        version = "0.6.9";
+        version = "0.6.10";
         edition = "2021";
-        sha256 = "1m6g7zzcdj4pgw2gs3anh57ylzbabpynq9s8h23fn5mrar86bvzv";
+        sha256 = "14clpf8in16l8vnbn972fiq22dwn1jm3civgh2vd4mahw5gxvs9y";
         libName = "postgres_protocol";
         authors = [
           "Steven Fackler <sfackler@gmail.com>"
@@ -11915,9 +11910,9 @@ rec {
       };
       "postgres-types" = rec {
         crateName = "postgres-types";
-        version = "0.2.11";
+        version = "0.2.12";
         edition = "2021";
-        sha256 = "15bh03mqaclmv9jhzvrb3xdrgr1q0c6ardmfbg9ns1apq2vhaipg";
+        sha256 = "081ygcjycggk2fyiw6kmilnn9bnfw5l3ydydzs14ds0i4bw5if2l";
         libName = "postgres_types";
         authors = [
           "Steven Fackler <sfackler@gmail.com>"
@@ -12903,33 +12898,11 @@ rec {
         };
         resolvedDefaultFeatures = [ "aio" "bytes" "tokio-comp" ];
       };
-      "redox_syscall 0.5.18" = rec {
+      "redox_syscall" = rec {
         crateName = "redox_syscall";
         version = "0.5.18";
         edition = "2021";
         sha256 = "0b9n38zsxylql36vybw18if68yc9jczxmbyzdwyhb9sifmag4azd";
-        libName = "syscall";
-        authors = [
-          "Jeremy Soller <jackpot51@gmail.com>"
-        ];
-        dependencies = [
-          {
-            name = "bitflags";
-            packageId = "bitflags";
-          }
-        ];
-        features = {
-          "core" = [ "dep:core" ];
-          "default" = [ "userspace" ];
-          "rustc-dep-of-std" = [ "core" "bitflags/rustc-dep-of-std" ];
-        };
-        resolvedDefaultFeatures = [ "default" "userspace" ];
-      };
-      "redox_syscall 0.7.0" = rec {
-        crateName = "redox_syscall";
-        version = "0.7.0";
-        edition = "2021";
-        sha256 = "09zfw2jp6hgpn5pkayv9wh01sw410566qk8zwkljm7p6i44gxws9";
         libName = "syscall";
         authors = [
           "Jeremy Soller <jackpot51@gmail.com>"
@@ -16083,9 +16056,9 @@ rec {
       };
       "tokio-postgres" = rec {
         crateName = "tokio-postgres";
-        version = "0.7.15";
+        version = "0.7.16";
         edition = "2021";
-        sha256 = "17kc1zr0j7dsqvkb1lxvvn77w92qiqv0jd0p52v09zickdnxch1b";
+        sha256 = "0hpfhzvv2ghrm56dnss3iz95kf0wy6qjsv7ijdvkci0pyz44gsnw";
         libName = "tokio_postgres";
         authors = [
           "Steven Fackler <sfackler@gmail.com>"
@@ -17428,7 +17401,7 @@ rec {
         ];
 
       };
-      "wasi" = rec {
+      "wasi 0.11.1+wasi-snapshot-preview1" = rec {
         crateName = "wasi";
         version = "0.11.1+wasi-snapshot-preview1";
         edition = "2018";
@@ -17443,6 +17416,24 @@ rec {
           "rustc-std-workspace-alloc" = [ "dep:rustc-std-workspace-alloc" ];
         };
         resolvedDefaultFeatures = [ "default" "std" ];
+      };
+      "wasi 0.14.7+wasi-0.2.4" = rec {
+        crateName = "wasi";
+        version = "0.14.7+wasi-0.2.4";
+        edition = "2021";
+        sha256 = "133fq3mq7h65mzrsphcm7bbbx1gsz7srrbwh01624zin43g7hd48";
+        dependencies = [
+          {
+            name = "wasip2";
+            packageId = "wasip2";
+            usesDefaultFeatures = false;
+          }
+        ];
+        features = {
+          "bitflags" = [ "wasip2/bitflags" ];
+          "default" = [ "wasip2/default" ];
+          "std" = [ "wasip2/std" ];
+        };
       };
       "wasip2" = rec {
         crateName = "wasip2";
@@ -17466,9 +17457,16 @@ rec {
       };
       "wasite" = rec {
         crateName = "wasite";
-        version = "0.1.0";
-        edition = "2018";
-        sha256 = "0nw5h9nmcl4fyf4j5d4mfdjfgvwi1cakpi349wc4zrr59wxxinmq";
+        version = "1.0.2";
+        edition = "2021";
+        sha256 = "0hhsyylwsnbyz6dsr7i0gadzgk34nw4ljhnmafkji03b98mr1zk6";
+        dependencies = [
+          {
+            name = "wasi";
+            packageId = "wasi 0.14.7+wasi-0.2.4";
+            usesDefaultFeatures = false;
+          }
+        ];
 
       };
       "wasm-bindgen" = rec {
@@ -18174,34 +18172,40 @@ rec {
       };
       "whoami" = rec {
         crateName = "whoami";
-        version = "1.6.1";
-        edition = "2018";
-        sha256 = "0zg9sz669vhqyxysn4lymnianj29jxs2vl6k2lqcl0kp0yslsjjx";
+        version = "2.0.2";
+        edition = "2021";
+        sha256 = "10qrm03h50xf5jgajnvdxd5qmsfvgscy1m2nj5i9jgdbnp3xbr5c";
         dependencies = [
           {
             name = "libredox";
             packageId = "libredox";
+            usesDefaultFeatures = false;
             target = { target, features }: (("redox" == target."os" or null) && (!("wasm32" == target."arch" or null)));
+            features = [ "call" ];
           }
           {
             name = "wasite";
             packageId = "wasite";
+            optional = true;
+            usesDefaultFeatures = false;
             target = { target, features }: (("wasm32" == target."arch" or null) && ("wasi" == target."os" or null));
           }
           {
             name = "web-sys";
             packageId = "web-sys";
             optional = true;
+            usesDefaultFeatures = false;
             target = { target, features }: (("wasm32" == target."arch" or null) && (!("wasi" == target."os" or null)) && (!(target."daku" or false)));
             features = [ "Navigator" "Document" "Window" "Location" ];
           }
         ];
         features = {
-          "default" = [ "web" ];
-          "web" = [ "web-sys" ];
-          "web-sys" = [ "dep:web-sys" ];
+          "default" = [ "std" "wasi-wasite" "wasm-web" ];
+          "std" = [ "web-sys?/std" ];
+          "wasi-wasite" = [ "dep:wasite" ];
+          "wasm-web" = [ "dep:web-sys" ];
         };
-        resolvedDefaultFeatures = [ "default" "web" "web-sys" ];
+        resolvedDefaultFeatures = [ "default" "std" "wasi-wasite" "wasm-web" ];
       };
       "winapi" = rec {
         crateName = "winapi";

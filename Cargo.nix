@@ -13780,9 +13780,9 @@ rec {
       };
       "rust_decimal_macros" = rec {
         crateName = "rust_decimal_macros";
-        version = "1.39.0";
+        version = "1.40.0";
         edition = "2021";
-        sha256 = "18v9227aybig2rvr47817sx0kgpgw248f51dvhjbwgj1iys0r35f";
+        sha256 = "06858hhh4kgdkwm0rz2gfddby7ss8d8dpzf66nhcg4p84zqad9bl";
         procMacro = true;
         authors = [
           "Paul Mason <paul@form1.co.nz>"

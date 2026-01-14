@@ -13498,9 +13498,9 @@ rec {
       };
       "rkyv" = rec {
         crateName = "rkyv";
-        version = "0.7.45";
+        version = "0.7.46";
         edition = "2021";
-        sha256 = "16vp6m4sq41smhvym8ijy4id1hr3vm4na7wy4bc63qdrhmiws24h";
+        sha256 = "18fngrp1kzsmkkl7asl25661cm7hi05kf8cmpjbdrw53h6fbz5r2";
         authors = [
           "David Koloski <djkoloski@gmail.com>"
         ];
@@ -13586,9 +13586,9 @@ rec {
       };
       "rkyv_derive" = rec {
         crateName = "rkyv_derive";
-        version = "0.7.45";
+        version = "0.7.46";
         edition = "2021";
-        sha256 = "1h1jwmyivx7g88d41gzcjrqnax98m9algjd49hx0laqab4kisgah";
+        sha256 = "1x9q626kkppbnbrbbw09nyz2r56b3frhxny87a6h81ld9cnv9mw4";
         procMacro = true;
         authors = [
           "David Koloski <djkoloski@gmail.com>"
@@ -13663,9 +13663,9 @@ rec {
       };
       "rust_decimal" = rec {
         crateName = "rust_decimal";
-        version = "1.39.0";
+        version = "1.40.0";
         edition = "2021";
-        sha256 = "10i20blk3gma74qjl29c58dx4ma3cnbls9qjcy2bvac72x0gxbrm";
+        sha256 = "1c1yb8lms5aqzlaarwa0d7mn30s2h7x46djipiyginsjk38h7xv1";
         authors = [
           "Paul Mason <paul@form1.co.nz>"
         ];
@@ -13763,12 +13763,13 @@ rec {
           "rkyv-safe" = [ "rkyv/validation" ];
           "rocket-traits" = [ "dep:rocket" "std" ];
           "rust-fuzz" = [ "dep:arbitrary" ];
+          "ryu" = [ "dep:ryu" ];
           "serde" = [ "dep:serde" ];
           "serde-arbitrary-precision" = [ "serde-with-arbitrary-precision" ];
           "serde-bincode" = [ "serde-str" ];
           "serde-float" = [ "serde-with-float" ];
           "serde-str" = [ "serde-with-str" ];
-          "serde-with-arbitrary-precision" = [ "serde" "serde_json/arbitrary_precision" "serde_json/std" ];
+          "serde-with-arbitrary-precision" = [ "serde" "serde_json/arbitrary_precision" "serde_json/std" "ryu" ];
           "serde-with-float" = [ "serde" ];
           "serde-with-str" = [ "serde" ];
           "serde_json" = [ "dep:serde_json" ];

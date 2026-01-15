@@ -8832,9 +8832,9 @@ rec {
       };
       "js-sys" = rec {
         crateName = "js-sys";
-        version = "0.3.83";
+        version = "0.3.85";
         edition = "2021";
-        sha256 = "1n71vpxrzclly0530lwkcsx6mg73lipam2ak3rr1ypzmqw4kfjj6";
+        sha256 = "1csmb42fxjmzjdgc790bgw77sf1cb9ydm5rdsnh5qj4miszjx54c";
         libName = "js_sys";
         authors = [
           "The wasm-bindgen Developers"
@@ -17472,9 +17472,9 @@ rec {
       };
       "wasm-bindgen" = rec {
         crateName = "wasm-bindgen";
-        version = "0.2.106";
+        version = "0.2.108";
         edition = "2021";
-        sha256 = "1zc0pcyv0w1dhp8r7ybmmfjsf4g18q784h0k7mv2sjm67x1ryx8d";
+        sha256 = "0rl5pn80sdhj2p2r28lp3k50a8mpppzgwzssz2f3jdqyxhq4l0k4";
         libName = "wasm_bindgen";
         authors = [
           "The wasm-bindgen Developers"
@@ -17523,9 +17523,9 @@ rec {
       };
       "wasm-bindgen-futures" = rec {
         crateName = "wasm-bindgen-futures";
-        version = "0.4.56";
+        version = "0.4.58";
         edition = "2021";
-        sha256 = "0z6f0zkylpgbfb7dkh7a85dxdwm57q7c2np2bngfxzh4sqi9cvc3";
+        sha256 = "0vqywn9df5i6mms3sw47v3kj7rzx8ryghqq0xb4jk05fs1zyg9kh";
         libName = "wasm_bindgen_futures";
         authors = [
           "The wasm-bindgen Developers"
@@ -17534,6 +17534,13 @@ rec {
           {
             name = "cfg-if";
             packageId = "cfg-if";
+          }
+          {
+            name = "futures-util";
+            packageId = "futures-util";
+            optional = true;
+            usesDefaultFeatures = false;
+            features = [ "std" ];
           }
           {
             name = "js-sys";
@@ -17562,15 +17569,16 @@ rec {
           "default" = [ "std" ];
           "futures-core" = [ "dep:futures-core" ];
           "futures-core-03-stream" = [ "futures-core" ];
-          "std" = [ "wasm-bindgen/std" "js-sys/std" "web-sys/std" ];
+          "futures-util" = [ "dep:futures-util" ];
+          "std" = [ "wasm-bindgen/std" "js-sys/std" "web-sys/std" "futures-util" ];
         };
-        resolvedDefaultFeatures = [ "default" "std" ];
+        resolvedDefaultFeatures = [ "default" "futures-util" "std" ];
       };
       "wasm-bindgen-macro" = rec {
         crateName = "wasm-bindgen-macro";
-        version = "0.2.106";
+        version = "0.2.108";
         edition = "2021";
-        sha256 = "1czfwzhqrkzyyhd3g58mdwb2jjk4q2pl9m1fajyfvfpq70k0vjs8";
+        sha256 = "026nnvakp0w6j3ghpcxn31shj9wx8bv8x7nk3gkk40klkjfj72q0";
         procMacro = true;
         libName = "wasm_bindgen_macro";
         authors = [
@@ -17592,9 +17600,9 @@ rec {
       };
       "wasm-bindgen-macro-support" = rec {
         crateName = "wasm-bindgen-macro-support";
-        version = "0.2.106";
+        version = "0.2.108";
         edition = "2021";
-        sha256 = "0h6ddq6cc6jf9phsdh2a3x8lpjhmkya86ihfz3fdk4jzrpamkyyf";
+        sha256 = "0m9sj475ypgifbkvksjsqs2gy3bq96f87ychch784m4gspiblmjj";
         libName = "wasm_bindgen_macro_support";
         authors = [
           "The wasm-bindgen Developers"
@@ -17628,10 +17636,10 @@ rec {
       };
       "wasm-bindgen-shared" = rec {
         crateName = "wasm-bindgen-shared";
-        version = "0.2.106";
+        version = "0.2.108";
         edition = "2021";
         links = "wasm_bindgen";
-        sha256 = "1d0dh3jn77qz67n5zh0s3rvzlbjv926p0blq5bvng2v4gq2kiifb";
+        sha256 = "04ix7v99rvj5730553j58pqsrwpf9sqazr60y3cchx5cr60ba08z";
         libName = "wasm_bindgen_shared";
         authors = [
           "The wasm-bindgen Developers"
@@ -17646,9 +17654,9 @@ rec {
       };
       "web-sys" = rec {
         crateName = "web-sys";
-        version = "0.3.83";
+        version = "0.3.85";
         edition = "2021";
-        sha256 = "1b1pw450ig62xr0cy1wfjlbahvmi725jl64d150j0hacfy6q4clv";
+        sha256 = "1645c202gyw21m6kxw4ya81vrapl40hlb8m9iqhjj8fra7jk4bii";
         libName = "web_sys";
         authors = [
           "The wasm-bindgen Developers"
@@ -17951,6 +17959,8 @@ rec {
           "SFrameTransform" = [ "EventTarget" ];
           "SFrameTransformErrorEvent" = [ "Event" ];
           "Screen" = [ "EventTarget" ];
+          "ScreenDetailed" = [ "EventTarget" "Screen" ];
+          "ScreenDetails" = [ "EventTarget" ];
           "ScreenOrientation" = [ "EventTarget" ];
           "ScriptProcessorNode" = [ "AudioNode" "EventTarget" ];
           "ScrollAreaEvent" = [ "Event" "UiEvent" ];

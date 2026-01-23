@@ -12536,9 +12536,9 @@ rec {
       };
       "quote" = rec {
         crateName = "quote";
-        version = "1.0.43";
+        version = "1.0.44";
         edition = "2021";
-        sha256 = "02n41mlr81qmczac7m5kjy51y8b7yrb8ym4ncmjycampjjjxjx6w";
+        sha256 = "1r7c7hxl66vz3q9qizgjhy77pdrrypqgk4ghc7260xvvfb7ypci1";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];

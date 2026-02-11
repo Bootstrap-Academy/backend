@@ -5880,7 +5880,7 @@ rec {
           }
           {
             name = "clap_lex";
-            packageId = "clap_lex 1.0.0";
+            packageId = "clap_lex";
           }
           {
             name = "strsim";
@@ -5904,9 +5904,9 @@ rec {
       };
       "clap_complete" = rec {
         crateName = "clap_complete";
-        version = "4.5.65";
+        version = "4.5.66";
         edition = "2021";
-        sha256 = "0pdf33fgil55x8a3l5x5gln39wy9xlmpnqkrvr41i1p3np14s2s3";
+        sha256 = "0c8h6x3x1ddldfmhii12hrd92v1av8d18rckdzjs8qciwfvs6my7";
         dependencies = [
           {
             name = "clap";
@@ -5916,7 +5916,7 @@ rec {
           }
           {
             name = "clap_lex";
-            packageId = "clap_lex 0.7.7";
+            packageId = "clap_lex";
             optional = true;
           }
           {
@@ -5978,14 +5978,7 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" ];
       };
-      "clap_lex 0.7.7" = rec {
-        crateName = "clap_lex";
-        version = "0.7.7";
-        edition = "2021";
-        sha256 = "0cibsbziyzw2ywar2yh6zllsamhwkblfly565zgi56s3q064prn3";
-
-      };
-      "clap_lex 1.0.0" = rec {
+      "clap_lex" = rec {
         crateName = "clap_lex";
         version = "1.0.0";
         edition = "2021";

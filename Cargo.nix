@@ -5823,10 +5823,10 @@ rec {
       };
       "clap" = rec {
         crateName = "clap";
-        version = "4.5.57";
+        version = "4.5.58";
         edition = "2021";
         crateBin = [];
-        sha256 = "06p3x91f3yq4lz80lc0z56mmz314sbizdsymcmd31f9zkr4ym6b8";
+        sha256 = "01k8bsz52dy3zbmi35dfdcz34zmgl7khpkljjh197qyd3ab9ggk3";
         dependencies = [
           {
             name = "clap_builder";
@@ -5865,9 +5865,9 @@ rec {
       };
       "clap_builder" = rec {
         crateName = "clap_builder";
-        version = "4.5.57";
+        version = "4.5.58";
         edition = "2021";
-        sha256 = "0f728m14vqrvcpp8pxmaz74c5dh1gd2bh5jd6sl64nhrh2vch4kv";
+        sha256 = "1qi11wancym0zc92ks9y995gkwmhyid7x0j7x7bnkzaxv95if4vz";
         dependencies = [
           {
             name = "anstream";
@@ -5880,7 +5880,7 @@ rec {
           }
           {
             name = "clap_lex";
-            packageId = "clap_lex";
+            packageId = "clap_lex 1.0.0";
           }
           {
             name = "strsim";
@@ -5916,7 +5916,7 @@ rec {
           }
           {
             name = "clap_lex";
-            packageId = "clap_lex";
+            packageId = "clap_lex 0.7.7";
             optional = true;
           }
           {
@@ -5978,11 +5978,18 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" ];
       };
-      "clap_lex" = rec {
+      "clap_lex 0.7.7" = rec {
         crateName = "clap_lex";
         version = "0.7.7";
         edition = "2021";
         sha256 = "0cibsbziyzw2ywar2yh6zllsamhwkblfly565zgi56s3q064prn3";
+
+      };
+      "clap_lex 1.0.0" = rec {
+        crateName = "clap_lex";
+        version = "1.0.0";
+        edition = "2021";
+        sha256 = "0c8888qi1l9sayqlv666h8s0yxn2qc6jr88v1zagk43mpjjjx0is";
 
       };
       "clorinde" = rec {

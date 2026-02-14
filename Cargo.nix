@@ -8840,9 +8840,9 @@ rec {
       };
       "indicatif" = rec {
         crateName = "indicatif";
-        version = "0.18.3";
+        version = "0.18.4";
         edition = "2021";
-        sha256 = "126b1nzklazk3mc5pazvch0s6rawai9ij0bc3hdyqqxlwh9f2xck";
+        sha256 = "1sz9p1a7i0z666psqzjdpi8xa11icmnpfd4q4dyxm4ihh0ihyir5";
         dependencies = [
           {
             name = "console";
@@ -8866,21 +8866,23 @@ rec {
           {
             name = "web-time";
             packageId = "web-time";
+            optional = true;
             target = { target, features }: ("wasm32" == target."arch" or null);
           }
         ];
         features = {
-          "default" = [ "unicode-width" "console/unicode-width" ];
+          "default" = [ "unicode-width" "wasmbind" ];
           "futures" = [ "dep:futures-core" ];
-          "improved_unicode" = [ "unicode-segmentation" "unicode-width" "console/unicode-width" ];
+          "improved_unicode" = [ "unicode-segmentation" "unicode-width" ];
           "in_memory" = [ "vt100" ];
           "rayon" = [ "dep:rayon" ];
           "tokio" = [ "dep:tokio" ];
           "unicode-segmentation" = [ "dep:unicode-segmentation" ];
-          "unicode-width" = [ "dep:unicode-width" ];
+          "unicode-width" = [ "dep:unicode-width" "console/unicode-width" ];
           "vt100" = [ "dep:vt100" ];
+          "wasmbind" = [ "dep:web-time" ];
         };
-        resolvedDefaultFeatures = [ "default" "unicode-width" ];
+        resolvedDefaultFeatures = [ "default" "unicode-width" "wasmbind" ];
       };
       "ipnet" = rec {
         crateName = "ipnet";

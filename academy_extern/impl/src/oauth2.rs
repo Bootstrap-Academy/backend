@@ -10,7 +10,7 @@ use academy_utils::{Apply, trace_instrument};
 use anyhow::{Context, anyhow};
 use oauth2::{
     AuthUrl, AuthorizationCode, ClientId, ClientSecret, RedirectUrl, RequestTokenError,
-    TokenResponse, TokenUrl, basic::BasicClient,
+    TokenResponse, TokenUrl, basic::BasicClient, reqwest,
 };
 use tracing::trace;
 

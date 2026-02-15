@@ -3741,7 +3741,7 @@ rec {
           }
           {
             name = "rand";
-            packageId = "rand 0.9.2";
+            packageId = "rand 0.10.0";
             usesDefaultFeatures = false;
             features = [ "thread_rng" ];
           }
@@ -3971,7 +3971,7 @@ rec {
           }
           {
             name = "rand";
-            packageId = "rand 0.9.2";
+            packageId = "rand 0.10.0";
             usesDefaultFeatures = false;
             features = [ "thread_rng" ];
           }
@@ -4562,7 +4562,7 @@ rec {
           }
           {
             name = "cpufeatures";
-            packageId = "cpufeatures";
+            packageId = "cpufeatures 0.2.17";
             target = { target, features }: (("x86" == target."arch" or null) || ("x86_64" == target."arch" or null));
           }
           {
@@ -5666,6 +5666,41 @@ rec {
         ];
 
       };
+      "chacha20" = rec {
+        crateName = "chacha20";
+        version = "0.10.0";
+        edition = "2024";
+        sha256 = "00bn2rn8l68qvlq93mhq7b4ns4zy9qbjsyjbb9kljgl4hqr9i3bg";
+        authors = [
+          "RustCrypto Developers"
+        ];
+        dependencies = [
+          {
+            name = "cfg-if";
+            packageId = "cfg-if";
+          }
+          {
+            name = "cpufeatures";
+            packageId = "cpufeatures 0.3.0";
+            target = { target, features }: (("x86_64" == target."arch" or null) || ("x86" == target."arch" or null));
+          }
+          {
+            name = "rand_core";
+            packageId = "rand_core 0.10.0";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+        ];
+        features = {
+          "cipher" = [ "dep:cipher" ];
+          "default" = [ "cipher" ];
+          "legacy" = [ "cipher" ];
+          "rng" = [ "dep:rand_core" ];
+          "xchacha" = [ "cipher" ];
+          "zeroize" = [ "dep:zeroize" ];
+        };
+        resolvedDefaultFeatures = [ "rng" ];
+      };
       "chrono" = rec {
         crateName = "chrono";
         version = "0.4.43";
@@ -6257,7 +6292,7 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" "link" ];
       };
-      "cpufeatures" = rec {
+      "cpufeatures 0.2.17" = rec {
         crateName = "cpufeatures";
         version = "0.2.17";
         edition = "2018";
@@ -6271,6 +6306,42 @@ rec {
             packageId = "libc";
             usesDefaultFeatures = false;
             target = { target, features }: (target.name == "aarch64-linux-android");
+          }
+          {
+            name = "libc";
+            packageId = "libc";
+            usesDefaultFeatures = false;
+            target = { target, features }: (("aarch64" == target."arch" or null) && ("linux" == target."os" or null));
+          }
+          {
+            name = "libc";
+            packageId = "libc";
+            usesDefaultFeatures = false;
+            target = { target, features }: (("aarch64" == target."arch" or null) && ("apple" == target."vendor" or null));
+          }
+          {
+            name = "libc";
+            packageId = "libc";
+            usesDefaultFeatures = false;
+            target = { target, features }: (("loongarch64" == target."arch" or null) && ("linux" == target."os" or null));
+          }
+        ];
+
+      };
+      "cpufeatures 0.3.0" = rec {
+        crateName = "cpufeatures";
+        version = "0.3.0";
+        edition = "2024";
+        sha256 = "00fjhygsqmh4kbxxlb99mcsbspxcai6hjydv4c46pwb67wwl2alb";
+        authors = [
+          "RustCrypto Developers"
+        ];
+        dependencies = [
+          {
+            name = "libc";
+            packageId = "libc";
+            usesDefaultFeatures = false;
+            target = { target, features }: (("aarch64" == target."arch" or null) && ("android" == target."os" or null));
           }
           {
             name = "libc";
@@ -7423,6 +7494,11 @@ rec {
             target = { target, features }: (("uefi" == target."os" or null) && ("efi_rng" == target."getrandom_backend" or null));
           }
           {
+            name = "rand_core";
+            packageId = "rand_core 0.10.0";
+            optional = true;
+          }
+          {
             name = "wasip2";
             packageId = "wasip2";
             usesDefaultFeatures = false;
@@ -7438,6 +7514,7 @@ rec {
           "sys_rng" = [ "dep:rand_core" ];
           "wasm_js" = [ "dep:wasm-bindgen" "dep:js-sys" ];
         };
+        resolvedDefaultFeatures = [ "std" "sys_rng" ];
       };
       "gimli" = rec {
         crateName = "gimli";
@@ -12790,6 +12867,46 @@ rec {
         ];
 
       };
+      "rand 0.10.0" = rec {
+        crateName = "rand";
+        version = "0.10.0";
+        edition = "2024";
+        sha256 = "1y7g1zddjzhzwg0k1nddsfyfaq89a7igpcf7q44mqv6z2frnw9mw";
+        authors = [
+          "The Rand Project Developers"
+          "The Rust Project Developers"
+        ];
+        dependencies = [
+          {
+            name = "chacha20";
+            packageId = "chacha20";
+            optional = true;
+            usesDefaultFeatures = false;
+            features = [ "rng" ];
+          }
+          {
+            name = "getrandom";
+            packageId = "getrandom 0.4.1";
+            optional = true;
+          }
+          {
+            name = "rand_core";
+            packageId = "rand_core 0.10.0";
+            usesDefaultFeatures = false;
+          }
+        ];
+        features = {
+          "chacha" = [ "dep:chacha20" ];
+          "default" = [ "std" "std_rng" "sys_rng" "thread_rng" ];
+          "log" = [ "dep:log" ];
+          "serde" = [ "dep:serde" ];
+          "std" = [ "alloc" "getrandom?/std" ];
+          "std_rng" = [ "dep:chacha20" ];
+          "sys_rng" = [ "dep:getrandom" "getrandom/sys_rng" ];
+          "thread_rng" = [ "std" "std_rng" "sys_rng" ];
+        };
+        resolvedDefaultFeatures = [ "alloc" "std" "std_rng" "sys_rng" "thread_rng" ];
+      };
       "rand 0.8.5" = rec {
         crateName = "rand";
         version = "0.8.5";
@@ -12933,6 +13050,16 @@ rec {
           "std" = [ "ppv-lite86/std" "rand_core/std" ];
         };
         resolvedDefaultFeatures = [ "std" ];
+      };
+      "rand_core 0.10.0" = rec {
+        crateName = "rand_core";
+        version = "0.10.0";
+        edition = "2024";
+        sha256 = "1flazfw1q1hbvadwzmaliplz0xnnjijdnbmzxnzdqplhfzb0z38c";
+        authors = [
+          "The Rand Project Developers"
+        ];
+
       };
       "rand_core 0.6.4" = rec {
         crateName = "rand_core";
@@ -15216,7 +15343,7 @@ rec {
           }
           {
             name = "cpufeatures";
-            packageId = "cpufeatures";
+            packageId = "cpufeatures 0.2.17";
             target = { target, features }: (("aarch64" == target."arch" or null) || ("x86" == target."arch" or null) || ("x86_64" == target."arch" or null));
           }
           {
@@ -15255,7 +15382,7 @@ rec {
           }
           {
             name = "cpufeatures";
-            packageId = "cpufeatures";
+            packageId = "cpufeatures 0.2.17";
             target = { target, features }: (("aarch64" == target."arch" or null) || ("x86_64" == target."arch" or null) || ("x86" == target."arch" or null));
           }
           {

@@ -135,7 +135,7 @@ proc-macro2 = { version = "1.0.106", default-features = false, features = ["proc
 quote = { version = "1.0.44", default-features = false, features = ["proc-macro"] }
 rand = { version = "0.10.0", default-features = false, features = ["thread_rng"] }
 regex = { version = "1.12.3", default-features = false }
-reqwest = { version = "0.12.28", default-features = false, features = ["http2", "rustls-tls", "json"] }
+reqwest = { version = "0.13.2", default-features = false, features = ["http2", "rustls-tls", "json"] }
 rust_decimal = { version = "1.40.0", default-features = false, features = ["std", "serde-str"] }
 rust_decimal_macros = { version = "1.40.0", default-features = false }
 schemars = { version = "0.9.0", default-features = false, features = ["derive", "preserve_order", "uuid1", "url2"] }

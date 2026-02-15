@@ -1,4 +1,5 @@
 import hashlib
+import re
 from io import BytesIO
 
 from pypdf import PdfReader
@@ -79,7 +80,7 @@ invoice_text = pdf.pages[0].extract_text()
 assert "Nettobetrag 11.24 EUR" in invoice_text
 assert "zzgl. 19% MwSt. 2.13 EUR" in invoice_text
 assert "Gesamtbetrag 13.37 EUR" in invoice_text
-assert "Rechnungs-Nr. R0000001" in invoice_text
+assert re.search(r"\bRechnungs-Nr\. *R0000001\b", invoice_text)
 assert "Foo Bar" in invoice_text
 assert "Germany" in invoice_text
 assert "foobar@example.com" in invoice_text

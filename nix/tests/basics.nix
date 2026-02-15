@@ -14,7 +14,8 @@ testers.runNixOSTest (
       imports = [ defaultModule ];
     };
 
-    interactive.nodes.machine = interactiveModule;
+    interactive.sshBackdoor.enable = true;
+    interactive.defaults = interactiveModule;
 
     testScript = ''
       import json

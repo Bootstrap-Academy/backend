@@ -3,7 +3,7 @@ use academy_models::{Sensitive, VerificationCode, mfa::MfaRecoveryCode};
 use academy_shared_contracts::secret::SecretService;
 use academy_utils::trace_instrument;
 use rand::{
-    CryptoRng, Rng, RngCore,
+    CryptoRng, Rng,
     distr::{Alphanumeric, Distribution, SampleString, Uniform},
     rng,
 };
@@ -70,7 +70,7 @@ fn generate_hyphenated_code(
     out
 }
 
-fn csprng() -> impl Rng + CryptoRng {
+fn csprng() -> impl CryptoRng {
     rng()
 }
 
@@ -144,19 +144,21 @@ mod tests {
     fn uppercase_digits() {
         // Arrange
         struct Gen(u64, u64);
-        impl RngCore for Gen {
-            fn next_u32(&mut self) -> u32 {
-                self.next_u64() as _
+        impl rand::TryRng for Gen {
+            type Error = std::convert::Infallible;
+
+            fn try_next_u32(&mut self) -> Result<u32, Self::Error> {
+                Ok(self.next_u64() as _)
             }
 
-            fn next_u64(&mut self) -> u64 {
+            fn try_next_u64(&mut self) -> Result<u64, Self::Error> {
                 let res = self.0;
                 self.0 = self.0.wrapping_add(self.1);
-                res
+                Ok(res)
             }
 
-            fn fill_bytes(&mut self, dst: &mut [u8]) {
-                rand::rand_core::impls::fill_bytes_via_next(self, dst);
+            fn try_fill_bytes(&mut self, dst: &mut [u8]) -> Result<(), Self::Error> {
+                rand::rand_core::utils::fill_bytes_via_next_word(dst, || self.try_next_u64())
             }
         }
 

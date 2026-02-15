@@ -27,7 +27,7 @@
   };
 
   formatter.nixfmt = {
-    command = lib.getExe pkgs.nixfmt-rfc-style;
+    command = lib.getExe pkgs.nixfmt;
     includes = [ "*.nix" ];
     options = [ "--strict" ];
   };

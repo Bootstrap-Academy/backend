@@ -1,16 +1,27 @@
-{ testers, defaultModule, ... }:
+{
+  testers,
+  defaultModule,
+  interactiveModule,
+  ...
+}:
+
 testers.runNixOSTest {
   name = "academy-config";
 
   nodes.default = {
     imports = [ defaultModule ];
   };
+
   nodes.no_recaptcha = {
     imports = [ defaultModule ];
     services.academy.backend.settings = {
       recaptcha.enable = false;
     };
   };
+
+  interactive.sshBackdoor.enable = true;
+  interactive.defaults = interactiveModule;
+  interactive.nodes.no_recaptcha._module.args.hostPort = 8001;
 
   testScript = ''
     import json

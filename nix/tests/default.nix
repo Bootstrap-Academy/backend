@@ -179,17 +179,21 @@ let
       virtualisation.qemu.options = [ "-rtc base=2024-01-01T06:00:00" ];
     };
 
-  interactiveModule = {
-    services.academy.backend.settings.http.address = lib.mkForce "0.0.0.0:8000";
-    networking.firewall.allowedTCPPorts = [ 8000 ];
-    virtualisation.forwardPorts = [
-      {
-        from = "host";
-        host.port = 8000;
-        guest.port = 8000;
-      }
-    ];
-  };
+  interactiveModule =
+    { hostPort, ... }:
+    {
+      _module.args.hostPort = lib.mkDefault 8000;
+      services.academy.backend.settings.http.address = lib.mkForce "0.0.0.0:8000";
+      networking.firewall.allowedTCPPorts = [ 8000 ];
+      virtualisation.graphics = false;
+      virtualisation.forwardPorts = [
+        {
+          from = "host";
+          host.port = hostPort;
+          guest.port = 8000;
+        }
+      ];
+    };
 
   mkPythonTest =
     name:
@@ -211,7 +215,8 @@ let
           ];
         };
 
-      interactive.nodes.machine = interactiveModule;
+      interactive.sshBackdoor.enable = true;
+      interactive.defaults = interactiveModule;
 
       testScript = ''
         machine.start()

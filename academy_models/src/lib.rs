@@ -69,7 +69,7 @@ fn hyphenated_code_regex(chunk_count: usize, chunk_size: usize) -> Regex {
     .unwrap()
 }
 
-nutype_string!(RecaptchaResponse(validate(len_char_max = 2048)));
+nutype_string!(RecaptchaResponse(validate(len_char_max = 4096)));
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, JsonSchema)]
 pub struct Sensitive<T>(pub T);

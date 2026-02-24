@@ -9689,9 +9689,9 @@ rec {
       };
       "linux-raw-sys" = rec {
         crateName = "linux-raw-sys";
-        version = "0.11.0";
+        version = "0.12.1";
         edition = "2021";
-        sha256 = "0fghx0nn8nvbz5yzgizfcwd6ap2pislp68j8c1bwyr6sacxkq7fz";
+        sha256 = "0lwasljrqxjjfk9l2j8lyib1babh2qjlnhylqzl01nihw14nk9ij";
         libName = "linux_raw_sys";
         authors = [
           "Dan Gohman <dev@sunfishcode.online>"
@@ -14663,9 +14663,9 @@ rec {
       };
       "rustix" = rec {
         crateName = "rustix";
-        version = "1.1.3";
+        version = "1.1.4";
         edition = "2021";
-        sha256 = "0d0z2zcw4rwzni1hm8snw8xdxwwrij336m31c4ghq66cghj9wv0l";
+        sha256 = "14511f9yjqh0ix07xjrjpllah3325774gfwi9zpq72sip5jlbzmn";
         authors = [
           "Dan Gohman <dev@sunfishcode.online>"
           "Jakub Konka <kubkon@jakubkonka.com>"
@@ -16619,9 +16619,9 @@ rec {
       };
       "tempfile" = rec {
         crateName = "tempfile";
-        version = "3.25.0";
+        version = "3.26.0";
         edition = "2021";
-        sha256 = "1wg5jnzbgpb1wmw396v31f0c70dvj5mpik7rk7fzdccmghgpjdh1";
+        sha256 = "182lfcv9d5w9349i0rjlgn4431k2m3yqfn9ls84p9d3ifxv2r9w2";
         authors = [
           "Steven Allen <steven@stebalien.com>"
           "The Rust Project Developers"

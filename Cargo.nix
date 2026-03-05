@@ -7564,7 +7564,7 @@ rec {
           }
           {
             name = "r-efi";
-            packageId = "r-efi";
+            packageId = "r-efi 5.3.0";
             usesDefaultFeatures = false;
             target = { target, features }: (("uefi" == target."os" or null) && ("efi_rng" == target."getrandom_backend" or null));
           }
@@ -7587,11 +7587,11 @@ rec {
         };
         resolvedDefaultFeatures = [ "std" "wasm_js" ];
       };
-      "getrandom 0.4.1" = rec {
+      "getrandom 0.4.2" = rec {
         crateName = "getrandom";
-        version = "0.4.1";
+        version = "0.4.2";
         edition = "2024";
-        sha256 = "1v7fm84f2jh6x7w3bd2ncl3sw29wnb0rhg7xya1pd30i02cg77hk";
+        sha256 = "0mb5833hf9pvn9dhvxjgfg5dx0m77g8wavvjdpvpnkp9fil1xr8d";
         authors = [
           "The Rand Project Developers"
         ];
@@ -7650,7 +7650,7 @@ rec {
           }
           {
             name = "r-efi";
-            packageId = "r-efi";
+            packageId = "r-efi 6.0.0";
             usesDefaultFeatures = false;
             target = { target, features }: (("uefi" == target."os" or null) && ("efi_rng" == target."getrandom_backend" or null));
           }
@@ -12683,9 +12683,9 @@ rec {
       };
       "proc-macro-crate" = rec {
         crateName = "proc-macro-crate";
-        version = "3.4.0";
+        version = "3.5.0";
         edition = "2021";
-        sha256 = "10v9qi51n4phn1lrj5r94kjq7yhci9jrkqnn6wpan05yjsgb3711";
+        sha256 = "0kv1g1d1zjwxlgcaba2qlshzyy32j03xic8rskqlcr5mnblsfyz6";
         libName = "proc_macro_crate";
         authors = [
           "Bastian Köcher <git@kchr.de>"
@@ -13114,7 +13114,7 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" "std" ];
       };
-      "r-efi" = rec {
+      "r-efi 5.3.0" = rec {
         crateName = "r-efi";
         version = "5.3.0";
         edition = "2018";
@@ -13123,6 +13123,17 @@ rec {
         features = {
           "core" = [ "dep:core" ];
           "examples" = [ "native" ];
+          "rustc-dep-of-std" = [ "core" ];
+        };
+      };
+      "r-efi 6.0.0" = rec {
+        crateName = "r-efi";
+        version = "6.0.0";
+        edition = "2018";
+        sha256 = "1gyrl2k5fyzj9k7kchg2n296z5881lg7070msabid09asp3wkp7q";
+        libName = "r_efi";
+        features = {
+          "core" = [ "dep:core" ];
           "rustc-dep-of-std" = [ "core" ];
         };
       };
@@ -13156,7 +13167,7 @@ rec {
           }
           {
             name = "getrandom";
-            packageId = "getrandom 0.4.1";
+            packageId = "getrandom 0.4.2";
             optional = true;
           }
           {
@@ -17425,7 +17436,7 @@ rec {
           }
           {
             name = "toml_datetime";
-            packageId = "toml_datetime";
+            packageId = "toml_datetime 0.7.5+spec-1.1.0";
             usesDefaultFeatures = false;
             features = [ "alloc" ];
           }
@@ -17455,7 +17466,7 @@ rec {
         };
         resolvedDefaultFeatures = [ "parse" "serde" ];
       };
-      "toml_datetime" = rec {
+      "toml_datetime 0.7.5+spec-1.1.0" = rec {
         crateName = "toml_datetime";
         version = "0.7.5+spec-1.1.0";
         edition = "2021";
@@ -17474,13 +17485,34 @@ rec {
           "serde" = [ "dep:serde_core" ];
           "std" = [ "alloc" "serde_core?/std" ];
         };
-        resolvedDefaultFeatures = [ "alloc" "default" "serde" "std" ];
+        resolvedDefaultFeatures = [ "alloc" "serde" ];
+      };
+      "toml_datetime 1.0.0+spec-1.1.0" = rec {
+        crateName = "toml_datetime";
+        version = "1.0.0+spec-1.1.0";
+        edition = "2021";
+        sha256 = "0gpiaddhignli6whj52ysjxwmmy82r8qxihckzss8y4md5f5bhij";
+        dependencies = [
+          {
+            name = "serde_core";
+            packageId = "serde_core";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+        ];
+        features = {
+          "alloc" = [ "serde_core?/alloc" ];
+          "default" = [ "std" ];
+          "serde" = [ "dep:serde_core" ];
+          "std" = [ "alloc" "serde_core?/std" ];
+        };
+        resolvedDefaultFeatures = [ "alloc" "default" "std" ];
       };
       "toml_edit" = rec {
         crateName = "toml_edit";
-        version = "0.23.10+spec-1.0.0";
+        version = "0.25.4+spec-1.1.0";
         edition = "2021";
-        sha256 = "0saj5c676j8a3sqaj9akkp09wambg8aflji4zblwwa70azvvkj44";
+        sha256 = "1whkik77grpr5qw8q0zhqx1admghpkdm2hzm6xh9dp2krv8cp4vi";
         dependencies = [
           {
             name = "indexmap";
@@ -17489,7 +17521,7 @@ rec {
           }
           {
             name = "toml_datetime";
-            packageId = "toml_datetime";
+            packageId = "toml_datetime 1.0.0+spec-1.1.0";
           }
           {
             name = "toml_parser";
@@ -18426,7 +18458,7 @@ rec {
         dependencies = [
           {
             name = "getrandom";
-            packageId = "getrandom 0.4.1";
+            packageId = "getrandom 0.4.2";
             optional = true;
             target = { target, features }: (!(("wasm32" == target."arch" or null) && (("unknown" == target."os" or null) || ("none" == target."os" or null))));
           }

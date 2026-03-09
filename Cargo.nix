@@ -17565,9 +17565,9 @@ rec {
       };
       "totp-rs" = rec {
         crateName = "totp-rs";
-        version = "5.7.0";
+        version = "5.7.1";
         edition = "2021";
-        sha256 = "0wmz0ri3d9ml04wrd5qk5a6xq70g8zlzc2g9k61gi3pm10hka97i";
+        sha256 = "1fj0y5810sbiz28k5z5w88vz8vy75ibv8b0a680z9s97sffnmcx2";
         libName = "totp_rs";
         authors = [
           "Cleo Rebert <cleo.rebert@gmail.com>"

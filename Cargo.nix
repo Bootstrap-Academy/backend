@@ -13752,20 +13752,8 @@ rec {
             packageId = "bytes";
           }
           {
-            name = "futures-channel";
-            packageId = "futures-channel";
-            optional = true;
-            target = { target, features }: (!("wasm32" == target."arch" or null));
-          }
-          {
             name = "futures-core";
             packageId = "futures-core";
-            usesDefaultFeatures = false;
-          }
-          {
-            name = "futures-util";
-            packageId = "futures-util";
-            optional = true;
             usesDefaultFeatures = false;
           }
           {
@@ -13931,13 +13919,6 @@ rec {
         ];
         devDependencies = [
           {
-            name = "futures-util";
-            packageId = "futures-util";
-            usesDefaultFeatures = false;
-            target = { target, features }: (!("wasm32" == target."arch" or null));
-            features = [ "std" "alloc" ];
-          }
-          {
             name = "hyper";
             packageId = "hyper";
             usesDefaultFeatures = false;
@@ -14010,7 +13991,7 @@ rec {
           "system-proxy" = [ "hyper-util/client-proxy-system" ];
           "zstd" = [ "tower-http/decompression-zstd" ];
         };
-        resolvedDefaultFeatures = [ "__rustls" "__rustls-ring" "__tls" "blocking" "json" "rustls-tls" "rustls-tls-webpki-roots" "rustls-tls-webpki-roots-no-provider" ];
+        resolvedDefaultFeatures = [ "__rustls" "__rustls-ring" "__tls" "rustls-tls" "rustls-tls-webpki-roots" "rustls-tls-webpki-roots-no-provider" ];
       };
       "reqwest 0.13.2" = rec {
         crateName = "reqwest";
@@ -14030,8 +14011,20 @@ rec {
             packageId = "bytes";
           }
           {
+            name = "futures-channel";
+            packageId = "futures-channel";
+            optional = true;
+            target = { target, features }: (!("wasm32" == target."arch" or null));
+          }
+          {
             name = "futures-core";
             packageId = "futures-core";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "futures-util";
+            packageId = "futures-util";
+            optional = true;
             usesDefaultFeatures = false;
           }
           {
@@ -14200,6 +14193,13 @@ rec {
         ];
         devDependencies = [
           {
+            name = "futures-util";
+            packageId = "futures-util";
+            usesDefaultFeatures = false;
+            target = { target, features }: (!("wasm32" == target."arch" or null));
+            features = [ "std" "alloc" ];
+          }
+          {
             name = "hyper";
             packageId = "hyper";
             usesDefaultFeatures = false;
@@ -14269,7 +14269,7 @@ rec {
           "system-proxy" = [ "hyper-util/client-proxy-system" ];
           "zstd" = [ "tower-http/decompression-zstd" ];
         };
-        resolvedDefaultFeatures = [ "__rustls" "__rustls-aws-lc-rs" "__tls" "form" "http2" "json" "rustls" ];
+        resolvedDefaultFeatures = [ "__rustls" "__rustls-aws-lc-rs" "__tls" "blocking" "form" "http2" "json" "rustls" ];
       };
       "ring" = rec {
         crateName = "ring";
@@ -15406,9 +15406,9 @@ rec {
       };
       "sentry" = rec {
         crateName = "sentry";
-        version = "0.46.2";
+        version = "0.47.0";
         edition = "2021";
-        sha256 = "1a7rz1iszfa0pz8kr065yj5vrqp482j2yljqd4d3d7a6lwxqjbfr";
+        sha256 = "1fxcf9dm0w0y01qadnmdh7czrvvw2qkaczvi3nhgw9kxz4wz89gb";
         authors = [
           "Sentry <hello@sentry.io>"
         ];
@@ -15420,10 +15420,10 @@ rec {
           }
           {
             name = "reqwest";
-            packageId = "reqwest 0.12.28";
+            packageId = "reqwest 0.13.2";
             optional = true;
             usesDefaultFeatures = false;
-            features = [ "blocking" "json" ];
+            features = [ "http2" "blocking" "json" ];
           }
           {
             name = "rustls";
@@ -15504,12 +15504,12 @@ rec {
           "httpdate" = [ "dep:httpdate" ];
           "log" = [ "sentry-log" ];
           "logs" = [ "sentry-core/logs" "sentry-tracing?/logs" "sentry-log?/logs" ];
-          "native-tls" = [ "dep:native-tls" "reqwest?/default-tls" "ureq?/native-tls" ];
+          "native-tls" = [ "dep:native-tls" "reqwest?/native-tls" "ureq?/native-tls" ];
           "opentelemetry" = [ "sentry-opentelemetry" ];
           "panic" = [ "sentry-panic" ];
           "release-health" = [ "sentry-core/release-health" "sentry-actix?/release-health" ];
           "reqwest" = [ "dep:reqwest" "httpdate" "tokio" ];
-          "rustls" = [ "dep:rustls" "reqwest?/rustls-tls" "ureq?/rustls" ];
+          "rustls" = [ "dep:rustls" "reqwest?/rustls" "ureq?/rustls" ];
           "sentry-actix" = [ "dep:sentry-actix" ];
           "sentry-anyhow" = [ "dep:sentry-anyhow" ];
           "sentry-backtrace" = [ "dep:sentry-backtrace" ];
@@ -15536,9 +15536,9 @@ rec {
       };
       "sentry-anyhow" = rec {
         crateName = "sentry-anyhow";
-        version = "0.46.2";
+        version = "0.47.0";
         edition = "2021";
-        sha256 = "0m0983vcb6037ksri5j7mlyc2cabnp4sy5lqfck6qy54jkblm4mn";
+        sha256 = "00k58xzrdr23jf0b7wxfmcqv011m0ckfsgw9ssq2xm0ipbp5flp1";
         libName = "sentry_anyhow";
         authors = [
           "Sentry <hello@sentry.io>"
@@ -15564,9 +15564,9 @@ rec {
       };
       "sentry-backtrace" = rec {
         crateName = "sentry-backtrace";
-        version = "0.46.2";
+        version = "0.47.0";
         edition = "2021";
-        sha256 = "1k39sw9bd46bhg6zj6jyqgiq0x8b9z4gysapyysx8p3vlb8891sz";
+        sha256 = "1ipzrn7hxrjkhay42x9b6vyamz1fszkli2zjhig767swpp0w5a26";
         libName = "sentry_backtrace";
         authors = [
           "Sentry <hello@sentry.io>"
@@ -15591,9 +15591,9 @@ rec {
       };
       "sentry-contexts" = rec {
         crateName = "sentry-contexts";
-        version = "0.46.2";
+        version = "0.47.0";
         edition = "2021";
-        sha256 = "0gmd91clv62qcs27x2i17pw9sxn9lhjppc73r7zgvyfl9hpv8phf";
+        sha256 = "00sqgmdsyxkw35mz3gki5kvxk4s28dmpyrjb3w77ykb5m85sk24v";
         libName = "sentry_contexts";
         authors = [
           "Sentry <hello@sentry.io>"
@@ -15632,9 +15632,9 @@ rec {
       };
       "sentry-core" = rec {
         crateName = "sentry-core";
-        version = "0.46.2";
+        version = "0.47.0";
         edition = "2021";
-        sha256 = "01lv33nmk3hcgzr3b25rd5s41dw7ilkvyyd2klixnrgr835fgcdh";
+        sha256 = "1pva5rvg093xk124ygixgbx435nqd4jl744w6giwdgm8pfjp1h8a";
         libName = "sentry_core";
         authors = [
           "Sentry <hello@sentry.io>"
@@ -15674,9 +15674,9 @@ rec {
       };
       "sentry-debug-images" = rec {
         crateName = "sentry-debug-images";
-        version = "0.46.2";
+        version = "0.47.0";
         edition = "2021";
-        sha256 = "1mkqlwsx2px85vq4h57liwdr4lz5z90dryifdqqxxad3kvj62980";
+        sha256 = "0g334rnr4ndfc9k3pl6gncq8x7qkfv7h1lifm7a9cy5mfalld5nx";
         libName = "sentry_debug_images";
         authors = [
           "Sentry <hello@sentry.io>"
@@ -15695,9 +15695,9 @@ rec {
       };
       "sentry-panic" = rec {
         crateName = "sentry-panic";
-        version = "0.46.2";
+        version = "0.47.0";
         edition = "2021";
-        sha256 = "0v0mbbf08dfbnycpn031gx10frnnanv3ycipz5zar9dfhyzgh1l9";
+        sha256 = "0ij32zvs16sgyqdh7fwdkxb3lc4fafp5ms01ji0f0p5s0k9x69v1";
         libName = "sentry_panic";
         authors = [
           "Sentry <hello@sentry.io>"
@@ -15717,9 +15717,9 @@ rec {
       };
       "sentry-tracing" = rec {
         crateName = "sentry-tracing";
-        version = "0.46.2";
+        version = "0.47.0";
         edition = "2021";
-        sha256 = "1nb26ahr7k3mazh3y79d20jkqxa4vm9sn25sgb2icqs80kzfw1sv";
+        sha256 = "037z8wxhss3kb170l7cb2b5wpgwm0c0hkdq230lbb3g6a761lw17";
         libName = "sentry_tracing";
         authors = [
           "Sentry <hello@sentry.io>"
@@ -15765,9 +15765,9 @@ rec {
       };
       "sentry-types" = rec {
         crateName = "sentry-types";
-        version = "0.46.2";
+        version = "0.47.0";
         edition = "2021";
-        sha256 = "0ng24ag5khkcgqg1lzi20ih36fm3xdwpgh8zgq2l5a463zq12xsn";
+        sha256 = "1nwvs7gzgg5w8yqbz8qf753fykgbcbqd24bc5vr6nrvxb6shqy2n";
         libName = "sentry_types";
         authors = [
           "Sentry <hello@sentry.io>"

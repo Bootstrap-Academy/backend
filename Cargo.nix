@@ -6273,9 +6273,9 @@ rec {
       };
       "config" = rec {
         crateName = "config";
-        version = "0.15.19";
+        version = "0.15.20";
         edition = "2018";
-        sha256 = "1mmka6ap5kh253vjgzxzfayz6jz1j7kcl36b0gy6dmxa9hjsh3xk";
+        sha256 = "1bzaq0m1ikg9dqpf3whxwm3pf675kd0hr78cl6n3rlm4zi3msanw";
         dependencies = [
           {
             name = "pathdiff";
@@ -6307,8 +6307,7 @@ rec {
           "indexmap" = [ "dep:indexmap" ];
           "ini" = [ "rust-ini" ];
           "json" = [ "serde_json" ];
-          "json5" = [ "json5_rs" "dep:serde-untagged" ];
-          "json5_rs" = [ "dep:json5_rs" ];
+          "json5" = [ "dep:json5" "dep:serde-untagged" ];
           "preserve_order" = [ "indexmap" "toml?/preserve_order" "serde_json?/preserve_order" "ron?/indexmap" ];
           "ron" = [ "dep:ron" ];
           "rust-ini" = [ "dep:rust-ini" ];
@@ -17417,9 +17416,9 @@ rec {
       };
       "toml" = rec {
         crateName = "toml";
-        version = "0.9.12+spec-1.1.0";
+        version = "1.0.6+spec-1.1.0";
         edition = "2021";
-        sha256 = "0qwqbrymqn88mg2yqyq3rj52z6p20448z0jxdbpjsbpwg5g894ng";
+        sha256 = "1z3gd04jal7r2jhnww4qvln5g4h1wlhvlsqwhdk6gqf9lcj136rr";
         dependencies = [
           {
             name = "serde_core";
@@ -17436,7 +17435,7 @@ rec {
           }
           {
             name = "toml_datetime";
-            packageId = "toml_datetime 0.7.5+spec-1.1.0";
+            packageId = "toml_datetime";
             usesDefaultFeatures = false;
             features = [ "alloc" ];
           }
@@ -17466,28 +17465,7 @@ rec {
         };
         resolvedDefaultFeatures = [ "parse" "serde" ];
       };
-      "toml_datetime 0.7.5+spec-1.1.0" = rec {
-        crateName = "toml_datetime";
-        version = "0.7.5+spec-1.1.0";
-        edition = "2021";
-        sha256 = "0iqkgvgsxmszpai53dbip7sf2igic39s4dby29dbqf1h9bnwzqcj";
-        dependencies = [
-          {
-            name = "serde_core";
-            packageId = "serde_core";
-            optional = true;
-            usesDefaultFeatures = false;
-          }
-        ];
-        features = {
-          "alloc" = [ "serde_core?/alloc" ];
-          "default" = [ "std" ];
-          "serde" = [ "dep:serde_core" ];
-          "std" = [ "alloc" "serde_core?/std" ];
-        };
-        resolvedDefaultFeatures = [ "alloc" "serde" ];
-      };
-      "toml_datetime 1.0.0+spec-1.1.0" = rec {
+      "toml_datetime" = rec {
         crateName = "toml_datetime";
         version = "1.0.0+spec-1.1.0";
         edition = "2021";
@@ -17506,7 +17484,7 @@ rec {
           "serde" = [ "dep:serde_core" ];
           "std" = [ "alloc" "serde_core?/std" ];
         };
-        resolvedDefaultFeatures = [ "alloc" "default" "std" ];
+        resolvedDefaultFeatures = [ "alloc" "default" "serde" "std" ];
       };
       "toml_edit" = rec {
         crateName = "toml_edit";
@@ -17521,7 +17499,7 @@ rec {
           }
           {
             name = "toml_datetime";
-            packageId = "toml_datetime 1.0.0+spec-1.1.0";
+            packageId = "toml_datetime";
           }
           {
             name = "toml_parser";

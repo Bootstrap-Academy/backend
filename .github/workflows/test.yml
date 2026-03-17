@@ -62,7 +62,7 @@ jobs:
           RUST_TEST_THREADS: 1
     services:
       valkey:
-        image: valkey/valkey:9.0-alpine
+        image: valkey/valkey:9.1-alpine
         ports:
           - "6379:6379"
 

@@ -6273,9 +6273,9 @@ rec {
       };
       "config" = rec {
         crateName = "config";
-        version = "0.15.21";
+        version = "0.15.22";
         edition = "2024";
-        sha256 = "005bb6qyq8vjgdbydlhqblhb9rygzzbpr4r28xf52saj37ngxrag";
+        sha256 = "030cjkf3f853m9g4sfgg2ccr6wysbkx4zhh2w3ykzlnpkkhwys4f";
         dependencies = [
           {
             name = "pathdiff";
@@ -6294,7 +6294,7 @@ rec {
           }
           {
             name = "winnow";
-            packageId = "winnow";
+            packageId = "winnow 1.0.0";
           }
         ];
         features = {
@@ -17448,7 +17448,7 @@ rec {
           }
           {
             name = "winnow";
-            packageId = "winnow";
+            packageId = "winnow 0.7.15";
             optional = true;
             usesDefaultFeatures = false;
           }
@@ -17508,7 +17508,7 @@ rec {
           }
           {
             name = "winnow";
-            packageId = "winnow";
+            packageId = "winnow 0.7.15";
             optional = true;
           }
         ];
@@ -17529,7 +17529,7 @@ rec {
         dependencies = [
           {
             name = "winnow";
-            packageId = "winnow";
+            packageId = "winnow 0.7.15";
             usesDefaultFeatures = false;
           }
         ];
@@ -21457,7 +21457,7 @@ rec {
         sha256 = "0l6npq76vlq4ksn4bwsncpr8508mk0gmznm6wnhjg95d19gzzfyn";
 
       };
-      "winnow" = rec {
+      "winnow 0.7.15" = rec {
         crateName = "winnow";
         version = "0.7.15";
         edition = "2021";
@@ -21478,6 +21478,31 @@ rec {
           "unstable-doc" = [ "alloc" "std" "simd" "unstable-recover" ];
         };
         resolvedDefaultFeatures = [ "alloc" "default" "std" ];
+      };
+      "winnow 1.0.0" = rec {
+        crateName = "winnow";
+        version = "1.0.0";
+        edition = "2021";
+        sha256 = "1n67gx8mg2b6r2z54zwbrb6qsfbdsar1lvafsfaajr3jcvj8h3m9";
+        dependencies = [
+          {
+            name = "memchr";
+            packageId = "memchr";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+        ];
+        features = {
+          "ascii" = [ "parser" ];
+          "binary" = [ "parser" ];
+          "debug" = [ "std" "dep:anstream" "dep:anstyle" "dep:is_terminal_polyfill" "dep:terminal_size" ];
+          "default" = [ "std" "ascii" "binary" ];
+          "simd" = [ "dep:memchr" ];
+          "std" = [ "alloc" "memchr?/std" ];
+          "unstable-doc" = [ "alloc" "std" "ascii" "binary" "simd" "unstable-recover" ];
+          "unstable-recover" = [ "parser" ];
+        };
+        resolvedDefaultFeatures = [ "alloc" "ascii" "binary" "default" "parser" "std" ];
       };
       "wit-bindgen" = rec {
         crateName = "wit-bindgen";

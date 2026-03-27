@@ -14498,9 +14498,9 @@ rec {
       };
       "rust_decimal" = rec {
         crateName = "rust_decimal";
-        version = "1.40.0";
+        version = "1.41.0";
         edition = "2021";
-        sha256 = "1c1yb8lms5aqzlaarwa0d7mn30s2h7x46djipiyginsjk38h7xv1";
+        sha256 = "0jp9gqwwyqciq7c2vq12kkwqwfsca6pkfk2s0xci29cxl7wh3s9c";
         authors = [
           "Paul Mason <paul@form1.co.nz>"
         ];
@@ -14554,17 +14554,26 @@ rec {
             optional = true;
             usesDefaultFeatures = false;
           }
+          {
+            name = "wasm-bindgen";
+            packageId = "wasm-bindgen";
+            optional = true;
+            usesDefaultFeatures = false;
+            target = { target, features }: ("wasm32" == target."arch" or null);
+          }
         ];
         devDependencies = [
           {
             name = "bytes";
             packageId = "bytes";
             usesDefaultFeatures = false;
+            target = { target, features }: (!("wasm32" == target."arch" or null));
           }
           {
             name = "rand";
             packageId = "rand 0.8.5";
             usesDefaultFeatures = false;
+            target = { target, features }: (!("wasm32" == target."arch" or null));
             features = [ "getrandom" ];
           }
           {
@@ -14577,9 +14586,16 @@ rec {
             name = "serde_json";
             packageId = "serde_json";
           }
+          {
+            name = "wasm-bindgen";
+            packageId = "wasm-bindgen";
+            usesDefaultFeatures = false;
+            target = { target, features }: ("wasm32" == target."arch" or null);
+          }
         ];
         features = {
           "borsh" = [ "dep:borsh" "std" ];
+          "bytemuck" = [ "c-repr" "dep:bytemuck" "dep:bytemuck_derive" ];
           "db-diesel-mysql" = [ "diesel/mysql_backend" "std" ];
           "db-diesel-postgres" = [ "diesel/postgres_backend" "std" ];
           "db-diesel2-mysql" = [ "db-diesel-mysql" ];
@@ -14598,19 +14614,20 @@ rec {
           "rkyv-safe" = [ "rkyv/validation" ];
           "rocket-traits" = [ "dep:rocket" "std" ];
           "rust-fuzz" = [ "dep:arbitrary" ];
-          "ryu" = [ "dep:ryu" ];
-          "serde" = [ "dep:serde" ];
+          "serde" = [ "dep:serde" "wasm-bindgen?/serde" ];
           "serde-arbitrary-precision" = [ "serde-with-arbitrary-precision" ];
           "serde-bincode" = [ "serde-str" ];
           "serde-float" = [ "serde-with-float" ];
           "serde-str" = [ "serde-with-str" ];
-          "serde-with-arbitrary-precision" = [ "serde" "serde_json/arbitrary_precision" "serde_json/std" "ryu" ];
+          "serde-with-arbitrary-precision" = [ "serde" "serde_json/arbitrary_precision" "serde_json/std" "zmij" ];
           "serde-with-float" = [ "serde" ];
           "serde-with-str" = [ "serde" ];
           "serde_json" = [ "dep:serde_json" ];
-          "std" = [ "arrayvec/std" "borsh?/std" "bytes?/std" "rand?/std" "rkyv?/std" "serde?/std" "serde_json?/std" ];
+          "std" = [ "arrayvec/std" "wasm-bindgen?/std" "borsh?/std" "bytes?/std" "rand?/std" "rkyv?/std" "serde?/std" "serde_json?/std" ];
           "tokio-pg" = [ "db-tokio-postgres" ];
           "tokio-postgres" = [ "dep:tokio-postgres" ];
+          "wasm" = [ "dep:wasm-bindgen" ];
+          "zmij" = [ "dep:zmij" ];
         };
         resolvedDefaultFeatures = [ "serde" "serde-str" "serde-with-str" "std" ];
       };
@@ -18669,6 +18686,11 @@ rec {
             usesDefaultFeatures = false;
           }
           {
+            name = "serde";
+            packageId = "serde";
+            optional = true;
+          }
+          {
             name = "wasm-bindgen-macro";
             packageId = "wasm-bindgen-macro";
           }
@@ -18698,7 +18720,7 @@ rec {
           "serde_json" = [ "dep:serde_json" ];
           "strict-macro" = [ "wasm-bindgen-macro/strict-macro" ];
         };
-        resolvedDefaultFeatures = [ "default" "msrv" "std" ];
+        resolvedDefaultFeatures = [ "default" "msrv" "serde" "std" ];
       };
       "wasm-bindgen-futures" = rec {
         crateName = "wasm-bindgen-futures";

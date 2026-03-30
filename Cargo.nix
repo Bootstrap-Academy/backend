@@ -1008,7 +1008,7 @@ rec {
           }
           {
             name = "sha2";
-            packageId = "sha2";
+            packageId = "sha2 0.10.9";
             usesDefaultFeatures = false;
           }
           {
@@ -3731,7 +3731,7 @@ rec {
           }
           {
             name = "hmac";
-            packageId = "hmac";
+            packageId = "hmac 0.12.1";
             usesDefaultFeatures = false;
           }
           {
@@ -3753,7 +3753,7 @@ rec {
           }
           {
             name = "sha2";
-            packageId = "sha2";
+            packageId = "sha2 0.10.9";
             usesDefaultFeatures = false;
           }
           {
@@ -5330,14 +5330,14 @@ rec {
         dependencies = [
           {
             name = "digest";
-            packageId = "digest";
+            packageId = "digest 0.10.7";
             features = [ "mac" ];
           }
         ];
         devDependencies = [
           {
             name = "digest";
-            packageId = "digest";
+            packageId = "digest 0.10.7";
             features = [ "dev" ];
           }
         ];
@@ -5348,7 +5348,7 @@ rec {
           "std" = [ "digest/std" ];
         };
       };
-      "block-buffer" = rec {
+      "block-buffer 0.10.4" = rec {
         crateName = "block-buffer";
         version = "0.10.4";
         edition = "2018";
@@ -5364,6 +5364,25 @@ rec {
           }
         ];
 
+      };
+      "block-buffer 0.12.0" = rec {
+        crateName = "block-buffer";
+        version = "0.12.0";
+        edition = "2024";
+        sha256 = "1glh8w49a7cj0wlkalyn9j605jzf2ss0lg8dqq5xh8cr2q451lyd";
+        libName = "block_buffer";
+        authors = [
+          "RustCrypto Developers"
+        ];
+        dependencies = [
+          {
+            name = "hybrid-array";
+            packageId = "hybrid-array";
+          }
+        ];
+        features = {
+          "zeroize" = [ "dep:zeroize" ];
+        };
       };
       "block2" = rec {
         crateName = "block2";
@@ -6077,6 +6096,16 @@ rec {
         ];
 
       };
+      "cmov" = rec {
+        crateName = "cmov";
+        version = "0.5.2";
+        edition = "2024";
+        sha256 = "1hsxwpms8k75wwyv7rppw8gbj13nnj8r9mplv4givmijpbnmh1yy";
+        authors = [
+          "RustCrypto Developers"
+        ];
+
+      };
       "colorchoice" = rec {
         crateName = "colorchoice";
         version = "1.0.4";
@@ -6250,6 +6279,19 @@ rec {
           "windows-console-colors" = [ "ansi-parsing" ];
         };
         resolvedDefaultFeatures = [ "alloc" "ansi-parsing" "std" "unicode-width" ];
+      };
+      "const-oid" = rec {
+        crateName = "const-oid";
+        version = "0.10.2";
+        edition = "2024";
+        sha256 = "0p7m286mp8aai4sa72g7ji6qm0d4ns8wg4i4b2hj9p9615zm3vx6";
+        libName = "const_oid";
+        authors = [
+          "RustCrypto Developers"
+        ];
+        features = {
+          "arbitrary" = [ "dep:arbitrary" ];
+        };
       };
       "constant_time_eq" = rec {
         crateName = "constant_time_eq";
@@ -6454,7 +6496,7 @@ rec {
         };
         resolvedDefaultFeatures = [ "std" ];
       };
-      "crypto-common" = rec {
+      "crypto-common 0.1.7" = rec {
         crateName = "crypto-common";
         version = "0.1.7";
         edition = "2018";
@@ -6479,6 +6521,45 @@ rec {
           "rand_core" = [ "dep:rand_core" ];
         };
         resolvedDefaultFeatures = [ "std" ];
+      };
+      "crypto-common 0.2.1" = rec {
+        crateName = "crypto-common";
+        version = "0.2.1";
+        edition = "2024";
+        sha256 = "041p8bs680hrg6rhicfifn19cfvybq9aya5i4i0k08d9byqpnwkp";
+        libName = "crypto_common";
+        authors = [
+          "RustCrypto Developers"
+        ];
+        dependencies = [
+          {
+            name = "hybrid-array";
+            packageId = "hybrid-array";
+          }
+        ];
+        features = {
+          "getrandom" = [ "rand_core" "dep:getrandom" ];
+          "rand_core" = [ "dep:rand_core" ];
+          "zeroize" = [ "hybrid-array/zeroize" ];
+        };
+      };
+      "ctutils" = rec {
+        crateName = "ctutils";
+        version = "0.4.0";
+        edition = "2024";
+        sha256 = "1r6mpsz1j0mk7f72a139khn9ri1h5fpx5lss8zpj0lbg8kaac18h";
+        authors = [
+          "RustCrypto Developers"
+        ];
+        dependencies = [
+          {
+            name = "cmov";
+            packageId = "cmov";
+          }
+        ];
+        features = {
+          "subtle" = [ "dep:subtle" ];
+        };
       };
       "darling" = rec {
         crateName = "darling";
@@ -6647,7 +6728,7 @@ rec {
         ];
 
       };
-      "digest" = rec {
+      "digest 0.10.7" = rec {
         crateName = "digest";
         version = "0.10.7";
         edition = "2018";
@@ -6658,12 +6739,12 @@ rec {
         dependencies = [
           {
             name = "block-buffer";
-            packageId = "block-buffer";
+            packageId = "block-buffer 0.10.4";
             optional = true;
           }
           {
             name = "crypto-common";
-            packageId = "crypto-common";
+            packageId = "crypto-common 0.1.7";
           }
           {
             name = "subtle";
@@ -6686,6 +6767,49 @@ rec {
           "subtle" = [ "dep:subtle" ];
         };
         resolvedDefaultFeatures = [ "alloc" "block-buffer" "core-api" "default" "mac" "std" "subtle" ];
+      };
+      "digest 0.11.2" = rec {
+        crateName = "digest";
+        version = "0.11.2";
+        edition = "2024";
+        sha256 = "0g0m77q7zfafm4jgy6i70wwimy9f41ywidbz9w467rh8px4xnl28";
+        authors = [
+          "RustCrypto Developers"
+        ];
+        dependencies = [
+          {
+            name = "block-buffer";
+            packageId = "block-buffer 0.12.0";
+            optional = true;
+          }
+          {
+            name = "const-oid";
+            packageId = "const-oid";
+            optional = true;
+          }
+          {
+            name = "crypto-common";
+            packageId = "crypto-common 0.2.1";
+            rename = "common";
+          }
+          {
+            name = "ctutils";
+            packageId = "ctutils";
+            optional = true;
+          }
+        ];
+        features = {
+          "blobby" = [ "dep:blobby" ];
+          "block-api" = [ "dep:block-buffer" ];
+          "default" = [ "block-api" ];
+          "dev" = [ "blobby" ];
+          "getrandom" = [ "common/getrandom" "rand_core" ];
+          "mac" = [ "dep:ctutils" ];
+          "oid" = [ "dep:const-oid" ];
+          "rand_core" = [ "common/rand_core" ];
+          "zeroize" = [ "dep:zeroize" "block-buffer?/zeroize" ];
+        };
+        resolvedDefaultFeatures = [ "alloc" "block-api" "default" "mac" "oid" ];
       };
       "dispatch2" = rec {
         crateName = "dispatch2";
@@ -7902,7 +8026,7 @@ rec {
         };
         resolvedDefaultFeatures = [ "alloc" "default" "std" ];
       };
-      "hmac" = rec {
+      "hmac 0.12.1" = rec {
         crateName = "hmac";
         version = "0.12.1";
         edition = "2018";
@@ -7913,14 +8037,14 @@ rec {
         dependencies = [
           {
             name = "digest";
-            packageId = "digest";
+            packageId = "digest 0.10.7";
             features = [ "mac" ];
           }
         ];
         devDependencies = [
           {
             name = "digest";
-            packageId = "digest";
+            packageId = "digest 0.10.7";
             features = [ "dev" ];
           }
         ];
@@ -7928,6 +8052,32 @@ rec {
           "std" = [ "digest/std" ];
         };
         resolvedDefaultFeatures = [ "reset" ];
+      };
+      "hmac 0.13.0" = rec {
+        crateName = "hmac";
+        version = "0.13.0";
+        edition = "2024";
+        sha256 = "0gw6avmix6ah63lf70dapxhml4dlcakl9f2lnm6b0hdf6abvq0v3";
+        authors = [
+          "RustCrypto Developers"
+        ];
+        dependencies = [
+          {
+            name = "digest";
+            packageId = "digest 0.11.2";
+            features = [ "mac" ];
+          }
+        ];
+        devDependencies = [
+          {
+            name = "digest";
+            packageId = "digest 0.11.2";
+            features = [ "dev" ];
+          }
+        ];
+        features = {
+          "zeroize" = [ "digest/zeroize" ];
+        };
       };
       "hostname" = rec {
         crateName = "hostname";
@@ -8080,6 +8230,32 @@ rec {
           }
         ];
         features = {
+        };
+      };
+      "hybrid-array" = rec {
+        crateName = "hybrid-array";
+        version = "0.4.8";
+        edition = "2024";
+        sha256 = "1waywry7fxr30a1yrray8drpfqb9zr8dcyqk4h69savzs0fgjmc6";
+        libName = "hybrid_array";
+        authors = [
+          "RustCrypto Developers"
+        ];
+        dependencies = [
+          {
+            name = "typenum";
+            packageId = "typenum";
+            features = [ "const-generics" ];
+          }
+        ];
+        features = {
+          "arbitrary" = [ "dep:arbitrary" ];
+          "bytemuck" = [ "dep:bytemuck" ];
+          "ctutils" = [ "dep:ctutils" ];
+          "serde" = [ "dep:serde" ];
+          "subtle" = [ "dep:subtle" ];
+          "zerocopy" = [ "dep:zerocopy" ];
+          "zeroize" = [ "dep:zeroize" ];
         };
       };
       "hyper" = rec {
@@ -9198,15 +9374,15 @@ rec {
           }
           {
             name = "crypto-common";
-            packageId = "crypto-common";
+            packageId = "crypto-common 0.1.7";
           }
           {
             name = "digest";
-            packageId = "digest";
+            packageId = "digest 0.10.7";
           }
           {
             name = "hmac";
-            packageId = "hmac";
+            packageId = "hmac 0.12.1";
             features = [ "reset" ];
           }
           {
@@ -9220,7 +9396,7 @@ rec {
           }
           {
             name = "sha2";
-            packageId = "sha2";
+            packageId = "sha2 0.10.9";
           }
         ];
         features = {
@@ -9662,9 +9838,9 @@ rec {
       };
       "md-5" = rec {
         crateName = "md-5";
-        version = "0.10.6";
-        edition = "2018";
-        sha256 = "1kvq5rnpm4fzwmyv5nmnxygdhhb2369888a06gdc9pxyrzh7x7nq";
+        version = "0.11.0";
+        edition = "2024";
+        sha256 = "166yqj8b11pawpys7knnn77cr618cby2iywpp0dq4dh3b4gl9dk9";
         libName = "md5";
         authors = [
           "RustCrypto Developers"
@@ -9676,24 +9852,23 @@ rec {
           }
           {
             name = "digest";
-            packageId = "digest";
+            packageId = "digest 0.11.2";
           }
         ];
         devDependencies = [
           {
             name = "digest";
-            packageId = "digest";
+            packageId = "digest 0.11.2";
             features = [ "dev" ];
           }
         ];
         features = {
-          "asm" = [ "md5-asm" ];
-          "default" = [ "std" ];
-          "md5-asm" = [ "dep:md5-asm" ];
+          "alloc" = [ "digest/alloc" ];
+          "default" = [ "alloc" "oid" ];
           "oid" = [ "digest/oid" ];
-          "std" = [ "digest/std" ];
+          "zeroize" = [ "digest/zeroize" ];
         };
-        resolvedDefaultFeatures = [ "default" "std" ];
+        resolvedDefaultFeatures = [ "alloc" "default" "oid" ];
       };
       "memchr" = rec {
         crateName = "memchr";
@@ -10130,7 +10305,7 @@ rec {
           }
           {
             name = "sha2";
-            packageId = "sha2";
+            packageId = "sha2 0.10.9";
           }
           {
             name = "thiserror";
@@ -11931,7 +12106,7 @@ rec {
         buildDependencies = [
           {
             name = "sha2";
-            packageId = "sha2";
+            packageId = "sha2 0.10.9";
             usesDefaultFeatures = false;
           }
         ];
@@ -12119,9 +12294,9 @@ rec {
       };
       "postgres" = rec {
         crateName = "postgres";
-        version = "0.19.12";
-        edition = "2021";
-        sha256 = "0xmimkn7scd1kwri94hf2iani9wd6whig3053fv0vnkc3k78xi77";
+        version = "0.19.13";
+        edition = "2024";
+        sha256 = "1qgv3m7h6bgcs2a6jf1sljiwi6c9vi0lysc3h7spbzsl0lnn7kxa";
         authors = [
           "Steven Fackler <sfackler@gmail.com>"
         ];
@@ -12159,6 +12334,7 @@ rec {
           "with-bit-vec-0_6" = [ "tokio-postgres/with-bit-vec-0_6" ];
           "with-bit-vec-0_7" = [ "tokio-postgres/with-bit-vec-0_7" ];
           "with-bit-vec-0_8" = [ "tokio-postgres/with-bit-vec-0_8" ];
+          "with-bit-vec-0_9" = [ "tokio-postgres/with-bit-vec-0_9" ];
           "with-chrono-0_4" = [ "tokio-postgres/with-chrono-0_4" ];
           "with-cidr-0_2" = [ "tokio-postgres/with-cidr-0_2" ];
           "with-cidr-0_3" = [ "tokio-postgres/with-cidr-0_3" ];
@@ -12208,9 +12384,9 @@ rec {
       };
       "postgres-protocol" = rec {
         crateName = "postgres-protocol";
-        version = "0.6.10";
-        edition = "2021";
-        sha256 = "14clpf8in16l8vnbn972fiq22dwn1jm3civgh2vd4mahw5gxvs9y";
+        version = "0.6.11";
+        edition = "2024";
+        sha256 = "1z3hkvsag549f5vmn867w2v6nsk1j55ipqs8x0w2ygn5v83i482n";
         libName = "postgres_protocol";
         authors = [
           "Steven Fackler <sfackler@gmail.com>"
@@ -12234,7 +12410,7 @@ rec {
           }
           {
             name = "hmac";
-            packageId = "hmac";
+            packageId = "hmac 0.13.0";
           }
           {
             name = "md-5";
@@ -12246,11 +12422,11 @@ rec {
           }
           {
             name = "rand";
-            packageId = "rand 0.9.2";
+            packageId = "rand 0.10.0";
           }
           {
             name = "sha2";
-            packageId = "sha2";
+            packageId = "sha2 0.11.0";
           }
           {
             name = "stringprep";
@@ -12265,9 +12441,9 @@ rec {
       };
       "postgres-types" = rec {
         crateName = "postgres-types";
-        version = "0.2.12";
-        edition = "2021";
-        sha256 = "081ygcjycggk2fyiw6kmilnn9bnfw5l3ydydzs14ds0i4bw5if2l";
+        version = "0.2.13";
+        edition = "2024";
+        sha256 = "11ni6g0zwkskdpgmdfvc15mk66x03ap31kbh879fi0p656hjkiwd";
         libName = "postgres_types";
         authors = [
           "Steven Fackler <sfackler@gmail.com>"
@@ -12311,6 +12487,7 @@ rec {
           "bit-vec-06" = [ "dep:bit-vec-06" ];
           "bit-vec-07" = [ "dep:bit-vec-07" ];
           "bit-vec-08" = [ "dep:bit-vec-08" ];
+          "bit-vec-09" = [ "dep:bit-vec-09" ];
           "chrono-04" = [ "dep:chrono-04" ];
           "cidr-02" = [ "dep:cidr-02" ];
           "cidr-03" = [ "dep:cidr-03" ];
@@ -12333,6 +12510,7 @@ rec {
           "with-bit-vec-0_6" = [ "bit-vec-06" ];
           "with-bit-vec-0_7" = [ "bit-vec-07" ];
           "with-bit-vec-0_8" = [ "bit-vec-08" ];
+          "with-bit-vec-0_9" = [ "bit-vec-09" ];
           "with-chrono-0_4" = [ "chrono-04" ];
           "with-cidr-0_2" = [ "cidr-02" ];
           "with-cidr-0_3" = [ "cidr-03" ];
@@ -13013,7 +13191,7 @@ rec {
           "sys_rng" = [ "dep:getrandom" "getrandom/sys_rng" ];
           "thread_rng" = [ "std" "std_rng" "sys_rng" ];
         };
-        resolvedDefaultFeatures = [ "alloc" "std" "std_rng" "sys_rng" "thread_rng" ];
+        resolvedDefaultFeatures = [ "alloc" "default" "std" "std_rng" "sys_rng" "thread_rng" ];
       };
       "rand 0.8.5" = rec {
         crateName = "rand";
@@ -15996,13 +16174,13 @@ rec {
           }
           {
             name = "digest";
-            packageId = "digest";
+            packageId = "digest 0.10.7";
           }
         ];
         devDependencies = [
           {
             name = "digest";
-            packageId = "digest";
+            packageId = "digest 0.10.7";
             features = [ "dev" ];
           }
         ];
@@ -16015,7 +16193,7 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" "std" ];
       };
-      "sha2" = rec {
+      "sha2 0.10.9" = rec {
         crateName = "sha2";
         version = "0.10.9";
         edition = "2018";
@@ -16035,13 +16213,13 @@ rec {
           }
           {
             name = "digest";
-            packageId = "digest";
+            packageId = "digest 0.10.7";
           }
         ];
         devDependencies = [
           {
             name = "digest";
-            packageId = "digest";
+            packageId = "digest 0.10.7";
             features = [ "dev" ];
           }
         ];
@@ -16054,6 +16232,44 @@ rec {
           "std" = [ "digest/std" ];
         };
         resolvedDefaultFeatures = [ "default" "std" ];
+      };
+      "sha2 0.11.0" = rec {
+        crateName = "sha2";
+        version = "0.11.0";
+        edition = "2024";
+        sha256 = "1x15x22c5yf54ac0np5bfqnq5x0hdw4wqzpi48zwn94ma0bsfss4";
+        authors = [
+          "RustCrypto Developers"
+        ];
+        dependencies = [
+          {
+            name = "cfg-if";
+            packageId = "cfg-if";
+          }
+          {
+            name = "cpufeatures";
+            packageId = "cpufeatures 0.3.0";
+            target = { target, features }: (("aarch64" == target."arch" or null) || ("x86_64" == target."arch" or null) || ("x86" == target."arch" or null));
+          }
+          {
+            name = "digest";
+            packageId = "digest 0.11.2";
+          }
+        ];
+        devDependencies = [
+          {
+            name = "digest";
+            packageId = "digest 0.11.2";
+            features = [ "dev" ];
+          }
+        ];
+        features = {
+          "alloc" = [ "digest/alloc" ];
+          "default" = [ "alloc" "oid" ];
+          "oid" = [ "digest/oid" ];
+          "zeroize" = [ "digest/zeroize" ];
+        };
+        resolvedDefaultFeatures = [ "alloc" "default" "oid" ];
       };
       "sharded-slab" = rec {
         crateName = "sharded-slab";
@@ -16995,9 +17211,9 @@ rec {
       };
       "tokio-postgres" = rec {
         crateName = "tokio-postgres";
-        version = "0.7.16";
-        edition = "2021";
-        sha256 = "0hpfhzvv2ghrm56dnss3iz95kf0wy6qjsv7ijdvkci0pyz44gsnw";
+        version = "0.7.17";
+        edition = "2024";
+        sha256 = "1kkl6ngzz9i61143gvndhsnbnkysmmx0zw56b53kdxl0y5gdzn2d";
         libName = "tokio_postgres";
         authors = [
           "Steven Fackler <sfackler@gmail.com>"
@@ -17060,7 +17276,7 @@ rec {
           }
           {
             name = "rand";
-            packageId = "rand 0.9.2";
+            packageId = "rand 0.10.0";
           }
           {
             name = "socket2";
@@ -17104,6 +17320,7 @@ rec {
           "with-bit-vec-0_6" = [ "postgres-types/with-bit-vec-0_6" ];
           "with-bit-vec-0_7" = [ "postgres-types/with-bit-vec-0_7" ];
           "with-bit-vec-0_8" = [ "postgres-types/with-bit-vec-0_8" ];
+          "with-bit-vec-0_9" = [ "postgres-types/with-bit-vec-0_9" ];
           "with-chrono-0_4" = [ "postgres-types/with-chrono-0_4" ];
           "with-cidr-0_2" = [ "postgres-types/with-cidr-0_2" ];
           "with-cidr-0_3" = [ "postgres-types/with-cidr-0_3" ];
@@ -17363,7 +17580,7 @@ rec {
           }
           {
             name = "hmac";
-            packageId = "hmac";
+            packageId = "hmac 0.12.1";
           }
           {
             name = "sha1";
@@ -17371,7 +17588,7 @@ rec {
           }
           {
             name = "sha2";
-            packageId = "sha2";
+            packageId = "sha2 0.10.9";
           }
         ];
         features = {
@@ -17831,6 +18048,7 @@ rec {
           "scale-info" = [ "dep:scale-info" ];
           "scale_info" = [ "scale-info/derive" ];
         };
+        resolvedDefaultFeatures = [ "const-generics" ];
       };
       "ucd-trie" = rec {
         crateName = "ucd-trie";

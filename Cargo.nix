@@ -3741,7 +3741,7 @@ rec {
           }
           {
             name = "rand";
-            packageId = "rand 0.10.0";
+            packageId = "rand 0.10.1";
             usesDefaultFeatures = false;
             features = [ "thread_rng" ];
           }
@@ -3971,7 +3971,7 @@ rec {
           }
           {
             name = "rand";
-            packageId = "rand 0.10.0";
+            packageId = "rand 0.10.1";
             usesDefaultFeatures = false;
             features = [ "thread_rng" ];
           }
@@ -12627,7 +12627,7 @@ rec {
           }
           {
             name = "rand";
-            packageId = "rand 0.10.0";
+            packageId = "rand 0.10.1";
           }
           {
             name = "sha2";
@@ -13358,11 +13358,11 @@ rec {
         ];
 
       };
-      "rand 0.10.0" = rec {
+      "rand 0.10.1" = rec {
         crateName = "rand";
-        version = "0.10.0";
+        version = "0.10.1";
         edition = "2024";
-        sha256 = "1y7g1zddjzhzwg0k1nddsfyfaq89a7igpcf7q44mqv6z2frnw9mw";
+        sha256 = "01r22vdpw6z69jzy6khnyr0ljq9im337h4j0mkyz26lnqyyfis6j";
         authors = [
           "The Rand Project Developers"
           "The Rust Project Developers"
@@ -13389,7 +13389,6 @@ rec {
         features = {
           "chacha" = [ "dep:chacha20" ];
           "default" = [ "std" "std_rng" "sys_rng" "thread_rng" ];
-          "log" = [ "dep:log" ];
           "serde" = [ "dep:serde" ];
           "std" = [ "alloc" "getrandom?/std" ];
           "std_rng" = [ "dep:chacha20" ];
@@ -17493,7 +17492,7 @@ rec {
           }
           {
             name = "rand";
-            packageId = "rand 0.10.0";
+            packageId = "rand 0.10.1";
           }
           {
             name = "socket2";

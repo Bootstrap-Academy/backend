@@ -963,7 +963,7 @@ rec {
           }
           {
             name = "axum-extra";
-            packageId = "axum-extra 0.12.5";
+            packageId = "axum-extra 0.12.6";
             usesDefaultFeatures = false;
             features = [ "typed-header" ];
           }
@@ -3948,7 +3948,7 @@ rec {
           }
           {
             name = "axum-extra";
-            packageId = "axum-extra 0.12.5";
+            packageId = "axum-extra 0.12.6";
             usesDefaultFeatures = false;
             features = [ "typed-header" ];
           }
@@ -4681,9 +4681,9 @@ rec {
       };
       "axum" = rec {
         crateName = "axum";
-        version = "0.8.8";
+        version = "0.8.9";
         edition = "2021";
-        sha256 = "1f4p0m04mgwpn8b40i9r5mgqxk6w11sv4yri6xfqk305nhyayllb";
+        sha256 = "146df5x8dhczm1sp939gr3839220wl6rxc1k65bzc450z72ridii";
         dependencies = [
           {
             name = "axum-core";
@@ -5003,11 +5003,11 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" "tracing" ];
       };
-      "axum-extra 0.12.5" = rec {
+      "axum-extra 0.12.6" = rec {
         crateName = "axum-extra";
-        version = "0.12.5";
+        version = "0.12.6";
         edition = "2021";
-        sha256 = "0xlwripql5hck5l9nx7mhv5rl4mq0wryxwndpdbbmp96zznm5wpy";
+        sha256 = "0w3r7w87726ycs1l5r15gblmpif3r4ah08x54cnspffc84xnhi5y";
         libName = "axum_extra";
         dependencies = [
           {

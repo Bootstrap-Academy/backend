@@ -6814,11 +6814,11 @@ rec {
         };
         resolvedDefaultFeatures = [ "alloc" "block-buffer" "core-api" "default" "mac" "std" "subtle" ];
       };
-      "digest 0.11.2" = rec {
+      "digest 0.11.3" = rec {
         crateName = "digest";
-        version = "0.11.2";
+        version = "0.11.3";
         edition = "2024";
-        sha256 = "0g0m77q7zfafm4jgy6i70wwimy9f41ywidbz9w467rh8px4xnl28";
+        sha256 = "1hnmhd4rkybr11292w42pz9ppzx1h49glrhqg107k4s1b2xnvpgi";
         authors = [
           "RustCrypto Developers"
         ];
@@ -8188,14 +8188,14 @@ rec {
         dependencies = [
           {
             name = "digest";
-            packageId = "digest 0.11.2";
+            packageId = "digest 0.11.3";
             features = [ "mac" ];
           }
         ];
         devDependencies = [
           {
             name = "digest";
-            packageId = "digest 0.11.2";
+            packageId = "digest 0.11.3";
             features = [ "dev" ];
           }
         ];
@@ -10059,13 +10059,13 @@ rec {
           }
           {
             name = "digest";
-            packageId = "digest 0.11.2";
+            packageId = "digest 0.11.3";
           }
         ];
         devDependencies = [
           {
             name = "digest";
-            packageId = "digest 0.11.2";
+            packageId = "digest 0.11.3";
             features = [ "dev" ];
           }
         ];
@@ -13591,9 +13591,9 @@ rec {
       };
       "redis" = rec {
         crateName = "redis";
-        version = "1.2.0";
+        version = "1.2.1";
         edition = "2024";
-        sha256 = "16p4sc4ibsfx7hscn0szf30bz330vlzxxqwcv23s6w48dp4r8kpl";
+        sha256 = "0k06rqp3cp4v17cx4b8nhf28dnbil81gqjx6zn20sgqjr4d2mlvj";
         dependencies = [
           {
             name = "arcstr";
@@ -16454,13 +16454,13 @@ rec {
           }
           {
             name = "digest";
-            packageId = "digest 0.11.2";
+            packageId = "digest 0.11.3";
           }
         ];
         devDependencies = [
           {
             name = "digest";
-            packageId = "digest 0.11.2";
+            packageId = "digest 0.11.3";
             features = [ "dev" ];
           }
         ];
@@ -16573,9 +16573,9 @@ rec {
       };
       "siphasher" = rec {
         crateName = "siphasher";
-        version = "1.0.2";
+        version = "1.0.3";
         edition = "2018";
-        sha256 = "13k7cfbpcm8qgj9p2n8dwg9skv9s0hxk5my30j5chy1p4l78bamj";
+        sha256 = "0jg6l9xyzca5vy4h6gf8r6p4kk84g98fk95pzig1kq6cr4z8grcf";
         authors = [
           "Frank Denis <github@pureftpd.org>"
         ];

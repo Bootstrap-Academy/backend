@@ -5670,9 +5670,9 @@ rec {
       };
       "cc" = rec {
         crateName = "cc";
-        version = "1.2.61";
+        version = "1.2.62";
         edition = "2018";
-        sha256 = "0vawvnrrsmi8dygavq3wx085cmlp10sp3fhld5842rlqkqsr0vfi";
+        sha256 = "164zsxcy2zzvbbh1qpbrsssz8kmria41j4agih47sal3y1cyip51";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -8035,14 +8035,11 @@ rec {
         };
         resolvedDefaultFeatures = [ "default-hasher" ];
       };
-      "hashbrown 0.17.0" = rec {
+      "hashbrown 0.17.1" = rec {
         crateName = "hashbrown";
-        version = "0.17.0";
+        version = "0.17.1";
         edition = "2024";
-        sha256 = "0l8gvcz80lvinb7x22h53cqbi2y1fm603y2jhhh9qwygvkb7sijg";
-        authors = [
-          "Amanieu d'Antras <amanieu@gmail.com>"
-        ];
+        sha256 = "0jmqz7i4yl6cm7rbn0i2ffkfrmwi6xkmzkaldr2v8bcsx2v0jngd";
         features = {
           "alloc" = [ "dep:alloc" ];
           "allocator-api2" = [ "dep:allocator-api2" ];
@@ -8358,9 +8355,9 @@ rec {
       };
       "hybrid-array" = rec {
         crateName = "hybrid-array";
-        version = "0.4.11";
+        version = "0.4.12";
         edition = "2024";
-        sha256 = "1i878m874s249357fx3rzj4fx8b4rlrxw19vpnazwlgdl0vnim08";
+        sha256 = "1njpm3mmsb6lgr9nn97ld5aavwjzrvijjb4nav0anhnimf1aamci";
         libName = "hybrid_array";
         authors = [
           "RustCrypto Developers"
@@ -9201,7 +9198,7 @@ rec {
           }
           {
             name = "hashbrown";
-            packageId = "hashbrown 0.17.0";
+            packageId = "hashbrown 0.17.1";
             usesDefaultFeatures = false;
           }
           {

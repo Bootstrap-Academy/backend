@@ -13,7 +13,7 @@ workspace = true
 academy_assets.workspace = true
 academy_models.workspace = true
 anyhow.workspace = true
-config = { version = "0.15.22", default-features = false, features = ["toml"] }
+config = { version = "0.15.23", default-features = false, features = ["toml"] }
 chrono.workspace = true
 regex.workspace = true
 rust_decimal.workspace = true

@@ -140,7 +140,7 @@ rust_decimal = { version = "1.42.0", default-features = false, features = ["std"
 rust_decimal_macros = { version = "1.40.0", default-features = false }
 schemars = { version = "0.9.0", default-features = false, features = ["derive", "preserve_order", "uuid1", "url2"] }
 serde = { version = "1.0.228", default-features = false, features = ["derive", "std"] }
-serde_json = { version = "1.0.149", default-features = false, features = ["std"] }
+serde_json = { version = "1.0.150", default-features = false, features = ["std"] }
 sha2 = { version = "0.10.9", default-features = false }
 syn = { version = "2.0.117", default-features = false, features = [
   "parsing",

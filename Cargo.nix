@@ -3179,7 +3179,7 @@ rec {
           }
           {
             name = "reqwest";
-            packageId = "reqwest 0.13.3";
+            packageId = "reqwest 0.13.4";
             usesDefaultFeatures = false;
             features = [ "http2" "rustls" "json" "form" ];
           }
@@ -3288,7 +3288,7 @@ rec {
           }
           {
             name = "reqwest";
-            packageId = "reqwest 0.13.3";
+            packageId = "reqwest 0.13.4";
             usesDefaultFeatures = false;
             features = [ "http2" "rustls" "json" "form" ];
           }
@@ -14160,11 +14160,11 @@ rec {
         };
         resolvedDefaultFeatures = [ "__rustls" "__rustls-ring" "__tls" "rustls-tls" "rustls-tls-webpki-roots" "rustls-tls-webpki-roots-no-provider" ];
       };
-      "reqwest 0.13.3" = rec {
+      "reqwest 0.13.4" = rec {
         crateName = "reqwest";
-        version = "0.13.3";
+        version = "0.13.4";
         edition = "2021";
-        sha256 = "1h7fgnllk7ihw7836b7z73h9fb5vk90y3irvcm0ysan2l8g05q32";
+        sha256 = "1hy1plns9krbh3h1dy2sdjygsfkdcnxm6pbxdi0ya9b5vq8mi711";
         authors = [
           "Sean McArthur <sean@seanmonstar.com>"
         ];
@@ -15604,7 +15604,7 @@ rec {
           }
           {
             name = "reqwest";
-            packageId = "reqwest 0.13.3";
+            packageId = "reqwest 0.13.4";
             optional = true;
             usesDefaultFeatures = false;
             features = [ "http2" "blocking" "json" ];

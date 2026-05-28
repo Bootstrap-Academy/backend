@@ -6893,9 +6893,9 @@ rec {
       };
       "displaydoc" = rec {
         crateName = "displaydoc";
-        version = "0.2.5";
+        version = "0.2.6";
         edition = "2021";
-        sha256 = "1q0alair462j21iiqwrr21iabkfnb13d6x5w95lkdg21q2xrqdlp";
+        sha256 = "0kyxwfbdmagd8afzb2pzja7wj8dhah7smxdsgw00iq8pa2jhmiqs";
         procMacro = true;
         authors = [
           "Jane Lusby <jlusby@yaah.dev>"
@@ -8228,9 +8228,9 @@ rec {
       };
       "http" = rec {
         crateName = "http";
-        version = "1.4.0";
+        version = "1.4.1";
         edition = "2021";
-        sha256 = "06iind4cwsj1d6q8c2xgq8i2wka4ps74kmws24gsi1bzdlw2mfp3";
+        sha256 = "1l7k2ia57z3q7q3ka497krzps795kd3fymm2k12lr623y4nldrwb";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
           "Carl Lerche <me@carllerche.com>"
@@ -8382,9 +8382,9 @@ rec {
       };
       "hyper" = rec {
         crateName = "hyper";
-        version = "1.9.0";
+        version = "1.10.0";
         edition = "2021";
-        sha256 = "1jmwbwqcaficskg76kq402gbymbnh2z4v99xwq3l5aa6n8bg16b2";
+        sha256 = "1k2yw456v4d7f31nngflzsn3fa5i9fbrpiw3zicn8lsnpxig34pb";
         authors = [
           "Sean McArthur <sean@seanmonstar.com>"
         ];
@@ -9860,9 +9860,9 @@ rec {
       };
       "libredox" = rec {
         crateName = "libredox";
-        version = "0.1.16";
+        version = "0.1.17";
         edition = "2021";
-        sha256 = "0v54zvgknag9310wcjykgv86pgq02qr3mzgkdg4r6m1k7ns3nbz0";
+        sha256 = "1ly9hnhiy0f6ccnlg3h8lca9smvv268gj5iwia4gnm10rsxbcaph";
         authors = [
           "4lDO2 <4lDO2@protonmail.com>"
         ];
@@ -9944,9 +9944,9 @@ rec {
       };
       "log" = rec {
         crateName = "log";
-        version = "0.4.29";
+        version = "0.4.30";
         edition = "2021";
-        sha256 = "15q8j9c8g5zpkcw0hnd6cf2z7fxqnvsjh3rw5mv5q10r83i34l2y";
+        sha256 = "1rd6sw3gv9hb93464w7x3sip99zf8sjagm662r2ckg14b1lcavk1";
         authors = [
           "The Rust Project Developers"
         ];
@@ -10044,9 +10044,9 @@ rec {
       };
       "memchr" = rec {
         crateName = "memchr";
-        version = "2.8.0";
+        version = "2.8.1";
         edition = "2021";
-        sha256 = "0y9zzxcqxvdqg6wyag7vc3h0blhdn7hkq164bxyx2vph8zs5ijpq";
+        sha256 = "1n448jx01h5z2xknj6x2dhxgr8s8fb717cf6vfqj5lmhkpj7m53b";
         authors = [
           "Andrew Gallant <jamslam@gmail.com>"
           "bluss"
@@ -17705,9 +17705,9 @@ rec {
       };
       "toml_edit" = rec {
         crateName = "toml_edit";
-        version = "0.25.11+spec-1.1.0";
+        version = "0.25.12+spec-1.1.0";
         edition = "2024";
-        sha256 = "0awzffbkx33v9x4h19b5mfrwp3sn4ifr16y58sbk6j6l5v9c8n8b";
+        sha256 = "1mx5paq837rjw7w51zprrjynk1vaig9yzxfqz9ac79jmd7f3w5fj";
         dependencies = [
           {
             name = "indexmap";
@@ -21458,9 +21458,9 @@ rec {
       };
       "zerocopy" = rec {
         crateName = "zerocopy";
-        version = "0.8.48";
+        version = "0.8.49";
         edition = "2021";
-        sha256 = "1sb8plax8jbrsng1jdval7bdhk7hhrx40dz3hwh074k6knzkgm7f";
+        sha256 = "02y6zhpdphwnkgww2d81iwljh3mrvcphyz9cihm0fgzsi1i3mqxw";
         authors = [
           "Joshua Liebow-Feeser <joshlf@google.com>"
           "Jack Wrenn <jswrenn@amazon.com>"
@@ -21494,9 +21494,9 @@ rec {
       };
       "zerocopy-derive" = rec {
         crateName = "zerocopy-derive";
-        version = "0.8.48";
+        version = "0.8.49";
         edition = "2021";
-        sha256 = "1m5s0g92cxggqc74j83k1priz24k3z93sj5gadppd20p9c4cvqvh";
+        sha256 = "07pfsbx9sx6fzmi870vmih0mlk1m4drqx4pzrijspx2494j2bm4g";
         procMacro = true;
         libName = "zerocopy_derive";
         authors = [

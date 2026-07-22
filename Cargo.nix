@@ -5903,10 +5903,10 @@ rec {
       };
       "clap" = rec {
         crateName = "clap";
-        version = "4.6.1";
+        version = "4.6.4";
         edition = "2024";
         crateBin = [];
-        sha256 = "0lcf88l7vlg796rrqr7wipbbmfa5sgsgx4211b7xmxxv8dz13nqx";
+        sha256 = "1dz5brl39xchkml0khm348i87w89misprlinmnk77vwjawa0q7nr";
         dependencies = [
           {
             name = "clap_builder";
@@ -5945,9 +5945,9 @@ rec {
       };
       "clap_builder" = rec {
         crateName = "clap_builder";
-        version = "4.6.0";
+        version = "4.6.2";
         edition = "2024";
-        sha256 = "17q6np22yxhh5y5v53y4l31ps3hlaz45mvz2n2nicr7n3c056jki";
+        sha256 = "12sl6fyj6w2djxj0lsc1lkj1h3wpx74fjhb37izvaf65vjpji5ph";
         dependencies = [
           {
             name = "anstream";
@@ -6028,9 +6028,9 @@ rec {
       };
       "clap_derive" = rec {
         crateName = "clap_derive";
-        version = "4.6.1";
+        version = "4.6.4";
         edition = "2024";
-        sha256 = "1acpz49hi00iv9jkapixjzcv7s51x8qkfaqscjm36rqgf428dkpj";
+        sha256 = "0qd0v7pa2arwxjjinmjim6xrjy61bc28m1yryhc7zjjssswx44nh";
         procMacro = true;
         dependencies = [
           {
@@ -6047,7 +6047,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.119";
+            packageId = "syn 3.0.3";
             features = [ "full" ];
           }
         ];
@@ -16788,6 +16788,39 @@ rec {
           "test" = [ "syn-test-suite/all-features" ];
         };
         resolvedDefaultFeatures = [ "clone-impls" "default" "derive" "extra-traits" "fold" "full" "parsing" "printing" "proc-macro" "visit" "visit-mut" ];
+      };
+      "syn 3.0.3" = rec {
+        crateName = "syn";
+        version = "3.0.3";
+        edition = "2021";
+        sha256 = "18srnql3cd39j9q6hf1az02p67rlr1rf6njx9zx4vxj9i3jvmsak";
+        authors = [
+          "David Tolnay <dtolnay@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "proc-macro2";
+            packageId = "proc-macro2";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "quote";
+            packageId = "quote";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "unicode-ident";
+            packageId = "unicode-ident";
+          }
+        ];
+        features = {
+          "default" = [ "derive" "parsing" "printing" "clone-impls" "proc-macro" ];
+          "printing" = [ "dep:quote" ];
+          "proc-macro" = [ "proc-macro2/proc-macro" "quote?/proc-macro" ];
+          "test" = [ "syn-test-suite/all-features" ];
+        };
+        resolvedDefaultFeatures = [ "clone-impls" "default" "derive" "full" "parsing" "printing" "proc-macro" ];
       };
       "sync_wrapper" = rec {
         crateName = "sync_wrapper";

@@ -990,7 +990,7 @@ rec {
           }
           {
             name = "schemars";
-            packageId = "schemars";
+            packageId = "schemars 1.2.2";
             usesDefaultFeatures = false;
             features = [ "derive" "preserve_order" "uuid1" "url2" ];
           }
@@ -3376,7 +3376,7 @@ rec {
           }
           {
             name = "schemars";
-            packageId = "schemars";
+            packageId = "schemars 1.2.2";
             usesDefaultFeatures = false;
             features = [ "derive" "preserve_order" "uuid1" "url2" ];
           }
@@ -4222,7 +4222,7 @@ rec {
           }
           {
             name = "schemars";
-            packageId = "schemars";
+            packageId = "schemars 0.9.0";
             features = [ "indexmap2" ];
           }
           {
@@ -15346,7 +15346,7 @@ rec {
         ];
 
       };
-      "schemars" = rec {
+      "schemars 0.9.0" = rec {
         crateName = "schemars";
         version = "0.9.0";
         edition = "2021";
@@ -15372,7 +15372,78 @@ rec {
           }
           {
             name = "schemars_derive";
-            packageId = "schemars_derive";
+            packageId = "schemars_derive 0.9.0";
+            optional = true;
+          }
+          {
+            name = "serde";
+            packageId = "serde";
+            usesDefaultFeatures = false;
+            features = [ "alloc" ];
+          }
+          {
+            name = "serde_json";
+            packageId = "serde_json";
+            usesDefaultFeatures = false;
+            features = [ "alloc" ];
+          }
+        ];
+        devDependencies = [
+          {
+            name = "indexmap";
+            packageId = "indexmap";
+            rename = "indexmap2";
+            usesDefaultFeatures = false;
+            features = [ "serde" ];
+          }
+          {
+            name = "serde";
+            packageId = "serde";
+            features = [ "derive" ];
+          }
+        ];
+        features = {
+          "arrayvec07" = [ "dep:arrayvec07" ];
+          "bigdecimal04" = [ "dep:bigdecimal04" ];
+          "bytes1" = [ "dep:bytes1" ];
+          "chrono04" = [ "dep:chrono04" ];
+          "default" = [ "derive" "std" ];
+          "derive" = [ "schemars_derive" ];
+          "either1" = [ "dep:either1" ];
+          "indexmap2" = [ "dep:indexmap2" ];
+          "jiff02" = [ "dep:jiff02" ];
+          "preserve_order" = [ "serde_json/preserve_order" ];
+          "raw_value" = [ "serde_json/raw_value" ];
+          "rust_decimal1" = [ "dep:rust_decimal1" ];
+          "schemars_derive" = [ "dep:schemars_derive" ];
+          "semver1" = [ "dep:semver1" ];
+          "smallvec1" = [ "dep:smallvec1" ];
+          "smol_str02" = [ "dep:smol_str02" ];
+          "url2" = [ "dep:url2" ];
+          "uuid1" = [ "dep:uuid1" ];
+        };
+        resolvedDefaultFeatures = [ "default" "derive" "indexmap2" "schemars_derive" "std" ];
+      };
+      "schemars 1.2.2" = rec {
+        crateName = "schemars";
+        version = "1.2.2";
+        edition = "2021";
+        sha256 = "0jng632s64njf9vghr3i1l4m15h4y85m5vhg7vkwdkdnjg978wk8";
+        authors = [
+          "Graham Esau <gesau@hotmail.co.uk>"
+        ];
+        dependencies = [
+          {
+            name = "dyn-clone";
+            packageId = "dyn-clone";
+          }
+          {
+            name = "ref-cast";
+            packageId = "ref-cast";
+          }
+          {
+            name = "schemars_derive";
+            packageId = "schemars_derive 1.2.2";
             optional = true;
           }
           {
@@ -15403,13 +15474,6 @@ rec {
           }
         ];
         devDependencies = [
-          {
-            name = "indexmap";
-            packageId = "indexmap";
-            rename = "indexmap2";
-            usesDefaultFeatures = false;
-            features = [ "serde" ];
-          }
           {
             name = "serde";
             packageId = "serde";
@@ -15447,12 +15511,13 @@ rec {
           "semver1" = [ "dep:semver1" ];
           "smallvec1" = [ "dep:smallvec1" ];
           "smol_str02" = [ "dep:smol_str02" ];
+          "smol_str03" = [ "dep:smol_str03" ];
           "url2" = [ "dep:url2" ];
           "uuid1" = [ "dep:uuid1" ];
         };
-        resolvedDefaultFeatures = [ "default" "derive" "indexmap2" "preserve_order" "schemars_derive" "std" "url2" "uuid1" ];
+        resolvedDefaultFeatures = [ "derive" "preserve_order" "schemars_derive" "url2" "uuid1" ];
       };
-      "schemars_derive" = rec {
+      "schemars_derive 0.9.0" = rec {
         crateName = "schemars_derive";
         version = "0.9.0";
         edition = "2021";
@@ -15472,11 +15537,47 @@ rec {
           }
           {
             name = "serde_derive_internals";
-            packageId = "serde_derive_internals";
+            packageId = "serde_derive_internals 0.29.1";
           }
           {
             name = "syn";
             packageId = "syn 2.0.119";
+            features = [ "extra-traits" ];
+          }
+        ];
+
+      };
+      "schemars_derive 1.2.2" = rec {
+        crateName = "schemars_derive";
+        version = "1.2.2";
+        edition = "2021";
+        sha256 = "1fp2wkdk32nv66swy7k7pz7sxygn634snlppih5jzbs6ddqng36r";
+        procMacro = true;
+        authors = [
+          "Graham Esau <gesau@hotmail.co.uk>"
+        ];
+        dependencies = [
+          {
+            name = "proc-macro2";
+            packageId = "proc-macro2";
+          }
+          {
+            name = "quote";
+            packageId = "quote";
+          }
+          {
+            name = "serde_derive_internals";
+            packageId = "serde_derive_internals 0.30.0";
+          }
+          {
+            name = "syn";
+            packageId = "syn 3.0.3";
+          }
+        ];
+        devDependencies = [
+          {
+            name = "syn";
+            packageId = "syn 3.0.3";
             features = [ "extra-traits" ];
           }
         ];
@@ -16100,7 +16201,7 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" ];
       };
-      "serde_derive_internals" = rec {
+      "serde_derive_internals 0.29.1" = rec {
         crateName = "serde_derive_internals";
         version = "0.29.1";
         edition = "2015";
@@ -16124,6 +16225,36 @@ rec {
           {
             name = "syn";
             packageId = "syn 2.0.119";
+            usesDefaultFeatures = false;
+            features = [ "clone-impls" "derive" "parsing" "printing" ];
+          }
+        ];
+
+      };
+      "serde_derive_internals 0.30.0" = rec {
+        crateName = "serde_derive_internals";
+        version = "0.30.0";
+        edition = "2021";
+        sha256 = "1gd9n45na7n79nr54ghfl79rygkbzw2ybk3wyr6nlp83rry16lpq";
+        libPath = "lib.rs";
+        authors = [
+          "Erick Tryzelaar <erick.tryzelaar@gmail.com>"
+          "David Tolnay <dtolnay@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "proc-macro2";
+            packageId = "proc-macro2";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "quote";
+            packageId = "quote";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "syn";
+            packageId = "syn 3.0.3";
             usesDefaultFeatures = false;
             features = [ "clone-impls" "derive" "parsing" "printing" ];
           }

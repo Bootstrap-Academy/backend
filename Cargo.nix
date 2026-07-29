@@ -7282,9 +7282,9 @@ rec {
       };
       "futures" = rec {
         crateName = "futures";
-        version = "0.3.32";
+        version = "0.3.33";
         edition = "2018";
-        sha256 = "0b9q86r5ar18v5xjiyqn7sb8sa32xv98qqnfz779gl7ns7lpw54b";
+        sha256 = "066j5aqz8an05xh4hn5ljdnjn80z3g335v4grx4gaifr57wg3358";
         dependencies = [
           {
             name = "futures-channel";
@@ -7344,9 +7344,9 @@ rec {
       };
       "futures-channel" = rec {
         crateName = "futures-channel";
-        version = "0.3.32";
+        version = "0.3.33";
         edition = "2018";
-        sha256 = "07fcyzrmbmh7fh4ainilf1s7gnwvnk07phdq77jkb9fpa2ffifq7";
+        sha256 = "1bn5hlhfkl1sgypmiachaqcgwmr6wmjal7dyhfyb1zkazvs90996";
         libName = "futures_channel";
         dependencies = [
           {
@@ -7372,9 +7372,9 @@ rec {
       };
       "futures-core" = rec {
         crateName = "futures-core";
-        version = "0.3.32";
+        version = "0.3.33";
         edition = "2018";
-        sha256 = "07bbvwjbm5g2i330nyr1kcvjapkmdqzl4r6mqv75ivvjaa0m0d3y";
+        sha256 = "1iqdbvcdlplfr2g43h7xrfkv2sg5p1a26x8acz1xgxl07i3hrm9c";
         libName = "futures_core";
         features = {
           "default" = [ "std" ];
@@ -7385,9 +7385,9 @@ rec {
       };
       "futures-executor" = rec {
         crateName = "futures-executor";
-        version = "0.3.32";
+        version = "0.3.33";
         edition = "2018";
-        sha256 = "17aplz3ns74qn7a04qg7qlgsdx5iwwwkd4jvdfra6hl3h4w9rwms";
+        sha256 = "0n3lpkmcfrsnh40i4armn040gnqbpd257hz5qs46zipjr6f8fm37";
         libName = "futures_executor";
         dependencies = [
           {
@@ -7415,9 +7415,9 @@ rec {
       };
       "futures-io" = rec {
         crateName = "futures-io";
-        version = "0.3.32";
+        version = "0.3.33";
         edition = "2018";
-        sha256 = "063pf5m6vfmyxj74447x8kx9q8zj6m9daamj4hvf49yrg9fs7jyf";
+        sha256 = "0yjx13qdm9b2p4w00ddw85k6yccnnmqrlrrz8yfmi5jg7jmfqxs5";
         libName = "futures_io";
         features = {
           "default" = [ "std" ];
@@ -7426,9 +7426,9 @@ rec {
       };
       "futures-macro" = rec {
         crateName = "futures-macro";
-        version = "0.3.32";
+        version = "0.3.33";
         edition = "2018";
-        sha256 = "0ys4b1lk7s0bsj29pv42bxsaavalch35rprp64s964p40c1bfdg8";
+        sha256 = "02xiyd5y1nk9b805aympj4wq2czgvxnhcml9w9xkc665d3g3qv9d";
         procMacro = true;
         libName = "futures_macro";
         dependencies = [
@@ -7450,9 +7450,9 @@ rec {
       };
       "futures-sink" = rec {
         crateName = "futures-sink";
-        version = "0.3.32";
+        version = "0.3.33";
         edition = "2018";
-        sha256 = "14q8ml7hn5a6gyy9ri236j28kh0svqmrk4gcg0wh26rkazhm95y3";
+        sha256 = "01z38z344hpryw84b6r0rbwcb669d8pyvl2szg10aqwx96n1hi73";
         libName = "futures_sink";
         features = {
           "default" = [ "std" ];
@@ -7462,9 +7462,9 @@ rec {
       };
       "futures-task" = rec {
         crateName = "futures-task";
-        version = "0.3.32";
+        version = "0.3.33";
         edition = "2018";
-        sha256 = "14s3vqf8llz3kjza33vn4ixg6kwxp61xrysn716h0cwwsnri2xq3";
+        sha256 = "02f1y1yvjg1cv998zkgl1706pi9y4fyc9045l1hlmyqyhclfscdj";
         libName = "futures_task";
         features = {
           "default" = [ "std" ];
@@ -7474,9 +7474,9 @@ rec {
       };
       "futures-util" = rec {
         crateName = "futures-util";
-        version = "0.3.32";
+        version = "0.3.33";
         edition = "2018";
-        sha256 = "1mn60lw5kh32hz9isinjlpw34zx708fk5q1x0m40n6g6jq9a971q";
+        sha256 = "1anyg40j5www5l22r2jbn1birsafz4q1w9qmcjk4vqzwasi90ym7";
         libName = "futures_util";
         dependencies = [
           {
@@ -7546,7 +7546,10 @@ rec {
           "io-compat" = [ "io" "compat" "tokio-io" "libc" ];
           "libc" = [ "dep:libc" ];
           "memchr" = [ "dep:memchr" ];
-          "portable-atomic" = [ "futures-core/portable-atomic" ];
+          "portable-atomic" = [ "futures-core/portable-atomic" "portable_atomic_crate" ];
+          "portable-atomic-alloc" = [ "portable-atomic-util/alloc" "portable-atomic" ];
+          "portable-atomic-util" = [ "dep:portable-atomic-util" ];
+          "portable_atomic_crate" = [ "dep:portable_atomic_crate" ];
           "sink" = [ "futures-sink" ];
           "slab" = [ "dep:slab" ];
           "spin" = [ "dep:spin" ];

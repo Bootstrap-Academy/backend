@@ -113,7 +113,7 @@ chrono = { version = "0.4.45", default-features = false, features = ["serde", "c
 clap = { version = "4.6.4", features = ["derive", "env"] }
 clap_complete = { version = "4.6.8", default-features = false, features = ["unstable-dynamic"] }
 darling = { version = "0.23.0", default-features = false, features = ["suggestions"] }
-futures = { version = "0.3.32", default-features = false, features = ["std"] }
+futures = { version = "0.3.33", default-features = false, features = ["std"] }
 hex = { version = "0.4.3", default-features = false, features = ["std"] }
 lettre = { version = "0.11.22", default-features = false, features = [
   "builder",

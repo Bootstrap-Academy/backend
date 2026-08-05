@@ -5190,6 +5190,20 @@ rec {
         };
         resolvedDefaultFeatures = [ "alloc" "default" "std" ];
       };
+      "base64 0.23.1" = rec {
+        crateName = "base64";
+        version = "0.23.1";
+        edition = "2021";
+        sha256 = "19cdw4vh3d8qndbxjmbf6ddvmpicyddg704b4fjxjlchz7ncs1xc";
+        authors = [
+          "Marshall Pierce <marshall@mpierce.org>"
+        ];
+        features = {
+          "default" = [ "std" "simd-unsafe" ];
+          "std" = [ "alloc" ];
+        };
+        resolvedDefaultFeatures = [ "alloc" "default" "simd-unsafe" "std" ];
+      };
       "base64ct" = rec {
         crateName = "base64ct";
         version = "1.8.3";
@@ -9650,9 +9664,9 @@ rec {
       };
       "lettre" = rec {
         crateName = "lettre";
-        version = "0.11.22";
+        version = "0.11.23";
         edition = "2024";
-        sha256 = "0j9kbgx98k4zn2hvd38jdsl8s5snmn55gjrrs0r674nbyqbmd9hd";
+        sha256 = "1bkfb7p4h8559w0454zim1xi9rjblqlkwj8mgc4b2qy7bjyldipj";
         authors = [
           "Alexis Mousset <contact@amousset.me>"
           "Paolo Barbolini <paolo@paolo565.org>"
@@ -9665,7 +9679,7 @@ rec {
           }
           {
             name = "base64";
-            packageId = "base64 0.22.1";
+            packageId = "base64 0.23.1";
             optional = true;
           }
           {

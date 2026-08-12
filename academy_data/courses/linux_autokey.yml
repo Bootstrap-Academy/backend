@@ -1,0 +1,60 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7qCtvw6fiki0ihkwv7tIWN_
+title: "Linux Desktop Automatisierung mit AutoKey"
+description: "Ihr wollt Dinge automatisieren, Makros schreiben, schneller unterwegs sein. Ihr leidet an demselben Problem, das ich auch kenne.. und ich hab hier die Lösung für euch. AutoKey."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/linux.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665508161
+sections:
+  - id: section
+    title: "AutoKey"
+    description:
+    lectures:
+      - id: "-aSol5omu0U"
+        title: "Installation"
+        description:
+        type: youtube
+        video_id: "-aSol5omu0U"
+        duration: 618
+      - id: "7thmKIMmq8E"
+        title: "Zwischenablage"
+        description:
+        type: youtube
+        video_id: "7thmKIMmq8E"
+        duration: 610
+      - id: "dpo-WwEQS1E"
+        title: "Dialoge"
+        description:
+        type: youtube
+        video_id: "dpo-WwEQS1E"
+        duration: 1204
+      - id: "ZOvkTlZcRGA"
+        title: "Maus"
+        description:
+        type: youtube
+        video_id: "ZOvkTlZcRGA"
+        duration: 452
+      - id: "o1zI5X_zxI8"
+        title: "Tastatur"
+        description:
+        type: youtube
+        video_id: "o1zI5X_zxI8"
+        duration: 753
+      - id: "3fGSaBPNO1c"
+        title: "Fenster"
+        description:
+        type: youtube
+        video_id: "3fGSaBPNO1c"
+        duration: 752
+      - id: "DSKDqv3U7Wc"
+        title: "Globale Werte"
+        description:
+        type: youtube
+        video_id: "DSKDqv3U7Wc"
+        duration: 376

@@ -1,9 +1,11 @@
 use academy_cache_contracts::CacheService;
 use academy_config::Config;
+use academy_data::course::CourseDataRepository;
 use academy_di::Provide;
 use academy_email_contracts::EmailService;
 use academy_persistence_contracts::Database;
 use academy_persistence_postgres::MigrationStatus;
+use anyhow::Context;
 use tracing::{info, warn};
 
 use crate::{
@@ -54,8 +56,11 @@ pub async fn serve(config: Config) -> anyhow::Result<()> {
     let email = email::connect(&config.email).await?;
     email.ping().await?;
 
+    let course_repository = CourseDataRepository::load(&config.course.course_dir)
+        .context("Failed to load course repository")?;
+
     let config_provider = ConfigProvider::new(&config)?;
-    let mut provider = Provider::new(config_provider, database, cache, email);
+    let mut provider = Provider::new(config_provider, database, cache, email, course_repository);
 
     let server: RestServer = provider.provide();
     server.serve().await

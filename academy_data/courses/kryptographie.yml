@@ -1,0 +1,678 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7pWwFv5APk240hrehtCJae-
+title: "Theoretische Kryptographie"
+description: "Kryptographie ist überall - ihr öffnet eine App? Ihr seid auf einer Website? Wäre ja ziemlich übel, wenn jeder eure Zahlungsdaten mitlesen kann. Ihr schreibt mit Freunden auf Signal? Wäre doof, wenn da jeder mitlesen kann. Zum Glück haben wir Kyptographie. Doch mathematisch ist sie noch spannender als ihr euch das vorstellen könnt!"
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/krypto.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665507104
+sections:
+  - id: section
+    title: "Historische Kryptographie"
+    description:
+    lectures:
+      - id: "-nK32SkZdgY"
+        title: "Die Cäsar-Verschlüsselung"
+        description:
+        type: youtube
+        video_id: "-nK32SkZdgY"
+        duration: 320
+      - id: "C9Y7bdOSHVw"
+        title: "Monoalphabetische Ersetzung und die Häufigkeitsanalyse"
+        description:
+        type: youtube
+        video_id: "C9Y7bdOSHVw"
+        duration: 626
+      - id: "eoYshijt3X4"
+        title: "Die Vigenère Chiffre"
+        description:
+        type: youtube
+        video_id: "eoYshijt3X4"
+        duration: 498
+      - id: "UOAunUNaMVw"
+        title: "Grundkonzept von Verschlüsselungen"
+        description:
+        type: youtube
+        video_id: "UOAunUNaMVw"
+        duration: 448
+      - id: "KVM0xNtVX_A"
+        title: "Das One-Time-Pad"
+        description:
+        type: youtube
+        video_id: "KVM0xNtVX_A"
+        duration: 536
+      - id: "W4JnjVqxtuk"
+        title: "Das One-Time-Pad in Python"
+        description:
+        type: youtube
+        video_id: "W4JnjVqxtuk"
+        duration: 992
+      - id: "HjShvOcSJJg"
+        title: "Sicherheit des OTP"
+        description:
+        type: youtube
+        video_id: "HjShvOcSJJg"
+        duration: 674
+      - id: "4mhcrg_dtFA"
+        title: "Sicherheitsexperimente / -spiele"
+        description:
+        type: youtube
+        video_id: "4mhcrg_dtFA"
+        duration: 1046
+      - id: "WO4gQJ51yqM"
+        title: "Effiziente Angreifer, Brute Force und Sicherheitsparameter"
+        description:
+        type: youtube
+        video_id: "WO4gQJ51yqM"
+        duration: 849
+      - id: "5D98HSbEPIo"
+        title: "Vernachlässigbare Funktionen"
+        description:
+        type: youtube
+        video_id: "5D98HSbEPIo"
+        duration: 485
+      - id: "fQcCDf4rHmA"
+        title: "Reduktionsbeweise am Beispiel vom OTP"
+        description:
+        type: youtube
+        video_id: "fQcCDf4rHmA"
+        duration: 499
+      - id: "ISBf3hNe3ME"
+        title: "Padding"
+        description:
+        type: youtube
+        video_id: "ISBf3hNe3ME"
+        duration: 414
+  - id: section2
+    title: "Symmetrische Kryptographie"
+    description:
+    lectures:
+      - id: "byOeqSB5eFw"
+        title: "Pseudozufallsgeneratoren"
+        description:
+        type: youtube
+        video_id: "byOeqSB5eFw"
+        duration: 626
+      - id: "yRd8zvzRPHQ"
+        title: "Beweis mit dem Pseudozufallsgenerator"
+        description:
+        type: youtube
+        video_id: "yRd8zvzRPHQ"
+        duration: 605
+      - id: "SBVbR6oJCGE"
+        title: "CPA-Sicherheit und Chosen-Plaintext-Attacks"
+        description:
+        type: youtube
+        video_id: "SBVbR6oJCGE"
+        duration: 550
+      - id: "flr659pLRAM"
+        title: "Stromchiffren aka Stream Ciphers"
+        description:
+        type: youtube
+        video_id: "flr659pLRAM"
+        duration: 720
+      - id: "ZPVXI_Fs2bM"
+        title: "Blockchiffren und 2 von 4 Betriebsmodi"
+        description:
+        type: youtube
+        video_id: "ZPVXI_Fs2bM"
+        duration: 877
+      - id: "Uf9QjoS-wOY"
+        title: "Output Feedback Mode und Counter Mode"
+        description:
+        type: youtube
+        video_id: "Uf9QjoS-wOY"
+        duration: 514
+  - id: section3
+    title: "Authentifizierung bei symmetrischer Verschlüsselung"
+    description:
+    lectures:
+      - id: "9UPexx86nQ4"
+        title: "Angriffe auf CPA und CCA Sicherheit"
+        description:
+        type: youtube
+        video_id: "9UPexx86nQ4"
+        duration: 581
+      - id: "7inpl-u5dv8"
+        title: "Message Authenfication Codes"
+        description:
+        type: youtube
+        video_id: "7inpl-u5dv8"
+        duration: 403
+      - id: "AX3oPX9t7g4"
+        title: "eine MAC Konstruktion"
+        description:
+        type: youtube
+        video_id: "AX3oPX9t7g4"
+        duration: 776
+      - id: "6Bek2lRIrYE"
+        title: "CBC-MAC"
+        description:
+        type: youtube
+        video_id: "6Bek2lRIrYE"
+        duration: 402
+      - id: "4RtqOgyapg4"
+        title: "Verschlüsselung und Authentifikation in Einem"
+        description:
+        type: youtube
+        video_id: "4RtqOgyapg4"
+        duration: 537
+  - id: section4
+    title: "Praktisch relevante symmetrische Verschlüsselungsverfahren"
+    description:
+    lectures:
+      - id: "wH6KCWblSh4"
+        title: "Feistel - Netzwerke"
+        description:
+        type: youtube
+        video_id: "wH6KCWblSh4"
+        duration: 380
+      - id: "m-BoKOi0lds"
+        title: "Der DES (Data Encryption Standard)"
+        description:
+        type: youtube
+        video_id: "m-BoKOi0lds"
+        duration: 787
+      - id: "fP4DkIDRjZs"
+        title: "Varianten des DES"
+        description:
+        type: youtube
+        video_id: "fP4DkIDRjZs"
+        duration: 523
+      - id: "w8BXOJ-G9Dw"
+        title: "Der Meet-in-the-Middle-Angriff auf 2-DES"
+        description:
+        type: youtube
+        video_id: "w8BXOJ-G9Dw"
+        duration: 673
+      - id: "23H_kaE8DMk"
+        title: "Der AES (Advanced Encryption Standard)"
+        description:
+        type: youtube
+        video_id: "23H_kaE8DMk"
+        duration: 616
+  - id: section5
+    title: "Asymmetrische Kryptographie"
+    description:
+    lectures:
+      - id: "L3Q7lPQ8V0M"
+        title: "Einleitung zur Asymmetrische Kryptographie"
+        description:
+        type: youtube
+        video_id: "L3Q7lPQ8V0M"
+        duration: 416
+      - id: "O0PeIKuF0Nc"
+        title: "ein bisschen Mathe (zyklische Gruppen)"
+        description:
+        type: youtube
+        video_id: "O0PeIKuF0Nc"
+        duration: 443
+      - id: "_E0SGl7aN70"
+        title: "Der Diffie-Hellman-Schlüsselaustausch"
+        description:
+        type: youtube
+        video_id: "_E0SGl7aN70"
+        duration: 362
+      - id: "4UAJ-pixR6g"
+        title: "Das DLOG-Problem"
+        description:
+        type: youtube
+        video_id: "4UAJ-pixR6g"
+        duration: 417
+      - id: "gqxX7udeohQ"
+        title: "Der Decisional-Diffie-Hellman (DDH)"
+        description:
+        type: youtube
+        video_id: "gqxX7udeohQ"
+        duration: 361
+      - id: "9NORRZ8N4Xw"
+        title: "El-Gamal Verschlüsselung"
+        description:
+        type: youtube
+        video_id: "9NORRZ8N4Xw"
+        duration: 566
+      - id: "gPnou4AiAPE"
+        title: "Beweis für CPA-Sicherheit von El Gamal"
+        description:
+        type: youtube
+        video_id: "gPnou4AiAPE"
+        duration: 787
+      - id: "VWOeTrK7clA"
+        title: "Das Cramer Shoup Lite Kryptosystem"
+        description:
+        type: youtube
+        video_id: "VWOeTrK7clA"
+        duration: 890
+      - id: "e6HsC0ScSh4"
+        title: "Das Cramer Shoup Kryptosystem"
+        description:
+        type: youtube
+        video_id: "e6HsC0ScSh4"
+        duration: 725
+      - id: "3Qr3aAsS5-Q"
+        title: "Das RSA-Problem"
+        description:
+        type: youtube
+        video_id: "3Qr3aAsS5-Q"
+        duration: 768
+      - id: "So8us8HUsFg"
+        title: "RSA Verschlüsselung aus dem Lehrbuch"
+        description:
+        type: youtube
+        video_id: "So8us8HUsFg"
+        duration: 697
+      - id: "ViJPhBijUt0"
+        title: "RSA PKCS #1 v1 5"
+        description:
+        type: youtube
+        video_id: "ViJPhBijUt0"
+        duration: 314
+      - id: "WISyWBimSFY"
+        title: "RSA ES OAEP"
+        description:
+        type: youtube
+        video_id: "WISyWBimSFY"
+        duration: 413
+      - id: "il3tkQnSk2c"
+        title: "Der Rabin-Miller Primzahlgenerator"
+        description:
+        type: youtube
+        video_id: "il3tkQnSk2c"
+        duration: 589
+      - id: "pLn_AqLIdT0"
+        title: "n-CPA-Sicherheit"
+        description:
+        type: youtube
+        video_id: "pLn_AqLIdT0"
+        duration: 358
+      - id: "Nkk5-HPMyOQ"
+        title: "n-CPA-Sicherheitsbeweis"
+        description:
+        type: youtube
+        video_id: "Nkk5-HPMyOQ"
+        duration: 1302
+      - id: "5BmtNcG3wF8"
+        title: "Hybride Verschlüsselung"
+        description:
+        type: youtube
+        video_id: "5BmtNcG3wF8"
+        duration: 263
+      - id: "KaUR8swZda8"
+        title: "Das McEliece Verfahren - Einleitung: Fehlerbehebungscodes"
+        description:
+        type: youtube
+        video_id: "KaUR8swZda8"
+        duration: 837
+      - id: "TB9L3Nsha34"
+        title: "Das McEliece Verfahren"
+        description:
+        type: youtube
+        video_id: "TB9L3Nsha34"
+        duration: 738
+      - id: "tK8ajKjeyrU"
+        title: "CCA1 vs. CCA2-Sicherheit"
+        description:
+        type: youtube
+        video_id: "tK8ajKjeyrU"
+        duration: 190
+      - id: "9_SfpVW1zsc"
+        title: "k-Repetition-McEliece"
+        description:
+        type: youtube
+        video_id: "9_SfpVW1zsc"
+        duration: 384
+      - id: "VCAdeN5zPL8"
+        title: "eine CCA1-sichere Variante von McEliece"
+        description:
+        type: youtube
+        video_id: "VCAdeN5zPL8"
+        duration: 596
+      - id: "z5-0ZrKZ0P0"
+        title: "CCA1-Sicherheits-Beweis für McEliece"
+        description:
+        type: youtube
+        video_id: "z5-0ZrKZ0P0"
+        duration: 670
+      - id: "ToyLBOT_BaU"
+        title: "CCA2-sicheres McEliece"
+        description:
+        type: youtube
+        video_id: "ToyLBOT_BaU"
+        duration: 478
+  - id: section6
+    title: "Kurze Einführung zu Hashfunktionen"
+    description:
+    lectures:
+      - id: "cwePvOfsmUM"
+        title: "Hashfunktionen"
+        description:
+        type: youtube
+        video_id: "cwePvOfsmUM"
+        duration: 587
+      - id: "P-C6rBuXU8o"
+        title: "Das Random Oracle Modell"
+        description:
+        type: youtube
+        video_id: "P-C6rBuXU8o"
+        duration: 270
+      - id: "jM6FiSiHzdY"
+        title: "Die Merkle-Damgard Konstruktion"
+        description:
+        type: youtube
+        video_id: "jM6FiSiHzdY"
+        duration: 267
+      - id: "8H-itWPZDXM"
+        title: "Die Fast Wide-Pipe Konstruktion"
+        description:
+        type: youtube
+        video_id: "8H-itWPZDXM"
+        duration: 574
+      - id: "a72_qvh6tVE"
+        title: "Birthday Attacks auf Hashfunktionen"
+        description:
+        type: youtube
+        video_id: "a72_qvh6tVE"
+        duration: 546
+  - id: section7
+    title: "Digitale Signaturen"
+    description:
+    lectures:
+      - id: "OdroDXn9xbI"
+        title: "Digitale Signaturen"
+        description:
+        type: youtube
+        video_id: "OdroDXn9xbI"
+        duration: 388
+      - id: "jhzljqicOCg"
+        title: "formale Angreifermodelle"
+        description:
+        type: youtube
+        video_id: "jhzljqicOCg"
+        duration: 819
+      - id: "bPHDd6dIqQM"
+        title: "Lamport Einmalsignaturen"
+        description:
+        type: youtube
+        video_id: "bPHDd6dIqQM"
+        duration: 870
+      - id: "8R8eCL1NlYE"
+        title: "Einmalsignaturen mit DLOG"
+        description:
+        type: youtube
+        video_id: "8R8eCL1NlYE"
+        duration: 621
+      - id: "hXMw1yhTRrU"
+        title: "Sicherheitsbeweis zu Einmalsignaturen mit DLOG"
+        description:
+        type: youtube
+        video_id: "hXMw1yhTRrU"
+        duration: 671
+      - id: "bpyCxVBGrig"
+        title: "Einmalsignaturen mit RSA"
+        description:
+        type: youtube
+        video_id: "bpyCxVBGrig"
+        duration: 633
+      - id: "QaZjcjkdmbA"
+        title: "Shamir's Trick"
+        description:
+        type: youtube
+        video_id: "QaZjcjkdmbA"
+        duration: 449
+      - id: "w1tFsjhs2sU"
+        title: "Sicherheitsbeweis des RSA Einmalsignaturverfahrens"
+        description:
+        type: youtube
+        video_id: "w1tFsjhs2sU"
+        duration: 751
+      - id: "yX2VoXHyTgI"
+        title: "Merkle Trees"
+        description:
+        type: youtube
+        video_id: "yX2VoXHyTgI"
+        duration: 617
+      - id: "6C1puViTjqE"
+        title: "EUF-CMA Sicherheit bauen"
+        description:
+        type: youtube
+        video_id: "6C1puViTjqE"
+        duration: 492
+      - id: "cUsH9RzgHDM"
+        title: "Sicherheitsbeweis für die Transformation"
+        description:
+        type: youtube
+        video_id: "cUsH9RzgHDM"
+        duration: 1283
+      - id: "J0ND-bSNRJE"
+        title: "Chamäleon-Hashfunktionen"
+        description:
+        type: youtube
+        video_id: "J0ND-bSNRJE"
+        duration: 497
+      - id: "xVsJw3UE6gs"
+        title: "Chamäleon-Hashfunktionen basierend auf DLOG"
+        description:
+        type: youtube
+        video_id: "xVsJw3UE6gs"
+        duration: 454
+      - id: "lwpzcqBbfnI"
+        title: "Chamäleon-Hashfunktionen basierend auf RSA"
+        description:
+        type: youtube
+        video_id: "lwpzcqBbfnI"
+        duration: 521
+      - id: "2CZ3v8kLrL4"
+        title: "Chamäleon-Signaturverfahren"
+        description:
+        type: youtube
+        video_id: "2CZ3v8kLrL4"
+        duration: 484
+      - id: "jhLvL4hhXwA"
+        title: "sEUF-CMA-Sicherheit und Chamäleon-Hashfunktionen als Einmalsignaturverfahren"
+        description:
+        type: youtube
+        video_id: "jhLvL4hhXwA"
+        duration: 545
+      - id: "xgtkvbDI3N4"
+        title: "Transformation zu sEUF-CMA Sicherheit"
+        description:
+        type: youtube
+        video_id: "xgtkvbDI3N4"
+        duration: 375
+      - id: "7LE03Vachj0"
+        title: "Lehrbuch RSA-Signaturen"
+        description:
+        type: youtube
+        video_id: "7LE03Vachj0"
+        duration: 345
+      - id: "o2ZIRmQ6rlM"
+        title: "Angriffe auf RSA Signaturen"
+        description:
+        type: youtube
+        video_id: "o2ZIRmQ6rlM"
+        duration: 598
+      - id: "42B0azOVLmw"
+        title: "RSA Full Domain Hash"
+        description:
+        type: youtube
+        video_id: "42B0azOVLmw"
+        duration: 650
+      - id: "O8veBaw-mZg"
+        title: "Die Strong RSA Annahme und GHR Signaturen"
+        description:
+        type: youtube
+        video_id: "O8veBaw-mZg"
+        duration: 373
+      - id: "r61iuIu_YPM"
+        title: "Sicherheitsbeweis für GHR Signaturen"
+        description:
+        type: youtube
+        video_id: "r61iuIu_YPM"
+        duration: 686
+      - id: "W1kQvijs2k4"
+        title: "Selektive Sicherheit / SUF"
+        description:
+        type: youtube
+        video_id: "W1kQvijs2k4"
+        duration: 498
+      - id: "72XnzOIvgDY"
+        title: "Signaturverfahren von Hohenberger und Waters"
+        description:
+        type: youtube
+        video_id: "72XnzOIvgDY"
+        duration: 681
+      - id: "lG4m8vLMhAE"
+        title: "Der RSA-Signaturstandard"
+        description:
+        type: youtube
+        video_id: "lG4m8vLMhAE"
+        duration: 698
+      - id: "qHEqKIDF1yE"
+        title: "El-Gamal Signaturen"
+        description:
+        type: youtube
+        video_id: "qHEqKIDF1yE"
+        duration: 702
+      - id: "oa-BwIMMj10"
+        title: "Schnorr Signaturen"
+        description:
+        type: youtube
+        video_id: "oa-BwIMMj10"
+        duration: 399
+      - id: "vq-PxYzLGCY"
+        title: "Was passiert mit miesem Zufall"
+        description:
+        type: youtube
+        video_id: "vq-PxYzLGCY"
+        duration: 331
+      - id: "mNZaG6CCJs0"
+        title: "Der Digital Signature Algorithm DSA"
+        description:
+        type: youtube
+        video_id: "mNZaG6CCJs0"
+        duration: 778
+      - id: "99cBBSB0kZA"
+        title: "Pairings"
+        description:
+        type: youtube
+        video_id: "99cBBSB0kZA"
+        duration: 467
+      - id: "A53AHVRZ-No"
+        title: "Joux's 3 Parteien Protokoll"
+        description:
+        type: youtube
+        video_id: "A53AHVRZ-No"
+        duration: 304
+      - id: "WzVOzBkGSZY"
+        title: "BLS-Signaturen"
+        description:
+        type: youtube
+        video_id: "WzVOzBkGSZY"
+        duration: 702
+      - id: "nH-s1Ukh-EY"
+        title: "Sicherheitsbeweis für BLS-Signaturen"
+        description:
+        type: youtube
+        video_id: "nH-s1Ukh-EY"
+        duration: 523
+      - id: "2FRa2tfOd9A"
+        title: "Programmierbare Hashfunktionen"
+        description:
+        type: youtube
+        video_id: "2FRa2tfOd9A"
+        duration: 848
+      - id: "IsJ0ArfAZVQ"
+        title: "Waters Signaturen"
+        description:
+        type: youtube
+        video_id: "IsJ0ArfAZVQ"
+        duration: 445
+      - id: "xd5fzxbvuok"
+        title: "EUF-CMA Sicherheitsbeweis für Waters Signaturen"
+        description:
+        type: youtube
+        video_id: "xd5fzxbvuok"
+        duration: 1462
+  - id: section8
+    title: "Zero Knowledge und Commitments"
+    description:
+    lectures:
+      - id: "1FQRU1SUr3g"
+        title: "Zero Knowledge - ich kann Gedanken lesen"
+        description:
+        type: youtube
+        video_id: "1FQRU1SUr3g"
+        duration: 883
+      - id: "Wk-SNFQFjU0"
+        title: "Hardcore Bits"
+        description:
+        type: youtube
+        video_id: "Wk-SNFQFjU0"
+        duration: 463
+      - id: "B4XHyarT27o"
+        title: "Asymmetrische Verschlüsselung mit Trapdoor OWPs und HCBs"
+        description:
+        type: youtube
+        video_id: "B4XHyarT27o"
+        duration: 694
+      - id: "hy6AV8_QMes"
+        title: "Commitment Schemes"
+        description:
+        type: youtube
+        video_id: "hy6AV8_QMes"
+        duration: 452
+      - id: "P4bapsK7_iw"
+        title: "Pedersen Commitments und das Erreichen von Zero-Knowledge"
+        description:
+        type: youtube
+        video_id: "P4bapsK7_iw"
+        duration: 542
+  - id: section9
+    title: "Kryptoanalyse"
+    description:
+    lectures:
+      - id: "CZsh2IT7Iz0"
+        title: "lineare Kryptoanalyse am Beispiel FEAL"
+        description:
+        type: youtube
+        video_id: "CZsh2IT7Iz0"
+        duration: 761
+      - id: "Hm5L0Sgv2Yg"
+        title: "lineare Kryptoanalyse am Beispiel FEAL #2"
+        description:
+        type: youtube
+        video_id: "Hm5L0Sgv2Yg"
+        duration: 537
+      - id: "2u9GQZ0yk1w"
+        title: "lineare Kryptoanalyse von DES"
+        description:
+        type: youtube
+        video_id: "2u9GQZ0yk1w"
+        duration: 1010
+      - id: "JoNP1U0leao"
+        title: "differentielle Kryptoanalyse von DES"
+        description:
+        type: youtube
+        video_id: "JoNP1U0leao"
+        duration: 588
+      - id: "yUZzJx-f19Y"
+        title: "differentielle Kryptoanalyse von DES auf mehr als 2 Runden"
+        description:
+        type: youtube
+        video_id: "yUZzJx-f19Y"
+        duration: 412
+  - id: section10
+    title: "Bonus"
+    description:
+    lectures:
+      - id: "C-NNAk4ccaM"
+        title: "Der Wettbewerb für Post-Quanten-Kryptographie ist vorbei!"
+        description:
+        type: youtube
+        video_id: "C-NNAk4ccaM"
+        duration: 838

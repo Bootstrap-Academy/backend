@@ -1,0 +1,198 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7qokXX4II7FCZthJcrirT4o
+title: "Dart und Flutter - Einfach Apps entwickeln mit Googles crossplattform Framework"
+description: "Mit der Sprache Dart und dem Framework Flutter können mobile Apps nach modernen Standards entwickelt werden - und sofort für Android und iOS verbreitet werden, denn das heißt Crossplattform."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/dartflutter.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665507614
+sections:
+  - id: section
+    title: "Dart und Flutter - Einfach Apps entwickeln mit Googles crossplattform Framework"
+    description:
+    lectures:
+      - id: "S0SPcUrZaZQ"
+        title: "Installation"
+        description:
+        type: youtube
+        video_id: "S0SPcUrZaZQ"
+        duration: 1586
+      - id: "RtBQ_6OFTqQ"
+        title: "Erklärung der Demo App"
+        description:
+        type: youtube
+        video_id: "RtBQ_6OFTqQ"
+        duration: 957
+      - id: "hwYjscZArtc"
+        title: "Externe Pakete für eine erste eigene App"
+        description:
+        type: youtube
+        video_id: "hwYjscZArtc"
+        duration: 662
+      - id: "Eow-ISyijHY"
+        title: "Klassenstruktur"
+        description:
+        type: youtube
+        video_id: "Eow-ISyijHY"
+        duration: 483
+      - id: "CQkd2L8LHLs"
+        title: "Eine ListView hinzufügen"
+        description:
+        type: youtube
+        video_id: "CQkd2L8LHLs"
+        duration: 1016
+      - id: "DWlOik7zhiI"
+        title: "Anklickbare Icons hinzufügen"
+        description:
+        type: youtube
+        video_id: "DWlOik7zhiI"
+        duration: 491
+      - id: "S6HdPBstNOo"
+        title: "Bilder und neue Widgets"
+        description:
+        type: youtube
+        video_id: "S6HdPBstNOo"
+        duration: 606
+      - id: "Yfv1FLIzWWk"
+        title: "Layouts: Rows und Columns"
+        description:
+        type: youtube
+        video_id: "Yfv1FLIzWWk"
+        duration: 708
+      - id: "WTiW7qt2CCk"
+        title: "Achsen und Layouts"
+        description:
+        type: youtube
+        video_id: "WTiW7qt2CCk"
+        duration: 484
+      - id: "o5PBbPicsBQ"
+        title: "Quellcode ordentlich halten"
+        description:
+        type: youtube
+        video_id: "o5PBbPicsBQ"
+        duration: 555
+      - id: "sU13IpjzV3I"
+        title: "Der Container"
+        description:
+        type: youtube
+        video_id: "sU13IpjzV3I"
+        duration: 532
+      - id: "umiNz0Kc3O4"
+        title: "Die Gridview"
+        description:
+        type: youtube
+        video_id: "umiNz0Kc3O4"
+        duration: 572
+      - id: "Xz-VC1MlGr0"
+        title: "Der Stack"
+        description:
+        type: youtube
+        video_id: "Xz-VC1MlGr0"
+        duration: 640
+      - id: "JwIvUA6ihbc"
+        title: "Material Cards"
+        description:
+        type: youtube
+        video_id: "JwIvUA6ihbc"
+        duration: 495
+      - id: "hxE3ZvmPn9E"
+        title: "HTTP Anfragen, Kommunikation mit dem Backend"
+        description:
+        type: youtube
+        video_id: "hxE3ZvmPn9E"
+        duration: 1201
+      - id: "RMNZ123y6Zk"
+        title: "JSON Objekte verarbeiten"
+        description:
+        type: youtube
+        video_id: "RMNZ123y6Zk"
+        duration: 721
+      - id: "HkZ79bVAqp8"
+        title: "Debug Tools"
+        description:
+        type: youtube
+        video_id: "HkZ79bVAqp8"
+        duration: 703
+      - id: "-RtixfTWR30"
+        title: "Klickbare Buttons"
+        description:
+        type: youtube
+        video_id: "-RtixfTWR30"
+        duration: 540
+      - id: "Zp8J9B_h6Uk"
+        title: "Dismissable Items"
+        description:
+        type: youtube
+        video_id: "Zp8J9B_h6Uk"
+        duration: 853
+      - id: "C5aZT9uvVwg"
+        title: "Navigationsleiste"
+        description:
+        type: youtube
+        video_id: "C5aZT9uvVwg"
+        duration: 776
+      - id: "jmgr44o5wiY"
+        title: "Bottom Nav Leiste"
+        description:
+        type: youtube
+        video_id: "jmgr44o5wiY"
+        duration: 907
+      - id: "qemv5YGIjik"
+        title: "Inhalte ändern über Navigationsleiste"
+        description:
+        type: youtube
+        video_id: "qemv5YGIjik"
+        duration: 472
+      - id: "zaDZvM5KdXc"
+        title: "Optionen Menü"
+        description:
+        type: youtube
+        video_id: "zaDZvM5KdXc"
+        duration: 729
+      - id: "zOOlWg_ijKI"
+        title: "TabBar"
+        description:
+        type: youtube
+        video_id: "zOOlWg_ijKI"
+        duration: 724
+      - id: "Keu9s4652Hc"
+        title: "Bottom App Bar"
+        description:
+        type: youtube
+        video_id: "Keu9s4652Hc"
+        duration: 909
+      - id: "wxV8mfXQYCU"
+        title: "Input Felder"
+        description:
+        type: youtube
+        video_id: "wxV8mfXQYCU"
+        duration: 945
+      - id: "QsOXxSSm2bA"
+        title: "Input Felder validation und submit"
+        description:
+        type: youtube
+        video_id: "QsOXxSSm2bA"
+        duration: 1027
+      - id: "xbA5e2uZClY"
+        title: "Banner"
+        description:
+        type: youtube
+        video_id: "xbA5e2uZClY"
+        duration: 175
+      - id: "l1kbFB1UL6M"
+        title: "Animation zwischen Widgets"
+        description:
+        type: youtube
+        video_id: "l1kbFB1UL6M"
+        duration: 973
+      - id: "TorSNwZRRuY"
+        title: "Animation"
+        description:
+        type: youtube
+        video_id: "TorSNwZRRuY"
+        duration: 960

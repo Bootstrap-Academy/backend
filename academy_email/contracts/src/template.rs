@@ -2,8 +2,8 @@ use std::future::Future;
 
 use academy_models::email_address::EmailAddressWithName;
 use academy_templates_contracts::{
-    PurchaseConfirmationTemplate, ResetPasswordTemplate, SubscribeNewsletterTemplate,
-    VerifyEmailTemplate,
+    CoursePurchaseConfirmationTemplate, PurchaseConfirmationTemplate, ResetPasswordTemplate,
+    SubscribeNewsletterTemplate, VerifyEmailTemplate,
 };
 
 #[cfg_attr(feature = "mock", mockall::automock)]
@@ -31,6 +31,12 @@ pub trait TemplateEmailService: Send + Sync + 'static {
         recipient: EmailAddressWithName,
         data: &PurchaseConfirmationTemplate,
         invoice: Vec<u8>,
+    ) -> impl Future<Output = anyhow::Result<bool>> + Send;
+
+    fn send_course_purchase_confirmation_email(
+        &self,
+        recipient: EmailAddressWithName,
+        data: &CoursePurchaseConfirmationTemplate,
     ) -> impl Future<Output = anyhow::Result<bool>> + Send;
 }
 
@@ -99,6 +105,22 @@ impl MockTemplateEmailService {
                 mockall::predicate::eq(invoice),
             )
             .return_once(move |_, _, _| Box::pin(std::future::ready(Ok(result))));
+        self
+    }
+
+    pub fn with_send_course_purchase_confirmation_email(
+        mut self,
+        recipient: EmailAddressWithName,
+        data: CoursePurchaseConfirmationTemplate,
+        result: bool,
+    ) -> Self {
+        self.expect_send_course_purchase_confirmation_email()
+            .once()
+            .with(
+                mockall::predicate::eq(recipient),
+                mockall::predicate::eq(data),
+            )
+            .return_once(move |_, _| Box::pin(std::future::ready(Ok(result))));
         self
     }
 }

@@ -1,0 +1,646 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7rylgyThgUldHG8KE6Nbc1O
+title: "Kotlin für Fortgeschrittene"
+description: "Kann man Kotlin, kann man programmieren - und zwar wirklich fast alle Arten. Diese Sprache hat so viel zu bieten, ihr werdet staunen."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/kotlin.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665507680
+sections:
+  - id: section2
+    title: "Besondere Features von Kotlin"
+    description:
+    lectures:
+      - id: "Wu7qAEkEbDI"
+        title: "Maybe Typen"
+        description:
+        type: youtube
+        video_id: "Wu7qAEkEbDI"
+        duration: 464
+      - id: "zipMLBzX0kQ"
+        title: "if not null else"
+        description:
+        type: youtube
+        video_id: "zipMLBzX0kQ"
+        duration: 394
+      - id: "BJZqu13r-Mk"
+        title: "Unsigned Typen"
+        description:
+        type: youtube
+        video_id: "BJZqu13r-Mk"
+        duration: 365
+      - id: "HuW9n0z3Ua4"
+        title: "Zuweisungen mit if Anweisungen"
+        description:
+        type: youtube
+        video_id: "HuW9n0z3Ua4"
+        duration: 194
+      - id: "pWEpcLI0p6c"
+        title: "Nullable Booleans"
+        description:
+        type: youtube
+        video_id: "pWEpcLI0p6c"
+        duration: 201
+      - id: "--BP0l0D-Nk"
+        title: "Variablen swappen"
+        description:
+        type: youtube
+        video_id: "--BP0l0D-Nk"
+        duration: 157
+      - id: "1Ebe1KBJ_QA"
+        title: "Typecasts bei grundlegenden Typen"
+        description:
+        type: youtube
+        video_id: "1Ebe1KBJ_QA"
+        duration: 503
+      - id: "Xgn6AITIk7c"
+        title: "String Templates"
+        description:
+        type: youtube
+        video_id: "Xgn6AITIk7c"
+        duration: 192
+      - id: "vbGKq8spJbM"
+        title: "Break und Continue"
+        description:
+        type: youtube
+        video_id: "vbGKq8spJbM"
+        duration: 490
+      - id: "-JlddUWxCsc"
+        title: "Ranges"
+        description:
+        type: youtube
+        video_id: "-JlddUWxCsc"
+        duration: 239
+      - id: "03Y22SDnSpo"
+        title: "Foreach Schleifen"
+        description:
+        type: youtube
+        video_id: "03Y22SDnSpo"
+        duration: 171
+      - id: "wOvruRnE03Y"
+        title: "For Schleifen mit Indizes"
+        description:
+        type: youtube
+        video_id: "wOvruRnE03Y"
+        duration: 168
+      - id: "pQr-sT9azKM"
+        title: "Pattern Matching mit when"
+        description:
+        type: youtube
+        video_id: "pQr-sT9azKM"
+        duration: 457
+      - id: "ltHYzdNxR7c"
+        title: "Übung mit Modulo"
+        description:
+        type: youtube
+        video_id: "ltHYzdNxR7c"
+        duration: 330
+  - id: section4
+    title: "Funktionale Programmierung: Besonders in Kotlin"
+    description:
+    lectures:
+      - id: "op5F5liCd-A"
+        title: "Default Parameter"
+        description:
+        type: youtube
+        video_id: "op5F5liCd-A"
+        duration: 715
+      - id: "CxYZMYniWT4"
+        title: "Einzeilige Funktionen"
+        description:
+        type: youtube
+        video_id: "CxYZMYniWT4"
+        duration: 218
+  - id: section7
+    title: "Kotlin bei OOP"
+    description:
+    lectures:
+      - id: "FtTNc6yj_1M"
+        title: "Getter und Setter"
+        description:
+        type: youtube
+        video_id: "FtTNc6yj_1M"
+        duration: 609
+      - id: "Xg0n-D-EhmA"
+        title: "Init Blöcke"
+        description:
+        type: youtube
+        video_id: "Xg0n-D-EhmA"
+        duration: 589
+      - id: "-kaP5ZMecYg"
+        title: "Sekundäre Konstruktoren"
+        description:
+        type: youtube
+        video_id: "-kaP5ZMecYg"
+        duration: 697
+      - id: "7rJZa1W8hsg"
+        title: "Übung zu Vererbung"
+        description:
+        type: youtube
+        video_id: "7rJZa1W8hsg"
+        duration: 595
+      - id: "2ILQt5rw_OU"
+        title: "Overrides"
+        description:
+        type: youtube
+        video_id: "2ILQt5rw_OU"
+        duration: 491
+      - id: "RWanQRSf4V8"
+        title: "Auf die Parent Funktion zugreifen"
+        description:
+        type: youtube
+        video_id: "RWanQRSf4V8"
+        duration: 298
+      - id: "LxAKXq8Wd54"
+        title: "Abstrakte Klassen"
+        description:
+        type: youtube
+        video_id: "LxAKXq8Wd54"
+        duration: 460
+      - id: "UJlkG6qHTOQ"
+        title: "Interfaces"
+        description:
+        type: youtube
+        video_id: "UJlkG6qHTOQ"
+        duration: 785
+      - id: "D-yhPufwQfE"
+        title: "Mehrfachvererbung"
+        description:
+        type: youtube
+        video_id: "D-yhPufwQfE"
+        duration: 429
+      - id: "XJVZDBqEfv4"
+        title: "TypeCasts"
+        description:
+        type: youtube
+        video_id: "XJVZDBqEfv4"
+        duration: 791
+      - id: "e0g91hCoXbE"
+        title: "TypeCasts bei nullable Typen"
+        description:
+        type: youtube
+        video_id: "e0g91hCoXbE"
+        duration: 106
+      - id: "uQEo8L5XZSs"
+        title: "lateinit"
+        description:
+        type: youtube
+        video_id: "uQEo8L5XZSs"
+        duration: 474
+      - id: "3Xo0zC6Rcl8"
+        title: "Extensions"
+        description:
+        type: youtube
+        video_id: "3Xo0zC6Rcl8"
+        duration: 555
+      - id: "aulgd6WEdBM"
+        title: "Lambda Funktionen"
+        description:
+        type: youtube
+        video_id: "aulgd6WEdBM"
+        duration: 305
+  - id: section8
+    title: "Collections"
+    description:
+    lectures:
+      - id: "7WOIm7mk5eg"
+        title: "Arrays von speziellen Typen"
+        description:
+        type: youtube
+        video_id: "7WOIm7mk5eg"
+        duration: 280
+      - id: "UxtbMHDGIa0"
+        title: "Listen"
+        description:
+        type: youtube
+        video_id: "UxtbMHDGIa0"
+        duration: 636
+      - id: "L205LnoxAyE"
+        title: "Elemente holen"
+        description:
+        type: youtube
+        video_id: "L205LnoxAyE"
+        duration: 397
+      - id: "xJz0SpczXII"
+        title: "Elemente hinzufügen und löschen"
+        description:
+        type: youtube
+        video_id: "xJz0SpczXII"
+        duration: 370
+      - id: "JTCzzOsGXb4"
+        title: "Reverse, Partition, Slice und Chunked"
+        description:
+        type: youtube
+        video_id: "JTCzzOsGXb4"
+        duration: 650
+      - id: "jTpch9T2C94"
+        title: "Take und Drop"
+        description:
+        type: youtube
+        video_id: "jTpch9T2C94"
+        duration: 427
+      - id: "KEaPGheSJYY"
+        title: "Sortieren"
+        description:
+        type: youtube
+        video_id: "KEaPGheSJYY"
+        duration: 397
+      - id: "GXS3amKoOac"
+        title: "Map"
+        description:
+        type: youtube
+        video_id: "GXS3amKoOac"
+        duration: 261
+      - id: "dnXRFDTu8UE"
+        title: "Paare - Pairs"
+        description:
+        type: youtube
+        video_id: "dnXRFDTu8UE"
+        duration: 206
+      - id: "EE8KD1z5_l0"
+        title: "Zip - Listen vereinen"
+        description:
+        type: youtube
+        video_id: "EE8KD1z5_l0"
+        duration: 344
+      - id: "FrmowP6iVzc"
+        title: "Reduce"
+        description:
+        type: youtube
+        video_id: "FrmowP6iVzc"
+        duration: 356
+      - id: "2oIV2x2E7O8"
+        title: "Fold"
+        description:
+        type: youtube
+        video_id: "2oIV2x2E7O8"
+        duration: 354
+      - id: "f8NgRZNcMsQ"
+        title: "Count, Average, Max, Min, Sum"
+        description:
+        type: youtube
+        video_id: "f8NgRZNcMsQ"
+        duration: 151
+      - id: "ugRzy92fiv8"
+        title: "Filter"
+        description:
+        type: youtube
+        video_id: "ugRzy92fiv8"
+        duration: 146
+      - id: "3wYmeqO6Hpk"
+        title: "Finden von Elementen"
+        description:
+        type: youtube
+        video_id: "3wYmeqO6Hpk"
+        duration: 290
+      - id: "ruyq7DcmxGE"
+        title: "Distinct, Intersect und Union"
+        description:
+        type: youtube
+        video_id: "ruyq7DcmxGE"
+        duration: 363
+      - id: "OWxz7E_V0xo"
+        title: "All, Any, None"
+        description:
+        type: youtube
+        video_id: "OWxz7E_V0xo"
+        duration: 341
+      - id: "b2o0YDqrjDs"
+        title: "Contains"
+        description:
+        type: youtube
+        video_id: "b2o0YDqrjDs"
+        duration: 165
+      - id: "dYV_EP9EQDI"
+        title: "Übung - ist Zahl x y-mal vorhanden"
+        description:
+        type: youtube
+        video_id: "dYV_EP9EQDI"
+        duration: 212
+      - id: "2sqGFB_PSH4"
+        title: "Sets, HashSets und LinkedSets"
+        description:
+        type: youtube
+        video_id: "2sqGFB_PSH4"
+        duration: 515
+      - id: "mlS6v-_I3tU"
+        title: "Maps"
+        description:
+        type: youtube
+        video_id: "mlS6v-_I3tU"
+        duration: 312
+      - id: "dHBCyA1dc2M"
+        title: "HashMaps und LinkedMaps"
+        description:
+        type: youtube
+        video_id: "dHBCyA1dc2M"
+        duration: 285
+      - id: "qXEymoWMQS4"
+        title: "Hinzufügen und Löschen bei Maps"
+        description:
+        type: youtube
+        video_id: "qXEymoWMQS4"
+        duration: 258
+      - id: "qzc7axfXc3Q"
+        title: "MapKeys und MapValues"
+        description:
+        type: youtube
+        video_id: "qzc7axfXc3Q"
+        duration: 224
+      - id: "Fm4e6A9-mIE"
+        title: "Mutable collections"
+        description:
+        type: youtube
+        video_id: "Fm4e6A9-mIE"
+        duration: 303
+      - id: "YUk4qnf5XHw"
+        title: "Nullables in Collections"
+        description:
+        type: youtube
+        video_id: "YUk4qnf5XHw"
+        duration: 136
+  - id: section9
+    title: "Die Standard Library und Best Practice"
+    description:
+    lectures:
+      - id: "ihzHTksJyds"
+        title: "Imports"
+        description:
+        type: youtube
+        video_id: "ihzHTksJyds"
+        duration: 551
+      - id: "Xk6F2UjUlEU"
+        title: "run, with, let, also und apply"
+        description:
+        type: youtube
+        video_id: "Xk6F2UjUlEU"
+        duration: 1256
+      - id: "C9SO0JgYiZU"
+        title: "String Funktionen"
+        description:
+        type: youtube
+        video_id: "C9SO0JgYiZU"
+        duration: 750
+      - id: "bVCWVnwUEQc"
+        title: "Dateien"
+        description:
+        type: youtube
+        video_id: "bVCWVnwUEQc"
+        duration: 494
+      - id: "6sFZqJ5No8A"
+        title: "Sehr große und binäre Dateien"
+        description:
+        type: youtube
+        video_id: "6sFZqJ5No8A"
+        duration: 590
+      - id: "mU859MKcSt4"
+        title: "Zeit"
+        description:
+        type: youtube
+        video_id: "mU859MKcSt4"
+        duration: 585
+      - id: "-JsjsGiXYk0"
+        title: "Exceptions verarbeiten"
+        description:
+        type: youtube
+        video_id: "-JsjsGiXYk0"
+        duration: 639
+      - id: "rqv3Z3SEkMg"
+        title: "Try als Expression"
+        description:
+        type: youtube
+        video_id: "rqv3Z3SEkMg"
+        duration: 236
+      - id: "R3EuM5T6eJA"
+        title: "Exceptions werfen"
+        description:
+        type: youtube
+        video_id: "R3EuM5T6eJA"
+        duration: 265
+      - id: "TLojkfK6PDk"
+        title: "Eigene Exceptions"
+        description:
+        type: youtube
+        video_id: "TLojkfK6PDk"
+        duration: 320
+      - id: "pugNaQXeLX0"
+        title: "Zufall"
+        description:
+        type: youtube
+        video_id: "pugNaQXeLX0"
+        duration: 151
+  - id: section10
+    title: "Übungsprojekt"
+    description:
+    lectures:
+      - id: "cSKTLkyPt1Y"
+        title: "Start"
+        description:
+        type: youtube
+        video_id: "cSKTLkyPt1Y"
+        duration: 801
+      - id: "CLDogR65-AY"
+        title: "Spielfeld"
+        description:
+        type: youtube
+        video_id: "CLDogR65-AY"
+        duration: 586
+      - id: "kY_1YYtob0M"
+        title: "Wabe"
+        description:
+        type: youtube
+        video_id: "kY_1YYtob0M"
+        duration: 1280
+      - id: "nQuIT8N9rS8"
+        title: "Spieler"
+        description:
+        type: youtube
+        video_id: "nQuIT8N9rS8"
+        duration: 344
+      - id: "XtsqdOKVXqI"
+        title: "Items"
+        description:
+        type: youtube
+        video_id: "XtsqdOKVXqI"
+        duration: 876
+      - id: "Oe8jV_yASiE"
+        title: "Bugfixes"
+        description:
+        type: youtube
+        video_id: "Oe8jV_yASiE"
+        duration: 999
+  - id: section11
+    title: "Testing"
+    description:
+    lectures:
+      - id: "CYpLlEGs5xc"
+        title: "unittests - Einen Test erstellen"
+        description:
+        type: youtube
+        video_id: "CYpLlEGs5xc"
+        duration: 563
+      - id: "PYRvw77fRYs"
+        title: "Test Coverage"
+        description:
+        type: youtube
+        video_id: "PYRvw77fRYs"
+        duration: 444
+      - id: "lggXrf73W1w"
+        title: "Vor den Tests"
+        description:
+        type: youtube
+        video_id: "lggXrf73W1w"
+        duration: 606
+  - id: section12
+    title: "Fortgeschrittene Funktionale Programmierung"
+    description:
+    lectures:
+      - id: "bAwSNfH8eOg"
+        title: "Lokale Funktionen"
+        description:
+        type: youtube
+        video_id: "bAwSNfH8eOg"
+        duration: 373
+      - id: "tDrSEB6Bfu4"
+        title: "Infix Funktionen"
+        description:
+        type: youtube
+        video_id: "tDrSEB6Bfu4"
+        duration: 345
+      - id: "woG7Nc1z5NQ"
+        title: "Funktionen höherer Ordnung"
+        description:
+        type: youtube
+        video_id: "woG7Nc1z5NQ"
+        duration: 639
+      - id: "N6PHgmzeYhk"
+        title: "Übung zu Funktionstypen"
+        description:
+        type: youtube
+        video_id: "N6PHgmzeYhk"
+        duration: 412
+  - id: section13
+    title: "Generics und fortgeschrittene OOP"
+    description:
+    lectures:
+      - id: "9HfLkDeypFQ"
+        title: "Operatoren überladen"
+        description:
+        type: youtube
+        video_id: "9HfLkDeypFQ"
+        duration: 996
+      - id: "wwsiwGh95zc"
+        title: "Generische Typen"
+        description:
+        type: youtube
+        video_id: "wwsiwGh95zc"
+        duration: 354
+      - id: "YBS4RHNzbC4"
+        title: "Generics in Klassen"
+        description:
+        type: youtube
+        video_id: "YBS4RHNzbC4"
+        duration: 354
+      - id: "ZPcgL86pXa4"
+        title: "Generics mit Constraints"
+        description:
+        type: youtube
+        video_id: "ZPcgL86pXa4"
+        duration: 561
+      - id: "5MH9HID31co"
+        title: "Unterklassen von Generics"
+        description:
+        type: youtube
+        video_id: "5MH9HID31co"
+        duration: 346
+      - id: "VATyoEFqlUQ"
+        title: "Variable Anzahl an Argumenten"
+        description:
+        type: youtube
+        video_id: "VATyoEFqlUQ"
+        duration: 266
+      - id: "4MU2-Hkfr8U"
+        title: "dataclasses"
+        description:
+        type: youtube
+        video_id: "4MU2-Hkfr8U"
+        duration: 437
+      - id: "gH2FZauJ-a0"
+        title: "Enums"
+        description:
+        type: youtube
+        video_id: "gH2FZauJ-a0"
+        duration: 452
+      - id: "RjHrQtEorow"
+        title: "Enums mit Funktionen"
+        description:
+        type: youtube
+        video_id: "RjHrQtEorow"
+        duration: 337
+      - id: "Q1y-Ft3zy0A"
+        title: "Innere und Nested Classes"
+        description:
+        type: youtube
+        video_id: "Q1y-Ft3zy0A"
+        duration: 467
+      - id: "71q41swcZpU"
+        title: "Singletons und Objects"
+        description:
+        type: youtube
+        video_id: "71q41swcZpU"
+        duration: 379
+      - id: "fms8_xhE0lA"
+        title: "Companion Objects"
+        description:
+        type: youtube
+        video_id: "fms8_xhE0lA"
+        duration: 226
+      - id: "5YdAvw_foAo"
+        title: "Delegation"
+        description:
+        type: youtube
+        video_id: "5YdAvw_foAo"
+        duration: 393
+  - id: section14
+    title: "Java Interoperabilität"
+    description:
+    lectures:
+      - id: "bYtTZ3bH3GM"
+        title: "Java Code von Kotlin aufrufen"
+        description:
+        type: youtube
+        video_id: "bYtTZ3bH3GM"
+        duration: 187
+      - id: "JRQMfT7E1vg"
+        title: "Kotlin Code von Java aufrufen"
+        description:
+        type: youtube
+        video_id: "JRQMfT7E1vg"
+        duration: 221
+  - id: section15
+    title: "Bonus"
+    description:
+    lectures:
+      - id: "ZMg00ibVR04"
+        title: "Vorerst abschließende Worte"
+        description:
+        type: youtube
+        video_id: "ZMg00ibVR04"
+        duration: 181
+      - id: "a9DKTXPGMgk"
+        title: "Gradle"
+        description:
+        type: youtube
+        video_id: "a9DKTXPGMgk"
+        duration: 622
+      - id: "QROlyLeOh1c"
+        title: "Eine Einführung zu SQL Datenbanken in Kotlin"
+        description:
+        type: youtube
+        video_id: "QROlyLeOh1c"
+        duration: 1251

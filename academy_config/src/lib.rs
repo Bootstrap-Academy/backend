@@ -95,6 +95,7 @@ pub struct Config {
     pub coin: CoinConfig,
     pub heart: HeartConfig,
     pub premium: PremiumConfig,
+    pub course: CourseConfig,
     pub render: RenderConfig,
     pub finance: FinanceConfig,
     pub sentry: Option<SentryConfig>,
@@ -238,6 +239,11 @@ pub struct PremiumConfig {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct CourseConfig {
+    pub course_dir: PathBuf,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct RenderConfig {
     pub daemon_url: Url,
 }
@@ -297,6 +303,7 @@ mod tests {
             "recaptcha.secret = \"\"",
             "paypal.client_id = \"\"",
             "paypal.client_secret = \"\"",
+            "course.course_dir = \"\"",
             "render.daemon_url = \"http://localhost:8001\"",
             "finance.invoices_archive = \"\"",
             "finance.credit_notes_archive = \"\"",

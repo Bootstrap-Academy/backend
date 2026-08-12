@@ -1,0 +1,112 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7oAAFVjNrAz1uRqIcanXreg
+title: "Firewalls: Angriffe und Verteidigung"
+description: "Vorbei sind die Zeiten, wo man sich einfach alle seine Webservices hosten konnte. Mittlerweile braucht es leider auch gute Verteidigungsstrategien, um sich gegen Hacker aus aller Welt zu verteidigen. Und eines der wichtigsten Tools dazu ist eine funktionierende Firewall."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/firewalls.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665506732
+sections:
+  - id: section
+    title: "Einleitung"
+    description:
+    lectures:
+      - id: "IYnhQfDMjj4"
+        title: "Was sollen Firewalls tun"
+        description:
+        type: youtube
+        video_id: "IYnhQfDMjj4"
+        duration: 366
+      - id: "Hpeq3tdJ09U"
+        title: "Network Firewall vs Personal Firewall"
+        description:
+        type: youtube
+        video_id: "Hpeq3tdJ09U"
+        duration: 956
+      - id: "AEmHwkeq8xQ"
+        title: "Next Generation Firewalls, Stateful Firewalls, Packet-Filtering Firewalls"
+        description:
+        type: youtube
+        video_id: "AEmHwkeq8xQ"
+        duration: 1231
+      - id: "0EFeqbfmTyE"
+        title: "Eine Einführung in FirewallD"
+        description:
+        type: youtube
+        video_id: "0EFeqbfmTyE"
+        duration: 932
+      - id: "ZBsiayncWas"
+        title: "Gängige Zones in Firewalld"
+        description:
+        type: youtube
+        video_id: "ZBsiayncWas"
+        duration: 1423
+  - id: section2
+    title: "OpnSense"
+    description:
+    lectures:
+      - id: "UBAoqQ-15No"
+        title: "Proxmox auf einem Hetzner Server installieren"
+        description:
+        type: youtube
+        video_id: "UBAoqQ-15No"
+        duration: 1089
+      - id: "uKGkw7KE0ng"
+        title: "OpnSense auf Proxmox installieren: Nur 1 IP"
+        description:
+        type: youtube
+        video_id: "uKGkw7KE0ng"
+        duration: 3306
+      - id: "GhaGO83VIz0"
+        title: "OpnSense auf Proxmox: IPv6 Setup"
+        description:
+        type: youtube
+        video_id: "GhaGO83VIz0"
+        duration: 1799
+      - id: "kXULPtfKu_A"
+        title: "OpnSense: Einrichtung nach Installation"
+        description:
+        type: youtube
+        video_id: "kXULPtfKu_A"
+        duration: 916
+      - id: "tVX2z85wGmg"
+        title: "OpnSense: VMs anlegen in Proxmox"
+        description:
+        type: youtube
+        video_id: "tVX2z85wGmg"
+        duration: 2836
+      - id: "O2CHWr_AQT0"
+        title: "OpnSense: TLS Zertifikat via ACME.sh"
+        description:
+        type: youtube
+        video_id: "O2CHWr_AQT0"
+        duration: 1214
+      - id: "lGA3ifzAnRk"
+        title: "OpnSense: VPN zum Server"
+        description:
+        type: youtube
+        video_id: "lGA3ifzAnRk"
+        duration: 2026
+      - id: "F9uMNMl-GAw"
+        title: "OpnSense: User Certificates für den VPN einrichten"
+        description:
+        type: youtube
+        video_id: "F9uMNMl-GAw"
+        duration: 813
+      - id: "pLynrwMoorY"
+        title: "OpnSense: Wireguard VPN"
+        description:
+        type: youtube
+        video_id: "pLynrwMoorY"
+        duration: 1459
+      - id: "jGGrOQT6kqs"
+        title: "OpnSense: Internes Netzwerk, private Webservices via VPN"
+        description:
+        type: youtube
+        video_id: "jGGrOQT6kqs"
+        duration: 950

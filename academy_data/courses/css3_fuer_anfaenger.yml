@@ -1,0 +1,180 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7qQz698kYRkkBXJDeXJY_I7
+title: "CSS 3"
+description: "Mit CSS definiert man, wie eine Website aussehen soll - nicht den Inhalt oder das Verhalten. Doch ist das Design bei Web nicht gerade einer der wichtigsten Punkte? Schatten, Ecken aber auch Design für mobile Geräte und Effekte sind heute nicht mehr wegzudenken. Hier erfahrt ihr, wie man diese einsetzt."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/CSS.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665506525
+sections:
+  - id: section
+    title: "CSS 3"
+    description:
+    lectures:
+      - id: "49ya2iMC40Q"
+        title: "Einleitung und Einbindung in HTML"
+        description:
+        type: youtube
+        video_id: "49ya2iMC40Q"
+        duration: 414
+      - id: "GiLNSfOmtZQ"
+        title: "grundlegender Aufbau und Selektoren"
+        description:
+        type: youtube
+        video_id: "GiLNSfOmtZQ"
+        duration: 550
+      - id: "5I7UlR2QK-U"
+        title: "mehr zu Selektoren"
+        description:
+        type: youtube
+        video_id: "5I7UlR2QK-U"
+        duration: 650
+      - id: "8GephXAvg9o"
+        title: "Farben"
+        description:
+        type: youtube
+        video_id: "8GephXAvg9o"
+        duration: 381
+      - id: "CxQCoA0YN9g"
+        title: "Hintergründe"
+        description:
+        type: youtube
+        video_id: "CxQCoA0YN9g"
+        duration: 526
+      - id: "s0WSM0ck4TA"
+        title: "Das Box-Modell"
+        description:
+        type: youtube
+        video_id: "s0WSM0ck4TA"
+        duration: 600
+      - id: "2C-VziV2McI"
+        title: "Schriftvarianz"
+        description:
+        type: youtube
+        video_id: "2C-VziV2McI"
+        duration: 740
+      - id: "cjr7nQRwwms"
+        title: "Links und das Hovern von Objekten"
+        description:
+        type: youtube
+        video_id: "cjr7nQRwwms"
+        duration: 537
+      - id: "wmpoN0OmNZo"
+        title: "Position"
+        description:
+        type: youtube
+        video_id: "wmpoN0OmNZo"
+        duration: 790
+      - id: "4ZSK5drtj1I"
+        title: "Float"
+        description:
+        type: youtube
+        video_id: "4ZSK5drtj1I"
+        duration: 403
+      - id: "hyW3xtH5Y4s"
+        title: "Navigationsleiste zum Mitprogrammieren"
+        description:
+        type: youtube
+        video_id: "hyW3xtH5Y4s"
+        duration: 902
+      - id: "S3tM87aokfQ"
+        title: "Schatten und runde Ecken"
+        description:
+        type: youtube
+        video_id: "S3tM87aokfQ"
+        duration: 560
+      - id: "kWLlgNQf8fg"
+        title: "Transparenz"
+        description:
+        type: youtube
+        video_id: "kWLlgNQf8fg"
+        duration: 457
+      - id: "VUQISeNOt2U"
+        title: "Farbverläufe"
+        description:
+        type: youtube
+        video_id: "VUQISeNOt2U"
+        duration: 548
+      - id: "dxJf6uF5Yd4"
+        title: "eigene Schriftarten verwenden"
+        description:
+        type: youtube
+        video_id: "dxJf6uF5Yd4"
+        duration: 333
+      - id: "koSJKFfCvYU"
+        title: "Bilder filtern"
+        description:
+        type: youtube
+        video_id: "koSJKFfCvYU"
+        duration: 506
+      - id: "z5JdAwtsbZM"
+        title: "2D Transformationen"
+        description:
+        type: youtube
+        video_id: "z5JdAwtsbZM"
+        duration: 388
+      - id: "JyIvnPSv8CM"
+        title: "Responsive Media Design"
+        description:
+        type: youtube
+        video_id: "JyIvnPSv8CM"
+        duration: 572
+      - id: "R6CerSgbC_w"
+        title: "Flex Layouts"
+        description:
+        type: youtube
+        video_id: "R6CerSgbC_w"
+        duration: 1063
+      - id: "dMuJa_jjyAI"
+        title: "Grid Layouts"
+        description:
+        type: youtube
+        video_id: "dMuJa_jjyAI"
+        duration: 602
+      - id: "oKk2jjqMypU"
+        title: "Variablen"
+        description:
+        type: youtube
+        video_id: "oKk2jjqMypU"
+        duration: 722
+      - id: "VaRILz4GC1U"
+        title: "Before und After"
+        description:
+        type: youtube
+        video_id: "VaRILz4GC1U"
+        duration: 343
+      - id: "_fqHym2MYxc"
+        title: "Calc"
+        description:
+        type: youtube
+        video_id: "_fqHym2MYxc"
+        duration: 390
+      - id: "PPHofk9ei6E"
+        title: "CSS Let's Code: Ein hübsches 3D CSS-only Lade-Symbol"
+        description:
+        type: youtube
+        video_id: "PPHofk9ei6E"
+        duration: 1720
+      - id: "YWJ2yQTt8tw"
+        title: "Animationen Grundlagen"
+        description:
+        type: youtube
+        video_id: "YWJ2yQTt8tw"
+        duration: 402
+      - id: "gHXRU5a2dlw"
+        title: "Animationen für Fortgeschrittene"
+        description:
+        type: youtube
+        video_id: "gHXRU5a2dlw"
+        duration: 920
+      - id: "v013BPfB_ks"
+        title: "WHERE vs  IS"
+        description:
+        type: youtube
+        video_id: "v013BPfB_ks"
+        duration: 491

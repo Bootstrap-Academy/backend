@@ -1,0 +1,126 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7q2hZHyLJS6IeHQIlyEgKqf
+title: "Graphentheorie (und -praxis)"
+description: "Graphen ermöglichen Navigations-Algorithmen, aber auch Zustände, Automaten, all das basiert auf Graphen. Sie zu beherrschen ist also definitiv wichtig - und umfangreicher als man vielleicht denkt."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/algorithmen.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665506775
+sections:
+  - id: section
+    title: "Graphen"
+    description:
+    lectures:
+      - id: "L-WHssJ8SlU"
+        title: "Eine Einführung zu Graphen"
+        description:
+        type: youtube
+        video_id: "L-WHssJ8SlU"
+        duration: 719
+      - id: "MbTX_fHo-QQ"
+        title: "Knotengrade"
+        description:
+        type: youtube
+        video_id: "MbTX_fHo-QQ"
+        duration: 123
+      - id: "BfpfmChIVGc"
+        title: "Pfade"
+        description:
+        type: youtube
+        video_id: "BfpfmChIVGc"
+        duration: 282
+      - id: "3trqS95bStI"
+        title: "Gewichtete Graphen"
+        description:
+        type: youtube
+        video_id: "3trqS95bStI"
+        duration: 331
+      - id: "hxL1KcPe6ok"
+        title: "Teilgraphen"
+        description:
+        type: youtube
+        video_id: "hxL1KcPe6ok"
+        duration: 296
+      - id: "1X-EhqAztiA"
+        title: "Bäume"
+        description:
+        type: youtube
+        video_id: "1X-EhqAztiA"
+        duration: 346
+      - id: "wu_X9TZfUCE"
+        title: "Gerichtete Graphen auf Zyklen prüfen"
+        description:
+        type: youtube
+        video_id: "wu_X9TZfUCE"
+        duration: 904
+      - id: "YUIrMxTqI6I"
+        title: "Breitensuche"
+        description:
+        type: youtube
+        video_id: "YUIrMxTqI6I"
+        duration: 572
+      - id: "rHUKtUlWQq4"
+        title: "Breitensuche in Python"
+        description:
+        type: youtube
+        video_id: "rHUKtUlWQq4"
+        duration: 1065
+      - id: "Vdjd82O8_B8"
+        title: "Tiefensuche"
+        description:
+        type: youtube
+        video_id: "Vdjd82O8_B8"
+        duration: 459
+      - id: "Pc1pJpcWQHU"
+        title: "Tiefensuche in Python"
+        description:
+        type: youtube
+        video_id: "Pc1pJpcWQHU"
+        duration: 485
+      - id: "U1jP6reXQrI"
+        title: "Tiefensuche im Labyrinth mit Turtle"
+        description:
+        type: youtube
+        video_id: "U1jP6reXQrI"
+        duration: 1685
+      - id: "SUzjEDaJyX0"
+        title: "Der Dijkstra Algorithmus"
+        description:
+        type: youtube
+        video_id: "SUzjEDaJyX0"
+        duration: 514
+      - id: "kJCdNrYY6rc"
+        title: "Der Dijkstra Algorithmus in Python"
+        description:
+        type: youtube
+        video_id: "kJCdNrYY6rc"
+        duration: 1412
+      - id: "G9omIe5RyAU"
+        title: "Der Bellman Ford Algorithmus"
+        description:
+        type: youtube
+        video_id: "G9omIe5RyAU"
+        duration: 983
+      - id: "71WDq4F67gI"
+        title: "Der Bellman Ford Algorithmus in Python"
+        description:
+        type: youtube
+        video_id: "71WDq4F67gI"
+        duration: 843
+      - id: "XUva15ZNOCA"
+        title: "Minimum Spanning Trees - Der Kruskal Algorithmus"
+        description:
+        type: youtube
+        video_id: "XUva15ZNOCA"
+        duration: 537
+      - id: "nUZKCdcWo9g"
+        title: "Der Kruskal Algorithmus in Python"
+        description:
+        type: youtube
+        video_id: "nUZKCdcWo9g"
+        duration: 953

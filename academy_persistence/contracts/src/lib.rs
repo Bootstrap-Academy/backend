@@ -1,6 +1,7 @@
 use std::future::Future;
 
 pub mod coin;
+pub mod course;
 pub mod heart;
 pub mod mfa;
 pub mod oauth2;

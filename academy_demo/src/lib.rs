@@ -7,6 +7,7 @@ use academy_persistence_contracts::{
 use anyhow::Context;
 use uuid::{Uuid, uuid};
 
+pub mod course;
 pub mod mfa;
 pub mod oauth2;
 pub mod session;

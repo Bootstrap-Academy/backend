@@ -77,6 +77,8 @@
         default = import ./nix/module.nix self;
       };
 
+      courses = ./academy_data/courses;
+
       devShells = eachDefaultSystem (system: {
         default = mkDevShell { inherit system; };
       });

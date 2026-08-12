@@ -8,6 +8,7 @@ members = [
   "academy_cache/*",
   "academy_config",
   "academy_core/*/*",
+  "academy_data",
   "academy_demo",
   "academy_di",
   "academy_di_derive",
@@ -57,6 +58,8 @@ academy_core_config_contracts.path = "academy_core/config/contracts"
 academy_core_config_impl.path = "academy_core/config/impl"
 academy_core_contact_contracts.path = "academy_core/contact/contracts"
 academy_core_contact_impl.path = "academy_core/contact/impl"
+academy_core_course_contracts.path = "academy_core/course/contracts"
+academy_core_course_impl.path = "academy_core/course/impl"
 academy_core_finance_contracts.path = "academy_core/finance/contracts"
 academy_core_finance_impl.path = "academy_core/finance/impl"
 academy_core_health_contracts.path = "academy_core/health/contracts"
@@ -77,6 +80,7 @@ academy_core_session_contracts.path = "academy_core/session/contracts"
 academy_core_session_impl.path = "academy_core/session/impl"
 academy_core_user_contracts.path = "academy_core/user/contracts"
 academy_core_user_impl.path = "academy_core/user/impl"
+academy_data.path = "academy_data"
 academy_demo.path = "academy_demo"
 academy_di.path = "academy_di"
 academy_di_derive.path = "academy_di_derive"

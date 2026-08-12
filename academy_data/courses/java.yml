@@ -1,0 +1,144 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7qI9vtiiU5bJBfbxqBailVM
+title: "Java Programmierung für Anfänger"
+description: "X Milliarden Geräte nutzen Java - und das hat einen Grund. Java kann plattformübergreifend verwendet werden und das macht es so unfassbar angenehm zu nutzen. In den meisten Softwaresystemen von Unternehmen findet sich noch immer Java - auch wenn es weniger werden."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/java.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665508085
+sections:
+  - id: section
+    title: "Java für Anfänger"
+    description:
+    lectures:
+      - id: "U1KQrPl3FPg"
+        title: "Java installieren auf Windows"
+        description:
+        type: youtube
+        video_id: "U1KQrPl3FPg"
+        duration: 411
+      - id: "f9VGF0_Wkzw"
+        title: "Hello World"
+        description:
+        type: youtube
+        video_id: "f9VGF0_Wkzw"
+        duration: 663
+      - id: "_ip_IbKd7Lc"
+        title: "Typen und Variablen"
+        description:
+        type: youtube
+        video_id: "_ip_IbKd7Lc"
+        duration: 862
+      - id: "fUU2LufK66c"
+        title: "If-Anweisungen"
+        description:
+        type: youtube
+        video_id: "fUU2LufK66c"
+        duration: 777
+      - id: "-QFRBm2BptI"
+        title: "Switch Case"
+        description:
+        type: youtube
+        video_id: "-QFRBm2BptI"
+        duration: 507
+      - id: "UnUuwQT2-Nk"
+        title: "While und Do-While"
+        description:
+        type: youtube
+        video_id: "UnUuwQT2-Nk"
+        duration: 569
+      - id: "2x-PYhN9M3s"
+        title: "Arrays"
+        description:
+        type: youtube
+        video_id: "2x-PYhN9M3s"
+        duration: 638
+      - id: "h28nX_JocKg"
+        title: "Methoden"
+        description:
+        type: youtube
+        video_id: "h28nX_JocKg"
+        duration: 678
+      - id: "U4FUhOtnfSE"
+        title: "Überladen von Methoden"
+        description:
+        type: youtube
+        video_id: "U4FUhOtnfSE"
+        duration: 308
+      - id: "0U3FfYbkMog"
+        title: "Klassen"
+        description:
+        type: youtube
+        video_id: "0U3FfYbkMog"
+        duration: 869
+      - id: "EEweBM7sIRk"
+        title: "Konstruktoren und mehr zu Klassen"
+        description:
+        type: youtube
+        video_id: "EEweBM7sIRk"
+        duration: 591
+      - id: "-HUWV-tbNGw"
+        title: "Strings"
+        description:
+        type: youtube
+        video_id: "-HUWV-tbNGw"
+        duration: 756
+      - id: "PR9ingLj2bE"
+        title: "Vererbung"
+        description:
+        type: youtube
+        video_id: "PR9ingLj2bE"
+        duration: 649
+      - id: "xJVJrzm2piM"
+        title: "Interfaces"
+        description:
+        type: youtube
+        video_id: "xJVJrzm2piM"
+        duration: 599
+      - id: "SSaGhjgVPjc"
+        title: "abstrakte Klassen und Klassenkonventionen"
+        description:
+        type: youtube
+        video_id: "SSaGhjgVPjc"
+        duration: 695
+      - id: "xbPdJStJqFY"
+        title: "Modifikatoren"
+        description:
+        type: youtube
+        video_id: "xbPdJStJqFY"
+        duration: 602
+      - id: "t9r2mh2hSAc"
+        title: "Rekursion und Overflow"
+        description:
+        type: youtube
+        video_id: "t9r2mh2hSAc"
+        duration: 1299
+      - id: "Txw3hDq1nVs"
+        title: "Benutzereingaben"
+        description:
+        type: youtube
+        video_id: "Txw3hDq1nVs"
+        duration: 710
+      - id: "rDn3AWPk_hw"
+        title: "Listen"
+        description:
+        type: youtube
+        video_id: "rDn3AWPk_hw"
+        duration: 1564
+      - id: "trjFQXSHZ8s"
+        title: "Java Crash Kurs für Programmierer in ~30 Minuten"
+        description:
+        type: youtube
+        video_id: "trjFQXSHZ8s"
+        duration: 1893
+      - id: "s6i1Ou6R7vk"
+        title: "Lerne Java in einem Video - Das Java All in One Tutorial"
+        description:
+        type: youtube
+        video_id: "s6i1Ou6R7vk"
+        duration: 3633

@@ -1,0 +1,100 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7o5ALam15-pQWtf22RgU6D7
+title: "Java Swing: GUI Erstellung in Java"
+description: "Grafische Oberflächen für Desktop-PCs werden zwar seltener, aber manchmal macht das durchaus Sinn. Warum also nicht mit Java Swing?"
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/java.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665506381
+sections:
+  - id: section
+    title: "Java Swing"
+    description:
+    lectures:
+      - id: "s54sgTcS75A"
+        title: "Erste Schritte in Swing"
+        description:
+        type: youtube
+        video_id: "s54sgTcS75A"
+        duration: 689
+      - id: "U_9ilSvimVE"
+        title: "Menüs"
+        description:
+        type: youtube
+        video_id: "U_9ilSvimVE"
+        duration: 1028
+      - id: "TxCHvvr2bMQ"
+        title: "Layouts"
+        description:
+        type: youtube
+        video_id: "TxCHvvr2bMQ"
+        duration: 905
+      - id: "6M1Yvb68vms"
+        title: "Dialoge"
+        description:
+        type: youtube
+        video_id: "6M1Yvb68vms"
+        duration: 835
+      - id: "rGcUzZe4uPQ"
+        title: "Label, CheckBox und ComboBox"
+        description:
+        type: youtube
+        video_id: "rGcUzZe4uPQ"
+        duration: 645
+      - id: "7Z58BxdmvwE"
+        title: "Slider, ProgressBar und ToggleButton"
+        description:
+        type: youtube
+        video_id: "7Z58BxdmvwE"
+        duration: 521
+      - id: "mLgngVGL4Z8"
+        title: "ScrollPane, List und TextArea"
+        description:
+        type: youtube
+        video_id: "mLgngVGL4Z8"
+        duration: 492
+      - id: "DW_AkNTtgio"
+        title: "YoutubePlayer in Swing - Einbinden fremder Pakete"
+        description:
+        type: youtube
+        video_id: "DW_AkNTtgio"
+        duration: 1038
+      - id: "N5Bgbhn4hJs"
+        title: "Grid Bag Layout"
+        description:
+        type: youtube
+        video_id: "N5Bgbhn4hJs"
+        duration: 761
+  - id: section2
+    title: "Snake in Swing"
+    description:
+    lectures:
+      - id: "5hq-_yLyr5c"
+        title: "#1"
+        description:
+        type: youtube
+        video_id: "5hq-_yLyr5c"
+        duration: 1004
+      - id: "5tMQNZ8zmtk"
+        title: "#2"
+        description:
+        type: youtube
+        video_id: "5tMQNZ8zmtk"
+        duration: 1098
+      - id: "FWKW1N48GsE"
+        title: "#3"
+        description:
+        type: youtube
+        video_id: "FWKW1N48GsE"
+        duration: 629
+      - id: "wxzy7fpCrF4"
+        title: "#4"
+        description:
+        type: youtube
+        video_id: "wxzy7fpCrF4"
+        duration: 655

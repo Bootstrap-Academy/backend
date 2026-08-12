@@ -1,0 +1,138 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7pwHqtQSBXGBUNkyGGOJQXf
+title: "TypeScript: Volle Typisierung für JavaScript"
+description: "Was ist das größte Problem von JavaScript? Viele werden hier 'keine Typisierung' schreien. Und deswegen gibt's TypeScript. TypeScript ist mittlerweile so verbreitet, dass die allermeisten großen Webframeworks es genauso wie JavaScript unterstützen."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/typescript.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665508373
+sections:
+  - id: section
+    title: "TypeScript Grundlagen"
+    description:
+    lectures:
+      - id: "uo4PWU-R96k"
+        title: "Die Rettung für JavaScript"
+        description:
+        type: youtube
+        video_id: "uo4PWU-R96k"
+        duration: 799
+      - id: "_4znAuh0peo"
+        title: "Die IDE"
+        description:
+        type: youtube
+        video_id: "_4znAuh0peo"
+        duration: 332
+      - id: "H4GV9IbjuuU"
+        title: "Typen"
+        description:
+        type: youtube
+        video_id: "H4GV9IbjuuU"
+        duration: 815
+      - id: "GIPILAlhs78"
+        title: "Unions"
+        description:
+        type: youtube
+        video_id: "GIPILAlhs78"
+        duration: 233
+      - id: "TitI78lrqPs"
+        title: "Klassen für JavaScript"
+        description:
+        type: youtube
+        video_id: "TitI78lrqPs"
+        duration: 481
+      - id: "mti14uqp3Ro"
+        title: "Methoden und Konstruktoren"
+        description:
+        type: youtube
+        video_id: "mti14uqp3Ro"
+        duration: 643
+      - id: "ACLqaZiFUX0"
+        title: "Vererbung"
+        description:
+        type: youtube
+        video_id: "ACLqaZiFUX0"
+        duration: 547
+      - id: "qRZYRXbvqQs"
+        title: "Überschreiben von Methoden"
+        description:
+        type: youtube
+        video_id: "qRZYRXbvqQs"
+        duration: 601
+      - id: "ex65d0lVe_s"
+        title: "Interfaces"
+        description:
+        type: youtube
+        video_id: "ex65d0lVe_s"
+        duration: 735
+      - id: "FsDZBmKdbu0"
+        title: "static"
+        description:
+        type: youtube
+        video_id: "FsDZBmKdbu0"
+        duration: 253
+      - id: "LFhROzaypAA"
+        title: "Zugriffsmodifikatoren"
+        description:
+        type: youtube
+        video_id: "LFhROzaypAA"
+        duration: 580
+      - id: "65FKflmpxfA"
+        title: "Enums"
+        description:
+        type: youtube
+        video_id: "65FKflmpxfA"
+        duration: 245
+      - id: "crYmfViwgGI"
+        title: "Generics"
+        description:
+        type: youtube
+        video_id: "crYmfViwgGI"
+        duration: 524
+      - id: "BZEfP2pBE7I"
+        title: "Generische Klassen und Constraints"
+        description:
+        type: youtube
+        video_id: "BZEfP2pBE7I"
+        duration: 551
+      - id: "WOo8SQyBkxQ"
+        title: "Mehrere Generics"
+        description:
+        type: youtube
+        video_id: "WOo8SQyBkxQ"
+        duration: 174
+      - id: "nOfG4RvoUkI"
+        title: "Symbols"
+        description:
+        type: youtube
+        video_id: "nOfG4RvoUkI"
+        duration: 442
+      - id: "IiZaeAlTMgQ"
+        title: "For-of-Schleifen"
+        description:
+        type: youtube
+        video_id: "IiZaeAlTMgQ"
+        duration: 167
+      - id: "JwXejWa_4yo"
+        title: "Module"
+        description:
+        type: youtube
+        video_id: "JwXejWa_4yo"
+        duration: 421
+      - id: "P_v-i7Az-O0"
+        title: "Mehr zu Modulen"
+        description:
+        type: youtube
+        video_id: "P_v-i7Az-O0"
+        duration: 419
+      - id: "TjNViF9M22k"
+        title: "Default Exports"
+        description:
+        type: youtube
+        video_id: "TjNViF9M22k"
+        duration: 269

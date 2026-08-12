@@ -1,0 +1,60 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7qgQ2jnCFTo_knQTbpU5W4X
+title: "Jest - JavaScript Testing"
+description: "Ich weiß, ich weiß, testen ist so ein Ding, das will man nicht unbedingt als Entwickler tun. Aber wer tut's dann? Wer findet die Bugs, wer sagt, was genau schief geht. Am Ende ist man meist deutlich schneller, Tests zu schreiben, als die Bugs vom Kunden finden zu lassen. Und Jest ist DIE Bibliothek für JS Tests."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/javascript.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665508127
+sections:
+  - id: section
+    title: "Jest - JavaScript Testing"
+    description:
+    lectures:
+      - id: "Z_OOxP4g25U"
+        title: "Der erste JavaScript Test"
+        description:
+        type: youtube
+        video_id: "Z_OOxP4g25U"
+        duration: 978
+      - id: "DhlAbTVVV8Y"
+        title: "Test-Überdeckung Coverage berechnen und Grenzwerte festlegen"
+        description:
+        type: youtube
+        video_id: "DhlAbTVVV8Y"
+        duration: 616
+      - id: "9U4cKUThYIs"
+        title: "Die Matcher vorgestellt"
+        description:
+        type: youtube
+        video_id: "9U4cKUThYIs"
+        duration: 964
+      - id: "ay9_AwpyoZg"
+        title: "Asynchrone Funktionen testen"
+        description:
+        type: youtube
+        video_id: "ay9_AwpyoZg"
+        duration: 755
+      - id: "M_y0ENvKlPY"
+        title: "Setup und Teardown"
+        description:
+        type: youtube
+        video_id: "M_y0ENvKlPY"
+        duration: 538
+      - id: "N90-ii0VSkk"
+        title: "Mocking"
+        description:
+        type: youtube
+        video_id: "N90-ii0VSkk"
+        duration: 635
+      - id: "JhlLKlHXrWA"
+        title: "Mocking von Modulen"
+        description:
+        type: youtube
+        video_id: "JhlLKlHXrWA"
+        duration: 524

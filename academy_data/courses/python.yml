@@ -1,0 +1,550 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7q0ao69AIogD94oBgp3E9Zs
+title: "Python Programmierung"
+description: "Muss ich hierzu wirklich was sagen? Python - verwendet für APIs (auch bei dieser Website übrigens), Pentesting, Serveradministration, KI oder auch einfach normale Programme, die euch das Leben erleichtern. Python ist anfängerfreundlich, aber es gibt unfassbar viele Tricks, die die wenigsten Experten kennen. Und dann gibt's da noch die größte mögliche Anzahl an Bibliotheken für jeden Anwendungszweck! Python ist ein absolutes Must-Have."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/python.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665506871
+sections:
+  - id: section
+    title: "Python Grundlagen"
+    description:
+    lectures:
+      - id: "DiidEp6DqCo"
+        title: "Einleitung, Installation, Scripte ausführen und PyCharm"
+        description:
+        type: youtube
+        video_id: "DiidEp6DqCo"
+        duration: 1245
+      - id: "dyJdLalc7TA"
+        title: "Für Nostalgiegründe: Einleitung und Installation - die alte Version"
+        description:
+        type: youtube
+        video_id: "dyJdLalc7TA"
+        duration: 269
+      - id: "mNcexeCI-G4"
+        title: "Zahlen"
+        description:
+        type: youtube
+        video_id: "mNcexeCI-G4"
+        duration: 509
+      - id: "BiVQJ4dTD9o"
+        title: "Strings"
+        description:
+        type: youtube
+        video_id: "BiVQJ4dTD9o"
+        duration: 523
+      - id: "3ykwB-M2-mg"
+        title: "Listen"
+        description:
+        type: youtube
+        video_id: "3ykwB-M2-mg"
+        duration: 487
+      - id: "3eV-iDePwG4"
+        title: "Strings als Listen"
+        description:
+        type: youtube
+        video_id: "3eV-iDePwG4"
+        duration: 761
+      - id: "blFbmXYl_iA"
+        title: "Das erste echte Script"
+        description:
+        type: youtube
+        video_id: "blFbmXYl_iA"
+        duration: 201
+      - id: "MDxgzWCV3oM"
+        title: "Die if-Abfrage"
+        description:
+        type: youtube
+        video_id: "MDxgzWCV3oM"
+        duration: 672
+      - id: "5FNVcHUjYCM"
+        title: "Die while-Schleife"
+        description:
+        type: youtube
+        video_id: "5FNVcHUjYCM"
+        duration: 313
+      - id: "jZxa1IKAgOo"
+        title: "Die for-Schleife"
+        description:
+        type: youtube
+        video_id: "jZxa1IKAgOo"
+        duration: 569
+      - id: "cKpPvhnxfCY"
+        title: "die range-Funktion"
+        description:
+        type: youtube
+        video_id: "cKpPvhnxfCY"
+        duration: 451
+      - id: "PhipXSUFXOg"
+        title: "Break & Continue"
+        description:
+        type: youtube
+        video_id: "PhipXSUFXOg"
+        duration: 266
+      - id: "mgA-Ytr32Ys"
+        title: "Funktionen"
+        description:
+        type: youtube
+        video_id: "mgA-Ytr32Ys"
+        duration: 366
+      - id: "qLRY2zGXovc"
+        title: "Rückgabewerte und Rekursion"
+        description:
+        type: youtube
+        video_id: "qLRY2zGXovc"
+        duration: 469
+      - id: "ct2olB0GyLQ"
+        title: "Default Werte für Funktionsargumente"
+        description:
+        type: youtube
+        video_id: "ct2olB0GyLQ"
+        duration: 657
+      - id: "AagRwg6WZE0"
+        title: "Module"
+        description:
+        type: youtube
+        video_id: "AagRwg6WZE0"
+        duration: 382
+      - id: "bNk14P3vsRk"
+        title: "Main"
+        description:
+        type: youtube
+        video_id: "bNk14P3vsRk"
+        duration: 351
+      - id: "xTwGWLijyX8"
+        title: "User Input"
+        description:
+        type: youtube
+        video_id: "xTwGWLijyX8"
+        duration: 512
+      - id: "EMETm7hRonM"
+        title: "Dateien lesen"
+        description:
+        type: youtube
+        video_id: "EMETm7hRonM"
+        duration: 576
+      - id: "2A3ZDOUsrOg"
+        title: "Dateien schreiben"
+        description:
+        type: youtube
+        video_id: "2A3ZDOUsrOg"
+        duration: 479
+      - id: "zGGGwzexDfM"
+        title: "Gültigkeitsbereich von Variablen"
+        description:
+        type: youtube
+        video_id: "zGGGwzexDfM"
+        duration: 773
+  - id: section2
+    title: "Objektorientierung"
+    description:
+    lectures:
+      - id: "ce5Ks2xAXo4"
+        title: "Klassen"
+        description:
+        type: youtube
+        video_id: "ce5Ks2xAXo4"
+        duration: 684
+      - id: "fKjwwXoyUOw"
+        title: "Konstruktoren"
+        description:
+        type: youtube
+        video_id: "fKjwwXoyUOw"
+        duration: 296
+      - id: "sKSsAhiaqQ8"
+        title: "Instanz- und Klassenvariablen"
+        description:
+        type: youtube
+        video_id: "sKSsAhiaqQ8"
+        duration: 418
+      - id: "EdSCvzXwzw4"
+        title: "Übung - Tic Tac Toe"
+        description:
+        type: youtube
+        video_id: "EdSCvzXwzw4"
+        duration: 2101
+      - id: "1FMCzUPaHzQ"
+        title: "Vererbung"
+        description:
+        type: youtube
+        video_id: "1FMCzUPaHzQ"
+        duration: 522
+      - id: "3AgG7eTLJGM"
+        title: "Überschreibung von Attributen und Methoden"
+        description:
+        type: youtube
+        video_id: "3AgG7eTLJGM"
+        duration: 468
+      - id: "1w40nctG2Qg"
+        title: "Mehrfachvererbung"
+        description:
+        type: youtube
+        video_id: "1w40nctG2Qg"
+        duration: 592
+  - id: section3
+    title: "Extras 1"
+    description:
+    lectures:
+      - id: "9A3GtZxB4ug"
+        title: "Exceptions"
+        description:
+        type: youtube
+        video_id: "9A3GtZxB4ug"
+        duration: 741
+      - id: "GPXEVsOxZVw"
+        title: "Übung - Temperaturen umrechnen"
+        description:
+        type: youtube
+        video_id: "GPXEVsOxZVw"
+        duration: 801
+      - id: "KLQvQLU5bvI"
+        title: "Übung - Ein Textadventure"
+        description:
+        type: youtube
+        video_id: "KLQvQLU5bvI"
+        duration: 3102
+  - id: section4
+    title: "Multithreading"
+    description:
+    lectures:
+      - id: "_ynNrBP2lWA"
+        title: "Multithreading"
+        description:
+        type: youtube
+        video_id: "_ynNrBP2lWA"
+        duration: 666
+      - id: "fS6jcEKNiSg"
+        title: "Locks"
+        description:
+        type: youtube
+        video_id: "fS6jcEKNiSg"
+        duration: 590
+      - id: "lqjWl13-Huw"
+        title: "Kommunikation zwischen Threads"
+        description:
+        type: youtube
+        video_id: "lqjWl13-Huw"
+        duration: 528
+      - id: "BjalncvFfYs"
+        title: "Multiprocessing vs Multithreading"
+        description:
+        type: youtube
+        video_id: "BjalncvFfYs"
+        duration: 489
+      - id: "Tu0KbXWr5uA"
+        title: "Multiprocessing"
+        description:
+        type: youtube
+        video_id: "Tu0KbXWr5uA"
+        duration: 1062
+      - id: "4sEsHa6S58M"
+        title: "Multiprocessing vs Multithreading Performance Benchmark"
+        description:
+        type: youtube
+        video_id: "4sEsHa6S58M"
+        duration: 617
+  - id: section5
+    title: "Funktionales Python"
+    description:
+    lectures:
+      - id: "nlQlajr5Dt8"
+        title: "partielle Funktionen"
+        description:
+        type: youtube
+        video_id: "nlQlajr5Dt8"
+        duration: 282
+      - id: "_5e0CBcXTZo"
+        title: "Lambda und Map"
+        description:
+        type: youtube
+        video_id: "_5e0CBcXTZo"
+        duration: 446
+      - id: "5qQ5EKeO9bo"
+        title: "Filtern einer Liste"
+        description:
+        type: youtube
+        video_id: "5qQ5EKeO9bo"
+        duration: 232
+  - id: section6
+    title: "Fortgeschrittene Tipps und Tricks"
+    description:
+    lectures:
+      - id: "F1ODsSWi9nk"
+        title: "Logging"
+        description:
+        type: youtube
+        video_id: "F1ODsSWi9nk"
+        duration: 1052
+      - id: "jUcQGAvtSCc"
+        title: "Vokabeltrainer"
+        description:
+        type: youtube
+        video_id: "jUcQGAvtSCc"
+        duration: 1191
+      - id: "kwmrJDSxBXw"
+        title: "Turtle Grafiken"
+        description:
+        type: youtube
+        video_id: "kwmrJDSxBXw"
+        duration: 422
+      - id: "KUSeRnQT7TE"
+        title: "PyCharm"
+        description:
+        type: youtube
+        video_id: "KUSeRnQT7TE"
+        duration: 1135
+      - id: "GGkXzHawnCc"
+        title: "Abstrakte Klassen"
+        description:
+        type: youtube
+        video_id: "GGkXzHawnCc"
+        duration: 518
+      - id: "58lV5lLnuCI"
+        title: "Enums"
+        description:
+        type: youtube
+        video_id: "58lV5lLnuCI"
+        duration: 203
+      - id: "H44_Ztv-9N8"
+        title: "Operatoren überladen"
+        description:
+        type: youtube
+        video_id: "H44_Ztv-9N8"
+        duration: 359
+      - id: "QHtYAMkmS1Y"
+        title: "Regex"
+        description:
+        type: youtube
+        video_id: "QHtYAMkmS1Y"
+        duration: 784
+      - id: "nWOoky0PTVY"
+        title: "Py2Exe: Python-Programme als Ausführbare Datei"
+        description:
+        type: youtube
+        video_id: "nWOoky0PTVY"
+        duration: 273
+      - id: "m1QG2YuO3gc"
+        title: "Generatoren und Yield"
+        description:
+        type: youtube
+        video_id: "m1QG2YuO3gc"
+        duration: 886
+      - id: "C7bVzLauLEg"
+        title: "Argument Unpacking, Tupel und Dictionaries"
+        description:
+        type: youtube
+        video_id: "C7bVzLauLEg"
+        duration: 623
+      - id: "T7oF-ywGxk4"
+        title: "Dekoratoren"
+        description:
+        type: youtube
+        video_id: "T7oF-ywGxk4"
+        duration: 371
+      - id: "2jHuDKB_veg"
+        title: "Staticmethod und Classmethod"
+        description:
+        type: youtube
+        video_id: "2jHuDKB_veg"
+        duration: 824
+      - id: "RkYaszX2q_8"
+        title: "else an komischen Orten"
+        description:
+        type: youtube
+        video_id: "RkYaszX2q_8"
+        duration: 394
+      - id: "db3r3k0B5Es"
+        title: "Versteckte Features"
+        description:
+        type: youtube
+        video_id: "db3r3k0B5Es"
+        duration: 596
+      - id: "ytOytMdqD7Y"
+        title: "Funktionsklassen"
+        description:
+        type: youtube
+        video_id: "ytOytMdqD7Y"
+        duration: 193
+      - id: "vy0AuHleY_k"
+        title: "Gleichheitsoperatoren überladen"
+        description:
+        type: youtube
+        video_id: "vy0AuHleY_k"
+        duration: 482
+      - id: "xSaabBunOto"
+        title: "Konversions-Magic-Methods"
+        description:
+        type: youtube
+        video_id: "xSaabBunOto"
+        duration: 476
+      - id: "nKwVn0k1krQ"
+        title: "Sockets"
+        description:
+        type: youtube
+        video_id: "nKwVn0k1krQ"
+        duration: 1409
+      - id: "c5uj8M3fOa4"
+        title: "Zeit und Datum"
+        description:
+        type: youtube
+        video_id: "c5uj8M3fOa4"
+        duration: 535
+      - id: "drord9gbr3Y"
+        title: "Json"
+        description:
+        type: youtube
+        video_id: "drord9gbr3Y"
+        duration: 561
+      - id: "Fl6lBCZecdU"
+        title: "Json und Online APIs"
+        description:
+        type: youtube
+        video_id: "Fl6lBCZecdU"
+        duration: 295
+      - id: "AaRlQ8KuFak"
+        title: "Den Webbrowser ansprechen"
+        description:
+        type: youtube
+        video_id: "AaRlQ8KuFak"
+        duration: 224
+      - id: "FVfhKgSfsfc"
+        title: "Hashing"
+        description:
+        type: youtube
+        video_id: "FVfhKgSfsfc"
+        duration: 563
+      - id: "cPC0DCpFKJY"
+        title: "HMAC"
+        description:
+        type: youtube
+        video_id: "cPC0DCpFKJY"
+        duration: 305
+      - id: "wo6A5IiPEQI"
+        title: "Kommandozeilenargumente einfach auslesen"
+        description:
+        type: youtube
+        video_id: "wo6A5IiPEQI"
+        duration: 397
+      - id: "wFj58Li_JhI"
+        title: "Python Programme als Ausführbare Dateien mit PyInstaller"
+        description:
+        type: youtube
+        video_id: "wFj58Li_JhI"
+        duration: 351
+      - id: "vngpiMFHICM"
+        title: "Requirements eines Python Projektes automatisch erstellen"
+        description:
+        type: youtube
+        video_id: "vngpiMFHICM"
+        duration: 263
+      - id: "KYu4bts4dPI"
+        title: "Multithreading Queues"
+        description:
+        type: youtube
+        video_id: "KYu4bts4dPI"
+        duration: 1036
+      - id: "c6k-UWkT_Og"
+        title: "Typen angeben"
+        description:
+        type: youtube
+        video_id: "c6k-UWkT_Og"
+        duration: 515
+      - id: "AXfNKyuutCs"
+        title: "Dataclasses"
+        description:
+        type: youtube
+        video_id: "AXfNKyuutCs"
+        duration: 937
+      - id: "PmEM4IODkZk"
+        title: "Subprocess - auf die Commandline zugreifen"
+        description:
+        type: youtube
+        video_id: "PmEM4IODkZk"
+        duration: 454
+  - id: section7
+    title: "AsyncIO"
+    description:
+    lectures:
+      - id: "HzpdMDYEstA"
+        title: "Einführung"
+        description:
+        type: youtube
+        video_id: "HzpdMDYEstA"
+        duration: 649
+      - id: "f_oyk1GpOJg"
+        title: "Queues und Tasks"
+        description:
+        type: youtube
+        video_id: "f_oyk1GpOJg"
+        duration: 1011
+      - id: "LYTiaSXso_4"
+        title: "Events"
+        description:
+        type: youtube
+        video_id: "LYTiaSXso_4"
+        duration: 331
+  - id: section8
+    title: "Noch mehr fortgeschrittene Themen"
+    description:
+    lectures:
+      - id: "OwUVlPvXwrI"
+        title: "assert"
+        description:
+        type: youtube
+        video_id: "OwUVlPvXwrI"
+        duration: 437
+      - id: "-v_wzrAXVm0"
+        title: "Der Walrus Operator / Assignment Expressions"
+        description:
+        type: youtube
+        video_id: "-v_wzrAXVm0"
+        duration: 563
+      - id: "xzju0BCRoEI"
+        title: "Format Strings"
+        description:
+        type: youtube
+        video_id: "xzju0BCRoEI"
+        duration: 294
+      - id: "rSFFVI5_LB4"
+        title: "Update Operator für Dictionaries, PEG Parser und Type Hinting für Listen"
+        description:
+        type: youtube
+        video_id: "rSFFVI5_LB4"
+        duration: 573
+      - id: "WI3oSdDR1Vs"
+        title: "Debugging in Python mit PyCharm"
+        description:
+        type: youtube
+        video_id: "WI3oSdDR1Vs"
+        duration: 721
+      - id: "ytKrvEwCvnU"
+        title: "Bessere Fehlermeldungen, Union Types, Bessere Kontextmanager"
+        description:
+        type: youtube
+        video_id: "ytKrvEwCvnU"
+        duration: 603
+      - id: "so1kKz74R3Q"
+        title: "Pattern Matching"
+        description:
+        type: youtube
+        video_id: "so1kKz74R3Q"
+        duration: 1546
+      - id: "spQquhX4sxM"
+        title: "PyPerformance: Performance messen von Python"
+        description:
+        type: youtube
+        video_id: "spQquhX4sxM"
+        duration: 821
+      - id: "Yj2hqZY5gfA"
+        title: "ExceptionGroups, Except* und Fehlermeldungen"
+        description:
+        type: youtube
+        video_id: "Yj2hqZY5gfA"
+        duration: 1332

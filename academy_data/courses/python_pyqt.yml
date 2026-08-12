@@ -1,0 +1,90 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7ruNQIfS8NRpjzZIRq0A8QP
+title: "Python GUI Programmierung mit PyQT"
+description: "Ihr wollt graphische Oberflächen erstellen, um eure Kommandozeilentools etwas griffiger zu machen? Auch das geht mit Python."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/python.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665506596
+sections:
+  - id: section
+    title: "Python GUI Programmierung mit PyQT"
+    description:
+    lectures:
+      - id: "FiaPzdWKhJU"
+        title: "Einleitung"
+        description:
+        type: youtube
+        video_id: "FiaPzdWKhJU"
+        duration: 693
+      - id: "Z66AtVqdLUc"
+        title: "Der QT-Designer"
+        description:
+        type: youtube
+        video_id: "Z66AtVqdLUc"
+        duration: 463
+      - id: "B9Zkn4GEDCE"
+        title: "Buttons, Tooltips und Quit"
+        description:
+        type: youtube
+        video_id: "B9Zkn4GEDCE"
+        duration: 729
+      - id: "zIbQhLc_boI"
+        title: "Signale und Events"
+        description:
+        type: youtube
+        video_id: "zIbQhLc_boI"
+        duration: 983
+      - id: "pa4XlYyIa2o"
+        title: "StatusBar, MenuBar und ToolBar"
+        description:
+        type: youtube
+        video_id: "pa4XlYyIa2o"
+        duration: 686
+      - id: "YvaGU9tKerY"
+        title: "Layouts"
+        description:
+        type: youtube
+        video_id: "YvaGU9tKerY"
+        duration: 935
+      - id: "6qriyonapEE"
+        title: "CheckBox, RadioButton, ToggleButton"
+        description:
+        type: youtube
+        video_id: "6qriyonapEE"
+        duration: 837
+      - id: "qdW_XlnOCxM"
+        title: "Input-Felder aller Art"
+        description:
+        type: youtube
+        video_id: "qdW_XlnOCxM"
+        duration: 1131
+      - id: "3uJpHA4l9zg"
+        title: "DateTimeEdit, ProgressBar und der Kalendar"
+        description:
+        type: youtube
+        video_id: "3uJpHA4l9zg"
+        duration: 708
+      - id: "VvHePllETng"
+        title: "Dialoge"
+        description:
+        type: youtube
+        video_id: "VvHePllETng"
+        duration: 909
+      - id: "ykUhAp8yTFE"
+        title: "Tabs und die ScrollArea"
+        description:
+        type: youtube
+        video_id: "ykUhAp8yTFE"
+        duration: 643
+      - id: "DaIfM0jkbIk"
+        title: "Drag n' Drop"
+        description:
+        type: youtube
+        video_id: "DaIfM0jkbIk"
+        duration: 369

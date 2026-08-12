@@ -1,0 +1,272 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7q2hZHyLJS6IeHQIlyEgKqf
+title: "Algorithmen und Datenstrukturen einfach erklärt"
+description: |
+  Dieser Kurs ist ein Must-Have für alle Informatiker. Im Studium eines der Pflichtfächer, mittlerweile sogar in vielen Schulen unterrichtet, so ist Algorithmik und algorithmisches Denken so wichtig wie nie zuvor, denn Algorithmen bestimmen unser Leben. Suchalgorithmen bestimmen, welche Plattformen wir nutzen, welche Inhalte wir sehen und welche Filme und Serien wir konsumieren. Doch wie funktionieren sie? Das lernt ihr hier!
+  Der Kurs umfasst nicht nur ausgiebige und anschaulich visualisierte Theorie-Lektionen, sondern auch häufige Python Implementierungen der Algorithmen.
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/algorithmen.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665506775
+sections:
+  - id: section
+    title: "Algorithmen und Datenstrukturen einfach erklärt"
+    description:
+    lectures:
+      - id: "eXjay16RMw0"
+        title: "Einleitung"
+        description:
+        type: youtube
+        video_id: "eXjay16RMw0"
+        duration: 474
+      - id: "pqd6wZVGiPQ"
+        title: "Bedingungen und ein erstes Beispiel"
+        description:
+        type: youtube
+        video_id: "pqd6wZVGiPQ"
+        duration: 488
+      - id: "grq-eNELcQI"
+        title: "Algorithmisches Denken und Schleifen"
+        description:
+        type: youtube
+        video_id: "grq-eNELcQI"
+        duration: 258
+      - id: "dwqhrgBQ7vU"
+        title: "Datenstrukturen"
+        description:
+        type: youtube
+        video_id: "dwqhrgBQ7vU"
+        duration: 316
+      - id: "J9GloHYNkDE"
+        title: "Laufzeitanalyse und Landau Notation aka O-Notation"
+        description:
+        type: youtube
+        video_id: "J9GloHYNkDE"
+        duration: 382
+      - id: "JH8oogtBd4g"
+        title: "Das Array"
+        description:
+        type: youtube
+        video_id: "JH8oogtBd4g"
+        duration: 355
+      - id: "i2v_Ve9PUCw"
+        title: "verkettete Listen: Linked Lists und Double Linked Lists"
+        description:
+        type: youtube
+        video_id: "i2v_Ve9PUCw"
+        duration: 532
+      - id: "wgwLdEg8728"
+        title: "Queues aka FIFOs und Stacks aka LIFOs"
+        description:
+        type: youtube
+        video_id: "wgwLdEg8728"
+        duration: 268
+      - id: "Z4LjCOr3EC4"
+        title: "Sets"
+        description:
+        type: youtube
+        video_id: "Z4LjCOr3EC4"
+        duration: 211
+      - id: "CRVHUhW_TeQ"
+        title: "Maps und HashMaps"
+        description:
+        type: youtube
+        video_id: "CRVHUhW_TeQ"
+        duration: 486
+      - id: "qvi_BND2Kt4"
+        title: "Die binäre Suche"
+        description:
+        type: youtube
+        video_id: "qvi_BND2Kt4"
+        duration: 440
+      - id: "IrdCeluHpXA"
+        title: "Die binäre Suche in Python"
+        description:
+        type: youtube
+        video_id: "IrdCeluHpXA"
+        duration: 826
+      - id: "nHYmMvIJsVI"
+        title: "Selection Sort"
+        description:
+        type: youtube
+        video_id: "nHYmMvIJsVI"
+        duration: 315
+      - id: "AMEr6ikGWPo"
+        title: "Selection Sort in Python"
+        description:
+        type: youtube
+        video_id: "AMEr6ikGWPo"
+        duration: 703
+      - id: "ZHFxDXSkWNA"
+        title: "Insertion Sort"
+        description:
+        type: youtube
+        video_id: "ZHFxDXSkWNA"
+        duration: 247
+      - id: "YryPvBq9QZU"
+        title: "Insertion Sort in Python"
+        description:
+        type: youtube
+        video_id: "YryPvBq9QZU"
+        duration: 467
+      - id: "XMu1Kq69EhU"
+        title: "Bubble Sort"
+        description:
+        type: youtube
+        video_id: "XMu1Kq69EhU"
+        duration: 332
+      - id: "DAl04rkP5Zg"
+        title: "Bubble Sort in Python"
+        description:
+        type: youtube
+        video_id: "DAl04rkP5Zg"
+        duration: 506
+      - id: "KjAbdlWYpz8"
+        title: "Brute Force Algorithmen"
+        description:
+        type: youtube
+        video_id: "KjAbdlWYpz8"
+        duration: 246
+      - id: "JVQoD9YGbV8"
+        title: "Divide and Conquer Verfahren"
+        description:
+        type: youtube
+        video_id: "JVQoD9YGbV8"
+        duration: 330
+      - id: "lh8Kuu-9Oqc"
+        title: "Merge Sort: Rekursives Divide and Conquer"
+        description:
+        type: youtube
+        video_id: "lh8Kuu-9Oqc"
+        duration: 679
+      - id: "-aBRB48ug_s"
+        title: "BogoSort / StupidSort in Python"
+        description:
+        type: youtube
+        video_id: "-aBRB48ug_s"
+        duration: 624
+      - id: "ZSQ7LoQ_u4U"
+        title: "Merge Sort in Python"
+        description:
+        type: youtube
+        video_id: "ZSQ7LoQ_u4U"
+        duration: 911
+      - id: "EYuVDe2S4Fw"
+        title: "Quick Sort"
+        description:
+        type: youtube
+        video_id: "EYuVDe2S4Fw"
+        duration: 590
+      - id: "f7D1B0CEleA"
+        title: "Quick Sort in Python"
+        description:
+        type: youtube
+        video_id: "f7D1B0CEleA"
+        duration: 1013
+      - id: "PUOrROkt3mE"
+        title: "Big O Notation visualisiert"
+        description:
+        type: youtube
+        video_id: "PUOrROkt3mE"
+        duration: 613
+      - id: "wiogRuZwSVY"
+        title: "Theta und Omega Notation"
+        description:
+        type: youtube
+        video_id: "wiogRuZwSVY"
+        duration: 299
+      - id: "fLv6wlNGMZg"
+        title: "Empirische Korrektheitsbeweise"
+        description:
+        type: youtube
+        video_id: "fLv6wlNGMZg"
+        duration: 384
+      - id: "YB6F9d0Udcw"
+        title: "Mathematische Korrektheitsbeweise: Vollständige Induktion"
+        description:
+        type: youtube
+        video_id: "YB6F9d0Udcw"
+        duration: 1043
+      - id: "hs6MNddIUtw"
+        title: "Greedy Algorithmen"
+        description:
+        type: youtube
+        video_id: "hs6MNddIUtw"
+        duration: 169
+      - id: "Gdljj8ma2z0"
+        title: "vorläufiger Abschluss"
+        description:
+        type: youtube
+        video_id: "Gdljj8ma2z0"
+        duration: 260
+      - id: "x0FNeXIGrP8"
+        title: "Radix LSD Sort - Erklärung"
+        description:
+        type: youtube
+        video_id: "x0FNeXIGrP8"
+        duration: 523
+      - id: "1nMgT0L9b5M"
+        title: "Radix Sort in Python"
+        description:
+        type: youtube
+        video_id: "1nMgT0L9b5M"
+        duration: 677
+      - id: "zl0ZjOu1Yp8"
+        title: "Binary Radix Sort in Python"
+        description:
+        type: youtube
+        video_id: "zl0ZjOu1Yp8"
+        duration: 794
+      - id: "nCo7oeLR9qo"
+        title: "Counting Radix Sort in Python"
+        description:
+        type: youtube
+        video_id: "nCo7oeLR9qo"
+        duration: 904
+      - id: "oJY1FFvLCJA"
+        title: "Heap Sort - Erklärung"
+        description:
+        type: youtube
+        video_id: "oJY1FFvLCJA"
+        duration: 499
+      - id: "q0TUoijB7wU"
+        title: "Heap Sort in Python (auf 2 Arten)"
+        description:
+        type: youtube
+        video_id: "q0TUoijB7wU"
+        duration: 1622
+      - id: "h7aOfpFM8DY"
+        title: "Binary Quicksort / Radix MSD Sort in Python"
+        description:
+        type: youtube
+        video_id: "h7aOfpFM8DY"
+        duration: 1103
+      - id: "NLlSJR5tUok"
+        title: "Zyklische Listen"
+        description:
+        type: youtube
+        video_id: "NLlSJR5tUok"
+        duration: 225
+      - id: "94AOU1NPPVQ"
+        title: "Zyklische Listen in Python"
+        description:
+        type: youtube
+        video_id: "94AOU1NPPVQ"
+        duration: 715
+      - id: "R4KrS0joTBQ"
+        title: "Wie funktionieren eigentlich Suchmaschinen?"
+        description:
+        type: youtube
+        video_id: "R4KrS0joTBQ"
+        duration: 685
+      - id: "JadxmmYkn2E"
+        title: "Beliebig vs Beliebig aber fest"
+        description:
+        type: youtube
+        video_id: "JadxmmYkn2E"
+        duration: 738

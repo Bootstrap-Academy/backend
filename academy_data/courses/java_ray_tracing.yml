@@ -1,0 +1,114 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7rvhHip_LTM-J-5wHw7dWnw
+title: "Ray Tracing - Grafikprogrammierung in Java"
+description: "Habt ihr jemals gedacht, es wäre schon cool, selbst mal einen Raytracer zu programmieren? Hier seht ihr meinen Anlauf, der von euch ergänzt werden will."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/java.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665506397
+sections:
+  - id: section
+    title: "Ray Tracing - Grafikprogrammierung in Java"
+    description:
+    lectures:
+      - id: "qpb19vrBpJ4"
+        title: "Setup und Einleitung"
+        description:
+        type: youtube
+        video_id: "qpb19vrBpJ4"
+        duration: 878
+      - id: "6C9qtjliz3M"
+        title: "Der erste Teil der Kamera"
+        description:
+        type: youtube
+        video_id: "6C9qtjliz3M"
+        duration: 605
+      - id: "qLHPcTYYr4A"
+        title: "Die Vector-Klasse"
+        description:
+        type: youtube
+        video_id: "qLHPcTYYr4A"
+        duration: 1016
+      - id: "nfTFDLTzS2Y"
+        title: "Der 2. Teil der Kamera"
+        description:
+        type: youtube
+        video_id: "nfTFDLTzS2Y"
+        duration: 700
+      - id: "ZcIn6e_UdVs"
+        title: "Teil 1 des Tracers"
+        description:
+        type: youtube
+        video_id: "ZcIn6e_UdVs"
+        duration: 649
+      - id: "m_IeoWvSbQI"
+        title: "Teil 2 des Tracers"
+        description:
+        type: youtube
+        video_id: "m_IeoWvSbQI"
+        duration: 527
+      - id: "vjeU6aOntmY"
+        title: "Schnitt mit einer Kugel"
+        description:
+        type: youtube
+        video_id: "vjeU6aOntmY"
+        duration: 986
+      - id: "lVa2jdiqXqI"
+        title: "Der erste Output"
+        description:
+        type: youtube
+        video_id: "lVa2jdiqXqI"
+        duration: 1057
+      - id: "BqmNviqfTCo"
+        title: "Vorbereitungen für die Schattenberechnung"
+        description:
+        type: youtube
+        video_id: "BqmNviqfTCo"
+        duration: 677
+      - id: "R-_J-sFfUCc"
+        title: "Schnittpunktposition und Normale einer Kugel"
+        description:
+        type: youtube
+        video_id: "R-_J-sFfUCc"
+        duration: 597
+      - id: "ON8ZCpa4KWc"
+        title: "Die Materialklasse"
+        description:
+        type: youtube
+        video_id: "ON8ZCpa4KWc"
+        duration: 511
+      - id: "352eWQJstzQ"
+        title: "Licht ins Dunkle"
+        description:
+        type: youtube
+        video_id: "352eWQJstzQ"
+        duration: 399
+      - id: "FzeWe9BYrRI"
+        title: "Schattenberechnung Teil 1"
+        description:
+        type: youtube
+        video_id: "FzeWe9BYrRI"
+        duration: 878
+      - id: "UzHHkCrFxNY"
+        title: "Phong Shading"
+        description:
+        type: youtube
+        video_id: "UzHHkCrFxNY"
+        duration: 976
+      - id: "_G_eZ9BljC0"
+        title: "Shading Output"
+        description:
+        type: youtube
+        video_id: "_G_eZ9BljC0"
+        duration: 607
+      - id: "0bAkPWPnz-U"
+        title: "Spiegelungen"
+        description:
+        type: youtube
+        video_id: "0bAkPWPnz-U"
+        duration: 1277

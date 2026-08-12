@@ -1,0 +1,166 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7qvLZlbEiRwHoP0mbmAHNId
+title: "Signalverarbeitung mit Python"
+description: "Mit Python Biosignale auslesen - Stimme, Bilder aber auch EEG Werte? Ja aber natürlich geht das. Habt ihr was anderes erwartet?"
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/signalverarbeitung.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665506609
+sections:
+  - id: section
+    title: "Signalverarbeitung"
+    description:
+    lectures:
+      - id: "MI-_ioRdTuk"
+        title: "Sensoren und Signale"
+        description:
+        type: youtube
+        video_id: "MI-_ioRdTuk"
+        duration: 323
+      - id: "S-dp5N7j62Q"
+        title: "Signale"
+        description:
+        type: youtube
+        video_id: "S-dp5N7j62Q"
+        duration: 584
+      - id: "gi3J6YyWUN4"
+        title: "Determinismus und Stochastische Signale"
+        description:
+        type: youtube
+        video_id: "gi3J6YyWUN4"
+        duration: 228
+      - id: "v5pYu2uTuPI"
+        title: "Quantisierung und Sampling"
+        description:
+        type: youtube
+        video_id: "v5pYu2uTuPI"
+        duration: 684
+      - id: "mpw0WlHFVng"
+        title: "Beispiele in Audacity"
+        description:
+        type: youtube
+        video_id: "mpw0WlHFVng"
+        duration: 480
+      - id: "FrcUzKukQy4"
+        title: "Beispiele für Bilder in Gimp"
+        description:
+        type: youtube
+        video_id: "FrcUzKukQy4"
+        duration: 406
+      - id: "mnfGfrmuWUQ"
+        title: "Aliasing und das Shannonsche Abtasttheorem"
+        description:
+        type: youtube
+        video_id: "mnfGfrmuWUQ"
+        duration: 607
+      - id: "xVIlUS8EUNE"
+        title: "Up- und Downsampling"
+        description:
+        type: youtube
+        video_id: "xVIlUS8EUNE"
+        duration: 651
+      - id: "fYgO_KB9iO8"
+        title: "Tiefpassfilter"
+        description:
+        type: youtube
+        video_id: "fYgO_KB9iO8"
+        duration: 437
+      - id: "tkMHyrEjY1M"
+        title: "Überlagerung und Filter veranschaulicht"
+        description:
+        type: youtube
+        video_id: "tkMHyrEjY1M"
+        duration: 429
+      - id: "lo1RI2SKaOo"
+        title: "Der Frequenzbereich"
+        description:
+        type: youtube
+        video_id: "lo1RI2SKaOo"
+        duration: 217
+      - id: "7RJdm_g0Nhc"
+        title: "Frequenzen in Audacity unter die Lupe genommen"
+        description:
+        type: youtube
+        video_id: "7RJdm_g0Nhc"
+        duration: 468
+      - id: "kL8Mgebn80Y"
+        title: "Fourier Transformation"
+        description:
+        type: youtube
+        video_id: "kL8Mgebn80Y"
+        duration: 540
+      - id: "6Famal0NdFg"
+        title: "Die Diskrete Fourier Transformation"
+        description:
+        type: youtube
+        video_id: "6Famal0NdFg"
+        duration: 359
+      - id: "OcBVZsRODck"
+        title: "Windows und Hamming Window"
+        description:
+        type: youtube
+        video_id: "OcBVZsRODck"
+        duration: 436
+      - id: "MoIRG27jD54"
+        title: "Mel und Mel Filterbanks"
+        description:
+        type: youtube
+        video_id: "MoIRG27jD54"
+        duration: 336
+  - id: section2
+    title: "Audio Verarbeitung in Python"
+    description:
+    lectures:
+      - id: "60G9rAmVM0A"
+        title: "Aufnahme"
+        description:
+        type: youtube
+        video_id: "60G9rAmVM0A"
+        duration: 428
+      - id: "890tPu-nodQ"
+        title: "Einlesen und Abspielen"
+        description:
+        type: youtube
+        video_id: "890tPu-nodQ"
+        duration: 554
+      - id: "njZNqH5C8Zk"
+        title: "Fenster auf dem Signal"
+        description:
+        type: youtube
+        video_id: "njZNqH5C8Zk"
+        duration: 1212
+      - id: "m7tAnE4Kmoo"
+        title: "Fourier Transformation"
+        description:
+        type: youtube
+        video_id: "m7tAnE4Kmoo"
+        duration: 543
+      - id: "NAs60THEgO0"
+        title: "Librosa"
+        description:
+        type: youtube
+        video_id: "NAs60THEgO0"
+        duration: 1013
+      - id: "27Jl-pA2aDM"
+        title: "Filter"
+        description:
+        type: youtube
+        video_id: "27Jl-pA2aDM"
+        duration: 312
+      - id: "khp73YQt0L0"
+        title: "Elektroenzephalografie"
+        description:
+        type: youtube
+        video_id: "khp73YQt0L0"
+        duration: 319
+      - id: "LcSMGBrvFE8"
+        title: "Frequenzbänder im EEG und abschließende Worte"
+        description:
+        type: youtube
+        video_id: "LcSMGBrvFE8"
+        duration: 545

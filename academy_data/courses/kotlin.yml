@@ -1,0 +1,222 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7rylgyThgUldHG8KE6Nbc1O
+title: "Kotlin Programmierung"
+description: "Kotlin ist zwar nicht mehr so unbekannt, wie das vor kurzem noch war. Kotlin ist mittlerweile die Standardsprache für native Android-Apps. Es ist die Sprache, die ihr in jedes Java-Projekt stecken könnt - egal wie alt und dadurch einen modernen Ansatz nutzen könnt, der in Java noch nicht angekommen ist."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/kotlin.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665507680
+sections:
+  - id: section
+    title: "Kotlin: Das moderne Java"
+    description:
+    lectures:
+      - id: "HcFY9NSgXkk"
+        title: "Das bessere Java"
+        description:
+        type: youtube
+        video_id: "HcFY9NSgXkk"
+        duration: 901
+      - id: "rnnlkqgQdJ8"
+        title: "Die IDE einrichten"
+        description:
+        type: youtube
+        video_id: "rnnlkqgQdJ8"
+        duration: 338
+      - id: "BBu6MSlvA7Y"
+        title: "IntelliJ als bessere, alternative IDE"
+        description:
+        type: youtube
+        video_id: "BBu6MSlvA7Y"
+        duration: 798
+      - id: "3CX_fZrl90I"
+        title: "Variablen und Konstanten"
+        description:
+        type: youtube
+        video_id: "3CX_fZrl90I"
+        duration: 500
+      - id: "wG2b0iEqBmw"
+        title: "Zahlen"
+        description:
+        type: youtube
+        video_id: "wG2b0iEqBmw"
+        duration: 683
+      - id: "6jlxiWJtJqE"
+        title: "Buchstaben"
+        description:
+        type: youtube
+        video_id: "6jlxiWJtJqE"
+        duration: 516
+      - id: "fX132y4twbE"
+        title: "Strings"
+        description:
+        type: youtube
+        video_id: "fX132y4twbE"
+        duration: 243
+      - id: "k_0Jo9mLof4"
+        title: "Arrays"
+        description:
+        type: youtube
+        video_id: "k_0Jo9mLof4"
+        duration: 566
+      - id: "iBB7BBAPWB4"
+        title: "if Abfragen"
+        description:
+        type: youtube
+        video_id: "iBB7BBAPWB4"
+        duration: 388
+      - id: "8XV9S6bScB0"
+        title: "Booleans"
+        description:
+        type: youtube
+        video_id: "8XV9S6bScB0"
+        duration: 627
+      - id: "y2MUpG1-2jo"
+        title: "For Schleifen für Arrays"
+        description:
+        type: youtube
+        video_id: "y2MUpG1-2jo"
+        duration: 568
+      - id: "D7NZeXTmvuI"
+        title: "Lösung zur Übung Caesar Cipher"
+        description:
+        type: youtube
+        video_id: "D7NZeXTmvuI"
+        duration: 513
+      - id: "6cauhBmIKW8"
+        title: "While und Do While Schleifen"
+        description:
+        type: youtube
+        video_id: "6cauhBmIKW8"
+        duration: 506
+      - id: "l8kgm8NY6Tw"
+        title: "Übung - Das Maximum eines Arrays"
+        description:
+        type: youtube
+        video_id: "l8kgm8NY6Tw"
+        duration: 347
+      - id: "AslItyfet1k"
+        title: "Übung - Fakultät berechnen"
+        description:
+        type: youtube
+        video_id: "AslItyfet1k"
+        duration: 296
+      - id: "I7chONqAB2A"
+        title: "Mehrdimensionale Arrays"
+        description:
+        type: youtube
+        video_id: "I7chONqAB2A"
+        duration: 571
+      - id: "qfI6JZejM8w"
+        title: "User Input"
+        description:
+        type: youtube
+        video_id: "qfI6JZejM8w"
+        duration: 387
+      - id: "tQFGCBEMJfw"
+        title: "Übung - Integer Overflow"
+        description:
+        type: youtube
+        video_id: "tQFGCBEMJfw"
+        duration: 480
+  - id: section3
+    title: "Grundlagen von funktionalem Kotlin"
+    description:
+    lectures:
+      - id: "u4Vdnra4310"
+        title: "Funktionen"
+        description:
+        type: youtube
+        video_id: "u4Vdnra4310"
+        duration: 482
+      - id: "JHyryoU4pX4"
+        title: "Parameter"
+        description:
+        type: youtube
+        video_id: "JHyryoU4pX4"
+        duration: 491
+      - id: "qUahvS-aRaM"
+        title: "Rückgabewerte mit return"
+        description:
+        type: youtube
+        video_id: "qUahvS-aRaM"
+        duration: 664
+      - id: "WR6FI7hHSFg"
+        title: "Rekursion"
+        description:
+        type: youtube
+        video_id: "WR6FI7hHSFg"
+        duration: 792
+      - id: "sKCbFVeJSLk"
+        title: "Übung: Fakultät"
+        description:
+        type: youtube
+        video_id: "sKCbFVeJSLk"
+        duration: 526
+  - id: section5
+    title: "Übungsblock zu Funktionen"
+    description:
+    lectures:
+      - id: "VcSbpr0z2M0"
+        title: "Übung - Abs"
+        description:
+        type: youtube
+        video_id: "VcSbpr0z2M0"
+        duration: 235
+      - id: "AqImeobt-A8"
+        title: "Übung - Summe über ein Array"
+        description:
+        type: youtube
+        video_id: "AqImeobt-A8"
+        duration: 188
+      - id: "90rQ6cb8Bi0"
+        title: "Übung - Sinus von Hand berechnen"
+        description:
+        type: youtube
+        video_id: "90rQ6cb8Bi0"
+        duration: 811
+      - id: "yoE9Yw4Vma8"
+        title: "Übung - Buchstaben ersetzen"
+        description:
+        type: youtube
+        video_id: "yoE9Yw4Vma8"
+        duration: 503
+  - id: section6
+    title: "Klassen und Objekte"
+    description:
+    lectures:
+      - id: "RwZ8YZEX1lo"
+        title: "Klassen"
+        description:
+        type: youtube
+        video_id: "RwZ8YZEX1lo"
+        duration: 502
+      - id: "0njRtRR07Wg"
+        title: "Methoden und this"
+        description:
+        type: youtube
+        video_id: "0njRtRR07Wg"
+        duration: 424
+      - id: "djKCjzQbZ7g"
+        title: "Konstruktoren"
+        description:
+        type: youtube
+        video_id: "djKCjzQbZ7g"
+        duration: 219
+      - id: "7aa1tfXxq3g"
+        title: "Vererbung"
+        description:
+        type: youtube
+        video_id: "7aa1tfXxq3g"
+        duration: 471
+      - id: "XAVhjK6_7Q4"
+        title: "Zugriffsmodifikatoren"
+        description:
+        type: youtube
+        video_id: "XAVhjK6_7Q4"
+        duration: 660

@@ -1,0 +1,84 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7qIOuGJrd-lu-ZZc9t4EdwM
+title: "Eine kurze Einführung ins Data Mining"
+description: "Alle sprechen von Data Science oder KI, die ja auch Daten nutzt. Doch.. wie kommen wir eigentlich an die Daten? Eine kurze Einführung gibt es hier."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/datamining.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 100
+learning_goals: []
+requirements: []
+last_update: 1665508109
+sections:
+  - id: section
+    title: "Eine kurze Einführung ins Data Mining"
+    description:
+    lectures:
+      - id: "Y7fEREo2gfQ"
+        title: "Einleitung"
+        description:
+        type: youtube
+        video_id: "Y7fEREo2gfQ"
+        duration: 114
+      - id: "g_Kvy2uL_nA"
+        title: "Daten"
+        description:
+        type: youtube
+        video_id: "g_Kvy2uL_nA"
+        duration: 625
+      - id: "oteQDfTKi3o"
+        title: "Features"
+        description:
+        type: youtube
+        video_id: "oteQDfTKi3o"
+        duration: 453
+      - id: "j-CYgOs2Wjg"
+        title: "Wie kommt man an Daten"
+        description:
+        type: youtube
+        video_id: "j-CYgOs2Wjg"
+        duration: 453
+      - id: "Z8Vs8gpNgjY"
+        title: "Plots"
+        description:
+        type: youtube
+        video_id: "Z8Vs8gpNgjY"
+        duration: 315
+      - id: "VkQxtrj426Y"
+        title: "Rückschlüsse"
+        description:
+        type: youtube
+        video_id: "VkQxtrj426Y"
+        duration: 94
+      - id: "LRpsfdXgdbk"
+        title: "Geheimtipp: Warnsysteme"
+        description:
+        type: youtube
+        video_id: "LRpsfdXgdbk"
+        duration: 231
+      - id: "jFRZQNCeYiw"
+        title: "Beispiel: WhatsApp Metadaten"
+        description:
+        type: youtube
+        video_id: "jFRZQNCeYiw"
+        duration: 289
+      - id: "Vc5GokYTkWI"
+        title: "Neuronale Netze"
+        description:
+        type: youtube
+        video_id: "Vc5GokYTkWI"
+        duration: 351
+      - id: "ymN3lePsT74"
+        title: "Die große Gefahr von Data Science"
+        description:
+        type: youtube
+        video_id: "ymN3lePsT74"
+        duration: 417
+      - id: "9K0tGphkxpY"
+        title: "Ausblick: was soll ich lernen"
+        description:
+        type: youtube
+        video_id: "9K0tGphkxpY"
+        duration: 149

@@ -1,0 +1,91 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7rBqyMDGlv4LZmNrq1gChjh
+title: "Identity- und Access Management / IAM"
+description: >-
+  Willkommen zum Kurs "Identitäts- und Zugriffsmanagement für Informatiker". Dieser umfassende Kurs richtet sich an Informatiker und Fachleute aus dem Bereich IT-Sicherheit, die ihre Kenntnisse im Bereich Identitäts- und Zugriffsmanagement (IAM) vertiefen möchten. In diesem Kurs lernst du, wie du effektive IAM-Strategien entwickeln und umsetzen kannst, um die Sicherheit in deinem Unternehmen oder auch privat zu erhöhen und den unbefugten Zugriff auf sensible Daten und Systeme zu verhindern. Wir werden hier die grundlegenden Konzepte, Technologien und Best Practices vermitteln, die für ein erfolgreiches IAM-Programm erforderlich sind. Dieser Kurs konzentriert sich auf die theoretischen Grundlagen, die für die Verwendung von konkreten Technologien nötig sind.
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/iam.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1681146317
+sections:
+  - id: section
+    title: "Identity- und Access Management / IAM"
+    description:
+    lectures:
+      - id: "k3pUSPZSk2E"
+        title: "Einleitung zu Identity und Access Management - IAM #01"
+        description:
+        type: youtube
+        video_id: "k3pUSPZSk2E"
+        duration: 447
+      - id: "UHpDjq1SZYU"
+        title: "Identitäten vs Accounts - IAM Tutorial #02"
+        description:
+        type: youtube
+        video_id: "UHpDjq1SZYU"
+        duration: 340
+      - id: "GZDjqDeNHvc"
+        title: "Arten von Identitäten - IAM Tutorial #03"
+        description:
+        type: youtube
+        video_id: "GZDjqDeNHvc"
+        duration: 614
+      - id: "uBAgMznq7r8"
+        title: "Identity Lifecycle Management - IAM Tutorial #04"
+        description:
+        type: youtube
+        video_id: "uBAgMznq7r8"
+        duration: 895
+      - id: "aNzmdw6Z-M4"
+        title: "Identitätsnachweise - IAM Tutorial #05"
+        description:
+        type: youtube
+        video_id: "aNzmdw6Z-M4"
+        duration: 1482
+      - id: "qeVvZ25hQeA"
+        title: "Die Access Control Matrix - IAM Tutorial #06"
+        description:
+        type: youtube
+        video_id: "qeVvZ25hQeA"
+        duration: 632
+      - id: "qnD00VYoa1M"
+        title: "Role Based Access Control - IAM Tutorial #07"
+        description:
+        type: youtube
+        video_id: "qnD00VYoa1M"
+        duration: 841
+      - id: "g_gG1J9DLKw"
+        title: "Varianten der RBAC - IAM Tutorial #08"
+        description:
+        type: youtube
+        video_id: "g_gG1J9DLKw"
+        duration: 633
+      - id: "lR54PK54Thk"
+        title: "Attribute Based Access Control - IAM Tutorial #09"
+        description:
+        type: youtube
+        video_id: "lR54PK54Thk"
+        duration: 811
+      - id: "dQkcTw9g54Q"
+        title: "Single Sign On - IAM Tutorial #10"
+        description:
+        type: youtube
+        video_id: "dQkcTw9g54Q"
+        duration: 1053
+      - id: "6vCalj0us64"
+        title: "Privileged Access Management - IAM Tutorial #11"
+        description:
+        type: youtube
+        video_id: "6vCalj0us64"
+        duration: 752
+      - id: "OnSN58iyUUs"
+        title: "Fallbeispiel: Discords Rollen und Rechte - IAM Tutorial #12"
+        description:
+        type: youtube
+        video_id: "OnSN58iyUUs"
+        duration: 650

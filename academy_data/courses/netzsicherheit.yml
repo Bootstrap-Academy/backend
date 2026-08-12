@@ -1,0 +1,218 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7ovwsL-PKfByCX-jGuZAopM
+title: "Netzsicherheit - IT Security in Netzwerken"
+description: "Haltet eure Netzwerke frei von Angreifern - dazu braucht ihr Zertifikate, IPSec und mehr"
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/netzsicherheit.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665506743
+sections:
+  - id: section
+    title: "Grundlagen"
+    description:
+    lectures:
+      - id: "UVdDfyuzpz8"
+        title: "Einleitung"
+        description:
+        type: youtube
+        video_id: "UVdDfyuzpz8"
+        duration: 1629
+      - id: "6X8FSF1XXpc"
+        title: "Extended Validation Zertifikate und andere Zertifikate"
+        description:
+        type: youtube
+        video_id: "6X8FSF1XXpc"
+        duration: 407
+      - id: "jaRJq9XYhVc"
+        title: "OCSP - Status von Zertifikaten prüfen"
+        description:
+        type: youtube
+        video_id: "jaRJq9XYhVc"
+        duration: 472
+      - id: "h31hMJ6ztVM"
+        title: "Password Authentication Protocol PAP"
+        description:
+        type: youtube
+        video_id: "h31hMJ6ztVM"
+        duration: 413
+      - id: "u355Z0YyN84"
+        title: "CHAP"
+        description:
+        type: youtube
+        video_id: "u355Z0YyN84"
+        duration: 320
+      - id: "iQyXs3EX2PM"
+        title: "S-Key"
+        description:
+        type: youtube
+        video_id: "iQyXs3EX2PM"
+        duration: 432
+      - id: "OkcvnG6Qjok"
+        title: "EAP"
+        description:
+        type: youtube
+        video_id: "OkcvnG6Qjok"
+        duration: 462
+      - id: "AO29zGa_JHc"
+        title: "Authentifikation bei mehreren Ressourcen"
+        description:
+        type: youtube
+        video_id: "AO29zGa_JHc"
+        duration: 319
+  - id: section2
+    title: "Kerberos"
+    description:
+    lectures:
+      - id: "ooe1G24vzYI"
+        title: "Kerberos Einführung"
+        description:
+        type: youtube
+        video_id: "ooe1G24vzYI"
+        duration: 442
+      - id: "tSLvaWczpNM"
+        title: "Das Ticket Granting Ticket"
+        description:
+        type: youtube
+        video_id: "tSLvaWczpNM"
+        duration: 719
+      - id: "ftS7jyK-Sqc"
+        title: "Ressourcenzugriff"
+        description:
+        type: youtube
+        video_id: "ftS7jyK-Sqc"
+        duration: 593
+      - id: "ewcKF5RJ7TM"
+        title: "Mehrstufige Netze"
+        description:
+        type: youtube
+        video_id: "ewcKF5RJ7TM"
+        duration: 491
+  - id: section3
+    title: "IPSec"
+    description:
+    lectures:
+      - id: "5wjEJurs_Mo"
+        title: "Angriffe auf IP"
+        description:
+        type: youtube
+        video_id: "5wjEJurs_Mo"
+        duration: 299
+      - id: "Oy8lWxjAqZU"
+        title: "Übersicht zu IPSec"
+        description:
+        type: youtube
+        video_id: "Oy8lWxjAqZU"
+        duration: 451
+      - id: "CJGfic-O4K0"
+        title: "Die Datenbanken von IPSec"
+        description:
+        type: youtube
+        video_id: "CJGfic-O4K0"
+        duration: 449
+      - id: "uVWVT4c3kuE"
+        title: "Tunnelmodus und Transportmodus"
+        description:
+        type: youtube
+        video_id: "uVWVT4c3kuE"
+        duration: 505
+      - id: "yymR6zqtdT8"
+        title: "AH - Authentication Header"
+        description:
+        type: youtube
+        video_id: "yymR6zqtdT8"
+        duration: 517
+      - id: "L9UtqLy42XI"
+        title: "ESP - Encapsulation Security Payload"
+        description:
+        type: youtube
+        video_id: "L9UtqLy42XI"
+        duration: 463
+      - id: "eSoIL71Ri0M"
+        title: "Der Internet Key Exchange - IKE"
+        description:
+        type: youtube
+        video_id: "eSoIL71Ri0M"
+        duration: 631
+  - id: section4
+    title: "TLS"
+    description:
+    lectures:
+      - id: "sye1azuEZXw"
+        title: "Einleitung"
+        description:
+        type: youtube
+        video_id: "sye1azuEZXw"
+        duration: 570
+      - id: "vuMJAgx87TM"
+        title: "Angriffe auf TLS"
+        description:
+        type: youtube
+        video_id: "vuMJAgx87TM"
+        duration: 533
+      - id: "Y_SR0qIZR8w"
+        title: "Das Record Protocol"
+        description:
+        type: youtube
+        video_id: "Y_SR0qIZR8w"
+        duration: 362
+      - id: "BmyAIFPcWyc"
+        title: "Schlüsselgenerierung bei TLS"
+        description:
+        type: youtube
+        video_id: "BmyAIFPcWyc"
+        duration: 221
+  - id: section5
+    title: "Netzzugang"
+    description:
+    lectures:
+      - id: "Vqh19T66rhM"
+        title: "Einleitung"
+        description:
+        type: youtube
+        video_id: "Vqh19T66rhM"
+        duration: 285
+      - id: "C6m8wCNJrfA"
+        title: "Netzzugang über LAN"
+        description:
+        type: youtube
+        video_id: "C6m8wCNJrfA"
+        duration: 287
+      - id: "L1-CqVfkFFg"
+        title: "Netzzugang bei VPNs"
+        description:
+        type: youtube
+        video_id: "L1-CqVfkFFg"
+        duration: 402
+      - id: "U82i104RAHc"
+        title: "Netzzugang bei VPNs #2 - OpenVPN"
+        description:
+        type: youtube
+        video_id: "U82i104RAHc"
+        duration: 279
+      - id: "Dyhq9SPSN-Y"
+        title: "WEP"
+        description:
+        type: youtube
+        video_id: "Dyhq9SPSN-Y"
+        duration: 459
+      - id: "CflJNJCt6Bs"
+        title: "WPA2"
+        description:
+        type: youtube
+        video_id: "CflJNJCt6Bs"
+        duration: 548
+  - id: section6
+    title: "Bonus"
+    description:
+    lectures:
+      - id: "a5-83uboWzs"
+        title: "JSON Web Tokens"
+        description:
+        type: youtube
+        video_id: "a5-83uboWzs"
+        duration: 876

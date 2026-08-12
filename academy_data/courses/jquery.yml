@@ -1,0 +1,96 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7qbE13388pQpsXQkpRQ96sM
+title: "jQuery: Leichtere Dynamik in JavaScript"
+description: "jQuery ist eine der am meisten verbreiteten JavaScript Bibliotheken. Sie vereinfacht Animationen im Browser und stellt euch eine Reihe an wirklichen Komfort-Funktionen zur Verfügung."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/javascript.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665506283
+sections:
+  - id: section
+    title: "jQuery"
+    description:
+    lectures:
+      - id: "RbXoevfILuI"
+        title: "Einleitung"
+        description:
+        type: youtube
+        video_id: "RbXoevfILuI"
+        duration: 331
+      - id: "K8eSuq1eKbg"
+        title: "Selektoren"
+        description:
+        type: youtube
+        video_id: "K8eSuq1eKbg"
+        duration: 689
+      - id: "Rj3Tp71n3QI"
+        title: "Events"
+        description:
+        type: youtube
+        video_id: "Rj3Tp71n3QI"
+        duration: 730
+      - id: "glv7nxOzOe8"
+        title: "Verschwinde Effekte"
+        description:
+        type: youtube
+        video_id: "glv7nxOzOe8"
+        duration: 480
+      - id: "KKb58faJvbo"
+        title: "Chaining und Callbacks"
+        description:
+        type: youtube
+        video_id: "KKb58faJvbo"
+        duration: 286
+      - id: "QfZZpg0dZxQ"
+        title: "auf HTML-Elemente zugreifen"
+        description:
+        type: youtube
+        video_id: "QfZZpg0dZxQ"
+        duration: 657
+      - id: "rUY6EQVWeEs"
+        title: "Attribute verändern"
+        description:
+        type: youtube
+        video_id: "rUY6EQVWeEs"
+        duration: 249
+      - id: "glCnpQsUEVQ"
+        title: "after und before vs append und prepend"
+        description:
+        type: youtube
+        video_id: "glCnpQsUEVQ"
+        duration: 247
+      - id: "9EBoYWP1btU"
+        title: "CSS Attribute verändern"
+        description:
+        type: youtube
+        video_id: "9EBoYWP1btU"
+        duration: 409
+      - id: "QXWDsXXVZQM"
+        title: "Animationen"
+        description:
+        type: youtube
+        video_id: "QXWDsXXVZQM"
+        duration: 390
+      - id: "y8gU9kFiYKs"
+        title: "AJAX und JQuery - RESTful APIs"
+        description:
+        type: youtube
+        video_id: "y8gU9kFiYKs"
+        duration: 550
+      - id: "nw1rmyrJWew"
+        title: "Die $.each-Schleife"
+        description:
+        type: youtube
+        video_id: "nw1rmyrJWew"
+        duration: 366
+      - id: "hWgDC4kYSnQ"
+        title: "not"
+        description:
+        type: youtube
+        video_id: "hWgDC4kYSnQ"
+        duration: 421

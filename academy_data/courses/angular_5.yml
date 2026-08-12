@@ -1,0 +1,306 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7pY65LXhI1_bIcOByRhP9Xb
+title: "Angular 5"
+description: "Angular, das Frontend-Framework von Google, ist überall im Einsatz. Ob mit TypeScript oder JavaScript alles ist möglich. Trotzdem gibt es eine Menge zu beachten!"
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/javascript.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1666715365
+sections:
+  - id: section
+    title: "Angular 5"
+    description:
+    lectures:
+      - id: "XvemczQn56U"
+        title: "Einleitung und Installation"
+        description:
+        type: youtube
+        video_id: "XvemczQn56U"
+        duration: 914
+      - id: "eTEEoAFoNNE"
+        title: "Die IDE"
+        description:
+        type: youtube
+        video_id: "eTEEoAFoNNE"
+        duration: 241
+      - id: "3ctRoI5OJEI"
+        title: "eine kostenlose IDE - VS-Code"
+        description:
+        type: youtube
+        video_id: "3ctRoI5OJEI"
+        duration: 738
+      - id: "y1-5C0gKTYE"
+        title: "Konfigurationsparameter"
+        description:
+        type: youtube
+        video_id: "y1-5C0gKTYE"
+        duration: 711
+      - id: "fAdqci1yFCA"
+        title: "Das App Modul"
+        description:
+        type: youtube
+        video_id: "fAdqci1yFCA"
+        duration: 318
+      - id: "LRQkeCloKcQ"
+        title: "Bootstrapping"
+        description:
+        type: youtube
+        video_id: "LRQkeCloKcQ"
+        duration: 249
+      - id: "e1BG-y0ffiw"
+        title: "Komponenten"
+        description:
+        type: youtube
+        video_id: "e1BG-y0ffiw"
+        duration: 611
+      - id: "O4xURo7ze3I"
+        title: "Eigene Komponenten"
+        description:
+        type: youtube
+        video_id: "O4xURo7ze3I"
+        duration: 383
+      - id: "9slcXcAfBro"
+        title: "Inline Styles und Inline Templates"
+        description:
+        type: youtube
+        video_id: "9slcXcAfBro"
+        duration: 242
+      - id: "0gQPH2oXcVY"
+        title: "Interpolation"
+        description:
+        type: youtube
+        video_id: "0gQPH2oXcVY"
+        duration: 572
+      - id: "RjLslYiQzp8"
+        title: "Events"
+        description:
+        type: youtube
+        video_id: "RjLslYiQzp8"
+        duration: 263
+      - id: "8AH8waXsG9k"
+        title: "Der Event-Parameter"
+        description:
+        type: youtube
+        video_id: "8AH8waXsG9k"
+        duration: 629
+      - id: "TtpcYbjwaPQ"
+        title: "Elementreferenzen"
+        description:
+        type: youtube
+        video_id: "TtpcYbjwaPQ"
+        duration: 313
+      - id: "Y3PE6zJPmBI"
+        title: "Strukturdirektiven: ngFor"
+        description:
+        type: youtube
+        video_id: "Y3PE6zJPmBI"
+        duration: 400
+      - id: "RN2e_eY7xwc"
+        title: "Strukturdirektiven: ngIf und Else"
+        description:
+        type: youtube
+        video_id: "RN2e_eY7xwc"
+        duration: 383
+      - id: "eBzZSWc7w1g"
+        title: "Strukturdirektiven: ngSwitch"
+        description:
+        type: youtube
+        video_id: "eBzZSWc7w1g"
+        duration: 271
+      - id: "7X-0ljjgVw8"
+        title: "einfache Pipes"
+        description:
+        type: youtube
+        video_id: "7X-0ljjgVw8"
+        duration: 213
+      - id: "UjiBtMQvkD0"
+        title: "Class Bindings"
+        description:
+        type: youtube
+        video_id: "UjiBtMQvkD0"
+        duration: 446
+      - id: "GCdlwTsn3nQ"
+        title: "Style Bindings"
+        description:
+        type: youtube
+        video_id: "GCdlwTsn3nQ"
+        duration: 216
+      - id: "lXlxk2tcr5A"
+        title: "Eigene Properties"
+        description:
+        type: youtube
+        video_id: "lXlxk2tcr5A"
+        duration: 467
+      - id: "kTWu_fbN4KY"
+        title: "Mehr zu Input Properties"
+        description:
+        type: youtube
+        video_id: "kTWu_fbN4KY"
+        duration: 164
+      - id: "ka6h8RG-vbg"
+        title: "EventEmitter"
+        description:
+        type: youtube
+        video_id: "ka6h8RG-vbg"
+        duration: 402
+      - id: "1sHdh9uFXro"
+        title: "Konstruktoren, ngOnInit und Services"
+        description:
+        type: youtube
+        video_id: "1sHdh9uFXro"
+        duration: 301
+      - id: "xngMFlSGWaM"
+        title: "Constructor Injection"
+        description:
+        type: youtube
+        video_id: "xngMFlSGWaM"
+        duration: 646
+      - id: "YeHHtkIiNkA"
+        title: "Strings injecten"
+        description:
+        type: youtube
+        video_id: "YeHHtkIiNkA"
+        duration: 307
+      - id: "S18Ls1MoYnQ"
+        title: "Routing"
+        description:
+        type: youtube
+        video_id: "S18Ls1MoYnQ"
+        duration: 737
+      - id: "MNjbhYo6Nbo"
+        title: "Router Links"
+        description:
+        type: youtube
+        video_id: "MNjbhYo6Nbo"
+        duration: 183
+      - id: "irkpUItriro"
+        title: "Routenparameter"
+        description:
+        type: youtube
+        video_id: "irkpUItriro"
+        duration: 522
+      - id: "-caV-oTjxAg"
+        title: "Weitere Tricks und Kniffe beim Routing"
+        description:
+        type: youtube
+        video_id: "-caV-oTjxAg"
+        duration: 307
+      - id: "6uLE96s1u5U"
+        title: "Styles von aktiven Links"
+        description:
+        type: youtube
+        video_id: "6uLE96s1u5U"
+        duration: 344
+      - id: "4dcUILpa1RU"
+        title: "Kommunikation mit dem Backend"
+        description:
+        type: youtube
+        video_id: "4dcUILpa1RU"
+        duration: 683
+      - id: "qmnISYTIu5A"
+        title: "Die ganze Antwort verarbeiten"
+        description:
+        type: youtube
+        video_id: "qmnISYTIu5A"
+        duration: 342
+      - id: "W8Up4RXZB94"
+        title: "Error-Handling"
+        description:
+        type: youtube
+        video_id: "W8Up4RXZB94"
+        duration: 683
+      - id: "aOzbGq1t61Q"
+        title: "POST-Requests"
+        description:
+        type: youtube
+        video_id: "aOzbGq1t61Q"
+        duration: 689
+      - id: "ZdsrInsKF78"
+        title: "Template Driven Forms"
+        description:
+        type: youtube
+        video_id: "ZdsrInsKF78"
+        duration: 577
+      - id: "lH9za-VUVeY"
+        title: "Template Driven Forms - Control Klassen"
+        description:
+        type: youtube
+        video_id: "lH9za-VUVeY"
+        duration: 901
+      - id: "bLOZD4S6AF4"
+        title: "Template Driven Forms - Controls gruppieren"
+        description:
+        type: youtube
+        video_id: "bLOZD4S6AF4"
+        duration: 271
+      - id: "rCNUKHes4d8"
+        title: "Reactive Forms"
+        description:
+        type: youtube
+        video_id: "rCNUKHes4d8"
+        duration: 646
+      - id: "IPoUmVJLC94"
+        title: "Reactive Forms - Validators"
+        description:
+        type: youtube
+        video_id: "IPoUmVJLC94"
+        duration: 190
+      - id: "qp-X6BZKLMM"
+        title: "Reactive Forms - eigene Validators"
+        description:
+        type: youtube
+        video_id: "qp-X6BZKLMM"
+        duration: 323
+      - id: "LEYbz1Hbdbo"
+        title: "eigene Module"
+        description:
+        type: youtube
+        video_id: "LEYbz1Hbdbo"
+        duration: 574
+      - id: "LpdqCZllHuo"
+        title: "Building und Deployment"
+        description:
+        type: youtube
+        video_id: "LpdqCZllHuo"
+        duration: 420
+      - id: "JuT8NcxG1YE"
+        title: "Attributdirektiven"
+        description:
+        type: youtube
+        video_id: "JuT8NcxG1YE"
+        duration: 334
+      - id: "VSzz_siluJE"
+        title: "Events in Direktiven"
+        description:
+        type: youtube
+        video_id: "VSzz_siluJE"
+        duration: 357
+      - id: "k1IoS5UZzBA"
+        title: "Injection von Parametern"
+        description:
+        type: youtube
+        video_id: "k1IoS5UZzBA"
+        duration: 347
+      - id: "BMAyiMxhzeQ"
+        title: "ViewChild"
+        description:
+        type: youtube
+        video_id: "BMAyiMxhzeQ"
+        duration: 544
+      - id: "NJyaFEZ5xxc"
+        title: "Lösung der Colorpicker Übung"
+        description:
+        type: youtube
+        video_id: "NJyaFEZ5xxc"
+        duration: 1271
+      - id: "cbBxK8LySaw"
+        title: "Lösung der Übung für ViewChild bei Enkelbeziehung"
+        description:
+        type: youtube
+        video_id: "cbBxK8LySaw"
+        duration: 251

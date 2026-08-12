@@ -1,0 +1,222 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7oaopPUB0SEmzZLf3aE5msy
+title: "Erste Schritte mit Linux"
+description: "Linux ist überall - auf Servern, auf eurem Handy und vermutlich nach dieser Serie auch auf eurem Rechner :) Viel Spaß."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/linux.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665507322
+sections:
+  - id: section
+    title: "Installation von Linux"
+    description:
+    lectures:
+      - id: "bjkyaeseb7g"
+        title: "Kali Linux: Installation als virtuelle Maschine 2019 - die einfache Variante"
+        description:
+        type: youtube
+        video_id: "bjkyaeseb7g"
+        duration: 818
+      - id: "9lmGxgq7O1Q"
+        title: "Kali Linux: In Virtualbox installieren 2020 - als virtuelle Maschine: die einfache Variante"
+        description:
+        type: youtube
+        video_id: "9lmGxgq7O1Q"
+        duration: 833
+      - id: "Jf7g0xh8HVU"
+        title: "Richtige Installation mit Virtual Box"
+        description:
+        type: youtube
+        video_id: "Jf7g0xh8HVU"
+        duration: 902
+      - id: "Gg0suugWa4E"
+        title: "Auf USB installieren, VirtualBox von USB starten"
+        description:
+        type: youtube
+        video_id: "Gg0suugWa4E"
+        duration: 427
+      - id: "ycnC1j9usTM"
+        title: "Persistente Installation auf USB"
+        description:
+        type: youtube
+        video_id: "ycnC1j9usTM"
+        duration: 749
+      - id: "J0LjWe36fyU"
+        title: "Installieren von Linux"
+        description:
+        type: youtube
+        video_id: "J0LjWe36fyU"
+        duration: 722
+  - id: section2
+    title: "Grundlagen im Linux Terminal"
+    description:
+    lectures:
+      - id: "aZJlQpiTVkw"
+        title: "Dateien und Grundbefehle"
+        description:
+        type: youtube
+        video_id: "aZJlQpiTVkw"
+        duration: 661
+      - id: "2RgpNc7AEQU"
+        title: "Rechte und Rechteverwaltung"
+        description:
+        type: youtube
+        video_id: "2RgpNc7AEQU"
+        duration: 393
+      - id: "EaUt-BC94dY"
+        title: "Verzeichnisse"
+        description:
+        type: youtube
+        video_id: "EaUt-BC94dY"
+        duration: 423
+      - id: "NkVqUj9GfUg"
+        title: "Prozessverwaltung"
+        description:
+        type: youtube
+        video_id: "NkVqUj9GfUg"
+        duration: 364
+      - id: "reHytpY3suc"
+        title: "Filtern"
+        description:
+        type: youtube
+        video_id: "reHytpY3suc"
+        duration: 580
+      - id: "mFOEdorIgQY"
+        title: "Pipes"
+        description:
+        type: youtube
+        video_id: "mFOEdorIgQY"
+        duration: 313
+      - id: "m5YvHeW3hGg"
+        title: "Installieren und Archive"
+        description:
+        type: youtube
+        video_id: "m5YvHeW3hGg"
+        duration: 502
+      - id: "MtpOZG_zlgk"
+        title: "Finden von Dateien"
+        description:
+        type: youtube
+        video_id: "MtpOZG_zlgk"
+        duration: 330
+      - id: "bIkXMVu2fvM"
+        title: "Links"
+        description:
+        type: youtube
+        video_id: "bIkXMVu2fvM"
+        duration: 390
+  - id: section3
+    title: "Nützliches und Spaßiges"
+    description:
+    lectures:
+      - id: "EpbViz5QPjE"
+        title: "Wetter anzeigen im Terminal mit einer Zeile"
+        description:
+        type: youtube
+        video_id: "EpbViz5QPjE"
+        duration: 58
+      - id: "-aQFREGMXnE"
+        title: "Dem Terminal Charakter verpassen"
+        description:
+        type: youtube
+        video_id: "-aQFREGMXnE"
+        duration: 62
+      - id: "hSbtq_T_PqU"
+        title: "Star Wars Episode 4 als ASCII Art"
+        description:
+        type: youtube
+        video_id: "hSbtq_T_PqU"
+        duration: 132
+      - id: "a3yclTCHB8U"
+        title: "rlwrap"
+        description:
+        type: youtube
+        video_id: "a3yclTCHB8U"
+        duration: 107
+      - id: "3ImniGhMZHI"
+        title: "Ein einzeiliger Speedtest im Terminal"
+        description:
+        type: youtube
+        video_id: "3ImniGhMZHI"
+        duration: 84
+      - id: "gYcoQaq-iRQ"
+        title: "Videos konvertieren, schneiden und mehr mit ffmpeg"
+        description:
+        type: youtube
+        video_id: "gYcoQaq-iRQ"
+        duration: 691
+      - id: "lzalyyHuepQ"
+        title: "Passwort mit Sternchen sichtbar machen"
+        description:
+        type: youtube
+        video_id: "lzalyyHuepQ"
+        duration: 82
+      - id: "HSdPqoFOlAI"
+        title: "automatisches Herunterfahren"
+        description:
+        type: youtube
+        video_id: "HSdPqoFOlAI"
+        duration: 164
+      - id: "-5HF6eNOUnk"
+        title: "Autostart"
+        description:
+        type: youtube
+        video_id: "-5HF6eNOUnk"
+        duration: 182
+      - id: "I2-9egjFYJw"
+        title: "Grub Bootloader anpassen"
+        description:
+        type: youtube
+        video_id: "I2-9egjFYJw"
+        duration: 219
+      - id: "tL1PSKIjPcQ"
+        title: "Ubuntu im Browser testen"
+        description:
+        type: youtube
+        video_id: "tL1PSKIjPcQ"
+        duration: 103
+      - id: "yyybv6H03YU"
+        title: "PDF Dateien vereinigen"
+        description:
+        type: youtube
+        video_id: "yyybv6H03YU"
+        duration: 76
+      - id: "R6tpJojTedA"
+        title: "Bild in Ascii Art konvertieren"
+        description:
+        type: youtube
+        video_id: "R6tpJojTedA"
+        duration: 107
+  - id: section5
+    title: "Mehr nützliche Features und Tools"
+    description:
+    lectures:
+      - id: "84ItGdw3Kvk"
+        title: "DNS Server ändern"
+        description:
+        type: youtube
+        video_id: "84ItGdw3Kvk"
+        duration: 254
+      - id: "vTZen7efha8"
+        title: "top zur Überwachung der Auslastung"
+        description:
+        type: youtube
+        video_id: "vTZen7efha8"
+        duration: 594
+      - id: "Ur9bf-RMMLA"
+        title: "Cpulimit"
+        description:
+        type: youtube
+        video_id: "Ur9bf-RMMLA"
+        duration: 181
+      - id: "xzU4I5UO1Qg"
+        title: "Der Shell-Vergleich: Bash vs ZSH | ZSH und Oh-My-ZSH installieren"
+        description:
+        type: youtube
+        video_id: "xzU4I5UO1Qg"
+        duration: 1451

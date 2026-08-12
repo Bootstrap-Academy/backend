@@ -1,0 +1,474 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7olLCliQ05e6hvEOl6sbBgv
+title: "Unreal Engine 4"
+description: "Ihr wolltet schon immer mal Spiele entwickeln? Eine der bekanntesten Engines überhaupt - und dazu bis zu einem gewissen Wert noch völlig kostenlos - ist die Unreal Engine 4!"
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/unrealengine.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665508182
+sections:
+  - id: section
+    title: "Einleitung"
+    description:
+    lectures:
+      - id: "U7Cs3gkelAU"
+        title: "Spiele programmieren lernen"
+        description:
+        type: youtube
+        video_id: "U7Cs3gkelAU"
+        duration: 749
+      - id: "tF5svOY4PNc"
+        title: "Das Interface"
+        description:
+        type: youtube
+        video_id: "tF5svOY4PNc"
+        duration: 650
+      - id: "p42u7MAIt-U"
+        title: "Objekte verschieben, rotieren und skalieren"
+        description:
+        type: youtube
+        video_id: "p42u7MAIt-U"
+        duration: 698
+      - id: "NrDyqJLdI3E"
+        title: "Der Contentbrowser"
+        description:
+        type: youtube
+        video_id: "NrDyqJLdI3E"
+        duration: 404
+      - id: "EzhKSA3dUM0"
+        title: "Wände und Türen"
+        description:
+        type: youtube
+        video_id: "EzhKSA3dUM0"
+        duration: 635
+      - id: "co2x9BvBiaE"
+        title: "ein bisschen Leveldesign"
+        description:
+        type: youtube
+        video_id: "co2x9BvBiaE"
+        duration: 672
+      - id: "HMm6tm8a9ss"
+        title: "Blueprints"
+        description:
+        type: youtube
+        video_id: "HMm6tm8a9ss"
+        duration: 551
+      - id: "_XTeus4-Sys"
+        title: "Animationen"
+        description:
+        type: youtube
+        video_id: "_XTeus4-Sys"
+        duration: 642
+      - id: "NOdXRoz7Vqc"
+        title: "Licht an- und ausschalten"
+        description:
+        type: youtube
+        video_id: "NOdXRoz7Vqc"
+        duration: 568
+  - id: section2
+    title: "Blueprints"
+    description:
+    lectures:
+      - id: "DjrkcHDpCJI"
+        title: "class-Blueprints"
+        description:
+        type: youtube
+        video_id: "DjrkcHDpCJI"
+        duration: 756
+      - id: "4MJ__5kg9js"
+        title: "Construction Scripts"
+        description:
+        type: youtube
+        video_id: "4MJ__5kg9js"
+        duration: 606
+      - id: "Ufd0uC9UWzs"
+        title: "grundlegende Typen"
+        description:
+        type: youtube
+        video_id: "Ufd0uC9UWzs"
+        duration: 668
+      - id: "0aFNN-rWUEU"
+        title: "lokales und Weltkoordinatensystem"
+        description:
+        type: youtube
+        video_id: "0aFNN-rWUEU"
+        duration: 404
+      - id: "tn7Yh7BnGfo"
+        title: "Benutzereingaben"
+        description:
+        type: youtube
+        video_id: "tn7Yh7BnGfo"
+        duration: 503
+      - id: "TshNQ-OAd3A"
+        title: "Arrays"
+        description:
+        type: youtube
+        video_id: "TshNQ-OAd3A"
+        duration: 586
+      - id: "D2uClHdDvtA"
+        title: "For-Schleifen"
+        description:
+        type: youtube
+        video_id: "D2uClHdDvtA"
+        duration: 615
+      - id: "_L4YJVTJ33I"
+        title: "While-Schleifen"
+        description:
+        type: youtube
+        video_id: "_L4YJVTJ33I"
+        duration: 677
+      - id: "d0wP44wdsVM"
+        title: "Projektile und Spawnen von Actors"
+        description:
+        type: youtube
+        video_id: "d0wP44wdsVM"
+        duration: 949
+      - id: "8djYpTpRCeU"
+        title: "Custom Events und Kommunikation zwischen Blueprints"
+        description:
+        type: youtube
+        video_id: "8djYpTpRCeU"
+        duration: 692
+      - id: "KaZ-Mdx3nZA"
+        title: "Physics Actor"
+        description:
+        type: youtube
+        video_id: "KaZ-Mdx3nZA"
+        duration: 614
+      - id: "xfQs7s9knQY"
+        title: "Debugging und Breakpoints"
+        description:
+        type: youtube
+        video_id: "xfQs7s9knQY"
+        duration: 366
+      - id: "_LAFT9qMCPg"
+        title: "Expose On Spawn"
+        description:
+        type: youtube
+        video_id: "_LAFT9qMCPg"
+        duration: 273
+  - id: section3
+    title: "Models"
+    description:
+    lectures:
+      - id: "wMak9zJDGgE"
+        title: "Models importieren"
+        description:
+        type: youtube
+        video_id: "wMak9zJDGgE"
+        duration: 492
+      - id: "zA_1bMP7DN0"
+        title: "Animationen Basics und Skelette"
+        description:
+        type: youtube
+        video_id: "zA_1bMP7DN0"
+        duration: 595
+      - id: "EtQbFvC_A8g"
+        title: "Inputs aufsetzen"
+        description:
+        type: youtube
+        video_id: "EtQbFvC_A8g"
+        duration: 503
+      - id: "qRxDEc9BQhk"
+        title: "Blend Spaces"
+        description:
+        type: youtube
+        video_id: "qRxDEc9BQhk"
+        duration: 415
+      - id: "hq3cNy3E_TA"
+        title: "Animation Blueprints"
+        description:
+        type: youtube
+        video_id: "hq3cNy3E_TA"
+        duration: 397
+      - id: "9oEwVK7vleI"
+        title: "Der Animation Graph und Automaten"
+        description:
+        type: youtube
+        video_id: "9oEwVK7vleI"
+        duration: 1142
+      - id: "7cLx6e9I0RM"
+        title: "Der Event Graph der Animation"
+        description:
+        type: youtube
+        video_id: "7cLx6e9I0RM"
+        duration: 497
+      - id: "wzhmp6FFlWM"
+        title: "Der Character Blueprint"
+        description:
+        type: youtube
+        video_id: "wzhmp6FFlWM"
+        duration: 673
+      - id: "A7MFmNalNLQ"
+        title: "Character Input"
+        description:
+        type: youtube
+        video_id: "A7MFmNalNLQ"
+        duration: 736
+  - id: section4
+    title: "Wichtige Tricks"
+    description:
+    lectures:
+      - id: "3qL9xUlWEms"
+        title: "Game Modes und unsere Arbeit in Action"
+        description:
+        type: youtube
+        video_id: "3qL9xUlWEms"
+        duration: 511
+      - id: "r8PZLltUSF4"
+        title: "Checkpoints und Schaden"
+        description:
+        type: youtube
+        video_id: "r8PZLltUSF4"
+        duration: 700
+      - id: "G5vHGU-IYYc"
+        title: "ein einfaches HUD"
+        description:
+        type: youtube
+        video_id: "G5vHGU-IYYc"
+        duration: 958
+      - id: "eEYiDaxsE00"
+        title: "Spielstände speichern"
+        description:
+        type: youtube
+        video_id: "eEYiDaxsE00"
+        duration: 664
+  - id: section5
+    title: "Licht, Schatten, Materials und Reflektionen"
+    description:
+    lectures:
+      - id: "WsxMPlkYKac"
+        title: "Volumetrischer Nebel"
+        description:
+        type: youtube
+        video_id: "WsxMPlkYKac"
+        duration: 518
+      - id: "uDO-mUcPQN8"
+        title: "Reflektionen und Reflektionskugeln"
+        description:
+        type: youtube
+        video_id: "uDO-mUcPQN8"
+        duration: 231
+      - id: "2S-PzSS4QJs"
+        title: "Lichtkegel und Blooming"
+        description:
+        type: youtube
+        video_id: "2S-PzSS4QJs"
+        duration: 229
+      - id: "U5osb8OK3FY"
+        title: "Materials Einleitung"
+        description:
+        type: youtube
+        video_id: "U5osb8OK3FY"
+        duration: 463
+      - id: "j6PT0NhEfgM"
+        title: "Texturen, Normalen und Blending"
+        description:
+        type: youtube
+        video_id: "j6PT0NhEfgM"
+        duration: 831
+      - id: "1BR_xcPhjOA"
+        title: "Lava - zeitgebundene Materialien / Panner"
+        description:
+        type: youtube
+        video_id: "1BR_xcPhjOA"
+        duration: 685
+      - id: "Y3LNBO0GLKg"
+        title: "Parallax Mapping / Texturen mit Höheninformationen"
+        description:
+        type: youtube
+        video_id: "Y3LNBO0GLKg"
+        duration: 640
+      - id: "el1qqePYedA"
+        title: "Transluzente Materialien (Lavaglas =) )"
+        description:
+        type: youtube
+        video_id: "el1qqePYedA"
+        duration: 364
+      - id: "z8KAle7Q-bA"
+        title: "Schnee und Materialfunktionen"
+        description:
+        type: youtube
+        video_id: "z8KAle7Q-bA"
+        duration: 715
+      - id: "yPA8k-KIL38"
+        title: "Schnee als Layered Material"
+        description:
+        type: youtube
+        video_id: "yPA8k-KIL38"
+        duration: 481
+      - id: "EJbtQzR8U-A"
+        title: "Detail Textures"
+        description:
+        type: youtube
+        video_id: "EJbtQzR8U-A"
+        duration: 545
+      - id: "RbVODlyXxKA"
+        title: "Distance based Detail Texturing"
+        description:
+        type: youtube
+        video_id: "RbVODlyXxKA"
+        duration: 693
+      - id: "wQjknJ-w8sw"
+        title: "Strahlende Materials und Materialinstances"
+        description:
+        type: youtube
+        video_id: "wQjknJ-w8sw"
+        duration: 646
+      - id: "wyu0XyuzmQQ"
+        title: "Fresnel Effekte"
+        description:
+        type: youtube
+        video_id: "wyu0XyuzmQQ"
+        duration: 339
+      - id: "A-phLQUILQw"
+        title: "Partikelsysteme"
+        description:
+        type: youtube
+        video_id: "A-phLQUILQw"
+        duration: 799
+      - id: "OCFxIcCtpsQ"
+        title: "Level Of Detail im Partikelsystem"
+        description:
+        type: youtube
+        video_id: "OCFxIcCtpsQ"
+        duration: 502
+      - id: "z5bJHLxnrDE"
+        title: "Der Curve Editor"
+        description:
+        type: youtube
+        video_id: "z5bJHLxnrDE"
+        duration: 587
+  - id: section6
+    title: "Zwischensequenzen mit dem Sequencer"
+    description:
+    lectures:
+      - id: "7REjwKwgzDQ"
+        title: "Einleitung"
+        description:
+        type: youtube
+        video_id: "7REjwKwgzDQ"
+        duration: 663
+      - id: "euDMa2wDs84"
+        title: "Shots und Subsequences"
+        description:
+        type: youtube
+        video_id: "euDMa2wDs84"
+        duration: 537
+      - id: "9IRVb1oOS2M"
+        title: "Subscenes und Animationen"
+        description:
+        type: youtube
+        video_id: "9IRVb1oOS2M"
+        duration: 912
+      - id: "jjE5TiOvhD0"
+        title: "Cameras"
+        description:
+        type: youtube
+        video_id: "jjE5TiOvhD0"
+        duration: 908
+      - id: "E-BDFuki1xA"
+        title: "Slow Motion und weitere Tricks"
+        description:
+        type: youtube
+        video_id: "E-BDFuki1xA"
+        duration: 459
+      - id: "_bsvXpOre3M"
+        title: "Takes"
+        description:
+        type: youtube
+        video_id: "_bsvXpOre3M"
+        duration: 337
+      - id: "QojDo0I0IyM"
+        title: "Exportieren und Rendern der Sequenz"
+        description:
+        type: youtube
+        video_id: "QojDo0I0IyM"
+        duration: 434
+      - id: "whmnpxlSoFo"
+        title: "Der Master Sequencer"
+        description:
+        type: youtube
+        video_id: "whmnpxlSoFo"
+        duration: 167
+      - id: "vQ430KHy3mU"
+        title: "Fades und Ton"
+        description:
+        type: youtube
+        video_id: "vQ430KHy3mU"
+        duration: 293
+      - id: "AaGPfOMdEU4"
+        title: "Kamerafahrten und Tracking"
+        description:
+        type: youtube
+        video_id: "AaGPfOMdEU4"
+        duration: 460
+      - id: "0Sz3gUuj6zw"
+        title: "Sequences aus Blueprints auslösen"
+        description:
+        type: youtube
+        video_id: "0Sz3gUuj6zw"
+        duration: 338
+      - id: "H6X31sfRbcc"
+        title: "Events aus Sequences"
+        description:
+        type: youtube
+        video_id: "H6X31sfRbcc"
+        duration: 283
+  - id: section7
+    title: "Paper2D"
+    description:
+    lectures:
+      - id: "-ANulmE9yEU"
+        title: "Einleitung"
+        description:
+        type: youtube
+        video_id: "-ANulmE9yEU"
+        duration: 414
+      - id: "fuz09-B-Vbc"
+        title: "Paper2D - Das Prototype Material"
+        description:
+        type: youtube
+        video_id: "fuz09-B-Vbc"
+        duration: 602
+      - id: "uEhYYzZYZSw"
+        title: "Level Layout"
+        description:
+        type: youtube
+        video_id: "uEhYYzZYZSw"
+        duration: 606
+      - id: "_8lvWOPF7B8"
+        title: "Sprites, Physik, Collision und Rendering"
+        description:
+        type: youtube
+        video_id: "_8lvWOPF7B8"
+        duration: 601
+      - id: "Rltg-nXHl0k"
+        title: "Flipbook Animationen"
+        description:
+        type: youtube
+        video_id: "Rltg-nXHl0k"
+        duration: 438
+      - id: "3jGTaq2qWpQ"
+        title: "Der PlayerBlueprint"
+        description:
+        type: youtube
+        video_id: "3jGTaq2qWpQ"
+        duration: 760
+      - id: "PpKUOxh2C3Y"
+        title: "Input und Bewegung"
+        description:
+        type: youtube
+        video_id: "PpKUOxh2C3Y"
+        duration: 590
+      - id: "D8Q-JsBqgpU"
+        title: "Animation umschalten"
+        description:
+        type: youtube
+        video_id: "D8Q-JsBqgpU"
+        duration: 343

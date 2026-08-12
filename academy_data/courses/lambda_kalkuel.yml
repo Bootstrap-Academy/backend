@@ -1,0 +1,120 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7oBz3PP5sGIkLnmBbw10UUP
+title: "Der Lambda Kalkül"
+description: "Äh, wut? Der Lambda Kalkül ist wohl der theoretischste Ansatz zu Programmierung, den ihr je gesehen habt. Er versucht Funktionen und Co zu formalisieren und macht das.. mit ein paar extra Windungen im Gehirn. Nehmt euch nen Tee und gleich noch einen Kaffee dazu und gönnt euch."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/lamda.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665506696
+sections:
+  - id: section
+    title: "Der Lambda Kalkül"
+    description:
+    lectures:
+      - id: "KJmaND1V4r4"
+        title: "Einführung"
+        description:
+        type: youtube
+        video_id: "KJmaND1V4r4"
+        duration: 751
+      - id: "CeU5CrvsPuw"
+        title: "Alpha-Äquivalenz"
+        description:
+        type: youtube
+        video_id: "CeU5CrvsPuw"
+        duration: 346
+      - id: "9sFgP105EJg"
+        title: "Beta Reduktion"
+        description:
+        type: youtube
+        video_id: "9sFgP105EJg"
+        duration: 452
+      - id: "rNmPopvqAzc"
+        title: "Normalreihenfolge und Normalform"
+        description:
+        type: youtube
+        video_id: "rNmPopvqAzc"
+        duration: 282
+      - id: "LBLCiM34S6Q"
+        title: "Call-by-Name und Call-by-Value"
+        description:
+        type: youtube
+        video_id: "LBLCiM34S6Q"
+        duration: 335
+      - id: "qx5h6-uLork"
+        title: "natürliche Zahlen - Church Zahlen"
+        description:
+        type: youtube
+        video_id: "qx5h6-uLork"
+        duration: 572
+      - id: "L1YbhqcBXDw"
+        title: "Addition von Church-Zahlen"
+        description:
+        type: youtube
+        video_id: "L1YbhqcBXDw"
+        duration: 477
+      - id: "dubTJQ-iGLk"
+        title: "Multiplikation von Church Zahlen"
+        description:
+        type: youtube
+        video_id: "dubTJQ-iGLk"
+        duration: 357
+      - id: "r4V2fQv8y9g"
+        title: "True, False, If und AND"
+        description:
+        type: youtube
+        video_id: "r4V2fQv8y9g"
+        duration: 499
+      - id: "xgQRhVQY3mM"
+        title: "Typsysteme"
+        description:
+        type: youtube
+        video_id: "xgQRhVQY3mM"
+        duration: 418
+      - id: "dQnoxO4SQUI"
+        title: "Typsysteme: Abstraktionsregel"
+        description:
+        type: youtube
+        video_id: "dQnoxO4SQUI"
+        duration: 382
+      - id: "raTfwW-A-PY"
+        title: "Typsysteme: Applikationsregel"
+        description:
+        type: youtube
+        video_id: "raTfwW-A-PY"
+        duration: 462
+      - id: "mLt7PIypMvk"
+        title: "Typsysteme: Konstanten- und Variablenregel"
+        description:
+        type: youtube
+        video_id: "mLt7PIypMvk"
+        duration: 281
+      - id: "F0x6_11fHqM"
+        title: "Typsysteme: variable Typen"
+        description:
+        type: youtube
+        video_id: "F0x6_11fHqM"
+        duration: 369
+      - id: "ZL3kqMmMyZg"
+        title: "Typsysteme: Let Regel"
+        description:
+        type: youtube
+        video_id: "ZL3kqMmMyZg"
+        duration: 874
+      - id: "FF-bmQBUzlM"
+        title: "Typsysteme: Ein Beispielbaum"
+        description:
+        type: youtube
+        video_id: "FF-bmQBUzlM"
+        duration: 726
+      - id: "Bx6-OoYk6H0"
+        title: "Typsysteme: Unifikation"
+        description:
+        type: youtube
+        video_id: "Bx6-OoYk6H0"
+        duration: 747

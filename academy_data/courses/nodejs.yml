@@ -1,0 +1,132 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7o-5JThNbEVW6CGAhWJwnkA
+title: "Node.js Tutorial - Serverseitiges JavaScript"
+description: "Ihr wollt serverseitig JavaScript laufen lassen? Dann geht das mit NodeJS. Diese Tutorials werden stark von der Express Reihe ergänzt und ergänzen diese Reihe ebenso."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/javascript.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 3000
+learning_goals: []
+requirements: []
+last_update: 1665507460
+sections:
+  - id: section
+    title: "Node.js Tutorial - Serverseitiges JavaScript"
+    description:
+    lectures:
+      - id: "IyNpu4t30e8"
+        title: "NodeJS: JavaScript sinnvoll erweitern"
+        description:
+        type: youtube
+        video_id: "IyNpu4t30e8"
+        duration: 431
+      - id: "f15kMS0z5iU"
+        title: "NPM - Paketmanager für Javascript"
+        description:
+        type: youtube
+        video_id: "f15kMS0z5iU"
+        duration: 411
+      - id: "pRZ5qdJxxgE"
+        title: "Abhängigkeiten definieren und Projekte weitergeben mit der Package.json"
+        description:
+        type: youtube
+        video_id: "pRZ5qdJxxgE"
+        duration: 355
+      - id: "Ei7-YOR8oRU"
+        title: "NPM - Automatisierte Builds und Browserify"
+        description:
+        type: youtube
+        video_id: "Ei7-YOR8oRU"
+        duration: 1002
+      - id: "9mTQPlhNvb8"
+        title: "Mit nodemon unkompliziert schnelleres serverseitiges Arbeiten ermöglichen"
+        description:
+        type: youtube
+        video_id: "9mTQPlhNvb8"
+        duration: 257
+      - id: "NQEPx_m8T_c"
+        title: "Ein Node Server mit JavaScript"
+        description:
+        type: youtube
+        video_id: "NQEPx_m8T_c"
+        duration: 514
+      - id: "3yamCfm0DSU"
+        title: "Die Event Loop"
+        description:
+        type: youtube
+        video_id: "3yamCfm0DSU"
+        duration: 545
+      - id: "IWtwvRiVryA"
+        title: "Das Request Object"
+        description:
+        type: youtube
+        video_id: "IWtwvRiVryA"
+        duration: 484
+      - id: "fSYdusZmdEw"
+        title: "Das Response Object"
+        description:
+        type: youtube
+        video_id: "fSYdusZmdEw"
+        duration: 441
+      - id: "J1i19TAIffw"
+        title: "POST Requests verarbeiten"
+        description:
+        type: youtube
+        video_id: "J1i19TAIffw"
+        duration: 1103
+      - id: "GGp7doY0OpQ"
+        title: "Dateien schreiben"
+        description:
+        type: youtube
+        video_id: "GGp7doY0OpQ"
+        duration: 597
+      - id: "U_hIbwbiyw4"
+        title: "Mit MySQL verbinden"
+        description:
+        type: youtube
+        video_id: "U_hIbwbiyw4"
+        duration: 696
+      - id: "w-_81TcrgyA"
+        title: "Mit SQL arbeiten"
+        description:
+        type: youtube
+        video_id: "w-_81TcrgyA"
+        duration: 438
+      - id: "yGqllZCqDP8"
+        title: "Einfache und effektive Datenbank Integration mit Sequelize"
+        description:
+        type: youtube
+        video_id: "yGqllZCqDP8"
+        duration: 524
+      - id: "UJIwEkAPIP4"
+        title: "Das User Model und einfügen von neuen Usern"
+        description:
+        type: youtube
+        video_id: "UJIwEkAPIP4"
+        duration: 750
+      - id: "9b-pJKbBcxI"
+        title: "Einträge mit Sequelize holen"
+        description:
+        type: youtube
+        video_id: "9b-pJKbBcxI"
+        duration: 708
+      - id: "mQfhgSMhK0k"
+        title: "Operatoren in Sequelize"
+        description:
+        type: youtube
+        video_id: "mQfhgSMhK0k"
+        duration: 542
+      - id: "K4JKnVHcJOc"
+        title: "Assoziationen"
+        description:
+        type: youtube
+        video_id: "K4JKnVHcJOc"
+        duration: 786
+      - id: "a4CHruqUzEo"
+        title: "Assoziationen schreiben und holen"
+        description:
+        type: youtube
+        video_id: "a4CHruqUzEo"
+        duration: 574

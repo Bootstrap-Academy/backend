@@ -1,0 +1,412 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7qNMn6zimfu4JPUklG-4Uu4
+title: "Softwareengineering - Grundlagen"
+description: "Softwareentwickeln ist - so leid es mir tut, das sagen zu müssen - etwas völlig anderes als Programmieren. Es geht darum, den Code aus zig Modulen und zig Klassen in ein großes und ganzes zu gießen - und sich überhaupt mal darum Gedanken zu machen, was man eigentlich braucht. Software ist mittlerweile so hochkomplex, da muss das definitiv sein!"
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/softwareengineering.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665507210
+sections:
+  - id: section
+    title: "Modelle"
+    description:
+    lectures:
+      - id: "r4u_6OPHiMo"
+        title: "Einleitung"
+        description:
+        type: youtube
+        video_id: "r4u_6OPHiMo"
+        duration: 747
+      - id: "TgXV_Lw-dBo"
+        title: "Das Wasserfallmodell"
+        description:
+        type: youtube
+        video_id: "TgXV_Lw-dBo"
+        duration: 400
+      - id: "GZjdl_zf4LA"
+        title: "Scrum"
+        description:
+        type: youtube
+        video_id: "GZjdl_zf4LA"
+        duration: 941
+      - id: "Q4a519zKeyg"
+        title: "Projektfindung"
+        description:
+        type: youtube
+        video_id: "Q4a519zKeyg"
+        duration: 272
+      - id: "v3zzvFv1gME"
+        title: "Die Planungsphase"
+        description:
+        type: youtube
+        video_id: "v3zzvFv1gME"
+        duration: 459
+      - id: "m5deYfB4Zn8"
+        title: "Requirements: Kategorien"
+        description:
+        type: youtube
+        video_id: "m5deYfB4Zn8"
+        duration: 380
+      - id: "kTeEIdSd7-o"
+        title: "Der Entwurf"
+        description:
+        type: youtube
+        video_id: "kTeEIdSd7-o"
+        duration: 300
+  - id: section2
+    title: "Architekturen"
+    description:
+    lectures:
+      - id: "f2A-YfXjl_w"
+        title: "Die Architektur"
+        description:
+        type: youtube
+        video_id: "f2A-YfXjl_w"
+        duration: 281
+      - id: "oP7bKkTQCYM"
+        title: "Separation of Concerns"
+        description:
+        type: youtube
+        video_id: "oP7bKkTQCYM"
+        duration: 293
+      - id: "V70soZ4obBE"
+        title: "Single Responsibility und Information Hiding"
+        description:
+        type: youtube
+        video_id: "V70soZ4obBE"
+        duration: 283
+      - id: "a8mTNpp9osg"
+        title: "Least Knowledge, YAGNI und DRY"
+        description:
+        type: youtube
+        video_id: "a8mTNpp9osg"
+        duration: 243
+      - id: "2g_TRpBfROo"
+        title: "Die 3-Schichtenarchitektur"
+        description:
+        type: youtube
+        video_id: "2g_TRpBfROo"
+        duration: 452
+      - id: "0vkZGWX73yc"
+        title: "Die 4-Schichtenarchitektur"
+        description:
+        type: youtube
+        video_id: "0vkZGWX73yc"
+        duration: 482
+      - id: "r5CwZw6Vutc"
+        title: "Die 6-Schichtenarchitektur"
+        description:
+        type: youtube
+        video_id: "r5CwZw6Vutc"
+        duration: 279
+      - id: "9OtDAgRnGYQ"
+        title: "Die Client-Server Architektur"
+        description:
+        type: youtube
+        video_id: "9OtDAgRnGYQ"
+        duration: 285
+      - id: "_7FSgpV8FKI"
+        title: "SOA und REST"
+        description:
+        type: youtube
+        video_id: "_7FSgpV8FKI"
+        duration: 331
+      - id: "gi8jcIIpVIw"
+        title: "Peer-2-Peer Architekturen"
+        description:
+        type: youtube
+        video_id: "gi8jcIIpVIw"
+        duration: 336
+      - id: "qzNdyvzKtMg"
+        title: "Pipelines"
+        description:
+        type: youtube
+        video_id: "qzNdyvzKtMg"
+        duration: 315
+      - id: "yAVBMEmx05k"
+        title: "Event-Driven Architecture"
+        description:
+        type: youtube
+        video_id: "yAVBMEmx05k"
+        duration: 179
+      - id: "c_o_uJ-itz0"
+        title: "Frameworks und Plugins"
+        description:
+        type: youtube
+        video_id: "c_o_uJ-itz0"
+        duration: 200
+      - id: "xK-nj3J1zXA"
+        title: "Model View Controller MVC"
+        description:
+        type: youtube
+        video_id: "xK-nj3J1zXA"
+        duration: 320
+  - id: section3
+    title: "Entwurfsmuster"
+    description:
+    lectures:
+      - id: "zVFtyuLFiXg"
+        title: "Entwurf und Muster"
+        description:
+        type: youtube
+        video_id: "zVFtyuLFiXg"
+        duration: 328
+      - id: "bRHi1JOVGpI"
+        title: "Die Factory Method"
+        description:
+        type: youtube
+        video_id: "bRHi1JOVGpI"
+        duration: 258
+      - id: "J5_nYHaJEsc"
+        title: "Das Prototype Pattern"
+        description:
+        type: youtube
+        video_id: "J5_nYHaJEsc"
+        duration: 213
+      - id: "2JCIsj5hVBc"
+        title: "Das Abstract Factory Pattern"
+        description:
+        type: youtube
+        video_id: "2JCIsj5hVBc"
+        duration: 306
+      - id: "dcdf3E9XO_Y"
+        title: "Das Builder Pattern"
+        description:
+        type: youtube
+        video_id: "dcdf3E9XO_Y"
+        duration: 239
+      - id: "GUcWjYHmYhY"
+        title: "Dependency Injection"
+        description:
+        type: youtube
+        video_id: "GUcWjYHmYhY"
+        duration: 351
+      - id: "gVaZvrLn48I"
+        title: "Object Pools"
+        description:
+        type: youtube
+        video_id: "gVaZvrLn48I"
+        duration: 236
+      - id: "tBqj1ubwKts"
+        title: "Das Singleton"
+        description:
+        type: youtube
+        video_id: "tBqj1ubwKts"
+        duration: 208
+      - id: "VKbbVmBpfpQ"
+        title: "Das Adapterpattern"
+        description:
+        type: youtube
+        video_id: "VKbbVmBpfpQ"
+        duration: 196
+      - id: "q_2ShvmotFc"
+        title: "Der Decorator"
+        description:
+        type: youtube
+        video_id: "q_2ShvmotFc"
+        duration: 328
+      - id: "TcEMjUmhRjI"
+        title: "Die Fassade"
+        description:
+        type: youtube
+        video_id: "TcEMjUmhRjI"
+        duration: 197
+      - id: "mo8PRf0BPLE"
+        title: "Die Brücke/ Das Bridge Pattern"
+        description:
+        type: youtube
+        video_id: "mo8PRf0BPLE"
+        duration: 346
+      - id: "N6nlWISC5is"
+        title: "Das Flyweight / Fliegengewicht Pattern"
+        description:
+        type: youtube
+        video_id: "N6nlWISC5is"
+        duration: 379
+      - id: "Gpp4VK2K0tg"
+        title: "Das Proxy Pattern"
+        description:
+        type: youtube
+        video_id: "Gpp4VK2K0tg"
+        duration: 311
+      - id: "TndId6Y3TGk"
+        title: "Das Observer Pattern aka Publish Subscribe"
+        description:
+        type: youtube
+        video_id: "TndId6Y3TGk"
+        duration: 340
+      - id: "AC_sgvn48S0"
+        title: "Das Visitor Pattern"
+        description:
+        type: youtube
+        video_id: "AC_sgvn48S0"
+        duration: 400
+      - id: "q_GSakzwr1A"
+        title: "Das Mediator Pattern"
+        description:
+        type: youtube
+        video_id: "q_GSakzwr1A"
+        duration: 201
+      - id: "sgyg1fINd_c"
+        title: "Das Strategy Pattern"
+        description:
+        type: youtube
+        video_id: "sgyg1fINd_c"
+        duration: 250
+      - id: "xaQfItxeFs4"
+        title: "Chain of Responsibility"
+        description:
+        type: youtube
+        video_id: "xaQfItxeFs4"
+        duration: 259
+      - id: "XXFqKN-Uemc"
+        title: "Das Command Pattern"
+        description:
+        type: youtube
+        video_id: "XXFqKN-Uemc"
+        duration: 145
+      - id: "Oh-AXdBgos8"
+        title: "Das Memento Pattern"
+        description:
+        type: youtube
+        video_id: "Oh-AXdBgos8"
+        duration: 159
+      - id: "hZ9wPD32Y4w"
+        title: "Das Template Pattern"
+        description:
+        type: youtube
+        video_id: "hZ9wPD32Y4w"
+        duration: 220
+      - id: "XdJuzSJhiag"
+        title: "Das Null Object"
+        description:
+        type: youtube
+        video_id: "XdJuzSJhiag"
+        duration: 164
+      - id: "O5TVlmJGCjQ"
+        title: "Iteratoren"
+        description:
+        type: youtube
+        video_id: "O5TVlmJGCjQ"
+        duration: 258
+      - id: "DhHgkF-1wF8"
+        title: "Interpreter"
+        description:
+        type: youtube
+        video_id: "DhHgkF-1wF8"
+        duration: 286
+      - id: "fNNWjjMqLyc"
+        title: "Die GRASP - Patterns"
+        description:
+        type: youtube
+        video_id: "fNNWjjMqLyc"
+        duration: 611
+      - id: "lc9LdxPKwxo"
+        title: "Das Transaction Script"
+        description:
+        type: youtube
+        video_id: "lc9LdxPKwxo"
+        duration: 314
+      - id: "W-l5jh0LXW4"
+        title: "Das Table Module"
+        description:
+        type: youtube
+        video_id: "W-l5jh0LXW4"
+        duration: 228
+      - id: "HaYhtv5BaeU"
+        title: "Das Domain Module"
+        description:
+        type: youtube
+        video_id: "HaYhtv5BaeU"
+        duration: 203
+      - id: "arf_2v02Fk0"
+        title: "Das Record Set"
+        description:
+        type: youtube
+        video_id: "arf_2v02Fk0"
+        duration: 296
+      - id: "5bf-QpLMon0"
+        title: "Table Data Gateway"
+        description:
+        type: youtube
+        video_id: "5bf-QpLMon0"
+        duration: 192
+      - id: "geVT4x-OMYI"
+        title: "Active Records"
+        description:
+        type: youtube
+        video_id: "geVT4x-OMYI"
+        duration: 330
+      - id: "DaL3ygRX-Xo"
+        title: "Row Data Gateway"
+        description:
+        type: youtube
+        video_id: "DaL3ygRX-Xo"
+        duration: 327
+      - id: "7k7Ygm4ARV8"
+        title: "Single Table Inheritance"
+        description:
+        type: youtube
+        video_id: "7k7Ygm4ARV8"
+        duration: 297
+      - id: "LDEf9r9oixs"
+        title: "Class Table Inheritance"
+        description:
+        type: youtube
+        video_id: "LDEf9r9oixs"
+        duration: 342
+      - id: "cbR8GGwi2-Y"
+        title: "Concrete Table Inheritance"
+        description:
+        type: youtube
+        video_id: "cbR8GGwi2-Y"
+        duration: 415
+      - id: "ODEVZQJbEl0"
+        title: "Die Implementierungsphase: UML in Code umwandeln"
+        description:
+        type: youtube
+        video_id: "ODEVZQJbEl0"
+        duration: 441
+  - id: section4
+    title: "Testen"
+    description:
+    lectures:
+      - id: "d4gZ89r1_YU"
+        title: "Testen"
+        description:
+        type: youtube
+        video_id: "d4gZ89r1_YU"
+        duration: 646
+      - id: "TwQ31FmPBMA"
+        title: "Test-Abdeckungen"
+        description:
+        type: youtube
+        video_id: "TwQ31FmPBMA"
+        duration: 323
+      - id: "e9VHgl95qsc"
+        title: "Kontrollflussgraphen"
+        description:
+        type: youtube
+        video_id: "e9VHgl95qsc"
+        duration: 324
+  - id: section5
+    title: "Bonus"
+    description:
+    lectures:
+      - id: "kg3tpBy4YlQ"
+        title: "Microservice Architekturen"
+        description:
+        type: youtube
+        video_id: "kg3tpBy4YlQ"
+        duration: 549
+      - id: "4u4x4Zg5Zpg"
+        title: "Aufgaben besser verwalten: Top KANBAN-Boards im Vergleich"
+        description:
+        type: youtube
+        video_id: "4u4x4Zg5Zpg"
+        duration: 2068

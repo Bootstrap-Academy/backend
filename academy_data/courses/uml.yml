@@ -1,0 +1,102 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7oC7U6tm0BOnGg1R9ont0Vo
+title: "UML - Unified Modeling Language"
+description: "Ihr versucht gerade eure Software zu definieren und malt einfach drauf los? Ja.. schwierig. Denn für sowas gibt's Standards, damit jeder auch dasselbe versteht wie ihr. Und das ist UML."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/uml.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665508356
+sections:
+  - id: section
+    title: "Klassendiagramme"
+    description:
+    lectures:
+      - id: "PdlP8gzpRyo"
+        title: "Einleitung"
+        description:
+        type: youtube
+        video_id: "PdlP8gzpRyo"
+        duration: 718
+      - id: "F5k1u5mzZ3U"
+        title: "Klassendiagrammen"
+        description:
+        type: youtube
+        video_id: "F5k1u5mzZ3U"
+        duration: 475
+      - id: "fQZOFYuLd-k"
+        title: "Vererbung"
+        description:
+        type: youtube
+        video_id: "fQZOFYuLd-k"
+        duration: 601
+      - id: "fO7YTqZWZNQ"
+        title: "Assoziationen"
+        description:
+        type: youtube
+        video_id: "fO7YTqZWZNQ"
+        duration: 491
+      - id: "JvJjOZR6q9s"
+        title: "Assoziationsklassen"
+        description:
+        type: youtube
+        video_id: "JvJjOZR6q9s"
+        duration: 234
+      - id: "WKKZo1tiOy0"
+        title: "Aggregationen"
+        description:
+        type: youtube
+        video_id: "WKKZo1tiOy0"
+        duration: 259
+      - id: "uSrBTr7d_g8"
+        title: "reflexive Assoziationen"
+        description:
+        type: youtube
+        video_id: "uSrBTr7d_g8"
+        duration: 504
+  - id: section2
+    title: "OCL - Object Constraint Language"
+    description:
+    lectures:
+      - id: "7sluwA4RSoU"
+        title: "OCL - Object Constraint Language"
+        description:
+        type: youtube
+        video_id: "7sluwA4RSoU"
+        duration: 782
+  - id: section3
+    title: "Aktivitätsdiagramme"
+    description:
+    lectures:
+      - id: "FdH51Ujp-GU"
+        title: "Aktivitätsdiagramme"
+        description:
+        type: youtube
+        video_id: "FdH51Ujp-GU"
+        duration: 761
+      - id: "XClT7gR6hz0"
+        title: "Swim Lanes und Nebenläufigkeit"
+        description:
+        type: youtube
+        video_id: "XClT7gR6hz0"
+        duration: 472
+  - id: section4
+    title: "Weitere Diagramme"
+    description:
+    lectures:
+      - id: "L_auS6pd_l0"
+        title: "Sequenzdiagramme"
+        description:
+        type: youtube
+        video_id: "L_auS6pd_l0"
+        duration: 808
+      - id: "dYfr5Opkw38"
+        title: "Use Case Diagramme"
+        description:
+        type: youtube
+        video_id: "dYfr5Opkw38"
+        duration: 649

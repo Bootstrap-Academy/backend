@@ -1,0 +1,254 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7otfP2zTa8AIiNIWVg0BRqs
+title: "APIs programmieren mit Python Flask"
+description: "Ihr wollt eine API in Python entwickeln. Flask könnte euch gefallen!"
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/python.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665507927
+sections:
+  - id: section
+    title: "APIs programmieren mit Python Flask"
+    description:
+    lectures:
+      - id: "EGYpNQ3GL1Y"
+        title: "Flask vs. Django"
+        description:
+        type: youtube
+        video_id: "EGYpNQ3GL1Y"
+        duration: 336
+      - id: "I0KSJKHuHe4"
+        title: "Installation"
+        description:
+        type: youtube
+        video_id: "I0KSJKHuHe4"
+        duration: 374
+      - id: "EMcTreG8N3g"
+        title: "Routing"
+        description:
+        type: youtube
+        video_id: "EMcTreG8N3g"
+        duration: 217
+      - id: "x0iLkYsoWTU"
+        title: "Variable Routen"
+        description:
+        type: youtube
+        video_id: "x0iLkYsoWTU"
+        duration: 461
+      - id: "kKixgYl_eIM"
+        title: "URLs generieren"
+        description:
+        type: youtube
+        video_id: "kKixgYl_eIM"
+        duration: 217
+      - id: "BOKYL5vfQX4"
+        title: "HTTP GET und POST"
+        description:
+        type: youtube
+        video_id: "BOKYL5vfQX4"
+        duration: 585
+      - id: "bF6JCnRtE2Q"
+        title: "Templates"
+        description:
+        type: youtube
+        video_id: "bF6JCnRtE2Q"
+        duration: 196
+      - id: "Grr7g_dDveE"
+        title: "Templates mit Parametern und Code"
+        description:
+        type: youtube
+        video_id: "Grr7g_dDveE"
+        duration: 491
+      - id: "sc54UH2rOgs"
+        title: "Dateiuploads"
+        description:
+        type: youtube
+        video_id: "sc54UH2rOgs"
+        duration: 821
+      - id: "w5CgRaBVZ7c"
+        title: "Cookies"
+        description:
+        type: youtube
+        video_id: "w5CgRaBVZ7c"
+        duration: 351
+      - id: "GgS8-mn9zoM"
+        title: "Sessions"
+        description:
+        type: youtube
+        video_id: "GgS8-mn9zoM"
+        duration: 737
+      - id: "ZgwHvNCn3QQ"
+        title: "Kurze Einführung in Datenbanken mit python"
+        description:
+        type: youtube
+        video_id: "ZgwHvNCn3QQ"
+        duration: 462
+      - id: "K6LuzmG1Anw"
+        title: "SSL"
+        description:
+        type: youtube
+        video_id: "K6LuzmG1Anw"
+        duration: 424
+      - id: "8UJTSQEcKgA"
+        title: "Threaded Apps"
+        description:
+        type: youtube
+        video_id: "8UJTSQEcKgA"
+        duration: 165
+      - id: "r-y72UeF-4U"
+        title: "Fehlermeldungen"
+        description:
+        type: youtube
+        video_id: "r-y72UeF-4U"
+        duration: 283
+      - id: "ZebnoIOdZLI"
+        title: "Logging"
+        description:
+        type: youtube
+        video_id: "ZebnoIOdZLI"
+        duration: 283
+      - id: "AKD5RZQl5Y4"
+        title: "Json empfangen"
+        description:
+        type: youtube
+        video_id: "AKD5RZQl5Y4"
+        duration: 706
+      - id: "uD-7KvlxLmY"
+        title: "Catch All URLs"
+        description:
+        type: youtube
+        video_id: "uD-7KvlxLmY"
+        duration: 161
+      - id: "hqhc2Wxq3W4"
+        title: "HTTP Authentifikation"
+        description:
+        type: youtube
+        video_id: "hqhc2Wxq3W4"
+        duration: 719
+      - id: "sIODSMgqHIE"
+        title: "Unittests"
+        description:
+        type: youtube
+        video_id: "sIODSMgqHIE"
+        duration: 640
+  - id: section2
+    title: "RESTplus"
+    description:
+    lectures:
+      - id: "0-R7_Q9GtzE"
+        title: "Projekteinleitung"
+        description:
+        type: youtube
+        video_id: "0-R7_Q9GtzE"
+        duration: 475
+      - id: "GmHEZ8ipZiE"
+        title: "App Konfiguration für die Nutzung von Swagger"
+        description:
+        type: youtube
+        video_id: "GmHEZ8ipZiE"
+        duration: 513
+      - id: "kTpkzGDVclw"
+        title: "Blueprints"
+        description:
+        type: youtube
+        video_id: "kTpkzGDVclw"
+        duration: 304
+      - id: "O4Kze2oUauw"
+        title: "API-Definitionen mit restplus"
+        description:
+        type: youtube
+        video_id: "O4Kze2oUauw"
+        duration: 511
+      - id: "uV5s7t0OsP4"
+        title: "Namespaces"
+        description:
+        type: youtube
+        video_id: "uV5s7t0OsP4"
+        duration: 442
+      - id: "C8KFZNL90m8"
+        title: "Klassen für Routen"
+        description:
+        type: youtube
+        video_id: "C8KFZNL90m8"
+        duration: 473
+      - id: "YvXHpBYH4yE"
+        title: "API Models"
+        description:
+        type: youtube
+        video_id: "YvXHpBYH4yE"
+        duration: 871
+      - id: "jV5_eA8eKHU"
+        title: "Flasks Argument-Parser"
+        description:
+        type: youtube
+        video_id: "jV5_eA8eKHU"
+        duration: 431
+      - id: "2ZDfHRu2IeA"
+        title: "Die Domain Logik"
+        description:
+        type: youtube
+        video_id: "2ZDfHRu2IeA"
+        duration: 312
+      - id: "Fkt2TQ1MdSA"
+        title: "Die Data Transfer Objects"
+        description:
+        type: youtube
+        video_id: "Fkt2TQ1MdSA"
+        duration: 311
+      - id: "aH647Ex5lgA"
+        title: "SQLAlchemy"
+        description:
+        type: youtube
+        video_id: "aH647Ex5lgA"
+        duration: 437
+      - id: "jw-KOnrtMEE"
+        title: "Die API-Endpoints"
+        description:
+        type: youtube
+        video_id: "jw-KOnrtMEE"
+        duration: 248
+      - id: "CduKJ75SMl0"
+        title: "kurze Fehlerbehebung"
+        description:
+        type: youtube
+        video_id: "CduKJ75SMl0"
+        duration: 480
+      - id: "NUDZKqBpQTY"
+        title: "einzelne Items"
+        description:
+        type: youtube
+        video_id: "NUDZKqBpQTY"
+        duration: 344
+      - id: "R6iFm-OUpcE"
+        title: "die automatische Swagger UI Integration"
+        description:
+        type: youtube
+        video_id: "R6iFm-OUpcE"
+        duration: 421
+      - id: "a5-83uboWzs"
+        title: "JSON Web Tokens"
+        description:
+        type: youtube
+        video_id: "a5-83uboWzs"
+        duration: 876
+  - id: section3
+    title: "Bonus"
+    description:
+    lectures:
+      - id: "_bwgJFVY2zY"
+        title: "JSON Web Tokens - JWT Extended"
+        description:
+        type: youtube
+        video_id: "_bwgJFVY2zY"
+        duration: 1378
+      - id: "yB3048KZswc"
+        title: "Deployment"
+        description:
+        type: youtube
+        video_id: "yB3048KZswc"
+        duration: 350

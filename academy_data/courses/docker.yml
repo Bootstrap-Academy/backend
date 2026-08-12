@@ -1,0 +1,282 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7oea6IDCLzpKe5XfLmWCwgr
+title: "Docker"
+description: "Auf meinem System läuft's doch. Dieses Problem kennen wir alle. Abhängigkeiten, Bibliotheken, die nicht installiert sind oder irgendwas anderes, das gerade Probleme macht. Docker ist eine Container-Software, das heißt hier wird eine Laufzeitumgebung für eure Software bereitgestellt, die sich einfach dynamisch alles holt, was sie braucht und schon sind diese Probleme Vergangenheit. Bonus: Sicherheit und einfacheres Deployment!"
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/docker.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665507061
+sections:
+  - id: section
+    title: "Docker"
+    description:
+    lectures:
+      - id: "avdVAfL8GPI"
+        title: "Warum ihr Docker braucht!"
+        description:
+        type: youtube
+        video_id: "avdVAfL8GPI"
+        duration: 499
+      - id: "_KnVD65mEJE"
+        title: "Virtuelle Maschinen vs Container / Docker"
+        description:
+        type: youtube
+        video_id: "_KnVD65mEJE"
+        duration: 996
+      - id: "DisDkSqDCNc"
+        title: "Wie Docker arbeitet"
+        description:
+        type: youtube
+        video_id: "DisDkSqDCNc"
+        duration: 225
+      - id: "prqcw-ijWHU"
+        title: "Docker unter Linux installieren"
+        description:
+        type: youtube
+        video_id: "prqcw-ijWHU"
+        duration: 759
+      - id: "VV6EKMUg9Hk"
+        title: "Docker unter Windows installieren"
+        description:
+        type: youtube
+        video_id: "VV6EKMUg9Hk"
+        duration: 130
+      - id: "bKyEecIGwJ0"
+        title: "Nested VMs sind meistens eine schlechte Idee"
+        description:
+        type: youtube
+        video_id: "bKyEecIGwJ0"
+        duration: 652
+      - id: "O-WZnE5Pu4A"
+        title: "Docker unter Mac installieren"
+        description:
+        type: youtube
+        video_id: "O-WZnE5Pu4A"
+        duration: 158
+      - id: "ooj0bFwkV7Y"
+        title: "Docker Compose unter Linux installieren"
+        description:
+        type: youtube
+        video_id: "ooj0bFwkV7Y"
+        duration: 187
+      - id: "Sc6IL5oYu50"
+        title: "Die Installation überprüfen"
+        description:
+        type: youtube
+        video_id: "Sc6IL5oYu50"
+        duration: 244
+      - id: "oikJmNT1T0E"
+        title: "Eine Busybox starten"
+        description:
+        type: youtube
+        video_id: "oikJmNT1T0E"
+        duration: 685
+      - id: "DdOV-3f2hT8"
+        title: "Befehle im inneren des Containers ausführen"
+        description:
+        type: youtube
+        video_id: "DdOV-3f2hT8"
+        duration: 182
+      - id: "e-smL7N3ALk"
+        title: "WebApps und Port Mapping"
+        description:
+        type: youtube
+        video_id: "e-smL7N3ALk"
+        duration: 327
+      - id: "yfaspTvApNU"
+        title: "Der Detached Modus"
+        description:
+        type: youtube
+        video_id: "yfaspTvApNU"
+        duration: 111
+      - id: "KvRuH6KheNg"
+        title: "Eine Shell im Detached Mode erlangen"
+        description:
+        type: youtube
+        video_id: "KvRuH6KheNg"
+        duration: 356
+      - id: "Dv--5NSZ91A"
+        title: "Dateien an Container übergeben"
+        description:
+        type: youtube
+        video_id: "Dv--5NSZ91A"
+        duration: 213
+      - id: "ojREzIPCHbg"
+        title: "Container stoppen, Löschen von Images und Containern"
+        description:
+        type: youtube
+        video_id: "ojREzIPCHbg"
+        duration: 280
+      - id: "KXyD4K8ct1o"
+        title: "Container automatisch starten lassen"
+        description:
+        type: youtube
+        video_id: "KXyD4K8ct1o"
+        duration: 408
+      - id: "5HQw92WNY20"
+        title: "Statistiken der laufenden Container"
+        description:
+        type: youtube
+        video_id: "5HQw92WNY20"
+        duration: 172
+      - id: "9k12DF-zuO4"
+        title: "Die Ressourcen eines Containers limitieren"
+        description:
+        type: youtube
+        video_id: "9k12DF-zuO4"
+        duration: 318
+      - id: "1w1VFVyCGQ8"
+        title: "Logs ansehen"
+        description:
+        type: youtube
+        video_id: "1w1VFVyCGQ8"
+        duration: 112
+      - id: "JwKPbh-6K_Q"
+        title: "In eine Datei loggen"
+        description:
+        type: youtube
+        video_id: "JwKPbh-6K_Q"
+        duration: 468
+      - id: "eIHHFOE2D4A"
+        title: "Dockerfiles"
+        description:
+        type: youtube
+        video_id: "eIHHFOE2D4A"
+        duration: 498
+      - id: "IlQVORxAs70"
+        title: "Dockerfiles builden und starten"
+        description:
+        type: youtube
+        video_id: "IlQVORxAs70"
+        duration: 370
+      - id: "3Fz4VvHgKmI"
+        title: "Images auf Docker Hub teilen"
+        description:
+        type: youtube
+        video_id: "3Fz4VvHgKmI"
+        duration: 281
+      - id: "Lod-Hs7rGeE"
+        title: "Environment Variablen"
+        description:
+        type: youtube
+        video_id: "Lod-Hs7rGeE"
+        duration: 357
+      - id: "HbQOF8CSp3o"
+        title: "Python Deployment mit Docker"
+        description:
+        type: youtube
+        video_id: "HbQOF8CSp3o"
+        duration: 336
+      - id: "QXxVJHSpIZ4"
+        title: "Nodejs Deployment mit Docker"
+        description:
+        type: youtube
+        video_id: "QXxVJHSpIZ4"
+        duration: 232
+      - id: "Jn59zf63Ong"
+        title: "Ein Email Server mit MailCow"
+        description:
+        type: youtube
+        video_id: "Jn59zf63Ong"
+        duration: 600
+      - id: "c_OEr4c8kmc"
+        title: "Wordpress mit Docker installieren"
+        description:
+        type: youtube
+        video_id: "c_OEr4c8kmc"
+        duration: 365
+      - id: "iiGVw6Mw2_k"
+        title: "Eine eigene Cloud mit Nextcloud"
+        description:
+        type: youtube
+        video_id: "iiGVw6Mw2_k"
+        duration: 237
+      - id: "lEpxGWMkOk0"
+        title: "Mehr Optionen in Docker Compose Files"
+        description:
+        type: youtube
+        video_id: "lEpxGWMkOk0"
+        duration: 390
+      - id: "vH7o3eAFLJ8"
+        title: "Swarms"
+        description:
+        type: youtube
+        video_id: "vH7o3eAFLJ8"
+        duration: 166
+      - id: "LXT8k1fro0Q"
+        title: "Docker Machine auf Linux installieren"
+        description:
+        type: youtube
+        video_id: "LXT8k1fro0Q"
+        duration: 298
+      - id: "bhzxOBFKERQ"
+        title: "Lokale virtuelle Maschinen erstellen"
+        description:
+        type: youtube
+        video_id: "bhzxOBFKERQ"
+        duration: 366
+      - id: "n2f2kWIGbkY"
+        title: "Zusätzliche Informationen über die VMs"
+        description:
+        type: youtube
+        video_id: "n2f2kWIGbkY"
+        duration: 192
+      - id: "QJCQLb3xhAI"
+        title: "Einen Swarm erstellen"
+        description:
+        type: youtube
+        video_id: "QJCQLb3xhAI"
+        duration: 335
+      - id: "18u66b5dKb0"
+        title: "Eine App im Swarm hosten"
+        description:
+        type: youtube
+        video_id: "18u66b5dKb0"
+        duration: 333
+      - id: "tcuHLhwgKoU"
+        title: "Den Stack beenden, den Swarm verlassen"
+        description:
+        type: youtube
+        video_id: "tcuHLhwgKoU"
+        duration: 246
+      - id: "-LxLq2ZW00E"
+        title: "Ein Image nur auf dem Manager starten"
+        description:
+        type: youtube
+        video_id: "-LxLq2ZW00E"
+        duration: 224
+      - id: "UtjLSCQ5JXk"
+        title: "Einen einzelnen Service im Cluster veröffentlichen"
+        description:
+        type: youtube
+        video_id: "UtjLSCQ5JXk"
+        duration: 213
+      - id: "ac--_k2gLqk"
+        title: "Services update"
+        description:
+        type: youtube
+        video_id: "ac--_k2gLqk"
+        duration: 168
+      - id: "VjgcxQlzpkI"
+        title: "Letzte Worte"
+        description:
+        type: youtube
+        video_id: "VjgcxQlzpkI"
+        duration: 152
+      - id: "YYYT91RfkkU"
+        title: "Joomla mit Docker aufsetzen"
+        description:
+        type: youtube
+        video_id: "YYYT91RfkkU"
+        duration: 402
+      - id: "FgESFWtxFB0"
+        title: "Docker Compose Dateiformat Version"
+        description:
+        type: youtube
+        video_id: "FgESFWtxFB0"
+        duration: 252

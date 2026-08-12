@@ -1,0 +1,84 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7oIlWv3K9xACZi3fHfYLKtj
+title: "Wireshark: Netzwerkanalyse"
+description: "Wenn ihr Netzwerktraffic analysieren wollt, also schauen, was da so alles passiert, vielleicht einzelne Verbindungen untersuchen wollt, ob da jetzt jemand Sachen schickt, die nicht sein sollten - dann kommt ihr um Wireshark fast nicht drum herum!"
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/wireshark.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665507854
+sections:
+  - id: section
+    title: "Wireshark"
+    description:
+    lectures:
+      - id: "Tc6V4lem9FY"
+        title: "Einleitung und Installation"
+        description:
+        type: youtube
+        video_id: "Tc6V4lem9FY"
+        duration: 574
+      - id: "tMP6IH4MAk8"
+        title: "Aufzeichnen"
+        description:
+        type: youtube
+        video_id: "tMP6IH4MAk8"
+        duration: 632
+      - id: "rhokQ-6UC2Q"
+        title: "Mehr zum Paket"
+        description:
+        type: youtube
+        video_id: "rhokQ-6UC2Q"
+        duration: 625
+      - id: "2L7WP0Bb5pA"
+        title: "Datenpakete"
+        description:
+        type: youtube
+        video_id: "2L7WP0Bb5pA"
+        duration: 717
+      - id: "rEWSZ8V4H3c"
+        title: "Speichern und Laden"
+        description:
+        type: youtube
+        video_id: "rEWSZ8V4H3c"
+        duration: 191
+      - id: "pJekOEB3HLs"
+        title: "Filter"
+        description:
+        type: youtube
+        video_id: "pJekOEB3HLs"
+        duration: 653
+      - id: "5GbvTT69v0U"
+        title: "Verbindungen einfärben"
+        description:
+        type: youtube
+        video_id: "5GbvTT69v0U"
+        duration: 231
+      - id: "rXb5AFSQpSE"
+        title: "Statistiken und Graphs"
+        description:
+        type: youtube
+        video_id: "rXb5AFSQpSE"
+        duration: 477
+      - id: "Hs58b7OHgto"
+        title: "Challenge aus dem Vorstellungsgespräch - Telnet"
+        description:
+        type: youtube
+        video_id: "Hs58b7OHgto"
+        duration: 499
+      - id: "r9rd7U5I4Q4"
+        title: "Wireshark-Ersatz? Das eine Feature des MS Network Monitors"
+        description:
+        type: youtube
+        video_id: "r9rd7U5I4Q4"
+        duration: 337
+      - id: "Mr80hEkYYqY"
+        title: "Remote Wireshark: SSHDump und Verbindungen auf dem Server beobachten"
+        description:
+        type: youtube
+        video_id: "Mr80hEkYYqY"
+        duration: 339

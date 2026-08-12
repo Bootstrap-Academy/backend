@@ -1,0 +1,198 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7rlNexPh8wjI2DyABX8It7U
+title: "C#"
+description: "C# - das Java von Microsoft - ist eine moderne, objektorientierte Sprache, die überall da ganz gerne eingesetzt wird, wo Microsoft ist - und das ist häufig!"
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/c_sharp.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1666715892
+sections:
+  - id: section
+    title: "C#"
+    description:
+    lectures:
+      - id: "podkKm7HsY8"
+        title: "Einleitung"
+        description:
+        type: youtube
+        video_id: "podkKm7HsY8"
+        duration: 428
+      - id: "2VUwc7ur7aw"
+        title: "Variablen"
+        description:
+        type: youtube
+        video_id: "2VUwc7ur7aw"
+        duration: 656
+      - id: "lU7WPpr1yf0"
+        title: "If-Statement / Bedingungen"
+        description:
+        type: youtube
+        video_id: "lU7WPpr1yf0"
+        duration: 781
+      - id: "gLlGO9IzDQc"
+        title: "Switch Case Verzweigungen"
+        description:
+        type: youtube
+        video_id: "gLlGO9IzDQc"
+        duration: 444
+      - id: "6znQH27H7-c"
+        title: "Schleifen"
+        description:
+        type: youtube
+        video_id: "6znQH27H7-c"
+        duration: 816
+      - id: "Vf5f01CHxjc"
+        title: "Arrays"
+        description:
+        type: youtube
+        video_id: "Vf5f01CHxjc"
+        duration: 616
+      - id: "fpDZbEc5ZGs"
+        title: "Mehrdimensionale Arrays"
+        description:
+        type: youtube
+        video_id: "fpDZbEc5ZGs"
+        duration: 633
+      - id: "gB7SbBefhNc"
+        title: "Methoden"
+        description:
+        type: youtube
+        video_id: "gB7SbBefhNc"
+        duration: 760
+      - id: "28ud2F4h6pE"
+        title: "Rekursive Methoden"
+        description:
+        type: youtube
+        video_id: "28ud2F4h6pE"
+        duration: 352
+      - id: "Bkxgp6hbhvw"
+        title: "Überladung und Standardparameter"
+        description:
+        type: youtube
+        video_id: "Bkxgp6hbhvw"
+        duration: 512
+      - id: "g1xYdLwH_c0"
+        title: "Klassen"
+        description:
+        type: youtube
+        video_id: "g1xYdLwH_c0"
+        duration: 730
+      - id: "ZoIF2AOPZzY"
+        title: "Konstruktoren"
+        description:
+        type: youtube
+        video_id: "ZoIF2AOPZzY"
+        duration: 426
+      - id: "5IHiqJsGoL4"
+        title: "Private und Public"
+        description:
+        type: youtube
+        video_id: "5IHiqJsGoL4"
+        duration: 369
+      - id: "-Bgt6HJEhf0"
+        title: "Getter und Setter"
+        description:
+        type: youtube
+        video_id: "-Bgt6HJEhf0"
+        duration: 377
+      - id: "SicsKRIyEQw"
+        title: "static"
+        description:
+        type: youtube
+        video_id: "SicsKRIyEQw"
+        duration: 330
+      - id: "5fwTQ6G13fw"
+        title: "Vererbung und Konstruktoren bei Vererbung"
+        description:
+        type: youtube
+        video_id: "5fwTQ6G13fw"
+        duration: 566
+      - id: "_Zvi21_kMw4"
+        title: "Interfaces"
+        description:
+        type: youtube
+        video_id: "_Zvi21_kMw4"
+        duration: 656
+      - id: "JY6eVIwqsZo"
+        title: "Mehrfachvererbung"
+        description:
+        type: youtube
+        video_id: "JY6eVIwqsZo"
+        duration: 534
+      - id: "ea_NeSG5Vto"
+        title: "Polymorphismus und abstrakte Klassen"
+        description:
+        type: youtube
+        video_id: "ea_NeSG5Vto"
+        duration: 699
+      - id: "C9g95JGIvf4"
+        title: "Operatoren überladen"
+        description:
+        type: youtube
+        video_id: "C9g95JGIvf4"
+        duration: 619
+      - id: "kNtaIkuwJPY"
+        title: "Namespaces"
+        description:
+        type: youtube
+        video_id: "kNtaIkuwJPY"
+        duration: 467
+      - id: "Ss80KnT2JN8"
+        title: "Listen selbst implementiert"
+        description:
+        type: youtube
+        video_id: "Ss80KnT2JN8"
+        duration: 1536
+      - id: "vaIs3NqwBi8"
+        title: "Enums"
+        description:
+        type: youtube
+        video_id: "vaIs3NqwBi8"
+        duration: 199
+      - id: "D2MtL6cIbpg"
+        title: "Casts und mehr zu Typen"
+        description:
+        type: youtube
+        video_id: "D2MtL6cIbpg"
+        duration: 719
+      - id: "XOHopSwGXxM"
+        title: "Funktionspointer und Lambda"
+        description:
+        type: youtube
+        video_id: "XOHopSwGXxM"
+        duration: 792
+      - id: "2I4LtpaYl2g"
+        title: "Objektinitialisierer und anonyme Typen"
+        description:
+        type: youtube
+        video_id: "2I4LtpaYl2g"
+        duration: 515
+      - id: "jqoNgqif5og"
+        title: "Events"
+        description:
+        type: youtube
+        video_id: "jqoNgqif5og"
+        duration: 811
+      - id: "tUZ_NoEX28w"
+        title: "Präprozessordirektiven"
+        description:
+        type: youtube
+        video_id: "tUZ_NoEX28w"
+        duration: 503
+      - id: "8z8hqSDL_0s"
+        title: "Dictionaries"
+        description:
+        type: youtube
+        video_id: "8z8hqSDL_0s"
+        duration: 527
+      - id: "7ViaVtMnW7M"
+        title: "Exceptionhandling"
+        description:
+        type: youtube
+        video_id: "7ViaVtMnW7M"
+        duration: 493

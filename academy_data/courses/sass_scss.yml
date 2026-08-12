@@ -1,0 +1,180 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7oopYYGy5hX-Y6b07_3DPp5
+title: "SASS und SCSS - CSS auf Steroiden"
+description: "Hattet ihr jemals das Gefühl in CSS fehlt was? Variablen, Funktionen, Parameter, eben richtige Programmierung? Willkommen bei SCSS."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/CSS.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665508245
+sections:
+  - id: section
+    title: "SASS und SCSS - CSS auf Steroiden"
+    description:
+    lectures:
+      - id: "Vyp3Nh0QvSk"
+        title: "Einleitung"
+        description:
+        type: youtube
+        video_id: "Vyp3Nh0QvSk"
+        duration: 406
+      - id: "9ZD6NmO2PTk"
+        title: "Installation unter MacOS, Linux und Windows"
+        description:
+        type: youtube
+        video_id: "9ZD6NmO2PTk"
+        duration: 524
+      - id: "wpjisrRQGoc"
+        title: "Die Entwicklungsumgebung"
+        description:
+        type: youtube
+        video_id: "wpjisrRQGoc"
+        duration: 553
+      - id: "dmQ9ft1R4oQ"
+        title: "Variablen"
+        description:
+        type: youtube
+        video_id: "dmQ9ft1R4oQ"
+        duration: 403
+      - id: "5FZo3ieRhno"
+        title: "Nesting"
+        description:
+        type: youtube
+        video_id: "5FZo3ieRhno"
+        duration: 488
+      - id: "JfS6GoPcpsI"
+        title: "Partials und Imports"
+        description:
+        type: youtube
+        video_id: "JfS6GoPcpsI"
+        duration: 653
+      - id: "Dsqea2p7qmQ"
+        title: "Mixins"
+        description:
+        type: youtube
+        video_id: "Dsqea2p7qmQ"
+        duration: 278
+      - id: "2nCPYNVf3fE"
+        title: "Mixins mit Parametern"
+        description:
+        type: youtube
+        video_id: "2nCPYNVf3fE"
+        duration: 529
+      - id: "Aicbc6d3xgw"
+        title: "Datentypen"
+        description:
+        type: youtube
+        video_id: "Aicbc6d3xgw"
+        duration: 431
+      - id: "ezOR6yEwubA"
+        title: "Mathematische Operationen in Style Sheets"
+        description:
+        type: youtube
+        video_id: "ezOR6yEwubA"
+        duration: 569
+      - id: "Ya7J_4au13I"
+        title: "Interpolation mit #{}"
+        description:
+        type: youtube
+        video_id: "Ya7J_4au13I"
+        duration: 547
+      - id: "acOPoGADus0"
+        title: "!default"
+        description:
+        type: youtube
+        video_id: "acOPoGADus0"
+        duration: 172
+      - id: "BJBkWvDxYjo"
+        title: "@media"
+        description:
+        type: youtube
+        video_id: "BJBkWvDxYjo"
+        duration: 374
+      - id: "BbAZQpGTgp0"
+        title: "if-Anweisungen"
+        description:
+        type: youtube
+        video_id: "BbAZQpGTgp0"
+        duration: 514
+      - id: "7VG8RAkZGIs"
+        title: "for-Schleifen"
+        description:
+        type: youtube
+        video_id: "7VG8RAkZGIs"
+        duration: 302
+      - id: "9TaxiKMGRKU"
+        title: "each-Schleifen"
+        description:
+        type: youtube
+        video_id: "9TaxiKMGRKU"
+        duration: 451
+      - id: "sXDGzsNXO3c"
+        title: "Extends"
+        description:
+        type: youtube
+        video_id: "sXDGzsNXO3c"
+        duration: 343
+      - id: "Fr_4YFkOI_E"
+        title: "Debug Nachrichten"
+        description:
+        type: youtube
+        video_id: "Fr_4YFkOI_E"
+        duration: 289
+      - id: "5781OsElTo0"
+        title: "& - der hier Marker"
+        description:
+        type: youtube
+        video_id: "5781OsElTo0"
+        duration: 176
+      - id: "1gPU2Gcn5J0"
+        title: "Leichte Farbfunktionen"
+        description:
+        type: youtube
+        video_id: "1gPU2Gcn5J0"
+        duration: 619
+      - id: "TvW6sqtOI1k"
+        title: "Hersteller Präfixe Mixin"
+        description:
+        type: youtube
+        video_id: "TvW6sqtOI1k"
+        duration: 312
+      - id: "FSufbI1YV2Y"
+        title: "Stanzeffekt Mixin"
+        description:
+        type: youtube
+        video_id: "FSufbI1YV2Y"
+        duration: 245
+      - id: "me3QJZELp3k"
+        title: "Responsive Breakpoints"
+        description:
+        type: youtube
+        video_id: "me3QJZELp3k"
+        duration: 294
+      - id: "qv1lVbEeRZ0"
+        title: "Ein-  und Ausblenden"
+        description:
+        type: youtube
+        video_id: "qv1lVbEeRZ0"
+        duration: 455
+      - id: "PHXXEIQz5F0"
+        title: "Mit Listen arbeiten"
+        description:
+        type: youtube
+        video_id: "PHXXEIQz5F0"
+        duration: 585
+      - id: "ybVFCBUVtwM"
+        title: "Mit Maps arbeiten"
+        description:
+        type: youtube
+        video_id: "ybVFCBUVtwM"
+        duration: 515
+      - id: "8RE7YEFJlfY"
+        title: "nützliche SASS Funktionen"
+        description:
+        type: youtube
+        video_id: "8RE7YEFJlfY"
+        duration: 834

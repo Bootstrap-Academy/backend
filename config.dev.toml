@@ -35,6 +35,9 @@ base_url_override = "http://127.0.0.1:8103/"
 client_id = "test-client"
 client_secret = "test-secret"
 
+[course]
+course_dir = "./academy_data/courses"
+
 [render]
 daemon_url = "http://127.0.0.1:8001/"
 

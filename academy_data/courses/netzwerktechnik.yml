@@ -1,0 +1,492 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7rjW6OL4aGL-L1SzBUijh8r
+title: "Netzwerktechnik"
+description: "In einer Welt, in der jeder mit jedem immer verbunden sein kann, braucht es eine Grundlage, auf welcher das basiert: Das Internet. Bestehend aus zig Protokollen und vielen wichtigen Regeln, ist es wichtig, zu verstehen, was genau das eigentlich bedeutet!"
+category:
+language: de
+image:
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665506949
+sections:
+  - id: section
+    title: "Grundlagen"
+    description:
+    lectures:
+      - id: "QEsQkpG6I4w"
+        title: "Einleitung"
+        description:
+        type: youtube
+        video_id: "QEsQkpG6I4w"
+        duration: 224
+      - id: "n4FpSd-ApTY"
+        title: "Dienste"
+        description:
+        type: youtube
+        video_id: "n4FpSd-ApTY"
+        duration: 554
+      - id: "LiyA3mEedYM"
+        title: "Das ISO-OSI Referenzmodell"
+        description:
+        type: youtube
+        video_id: "LiyA3mEedYM"
+        duration: 684
+  - id: section2
+    title: "Schicht 1: Die physische Schicht"
+    description:
+    lectures:
+      - id: "VSOK-jK4Q6k"
+        title: "Simplex, Duplex und Halbduplex"
+        description:
+        type: youtube
+        video_id: "VSOK-jK4Q6k"
+        duration: 292
+      - id: "zNRkP2I7TMs"
+        title: "Signalklassen"
+        description:
+        type: youtube
+        video_id: "zNRkP2I7TMs"
+        duration: 411
+      - id: "xK6a0VKE3KA"
+        title: "Binäre Leitungscodes - Non Return to Zero"
+        description:
+        type: youtube
+        video_id: "xK6a0VKE3KA"
+        duration: 250
+      - id: "SWeUIgvja4A"
+        title: "Biphasen Leitungscodes - Non Return to Zero Inverted, Manchester Code"
+        description:
+        type: youtube
+        video_id: "SWeUIgvja4A"
+        duration: 506
+      - id: "4mt883GmToA"
+        title: "Ternäre Leitungscodes"
+        description:
+        type: youtube
+        video_id: "4mt883GmToA"
+        duration: 379
+      - id: "w20Ku3iy3b0"
+        title: "Blockcodes"
+        description:
+        type: youtube
+        video_id: "w20Ku3iy3b0"
+        duration: 367
+      - id: "BOSHIt_f2lM"
+        title: "Störungen und Repeater"
+        description:
+        type: youtube
+        video_id: "BOSHIt_f2lM"
+        duration: 431
+      - id: "SWVjv0RjAEA"
+        title: "Mehrfachnutzung und Multiplexen"
+        description:
+        type: youtube
+        video_id: "SWVjv0RjAEA"
+        duration: 319
+  - id: section3
+    title: "Schicht 2: Die Sicherungsschicht"
+    description:
+    lectures:
+      - id: "0UnYQ-VHavM"
+        title: "Netztopologien"
+        description:
+        type: youtube
+        video_id: "0UnYQ-VHavM"
+        duration: 450
+      - id: "Up5-3kOkeTY"
+        title: "Paketverluste und Quittungen"
+        description:
+        type: youtube
+        video_id: "Up5-3kOkeTY"
+        duration: 614
+      - id: "rUsjT_5wLnQ"
+        title: "ARQ - Automatic Repeat Request"
+        description:
+        type: youtube
+        video_id: "rUsjT_5wLnQ"
+        duration: 748
+      - id: "j975yg5SAyo"
+        title: "CRC: zyklische Redundanzprüfung"
+        description:
+        type: youtube
+        video_id: "j975yg5SAyo"
+        duration: 448
+      - id: "TCXp91RdTH8"
+        title: "Flusskontrolle"
+        description:
+        type: youtube
+        video_id: "TCXp91RdTH8"
+        duration: 391
+      - id: "3GLRDOD4GBo"
+        title: "Handshakes"
+        description:
+        type: youtube
+        video_id: "3GLRDOD4GBo"
+        duration: 362
+      - id: "JxSeX9QbwNc"
+        title: "HDLC"
+        description:
+        type: youtube
+        video_id: "JxSeX9QbwNc"
+        duration: 754
+      - id: "2YzAIvEEUI8"
+        title: "Aloha"
+        description:
+        type: youtube
+        video_id: "2YzAIvEEUI8"
+        duration: 688
+      - id: "VuuW8n1TVCk"
+        title: "Carrier Sense Multiple Access - CSMA"
+        description:
+        type: youtube
+        video_id: "VuuW8n1TVCk"
+        duration: 684
+      - id: "LnIw2Rr2oiA"
+        title: "CSMA-CD vs- CSMA-CA"
+        description:
+        type: youtube
+        video_id: "LnIw2Rr2oiA"
+        duration: 334
+      - id: "haKY_Q1gMG0"
+        title: "Ethernet"
+        description:
+        type: youtube
+        video_id: "haKY_Q1gMG0"
+        duration: 940
+      - id: "J670n74SpG4"
+        title: "Kollisionsdomänen"
+        description:
+        type: youtube
+        video_id: "J670n74SpG4"
+        duration: 494
+      - id: "2-G8ZhcB_yQ"
+        title: "Token Ring"
+        description:
+        type: youtube
+        video_id: "2-G8ZhcB_yQ"
+        duration: 295
+      - id: "9ndcP8qoUAc"
+        title: "Brücken und Switches"
+        description:
+        type: youtube
+        video_id: "9ndcP8qoUAc"
+        duration: 668
+      - id: "i8FZbRislpo"
+        title: "Das Bridge Protocol"
+        description:
+        type: youtube
+        video_id: "i8FZbRislpo"
+        duration: 804
+      - id: "fvX_k7rV6-Y"
+        title: "Fast Ethernet, Gigabit Ethernet und 10 Gigabit Ethernet"
+        description:
+        type: youtube
+        video_id: "fvX_k7rV6-Y"
+        duration: 394
+  - id: section4
+    title: "Schicht 3: Routing"
+    description:
+    lectures:
+      - id: "gAS1PxqRKf8"
+        title: "Routing Grundlagen"
+        description:
+        type: youtube
+        video_id: "gAS1PxqRKf8"
+        duration: 456
+      - id: "4NjTX88u-fw"
+        title: "In Line Speed"
+        description:
+        type: youtube
+        video_id: "4NjTX88u-fw"
+        duration: 226
+      - id: "kkvB3OE4sIw"
+        title: "IP Forwarding Tabelle"
+        description:
+        type: youtube
+        video_id: "kkvB3OE4sIw"
+        duration: 619
+      - id: "R1hAZU8R-dU"
+        title: "Binäre Tries und Patricia Tries"
+        description:
+        type: youtube
+        video_id: "R1hAZU8R-dU"
+        duration: 608
+      - id: "79gHEOsFJOo"
+        title: "Content Adressable Memory"
+        description:
+        type: youtube
+        video_id: "79gHEOsFJOo"
+        duration: 464
+      - id: "eDtmcV4oK54"
+        title: "IP Datenpakete"
+        description:
+        type: youtube
+        video_id: "eDtmcV4oK54"
+        duration: 1136
+      - id: "2E6WXnXlQBk"
+        title: "Routing Algorithmen"
+        description:
+        type: youtube
+        video_id: "2E6WXnXlQBk"
+        duration: 557
+      - id: "Rt04_sYCELU"
+        title: "Distanz Vektor Algorithmen"
+        description:
+        type: youtube
+        video_id: "Rt04_sYCELU"
+        duration: 453
+      - id: "2SdvR9KdC30"
+        title: "Distanz Vektor Algorithmen #2"
+        description:
+        type: youtube
+        video_id: "2SdvR9KdC30"
+        duration: 456
+      - id: "qyGqQWM2YTk"
+        title: "Link State Algorithmen"
+        description:
+        type: youtube
+        video_id: "qyGqQWM2YTk"
+        duration: 588
+      - id: "ipDhLgJxwXA"
+        title: "Das Address Resolution Protocol ARP"
+        description:
+        type: youtube
+        video_id: "ipDhLgJxwXA"
+        duration: 471
+      - id: "PU6xFCkj0Yg"
+        title: "Internet Control Message Protocol ICMP"
+        description:
+        type: youtube
+        video_id: "PU6xFCkj0Yg"
+        duration: 271
+      - id: "E-dAE5sARWQ"
+        title: "Autonome Systeme aka Netz aus Netzen"
+        description:
+        type: youtube
+        video_id: "E-dAE5sARWQ"
+        duration: 754
+      - id: "uWadG3fWxBQ"
+        title: "Content Delivery Provider und Networks"
+        description:
+        type: youtube
+        video_id: "uWadG3fWxBQ"
+        duration: 350
+      - id: "bKca4gfgA_I"
+        title: "Internet Exchange Points IXP"
+        description:
+        type: youtube
+        video_id: "bKca4gfgA_I"
+        duration: 316
+      - id: "LUmajjJEq24"
+        title: "Das Border Gateway Protocol BGP"
+        description:
+        type: youtube
+        video_id: "LUmajjJEq24"
+        duration: 1068
+      - id: "lQ2eIHwnHhE"
+        title: "Adressknappheit und NATs"
+        description:
+        type: youtube
+        video_id: "lQ2eIHwnHhE"
+        duration: 730
+      - id: "nB3rA_H4I4s"
+        title: "IPv6"
+        description:
+        type: youtube
+        video_id: "nB3rA_H4I4s"
+        duration: 631
+  - id: section5
+    title: "Schicht 4: Die Transportschicht"
+    description:
+    lectures:
+      - id: "bmvISgR-C_4"
+        title: "Die Transportschicht"
+        description:
+        type: youtube
+        video_id: "bmvISgR-C_4"
+        duration: 465
+      - id: "7FWb0cHeikc"
+        title: "User Datagram Protocol UDP"
+        description:
+        type: youtube
+        video_id: "7FWb0cHeikc"
+        duration: 301
+      - id: "SUD2cUnNQMw"
+        title: "Transmission Control Protocol TCP"
+        description:
+        type: youtube
+        video_id: "SUD2cUnNQMw"
+        duration: 591
+      - id: "vnoZsk50w5E"
+        title: "TCP #2"
+        description:
+        type: youtube
+        video_id: "vnoZsk50w5E"
+        duration: 494
+      - id: "VgwYpsvzZlQ"
+        title: "Flusskontrolle"
+        description:
+        type: youtube
+        video_id: "VgwYpsvzZlQ"
+        duration: 365
+      - id: "uDYIxXqk5Ok"
+        title: "SYN Flooding Angriffe und SYN Cookies"
+        description:
+        type: youtube
+        video_id: "uDYIxXqk5Ok"
+        duration: 522
+      - id: "5jT-q71xNKw"
+        title: "TCP Option Window Scaling"
+        description:
+        type: youtube
+        video_id: "5jT-q71xNKw"
+        duration: 260
+      - id: "u2xJtSsSvYY"
+        title: "Staukontrolle"
+        description:
+        type: youtube
+        video_id: "u2xJtSsSvYY"
+        duration: 374
+      - id: "9_LEr3SSJtc"
+        title: "Random Early Detection RED"
+        description:
+        type: youtube
+        video_id: "9_LEr3SSJtc"
+        duration: 540
+      - id: "IJulDEZHJW0"
+        title: "Slow Start"
+        description:
+        type: youtube
+        video_id: "IJulDEZHJW0"
+        duration: 508
+      - id: "gATuauC2lJA"
+        title: "Der Retransmission Timer"
+        description:
+        type: youtube
+        video_id: "gATuauC2lJA"
+        duration: 588
+      - id: "yAnEWhMACxc"
+        title: "weitere TCP Features"
+        description:
+        type: youtube
+        video_id: "yAnEWhMACxc"
+        duration: 498
+      - id: "Xs70Fdz3jy8"
+        title: "Congestion Avoidance"
+        description:
+        type: youtube
+        video_id: "Xs70Fdz3jy8"
+        duration: 257
+      - id: "-U0LkNcZVNQ"
+        title: "TCP Tahoe"
+        description:
+        type: youtube
+        video_id: "-U0LkNcZVNQ"
+        duration: 436
+      - id: "G7-yFCs3RI4"
+        title: "TCP Reno"
+        description:
+        type: youtube
+        video_id: "G7-yFCs3RI4"
+        duration: 539
+      - id: "eSunM5kNcT8"
+        title: "TCP Fairness"
+        description:
+        type: youtube
+        video_id: "eSunM5kNcT8"
+        duration: 496
+      - id: "lgTqC9ubkw4"
+        title: "Einige Formeln zur Leistung von TCP"
+        description:
+        type: youtube
+        video_id: "lgTqC9ubkw4"
+        duration: 744
+      - id: "w_5B382keNw"
+        title: "Linux - Cubic TCP"
+        description:
+        type: youtube
+        video_id: "w_5B382keNw"
+        duration: 517
+      - id: "CcjCUGeCO00"
+        title: "Windows - Compound TCP"
+        description:
+        type: youtube
+        video_id: "CcjCUGeCO00"
+        duration: 710
+  - id: section6
+    title: "Schicht 7: Die Anwendungsschicht"
+    description:
+    lectures:
+      - id: "eOv5H-yD2go"
+        title: "HTTP - Hyper Text Transfer Protocol"
+        description:
+        type: youtube
+        video_id: "eOv5H-yD2go"
+        duration: 630
+      - id: "HA3WAWV1AWg"
+        title: "HTTP Anfragen in der Praxis"
+        description:
+        type: youtube
+        video_id: "HA3WAWV1AWg"
+        duration: 379
+      - id: "daE9hBS6VtA"
+        title: "HTTP-Statuscodes"
+        description:
+        type: youtube
+        video_id: "daE9hBS6VtA"
+        duration: 315
+      - id: "LH3I3oXvWrU"
+        title: "SSH - Secure Shell"
+        description:
+        type: youtube
+        video_id: "LH3I3oXvWrU"
+        duration: 359
+      - id: "ITXcKBXkRFs"
+        title: "SSH Verschlüsselung"
+        description:
+        type: youtube
+        video_id: "ITXcKBXkRFs"
+        duration: 431
+      - id: "_8CfylnwXmA"
+        title: "SSH - Connection Protocol"
+        description:
+        type: youtube
+        video_id: "_8CfylnwXmA"
+        duration: 422
+      - id: "m8-rfv5oceE"
+        title: "FTP - File Transfer Protocol"
+        description:
+        type: youtube
+        video_id: "m8-rfv5oceE"
+        duration: 346
+      - id: "PfpvpCm4C90"
+        title: "SMTP - Simple Mail Transfer Protocol"
+        description:
+        type: youtube
+        video_id: "PfpvpCm4C90"
+        duration: 535
+      - id: "CPWZ-U9j3HQ"
+        title: "POP - Post Office Protocol"
+        description:
+        type: youtube
+        video_id: "CPWZ-U9j3HQ"
+        duration: 260
+      - id: "Y3gtTX4hvMc"
+        title: "Bittorrent"
+        description:
+        type: youtube
+        video_id: "Y3gtTX4hvMc"
+        duration: 482
+  - id: section7
+    title: "Bonus"
+    description:
+    lectures:
+      - id: "6BmqSrBteY0"
+        title: "Die Top 6 Netzwerk-Protokolle für Internet of Things"
+        description:
+        type: youtube
+        video_id: "6BmqSrBteY0"
+        duration: 960

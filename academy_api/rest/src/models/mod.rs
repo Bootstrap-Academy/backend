@@ -8,6 +8,7 @@ use crate::const_schema;
 
 pub mod coin;
 pub mod contact;
+pub mod course;
 pub mod heart;
 pub mod oauth2;
 pub mod premium;

@@ -1,0 +1,174 @@
+# https://www.youtube.com/playlist?list=PL6RbeNL8jYDees12cwPupr49wMArrVQEX
+title: "Medienkompetenz"
+description: Wir nutzen alle das Internet, ob wir wollen oder nicht, doch dadurch machen wir uns angreifbar. In diesen Videos lernt ihr einige wichtige Themen kennen, mit denen man sich auseinandersetzen muss, wenn man dieses Neuland nutzen möchte
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/medienkompetenz.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1666444594
+sections:
+  - id: section
+    title: "Medienkompetenz"
+    description:
+    lectures:
+      - id: "zWHWXOhcyeE"
+        title: "Wirklich noch CHROME? | Vergleich: BROWSER können VIEL MEHR"
+        description:
+        type: youtube
+        video_id: "zWHWXOhcyeE"
+        duration: 2309
+      - id: "fw67-ichp6w"
+        title: "10 Arten wie Gamer GEHACKT werden"
+        description:
+        type: youtube
+        video_id: "fw67-ichp6w"
+        duration: 564
+      - id: "OmLOYKOpJuY"
+        title: "Uber GEHACKT: 17 Jähriger VERHAFTET"
+        description:
+        type: youtube
+        video_id: "OmLOYKOpJuY"
+        duration: 981
+      - id: "xu2kxkES-fg"
+        title: "Wird KÜNSTLICHE INTELLIGENZ uns AUSLÖSCHEN?"
+        description:
+        type: youtube
+        video_id: "xu2kxkES-fg"
+        duration: 1002
+      - id: "r29cLPUoU2Y"
+        title: "Morddrohungen im Netz: Anonymous erklärt Querdenkern den Krieg ft. @Kanzlei WBS"
+        description:
+        type: youtube
+        video_id: "r29cLPUoU2Y"
+        duration: 2417
+      - id: "D7oNEbdAQx8"
+        title: "Die Ursache für Hass im Netz"
+        description:
+        type: youtube
+        video_id: "D7oNEbdAQx8"
+        duration: 1627
+      - id: "anmUlcD36bQ"
+        title: "Kaputte Software-Industrie | OPEN-SOURCE ist so KEINE Lösung"
+        description:
+        type: youtube
+        video_id: "anmUlcD36bQ"
+        duration: 1165
+      - id: "YwbE2iLmAT0"
+        title: "Ein Vergleich von PASSWORTMANAGERN: Das essentiellste Tool für IT Sicherheit"
+        description:
+        type: youtube
+        video_id: "YwbE2iLmAT0"
+        duration: 1210
+      - id: "BQFw8M8qiQk"
+        title: "Das kannst DU gegen ZENSUR IM NETZ tun"
+        description:
+        type: youtube
+        video_id: "BQFw8M8qiQk"
+        duration: 1221
+      - id: "wxkoOYU1oYE"
+        title: "Personenbezogene WERBUNG ZERSTÖRT unsere Gesellschaft"
+        description:
+        type: youtube
+        video_id: "wxkoOYU1oYE"
+        duration: 1017
+      - id: "WxbDL54jrjI"
+        title: "Das METAVERSE: Riesige Chance UND fürchterliche Gefahr"
+        description:
+        type: youtube
+        video_id: "WxbDL54jrjI"
+        duration: 1498
+      - id: "6IitUwrqtbo"
+        title: "Selbstexperiment: Alternatives Smartphone OHNE Google oder iOS"
+        description:
+        type: youtube
+        video_id: "6IitUwrqtbo"
+        duration: 1203
+      - id: "8R9s9EpdMt0"
+        title: "Was tun, wenn man RANSOMWARE hat?"
+        description:
+        type: youtube
+        video_id: "8R9s9EpdMt0"
+        duration: 1054
+      - id: "OCC_65l1qIo"
+        title: "Welcher E-Mail Anbieter ist SICHER und ANONYM?"
+        description:
+        type: youtube
+        video_id: "OCC_65l1qIo"
+        duration: 1627
+      - id: "yf9o0XL7eFk"
+        title: "PEGASUS | Wie ein Staatstrojaner MORD und FOLTER ermöglichte"
+        description:
+        type: youtube
+        video_id: "yf9o0XL7eFk"
+        duration: 952
+      - id: "CgGWs0zNOQY"
+        title: "Vergesst Google | Vergleich: SUCHMASCHINEN können VIEL MEHR"
+        description:
+        type: youtube
+        video_id: "CgGWs0zNOQY"
+        duration: 1149
+      - id: "xnK2kJWcjBY"
+        title: "Wie Youtuber gehackt werden"
+        description:
+        type: youtube
+        video_id: "xnK2kJWcjBY"
+        duration: 929
+      - id: "YKxtY2GE3hE"
+        title: "Wie DU den STAATSTROJANER NICHT bekommst"
+        description:
+        type: youtube
+        video_id: "YKxtY2GE3hE"
+        duration: 862
+      - id: "l01LR9CTA6s"
+        title: "Selbstexperiment geht schief | EIN TAG STAATSTROJANER"
+        description:
+        type: youtube
+        video_id: "l01LR9CTA6s"
+        duration: 856
+      - id: "kHhWxDxLooE"
+        title: "In die Trends und Charts mit gekauften Klicks?"
+        description:
+        type: youtube
+        video_id: "kHhWxDxLooE"
+        duration: 987
+      - id: "YRvbKnb8ALc"
+        title: "KI vs. Computervirus - Wie kann das gehen?"
+        description:
+        type: youtube
+        video_id: "YRvbKnb8ALc"
+        duration: 692
+      - id: "NGdF0wEIeQM"
+        title: "Wie Firmen nun Websites BLOCKIEREN | CUII und Netzneutralität erklärt"
+        description:
+        type: youtube
+        video_id: "NGdF0wEIeQM"
+        duration: 778
+      - id: "rO37rz1dhkQ"
+        title: "Die Daten von WhatsApp - Was WIRKLICH möglich ist (Metadaten)"
+        description:
+        type: youtube
+        video_id: "rO37rz1dhkQ"
+        duration: 1117
+      - id: "yWj5G-rrtDg"
+        title: "Ist dein Messenger noch SICHER? [Messenger-Vergleich]"
+        description:
+        type: youtube
+        video_id: "yWj5G-rrtDg"
+        duration: 795
+      - id: "3JK_0_gZGMA"
+        title: "Die Probleme von TELEGRAM"
+        description:
+        type: youtube
+        video_id: "3JK_0_gZGMA"
+        duration: 787
+      - id: "cD-rb8bo71k"
+        title: "GOOGLE One VPN - vielleicht doch nicht so schlecht?"
+        description:
+        type: youtube
+        video_id: "cD-rb8bo71k"
+        duration: 613

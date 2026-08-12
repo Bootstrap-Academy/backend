@@ -1,0 +1,66 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7p6tJ5S5Yvbw3reoZcHdyfR
+title: "Pillow - Bildbearbeitung mit Python"
+description: "Ihr wollt Bilder bearbeiten, am besten vollautomatisch und in Python? Kein Problem!"
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/python.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665506587
+sections:
+  - id: section
+    title: "Pillow"
+    description:
+    lectures:
+      - id: "d5YQf8gs2_o"
+        title: "Installation und Einleitung"
+        description:
+        type: youtube
+        video_id: "d5YQf8gs2_o"
+        duration: 252
+      - id: "fXoI_tZJDeI"
+        title: "Konvertieren von Bildern"
+        description:
+        type: youtube
+        video_id: "fXoI_tZJDeI"
+        duration: 344
+      - id: "XgevO_Tw64M"
+        title: "Thumbnails"
+        description:
+        type: youtube
+        video_id: "XgevO_Tw64M"
+        duration: 296
+      - id: "-DNX4GjP0fw"
+        title: "einzelne Pixel lesen"
+        description:
+        type: youtube
+        video_id: "-DNX4GjP0fw"
+        duration: 403
+      - id: "HIgy3fr9BoA"
+        title: "Zuschneiden, Drehen und Verbessern"
+        description:
+        type: youtube
+        video_id: "HIgy3fr9BoA"
+        duration: 450
+      - id: "NntGgQUrUuE"
+        title: "Filter und ImageOps"
+        description:
+        type: youtube
+        video_id: "NntGgQUrUuE"
+        duration: 239
+      - id: "_fjCo5KdzeE"
+        title: "Farbauswahl, Masken und Pixel setzen"
+        description:
+        type: youtube
+        video_id: "_fjCo5KdzeE"
+        duration: 435
+      - id: "wI9yE7ZIbMg"
+        title: "Wasserzeichen und Komprimieren von Bildern"
+        description:
+        type: youtube
+        video_id: "wI9yE7ZIbMg"
+        duration: 1015

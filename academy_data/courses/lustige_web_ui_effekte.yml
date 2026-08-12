@@ -1,0 +1,163 @@
+title: "Lustige Web UI Effekte"
+description: |
+  In dieser Reihe seht ihr eine ganze Reihe von Videos zu verschiedenen UI Effekten und Animationen, die nicht immer großen Sinn in Projekten machen, aber viel Spaß erzeugen beim Bauen und damit Rumspielen. Im Laufe der einzelnen Videos, die jedes für sich geschlossene Parts umfassen, könnt ihr bereits erlangtes CSS und JavaScript Basis Wissen in kreativen und sicher auch neuen Möglichkeiten unter Beweis stellen.
+  Dabei muss jedoch festgehalten werden, dass keines der Videos für absolute Anfänger geeignet ist und hier definitiv Wissen in CSS, HTML & JavaScript vorhanden sein muss.
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/algorithmen.jpg
+authors:
+  - name: "Unleashed Design"
+    url: "https://www.youtube.com/@UnleashedDesign"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1667584883
+sections:
+  - id: section
+    title: "Lustige Web UI Effekte"
+    description:
+    lectures:
+      - id: "xgRB7cYCr7g"
+        title: "Der dümmste Weg einer Button Validation mit CSS & JavaScript"
+        description:
+        type: youtube
+        video_id: "xgRB7cYCr7g"
+        duration: 784
+      - id: "9VzQO_kHN2A"
+        title: "Epic Store Content Slider selbst bauen!"
+        description:
+        type: youtube
+        video_id: "9VzQO_kHN2A"
+        duration: 2329
+      - id: "u1JIbYYZxFw"
+        title: "Frustfreie Eingabe von OTPs in euren Anwendungen mit JavaScript & CSS"
+        description:
+        type: youtube
+        video_id: "u1JIbYYZxFw"
+        duration: 1311
+      - id: "j7qE1nUpdTU"
+        title: "Magnetische Paralax UI der neue Frontend Trend 2022!"
+        description:
+        type: youtube
+        video_id: "j7qE1nUpdTU"
+        duration: 1094
+      - id: "aQ26xzxJ_bY"
+        title: "Einfacher 🎉 Party Button für eure Website in Minuten!"
+        description:
+        type: youtube
+        video_id: "aQ26xzxJ_bY"
+        duration: 592
+      - id: "7RF7TL39Clc"
+        title: "CSS3 Neon-Gradient-Animation für einen extra Design Boost!"
+        description:
+        type: youtube
+        video_id: "7RF7TL39Clc"
+        duration: 829
+      - id: "_2p8DgNZgBw"
+        title: "Awesome Flex Image Slider für dein nächstes Web Design Projekt 2022 mit CSS & JavaScript!"
+        description:
+        type: youtube
+        video_id: "_2p8DgNZgBw"
+        duration: 1661
+      - id: "8zJhe-uMnGg"
+        title: "🦥 Lazy Loading ⌛ von Bildern mit JavaScript (mit Animation)!"
+        description:
+        type: youtube
+        video_id: "8zJhe-uMnGg"
+        duration: 932
+      - id: "7iTOXlrEHks"
+        title: "Eine einfache Front-End Suche mit Fuse.js bauen!"
+        description:
+        type: youtube
+        video_id: "7iTOXlrEHks"
+        duration: 897
+      - id: "BSgYBJan_SE"
+        title: "10 min Arbeit die ein Cooles von einem Langweiligen Menü unterschieden!"
+        description:
+        type: youtube
+        video_id: "BSgYBJan_SE"
+        duration: 1200
+      - id: "KY_phw0uk6E"
+        title: "Coole & einfache 3D Sidebar für deine Website!"
+        description:
+        type: youtube
+        video_id: "KY_phw0uk6E"
+        duration: 1407
+      - id: "gW177MPaPfQ"
+        title: "Einfacher 👍 Button  Animation mit CSS3 und JavaScript"
+        description:
+        type: youtube
+        video_id: "gW177MPaPfQ"
+        duration: 1110
+      - id: "-G3_pKCH_wg"
+        title: "Coole Wiggle Button Animation mit CSS und JavaScript👍"
+        description:
+        type: youtube
+        video_id: "-G3_pKCH_wg"
+        duration: 540
+      - id: "WOmagqxZR8c"
+        title: "Cooles & einfaches 3D Menü für deine Website!"
+        description:
+        type: youtube
+        video_id: "WOmagqxZR8c"
+        duration: 1649
+      - id: "54TmQaHECwU"
+        title: "Der wohl beste Text Morph Effekt 😍  mit CSS & SVG Filtern?"
+        description:
+        type: youtube
+        video_id: "54TmQaHECwU"
+        duration: 1134
+      - id: "3BOVlMQoQ24"
+        title: "Twitch 3D :hover Effekt mit CSS3"
+        description:
+        type: youtube
+        video_id: "3BOVlMQoQ24"
+        duration: 757
+      - id: "hVkCyWT6ZMs"
+        title: "Nicht noch ein weiter CSS Loading-Spinner!"
+        description:
+        type: youtube
+        video_id: "hVkCyWT6ZMs"
+        duration: 970
+      - id: "0jT49Ee89og"
+        title: "CSS Motion Path! Das wohl coolste CSS Feature!"
+        description:
+        type: youtube
+        video_id: "0jT49Ee89og"
+        duration: 765
+      - id: "UVsyZmlZ0Iw"
+        title: "Einfacher Textmarker 🖍 Effekt mit CSS3 & JavaScript!"
+        description:
+        type: youtube
+        video_id: "UVsyZmlZ0Iw"
+        duration: 914
+      - id: "v9MluXjcHPI"
+        title: "Content Slider mit Bullets, Pen Support & 100% Responsive"
+        description:
+        type: youtube
+        video_id: "v9MluXjcHPI"
+        duration: 2156
+      - id: "k4A1U4dcEFg"
+        title: "Einfacher Menü Highlight Slider mit JavaScript & CSS!"
+        description:
+        type: youtube
+        video_id: "k4A1U4dcEFg"
+        duration: 607
+      - id: "_CfIxmk3hho"
+        title: "BESTER BUTTON EFFEKT Ever?? CSS Only Gummy Animation oO"
+        description:
+        type: youtube
+        video_id: "_CfIxmk3hho"
+        duration: 1298
+      - id: "cwkf5wN2WPA"
+        title: "Animierte Skillbar für deinen Lebenslauf mit CSS & JavaScript"
+        description:
+        type: youtube
+        video_id: "cwkf5wN2WPA"
+        duration: 1374
+      - id: "ziIFE_fmj2g"
+        title: "🔪 Zerschneide Text mit CSS3?? Cooler Text Effekt!"
+        description:
+        type: youtube
+        video_id: "ziIFE_fmj2g"
+        duration: 625

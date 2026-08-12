@@ -1,0 +1,114 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7orIal3z8bq8HlHxnN-CtXr
+title: "Serveradministration Grundlagen"
+description: "Ihr braucht einen eigenen Server, ihr wollt eine Nextcloud, eine Website oder einen Matrix-Server über den ihr die volle Kontrolle habt? Das und noch so viel mehr lernt ihr hier."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/bash.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665508394
+sections:
+  - id: section
+    title: "Serveradministration Grundlagen"
+    description:
+    lectures:
+      - id: "rkO6flF0VXs"
+        title: "Einen Server bei Hetzner mieten und sich via SSH verbinden"
+        description:
+        type: youtube
+        video_id: "rkO6flF0VXs"
+        duration: 1028
+      - id: "exvPRLSWFSM"
+        title: "Eine Domain registrieren und einrichten"
+        description:
+        type: youtube
+        video_id: "exvPRLSWFSM"
+        duration: 640
+      - id: "Irau2-w8ABE"
+        title: "Wichtige erste Schritte auf einem Server"
+        description:
+        type: youtube
+        video_id: "Irau2-w8ABE"
+        duration: 973
+      - id: "lP61L0XgoVs"
+        title: "Mit Docker einen Nginx Reverse Proxy erstellen"
+        description:
+        type: youtube
+        video_id: "lP61L0XgoVs"
+        duration: 1032
+      - id: "2G0ewKSozs0"
+        title: "Synapse Matrix Server installieren inklusive Federation"
+        description:
+        type: youtube
+        video_id: "2G0ewKSozs0"
+        duration: 1152
+      - id: "UBAoqQ-15No"
+        title: "Proxmox auf einem Hetzner Server installieren"
+        description:
+        type: youtube
+        video_id: "UBAoqQ-15No"
+        duration: 1089
+      - id: "uKGkw7KE0ng"
+        title: "OpnSense auf Proxmox installieren: Nur 1 IP [Hetzner Server]"
+        description:
+        type: youtube
+        video_id: "uKGkw7KE0ng"
+        duration: 3306
+      - id: "GhaGO83VIz0"
+        title: "OpnSense auf Proxmox: IPv6 Setup [Hetzner Server]"
+        description:
+        type: youtube
+        video_id: "GhaGO83VIz0"
+        duration: 1799
+      - id: "CguJd_I7jEI"
+        title: "Über SSH Port Forwarding - auch aus einer laufenden Session heraus"
+        description:
+        type: youtube
+        video_id: "CguJd_I7jEI"
+        duration: 771
+      - id: "Mr80hEkYYqY"
+        title: "Remote Wireshark: SSHDump und Verbindungen auf dem Server beobachten"
+        description:
+        type: youtube
+        video_id: "Mr80hEkYYqY"
+        duration: 339
+      - id: "xlI2EA9Q7Kc"
+        title: "TCPDump: Netzwerkverbindungen auf dem Server beobachten"
+        description:
+        type: youtube
+        video_id: "xlI2EA9Q7Kc"
+        duration: 551
+      - id: "tVX2z85wGmg"
+        title: "OpnSense: VMs anlegen in Proxmox"
+        description:
+        type: youtube
+        video_id: "tVX2z85wGmg"
+        duration: 2836
+      - id: "5D4U0kVxbJ4"
+        title: "Proxmox: Zertifikat via ACME.sh beantragen"
+        description:
+        type: youtube
+        video_id: "5D4U0kVxbJ4"
+        duration: 796
+      - id: "O2CHWr_AQT0"
+        title: "OpnSense: TLS Zertifikat via ACME.sh"
+        description:
+        type: youtube
+        video_id: "O2CHWr_AQT0"
+        duration: 1214
+      - id: "lGA3ifzAnRk"
+        title: "OpnSense: VPN zum Server"
+        description:
+        type: youtube
+        video_id: "lGA3ifzAnRk"
+        duration: 2026
+      - id: "F9uMNMl-GAw"
+        title: "OpnSense: User Certificates für den VPN einrichten"
+        description:
+        type: youtube
+        video_id: "F9uMNMl-GAw"
+        duration: 813

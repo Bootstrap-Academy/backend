@@ -1,0 +1,112 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7oQc3MxjWB-rYHHo9vX905a
+title: "Reverse Engineering mit Ghidra"
+description: "Malware ist mittlerweile überall - doch was genau tut sie? Stiehlt sie Informationen, verschlüsselt sie nur oder nutzt sie das System als Botnetz? Das sind wichtige Informationen, nicht zuletzt um Kunden zu informieren oder die Täter zu schnappen. Und daher muss man die Malware genau analysieren - Beispielsweise mit Ghidra, einem Tool der NSA selbst."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/reversing.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665507867
+sections:
+  - id: section
+    title: "Reverse Engineering mit Ghidra"
+    description:
+    lectures:
+      - id: "gdpHhWiiayM"
+        title: "Ghidra vs. Ida Pro"
+        description:
+        type: youtube
+        video_id: "gdpHhWiiayM"
+        duration: 693
+      - id: "KwVAdKZieag"
+        title: "Eine einfache Aufgabe"
+        description:
+        type: youtube
+        video_id: "KwVAdKZieag"
+        duration: 892
+      - id: "rnR3T4CWu6s"
+        title: "Windows .exe-Dateien, Strings finden, Ordnung"
+        description:
+        type: youtube
+        video_id: "rnR3T4CWu6s"
+        duration: 532
+      - id: "I50Qp47G78g"
+        title: "Vorgehen bei Algorithmen"
+        description:
+        type: youtube
+        video_id: "I50Qp47G78g"
+        duration: 851
+      - id: "UW9RrMJaKN0"
+        title: "Klassen"
+        description:
+        type: youtube
+        video_id: "UW9RrMJaKN0"
+        duration: 702
+  - id: section2
+    title: "Praxisprojekt: WannaCry Reversing"
+    description:
+    lectures:
+      - id: "-OwWG8B2prA"
+        title: "Strings"
+        description:
+        type: youtube
+        video_id: "-OwWG8B2prA"
+        duration: 659
+      - id: "B0v3Nnmsjq4"
+        title: "WinMain"
+        description:
+        type: youtube
+        video_id: "B0v3Nnmsjq4"
+        duration: 655
+      - id: "aHSVBnhU0Es"
+        title: "die ersten Funktionen"
+        description:
+        type: youtube
+        video_id: "aHSVBnhU0Es"
+        duration: 794
+      - id: "kZYHkv5NCjI"
+        title: "Ressourcen Extrahieren"
+        description:
+        type: youtube
+        video_id: "kZYHkv5NCjI"
+        duration: 806
+      - id: "Ti1PM7VpJo8"
+        title: "Weiter im Code"
+        description:
+        type: youtube
+        video_id: "Ti1PM7VpJo8"
+        duration: 853
+      - id: "kJbz1lm-DIk"
+        title: "NAME"
+        description:
+        type: youtube
+        video_id: "kJbz1lm-DIk"
+        duration: 693
+      - id: "XHeRQuTd1pM"
+        title: "Krypto"
+        description:
+        type: youtube
+        video_id: "XHeRQuTd1pM"
+        duration: 961
+      - id: "j_0bNIZLl8w"
+        title: "NAME"
+        description:
+        type: youtube
+        video_id: "j_0bNIZLl8w"
+        duration: 811
+      - id: "TMNjeGKunRY"
+        title: "#9"
+        description:
+        type: youtube
+        video_id: "TMNjeGKunRY"
+        duration: 728
+      - id: "tEelsPRPUU8"
+        title: "die Kryptographie extrahieren"
+        description:
+        type: youtube
+        video_id: "tEelsPRPUU8"
+        duration: 995

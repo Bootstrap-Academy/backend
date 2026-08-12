@@ -1,0 +1,54 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7r-Tw-cNntRgvwA7nXPAjP4
+title: "Bash"
+description: "Bash ist die Programmiersprache für das Linux Terminal. Hiermit lässt sich jede Kette an Befehlen komplett automatisieren. Sie ist das Zuhause für Linux-Systemadministratoren."
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/bash.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665508149
+sections:
+  - id: section
+    title: "Bash"
+    description:
+    lectures:
+      - id: "S7SAsLh60dE"
+        title: "Scripten für das Linux-Terminal"
+        description:
+        type: youtube
+        video_id: "S7SAsLh60dE"
+        duration: 328
+      - id: "BiDXO0Cb2-k"
+        title: "Variablen"
+        description:
+        type: youtube
+        video_id: "BiDXO0Cb2-k"
+        duration: 438
+      - id: "3gyZvA3FxiE"
+        title: "if-Bedingungen"
+        description:
+        type: youtube
+        video_id: "3gyZvA3FxiE"
+        duration: 346
+      - id: "8PWnT7r-pIs"
+        title: "User Inputs"
+        description:
+        type: youtube
+        video_id: "8PWnT7r-pIs"
+        duration: 508
+      - id: "N7G-px1dBWs"
+        title: "Schleifen"
+        description:
+        type: youtube
+        video_id: "N7G-px1dBWs"
+        duration: 565
+      - id: "edzdqM2Wrug"
+        title: "Funktionen"
+        description:
+        type: youtube
+        video_id: "edzdqM2Wrug"
+        duration: 327

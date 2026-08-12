@@ -85,6 +85,9 @@ auto_refill_time = "00:00" # UTC
 monthly_price = 1000
 yearly_price = 10000
 
+[course]
+# course_dir = ""
+
 [render]
 # daemon_url = ""
 

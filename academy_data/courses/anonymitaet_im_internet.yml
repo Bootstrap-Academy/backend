@@ -1,0 +1,230 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7on8Ckrk2wo4ySeenf3rgf0
+title: "Anonymität im Internet"
+description: |
+  Anonymität ist heutzutage keine Seltenheit mehr. Leider führt das zu allerlei Problemen - unter anderem auch grundsätzlicher Angreifbarkeit zum Beispiel durch Social Engineering.
+  In diesem Kurs erfahrt ihr, warum das problematisch ist, welche Methoden es gibt und was ihr tun könnt.
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/anonymity.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665506827
+sections:
+  - id: section
+    title: "Anonymität im Internet"
+    description:
+    lectures:
+      - id: "ecmMXWLudpI"
+        title: "Ich habe nichts zu verbergen: das digitale Missverständnis des 21. Jahrhunderts"
+        description:
+        type: youtube
+        video_id: "ecmMXWLudpI"
+        duration: 1327
+      - id: "6bpac1NcrZM"
+        title: "Der Inkognitomodus"
+        description:
+        type: youtube
+        video_id: "6bpac1NcrZM"
+        duration: 420
+      - id: "gGe-3-pw_nA"
+        title: "IP, Proxy, VPN und Tor"
+        description:
+        type: youtube
+        video_id: "gGe-3-pw_nA"
+        duration: 697
+      - id: "wdPVt6m8wuA"
+        title: "Browserfingerprint"
+        description:
+        type: youtube
+        video_id: "wdPVt6m8wuA"
+        duration: 889
+      - id: "dX-hUxsdCX0"
+        title: "Verschlüsseln mit AES"
+        description:
+        type: youtube
+        video_id: "dX-hUxsdCX0"
+        duration: 449
+      - id: "yQJSQFxCHn0"
+        title: "Verschlüsseln mit PGP"
+        description:
+        type: youtube
+        video_id: "yQJSQFxCHn0"
+        duration: 761
+      - id: "eyYQacf0gck"
+        title: "Emails PGP-Verschlüsseln mit Enigmail"
+        description:
+        type: youtube
+        video_id: "eyYQacf0gck"
+        duration: 260
+      - id: "Jz9OTwqZssI"
+        title: "Verschlüsseln mit Truecrypt"
+        description:
+        type: youtube
+        video_id: "Jz9OTwqZssI"
+        duration: 726
+      - id: "jzLDyxkDRNg"
+        title: "Anonym bleiben mit Whonix"
+        description:
+        type: youtube
+        video_id: "jzLDyxkDRNg"
+        duration: 1251
+      - id: "qXxucKl5zzs"
+        title: "Den richtigen VPN Anbieter wählen"
+        description:
+        type: youtube
+        video_id: "qXxucKl5zzs"
+        duration: 557
+      - id: "ol3zJAQD--8"
+        title: "Data Selfie - Welche Informationen hat Facebook"
+        description:
+        type: youtube
+        video_id: "ol3zJAQD--8"
+        duration: 134
+      - id: "W9enTdOhKYE"
+        title: "Firefox Profilemaker, erweiterte Einstellungen in Firefox"
+        description:
+        type: youtube
+        video_id: "W9enTdOhKYE"
+        duration: 1525
+      - id: "lX7ZJghgGgg"
+        title: "die Windows Datenschutzerklärung"
+        description:
+        type: youtube
+        video_id: "lX7ZJghgGgg"
+        duration: 551
+      - id: "FYwbgTci3pI"
+        title: "Die Google Datenschutzerklärung kurz durchleuchtet"
+        description:
+        type: youtube
+        video_id: "FYwbgTci3pI"
+        duration: 723
+      - id: "1lSvb71Uwes"
+        title: "Datenschutz bei Apple: so wird's gemacht"
+        description:
+        type: youtube
+        video_id: "1lSvb71Uwes"
+        duration: 1108
+      - id: "0qXO1CmIX-s"
+        title: "Facebook, Whatsapp und Instagram - Der Datenschutz im Halloween-Kostüm"
+        description:
+        type: youtube
+        video_id: "0qXO1CmIX-s"
+        duration: 1153
+      - id: "eyDaalvuOYE"
+        title: "Linux Tails - Maximale Anonymität - kurz vorgestellt und installiert"
+        description:
+        type: youtube
+        video_id: "eyDaalvuOYE"
+        duration: 1195
+      - id: "ziGFK59haqY"
+        title: "Angriff auf Proxies, Sender  und Empfängeranonymität"
+        description:
+        type: youtube
+        video_id: "ziGFK59haqY"
+        duration: 471
+      - id: "coJd7qo5_kg"
+        title: "Mixes"
+        description:
+        type: youtube
+        video_id: "coJd7qo5_kg"
+        duration: 347
+      - id: "WHKsHmFUjks"
+        title: "Onion Routing"
+        description:
+        type: youtube
+        video_id: "WHKsHmFUjks"
+        duration: 434
+      - id: "ijfvhdsfsmw"
+        title: "Hidden Services"
+        description:
+        type: youtube
+        video_id: "ijfvhdsfsmw"
+        duration: 512
+      - id: "0O4yeQaABAw"
+        title: "Bitmessage"
+        description:
+        type: youtube
+        video_id: "0O4yeQaABAw"
+        duration: 524
+      - id: "i2SP4eb7aHk"
+        title: "Filesharing über TOR via Onionshare"
+        description:
+        type: youtube
+        video_id: "i2SP4eb7aHk"
+        duration: 393
+      - id: "ejy0APEsRuY"
+        title: "Windows SICHER, ANONYM und SCHNELLER machen"
+        description:
+        type: youtube
+        video_id: "ejy0APEsRuY"
+        duration: 3287
+      - id: "8H2Vxn6VXFY"
+        title: "Firefox: ANONYMER und SICHERER | Einstellungen und Addons"
+        description:
+        type: youtube
+        video_id: "8H2Vxn6VXFY"
+        duration: 3327
+      - id: "EUxsBVjyiTY"
+        title: "Veracrypt: verschlüsselte USB Sticks und Dateien erstellen mit Geheim-Fach"
+        description:
+        type: youtube
+        video_id: "EUxsBVjyiTY"
+        duration: 1686
+      - id: "-WymP8TwfcQ"
+        title: "GnuPG für Windows #1  - Installation und Schlüssel erstellen"
+        description:
+        type: youtube
+        video_id: "-WymP8TwfcQ"
+        duration: 620
+      - id: "y78MITuTqAs"
+        title: "GnuPG Windows #2 - Nachrichten, Dateien verschlüsseln, signieren und prüfen"
+        description:
+        type: youtube
+        video_id: "y78MITuTqAs"
+        duration: 815
+      - id: "qSz-y7wXF5s"
+        title: "In Outlook E-Mails verschlüsseln"
+        description:
+        type: youtube
+        video_id: "qSz-y7wXF5s"
+        duration: 259
+      - id: "53llt5oY5I0"
+        title: "Gmail und Sonstige Web Mail Anbieter verschlüsseln"
+        description:
+        type: youtube
+        video_id: "53llt5oY5I0"
+        duration: 490
+      - id: "mQFdUFDNaUs"
+        title: "GnuPG Verschlüsselung unter Android mit OpenKeyChain"
+        description:
+        type: youtube
+        video_id: "mQFdUFDNaUs"
+        duration: 675
+      - id: "IZzU89SzLWc"
+        title: "Chrome sicher machen"
+        description:
+        type: youtube
+        video_id: "IZzU89SzLWc"
+        duration: 2102
+      - id: "XcX3JY30tqU"
+        title: "Steganographie - Verstecke Nachrichten/Dateien in Bildern"
+        description:
+        type: youtube
+        video_id: "XcX3JY30tqU"
+        duration: 432
+      - id: "sxFOti8SLSs"
+        title: "Steganographie - Verstecke Dateien wie Mr.Robot mit DeepSound"
+        description:
+        type: youtube
+        video_id: "sxFOti8SLSs"
+        duration: 385
+      - id: "M6ly1shUVQo"
+        title: "Proxychains"
+        description:
+        type: youtube
+        video_id: "M6ly1shUVQo"
+        duration: 542

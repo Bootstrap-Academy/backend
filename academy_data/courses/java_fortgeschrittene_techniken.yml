@@ -1,0 +1,338 @@
+# https://www.youtube.com/playlist?list=PLNmsVeXQZj7oirQMpjPjrmNx4vcVIGIGY
+title: "Java für Fortgeschrittene"
+description: "Ihr denkt, ihr könnt Java? Abwarten. Hier sind eingie Themen drin, die ihr in (fast) keinem Studium, Ausbildung und sogar nur in wenigen Betrieben lernt - denn sie machen Entwicklern Angst. Bereit für eine wilde Runde in den Expertenkreisen?"
+category:
+language: de
+image: https://static.bootstrap.academy/thumbnails/java.jpg
+authors:
+  - name: "The Morpheus Tutorials"
+    url: "https://www.youtube.com/@TheMorpheusTutorials"
+price: 0
+learning_goals: []
+requirements: []
+last_update: 1665506298
+sections:
+  - id: section
+    title: "Multithreading"
+    description:
+    lectures:
+      - id: "tcqbIVhdw2s"
+        title: "Erstellen von Threads"
+        description:
+        type: youtube
+        video_id: "tcqbIVhdw2s"
+        duration: 444
+      - id: "DmAb5BfudxI"
+        title: "Synchronisation von Threads"
+        description:
+        type: youtube
+        video_id: "DmAb5BfudxI"
+        duration: 436
+      - id: "q-pUT_XOdro"
+        title: "Deadlocks"
+        description:
+        type: youtube
+        video_id: "q-pUT_XOdro"
+        duration: 935
+      - id: "wspqCy2DKFE"
+        title: "Kommunikation zwischen Prozessen"
+        description:
+        type: youtube
+        video_id: "wspqCy2DKFE"
+        duration: 861
+  - id: section2
+    title: "Debugging und Ordnung"
+    description:
+    lectures:
+      - id: "mqO1x0papKk"
+        title: "Java Debugging"
+        description:
+        type: youtube
+        video_id: "mqO1x0papKk"
+        duration: 514
+      - id: "hjpK4lLcLFk"
+        title: "Javadoc"
+        description:
+        type: youtube
+        video_id: "hjpK4lLcLFk"
+        duration: 539
+      - id: "CK8shWNtizk"
+        title: "JUnit Tests"
+        description:
+        type: youtube
+        video_id: "CK8shWNtizk"
+        duration: 854
+  - id: section3
+    title: "Objekt-Orientierung für Profis"
+    description:
+    lectures:
+      - id: "fb7RfVnlVfs"
+        title: "anonyme innere Klassen und der Grund für OOP"
+        description:
+        type: youtube
+        video_id: "fb7RfVnlVfs"
+        duration: 687
+      - id: "hK8RBOWiY7A"
+        title: "Attribute vererben"
+        description:
+        type: youtube
+        video_id: "hK8RBOWiY7A"
+        duration: 612
+      - id: "PuXaXs824UU"
+        title: "Super und Typecasts"
+        description:
+        type: youtube
+        video_id: "PuXaXs824UU"
+        duration: 781
+      - id: "zCJc_Fx7P-4"
+        title: "Rekursion und dynamische Bindung"
+        description:
+        type: youtube
+        video_id: "zCJc_Fx7P-4"
+        duration: 529
+      - id: "yhbZNvBIX9Q"
+        title: "Private"
+        description:
+        type: youtube
+        video_id: "yhbZNvBIX9Q"
+        duration: 439
+      - id: "UoJpX561Sg8"
+        title: "static und instance initializer"
+        description:
+        type: youtube
+        video_id: "UoJpX561Sg8"
+        duration: 689
+      - id: "bPv-mJ-QnDw"
+        title: "Initializer bei Vererbung"
+        description:
+        type: youtube
+        video_id: "bPv-mJ-QnDw"
+        duration: 455
+      - id: "DX65HTfVe8I"
+        title: "dynamische Bindung in Konstruktoren und Initializern"
+        description:
+        type: youtube
+        video_id: "DX65HTfVe8I"
+        duration: 534
+      - id: "wQ8ikeKHBFo"
+        title: "final"
+        description:
+        type: youtube
+        video_id: "wQ8ikeKHBFo"
+        duration: 869
+      - id: "4Gex2cWIiDA"
+        title: "Tricks und Tücken der Überladung"
+        description:
+        type: youtube
+        video_id: "4Gex2cWIiDA"
+        duration: 509
+      - id: "k4pLHmdL0HE"
+        title: "static inner classes"
+        description:
+        type: youtube
+        video_id: "k4pLHmdL0HE"
+        duration: 407
+      - id: "Q9fsix-IGvA"
+        title: "Nested inner classes"
+        description:
+        type: youtube
+        video_id: "Q9fsix-IGvA"
+        duration: 390
+  - id: section4
+    title: "Generics"
+    description:
+    lectures:
+      - id: "uLSiFW18OhE"
+        title: "Einleitung"
+        description:
+        type: youtube
+        video_id: "uLSiFW18OhE"
+        duration: 398
+      - id: "CevmKZNZ7GQ"
+        title: "Typschranken"
+        description:
+        type: youtube
+        video_id: "CevmKZNZ7GQ"
+        duration: 475
+      - id: "dfPSSPsxDxQ"
+        title: "Vererbung bei generischen Klassen"
+        description:
+        type: youtube
+        video_id: "dfPSSPsxDxQ"
+        duration: 488
+      - id: "3OtdO12CLgI"
+        title: "Generische Methoden"
+        description:
+        type: youtube
+        video_id: "3OtdO12CLgI"
+        duration: 260
+      - id: "Uz5CxTqlLu8"
+        title: "Wildcards"
+        description:
+        type: youtube
+        video_id: "Uz5CxTqlLu8"
+        duration: 706
+  - id: section5
+    title: "Reflections"
+    description:
+    lectures:
+      - id: "CWpzke0mZ_E"
+        title: "Intro"
+        description:
+        type: youtube
+        video_id: "CWpzke0mZ_E"
+        duration: 621
+      - id: "HLTSzsb6WW8"
+        title: "Instanzen erstellen"
+        description:
+        type: youtube
+        video_id: "HLTSzsb6WW8"
+        duration: 674
+      - id: "fBsZ90w6PfQ"
+        title: "Fields"
+        description:
+        type: youtube
+        video_id: "fBsZ90w6PfQ"
+        duration: 578
+      - id: "E_Mznt2a_Io"
+        title: "Methoden"
+        description:
+        type: youtube
+        video_id: "E_Mznt2a_Io"
+        duration: 434
+      - id: "3H9bBhm_lf0"
+        title: "Zugriff auf private Felder und Methoden"
+        description:
+        type: youtube
+        video_id: "3H9bBhm_lf0"
+        duration: 379
+      - id: "za6nWqISSE4"
+        title: "Arrays"
+        description:
+        type: youtube
+        video_id: "za6nWqISSE4"
+        duration: 711
+      - id: "RwuOK8K6fOQ"
+        title: "Generics"
+        description:
+        type: youtube
+        video_id: "RwuOK8K6fOQ"
+        duration: 800
+      - id: "Ued4ncJFPbM"
+        title: "Der Classloader"
+        description:
+        type: youtube
+        video_id: "Ued4ncJFPbM"
+        duration: 196
+  - id: section6
+    title: "Tipps und Tricks"
+    description:
+    lectures:
+      - id: "s54sgTcS75A"
+        title: "Erste Schritte in Swing"
+        description:
+        type: youtube
+        video_id: "s54sgTcS75A"
+        duration: 689
+      - id: "uU21-fuhHcY"
+        title: "Laufzeiten"
+        description:
+        type: youtube
+        video_id: "uU21-fuhHcY"
+        duration: 845
+      - id: "DW_AkNTtgio"
+        title: "YoutubePlayer in Swing - Einbinden fremder Pakete"
+        description:
+        type: youtube
+        video_id: "DW_AkNTtgio"
+        duration: 1038
+      - id: "fzfit1Op0Kc"
+        title: "In eine txt-Datei schreiben"
+        description:
+        type: youtube
+        video_id: "fzfit1Op0Kc"
+        duration: 426
+      - id: "yU-9JMS52Ss"
+        title: "Zwischenablage: Auslesen und Reinschreiben"
+        description:
+        type: youtube
+        video_id: "yU-9JMS52Ss"
+        duration: 467
+      - id: "lJw_k1xnaxg"
+        title: "Drucken"
+        description:
+        type: youtube
+        video_id: "lJw_k1xnaxg"
+        duration: 570
+      - id: "P45lRNbTcmg"
+        title: "Timer"
+        description:
+        type: youtube
+        video_id: "P45lRNbTcmg"
+        duration: 301
+      - id: "OPTGMxrmf5s"
+        title: "Time Funktionen und Klassen: Neu in Java 8"
+        description:
+        type: youtube
+        video_id: "OPTGMxrmf5s"
+        duration: 1041
+      - id: "5MTAItl2kOI"
+        title: "Exceptions und Exception Handling"
+        description:
+        type: youtube
+        video_id: "5MTAItl2kOI"
+        duration: 735
+      - id: "sBddaaWhbOU"
+        title: "HashSet"
+        description:
+        type: youtube
+        video_id: "sBddaaWhbOU"
+        duration: 649
+      - id: "lpvC3Rfgai8"
+        title: "TreeSet"
+        description:
+        type: youtube
+        video_id: "lpvC3Rfgai8"
+        duration: 527
+      - id: "xeZkdm7tE3s"
+        title: "HashMap und TreeMap"
+        description:
+        type: youtube
+        video_id: "xeZkdm7tE3s"
+        duration: 606
+      - id: "KiSXLZlPj3c"
+        title: "Logging"
+        description:
+        type: youtube
+        video_id: "KiSXLZlPj3c"
+        duration: 1379
+      - id: "d_sM_cucnUE"
+        title: "RSA"
+        description:
+        type: youtube
+        video_id: "d_sM_cucnUE"
+        duration: 1359
+      - id: "O7TuxKJXBII"
+        title: "Server"
+        description:
+        type: youtube
+        video_id: "O7TuxKJXBII"
+        duration: 1098
+      - id: "Nu5lZ3oxl9s"
+        title: "Lambda Ausdrücke"
+        description:
+        type: youtube
+        video_id: "Nu5lZ3oxl9s"
+        duration: 441
+      - id: "6PA84EcGaHM"
+        title: "Neuronale Netze anwenden mit Snipe"
+        description:
+        type: youtube
+        video_id: "6PA84EcGaHM"
+        duration: 898
+      - id: "NIUGbgLU5Uk"
+        title: "Enums"
+        description:
+        type: youtube
+        video_id: "NIUGbgLU5Uk"
+        duration: 500

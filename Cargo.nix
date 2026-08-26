@@ -3731,7 +3731,7 @@ rec {
           }
           {
             name = "hmac";
-            packageId = "hmac 0.12.1";
+            packageId = "hmac 0.13.0";
             usesDefaultFeatures = false;
           }
           {

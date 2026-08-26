@@ -737,7 +737,7 @@ dependencies = [
  "argon2",
  "chrono",
  "hex",
- "hmac 0.12.1",
+ "hmac 0.13.0",
  "jwt",
  "rand 0.10.2",
  "serde",

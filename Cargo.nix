@@ -12563,9 +12563,9 @@ rec {
       };
       "postgres-protocol" = rec {
         crateName = "postgres-protocol";
-        version = "0.6.11";
+        version = "0.6.12";
         edition = "2024";
-        sha256 = "1z3hkvsag549f5vmn867w2v6nsk1j55ipqs8x0w2ygn5v83i482n";
+        sha256 = "0565lrm7x316l60bny4xnnnxawzl6j1wflc022cyjiiw90y8x008";
         libName = "postgres_protocol";
         authors = [
           "Steven Fackler <sfackler@gmail.com>"

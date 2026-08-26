@@ -1008,7 +1008,7 @@ rec {
           }
           {
             name = "sha2";
-            packageId = "sha2 0.10.9";
+            packageId = "sha2 0.11.0";
             usesDefaultFeatures = false;
           }
           {
@@ -3753,7 +3753,7 @@ rec {
           }
           {
             name = "sha2";
-            packageId = "sha2 0.10.9";
+            packageId = "sha2 0.11.0";
             usesDefaultFeatures = false;
           }
           {

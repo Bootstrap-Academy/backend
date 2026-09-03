@@ -17,6 +17,7 @@ hex.workspace = true
 lettre.workspace = true
 nutype.workspace = true
 regex.workspace = true
+rust_decimal.workspace = true
 schemars.workspace = true
 serde.workspace = true
 thiserror.workspace = true

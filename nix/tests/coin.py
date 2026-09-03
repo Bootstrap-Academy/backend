@@ -1,5 +1,10 @@
 from utils import c, create_account, create_admin_account, make_client
 
+# config (public)
+resp = c.get("/shop/coins/config")
+assert resp.status_code == 200
+assert resp.json() == {"coins_per_euro": 100, "vat_percent": 19.0}
+
 login = create_account("a", "a@a", "a")
 
 # get balance

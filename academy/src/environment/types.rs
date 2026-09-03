@@ -186,7 +186,8 @@ pub type OAuth2Link = OAuth2LinkServiceImpl<Id, Time, OAuth2Repo>;
 pub type OAuth2Login = OAuth2LoginServiceImpl<OAuth2Api>;
 pub type OAuth2Registration = OAuth2RegistrationServiceImpl<Secret, Cache>;
 
-pub type CoinFeature = CoinFeatureServiceImpl<Database, Auth, UserRepo, CoinRepo, Coin>;
+pub type CoinFeature =
+    CoinFeatureServiceImpl<Database, Auth, UserRepo, CoinRepo, Coin, FinanceCoin>;
 pub type Coin = CoinServiceImpl<Id, Time, CoinRepo>;
 
 pub type PaypalFeature = PaypalFeatureServiceImpl<

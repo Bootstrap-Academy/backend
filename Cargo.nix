@@ -989,6 +989,12 @@ rec {
             usesDefaultFeatures = false;
           }
           {
+            name = "rust_decimal";
+            packageId = "rust_decimal";
+            usesDefaultFeatures = false;
+            features = [ "std" "serde-str" ];
+          }
+          {
             name = "schemars";
             packageId = "schemars";
             usesDefaultFeatures = false;
@@ -1389,6 +1395,10 @@ rec {
             packageId = "academy_core_coin_contracts";
           }
           {
+            name = "academy_core_finance_contracts";
+            packageId = "academy_core_finance_contracts";
+          }
+          {
             name = "academy_di";
             packageId = "academy_di";
           }
@@ -1422,6 +1432,11 @@ rec {
             features = [ "mock" ];
           }
           {
+            name = "academy_core_finance_contracts";
+            packageId = "academy_core_finance_contracts";
+            features = [ "mock" ];
+          }
+          {
             name = "academy_demo";
             packageId = "academy_demo";
           }
@@ -1434,6 +1449,17 @@ rec {
             name = "academy_shared_contracts";
             packageId = "academy_shared_contracts";
             features = [ "mock" ];
+          }
+          {
+            name = "rust_decimal";
+            packageId = "rust_decimal";
+            usesDefaultFeatures = false;
+            features = [ "std" "serde-str" ];
+          }
+          {
+            name = "rust_decimal_macros";
+            packageId = "rust_decimal_macros";
+            usesDefaultFeatures = false;
           }
           {
             name = "tokio";
@@ -3368,6 +3394,12 @@ rec {
             name = "regex";
             packageId = "regex";
             usesDefaultFeatures = false;
+          }
+          {
+            name = "rust_decimal";
+            packageId = "rust_decimal";
+            usesDefaultFeatures = false;
+            features = [ "std" "serde-str" ];
           }
           {
             name = "schemars";

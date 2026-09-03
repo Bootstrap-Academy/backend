@@ -21,7 +21,11 @@ use crate::{
     error_code,
     errors::{auth_error, auth_error_docs, internal_server_error, internal_server_error_docs},
     extractors::auth::ApiToken,
-    models::{OkResponse, StringOption, coin::ApiBalance, user::PathUserIdOrSelf},
+    models::{
+        OkResponse, StringOption,
+        coin::{ApiBalance, ApiCoinConfig},
+        user::PathUserIdOrSelf,
+    },
 };
 
 pub const TAG: &str = "Coins";
@@ -29,11 +33,28 @@ pub const TAG: &str = "Coins";
 pub fn router(service: Arc<impl CoinFeatureService>) -> ApiRouter<()> {
     ApiRouter::new()
         .api_route(
+            "/shop/coins/config",
+            routing::get_with(get_config, get_config_docs),
+        )
+        .api_route(
             "/shop/coins/{user_id}",
             routing::get_with(get_balance, get_balance_docs).post_with(add_coins, add_coins_docs),
         )
         .with_state(service)
         .with_path_items(|op| op.tag(TAG))
+}
+
+async fn get_config(service: State<Arc<impl CoinFeatureService>>) -> Response {
+    Json(ApiCoinConfig::from(service.get_config())).into_response()
+}
+
+fn get_config_docs(op: TransformOperation) -> TransformOperation {
+    op.summary("Return the public Morphcoin pricing configuration.")
+        .description(
+            "Morphcoins are sold at a fixed rate; all prices include the vat percentage returned \
+             by this endpoint.",
+        )
+        .add_response::<ApiCoinConfig>(StatusCode::OK, None)
 }
 
 async fn get_balance(

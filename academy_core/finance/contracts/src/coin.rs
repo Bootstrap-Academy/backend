@@ -5,6 +5,9 @@ pub trait FinanceCoinService: Send + Sync + 'static {
     /// Return the configured vat percentage.
     fn vat_percent(&self) -> Decimal;
 
+    /// Return the number of Morphcoins that correspond to one Euro.
+    fn coins_per_euro(&self) -> u64;
+
     /// Calculate the prices to purchase the given number of morphcoins.
     fn get_price(&self, coins: u64) -> CoinPrices;
 }
@@ -21,6 +24,14 @@ pub struct CoinPrices {
 impl MockFinanceCoinService {
     pub fn with_vat_percent(mut self, result: Decimal) -> Self {
         self.expect_vat_percent()
+            .once()
+            .with()
+            .return_once(move || result);
+        self
+    }
+
+    pub fn with_coins_per_euro(mut self, result: u64) -> Self {
+        self.expect_coins_per_euro()
             .once()
             .with()
             .return_once(move || result);

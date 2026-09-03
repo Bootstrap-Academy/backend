@@ -77,6 +77,7 @@ pub async fn load(db: PostgresDatabase, auth: DbConnection) -> anyhow::Result<()
             terms_version: None,
             terms_accepted_at: None,
             age_confirmed_at: None,
+            terms_declined_at: None,
         };
 
         let profile = UserProfile {

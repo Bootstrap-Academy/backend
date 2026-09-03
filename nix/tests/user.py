@@ -72,6 +72,7 @@ assert login == {
         "tags": [],
         "terms_version": "2026-09",
         "terms_accepted_at": login["user"]["terms_accepted_at"],
+        "terms_declined_at": None,
         "business": None,
         "first_name": None,
         "last_name": None,
@@ -370,6 +371,41 @@ assert resp.status_code == 200
 user["terms_version"] = "2026-10"
 user["terms_accepted_at"] = resp.json()["terms_accepted_at"]
 assert start <= user["terms_accepted_at"] <= end
+assert resp.json() == user
+assert c.get("/auth/users/me").json() == user
+
+# decline a new version of the terms and conditions
+## only the authenticated user can decline
+resp = c.post("/auth/users/14b871aa-6324-4e41-85ab-1e7fdb0481cb/terms/decline")
+assert resp.status_code == 400
+assert resp.json() == {"detail": "Can only decline terms for self"}
+
+## success: the accepted version stays untouched and keeps applying
+start = time.time() - 1
+resp = c.post("/auth/users/me/terms/decline")
+end = time.time() + 1
+assert resp.status_code == 200
+user["terms_declined_at"] = resp.json()["terms_declined_at"]
+assert start <= user["terms_declined_at"] <= end
+assert resp.json() == user
+assert resp.json()["terms_version"] == "2026-10"
+assert c.get("/auth/users/me").json() == user
+
+## declining again is allowed and only moves the timestamp
+start = time.time() - 1
+resp = c.post("/auth/users/me/terms/decline")
+end = time.time() + 1
+assert resp.status_code == 200
+user["terms_declined_at"] = resp.json()["terms_declined_at"]
+assert start <= user["terms_declined_at"] <= end
+assert resp.json() == user
+
+## accepting clears the recorded refusal
+resp = c.post("/auth/users/me/terms", json={"terms_version": "2026-11", "age_confirmed": True})
+assert resp.status_code == 200
+user["terms_version"] = "2026-11"
+user["terms_accepted_at"] = resp.json()["terms_accepted_at"]
+user["terms_declined_at"] = None
 assert resp.json() == user
 assert c.get("/auth/users/me").json() == user
 

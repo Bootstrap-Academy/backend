@@ -90,6 +90,7 @@ where
             terms_accepted_at: terms_version.is_some().then_some(now),
             terms_version,
             age_confirmed_at: age_confirmed.then_some(now),
+            terms_declined_at: None,
         };
 
         let profile = UserProfile {
@@ -540,6 +541,7 @@ mod tests {
                 terms_version: FOO.user.terms_version.clone(),
                 terms_accepted_at: Some(FOO.user.created_at),
                 age_confirmed_at: Some(FOO.user.created_at),
+                terms_declined_at: None,
             },
             profile: UserProfile {
                 display_name: FOO.profile.display_name.clone(),

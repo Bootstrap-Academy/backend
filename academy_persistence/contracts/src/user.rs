@@ -126,7 +126,8 @@ pub trait UserRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
     /// they accepted it and when they confirmed to meet the minimum age.
     ///
     /// All three values are always written, so the caller has to pass the
-    /// `age_confirmed_at` that is supposed to be stored.
+    /// `age_confirmed_at` that is supposed to be stored. `terms_declined_at`
+    /// is cleared, because an earlier refusal is settled by the acceptance.
     fn update_terms_acceptance(
         &self,
         txn: &mut Txn,
@@ -134,6 +135,18 @@ pub trait UserRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
         terms_version: &TermsVersion,
         terms_accepted_at: DateTime<Utc>,
         age_confirmed_at: DateTime<Utc>,
+    ) -> impl Future<Output = anyhow::Result<bool>> + Send;
+
+    /// Record that a user declined to accept the current version of the terms
+    /// and conditions.
+    ///
+    /// Only `terms_declined_at` is written, so the version the user accepted
+    /// before stays exactly as it is and keeps applying to the contract.
+    fn update_terms_decline(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
+        terms_declined_at: DateTime<Utc>,
     ) -> impl Future<Output = anyhow::Result<bool>> + Send;
 
     /// Delete an existing user.
@@ -364,6 +377,23 @@ impl<Txn: Send + Sync + 'static> MockUserRepository<Txn> {
                 mockall::predicate::eq(age_confirmed_at),
             )
             .return_once(move |_, _, _, _, _| Box::pin(std::future::ready(Ok(result))));
+        self
+    }
+
+    pub fn with_update_terms_decline(
+        mut self,
+        user_id: UserId,
+        terms_declined_at: DateTime<Utc>,
+        result: bool,
+    ) -> Self {
+        self.expect_update_terms_decline()
+            .once()
+            .with(
+                mockall::predicate::always(),
+                mockall::predicate::eq(user_id),
+                mockall::predicate::eq(terms_declined_at),
+            )
+            .return_once(move |_, _, _| Box::pin(std::future::ready(Ok(result))));
         self
     }
 

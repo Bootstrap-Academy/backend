@@ -345,6 +345,20 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
     }
 
     #[trace_instrument(skip(self, txn))]
+    async fn update_terms_decline(
+        &self,
+        txn: &mut PostgresTransaction,
+        user_id: UserId,
+        terms_declined_at: DateTime<Utc>,
+    ) -> anyhow::Result<bool> {
+        queries::user::update_terms_decline()
+            .bind(txn.txn(), &terms_declined_at.into(), &user_id)
+            .await
+            .map(|n| n != 0)
+            .map_err(Into::into)
+    }
+
+    #[trace_instrument(skip(self, txn))]
     async fn delete(&self, txn: &mut PostgresTransaction, user_id: UserId) -> anyhow::Result<bool> {
         queries::user::delete()
             .bind(txn.txn(), &user_id)
@@ -421,6 +435,7 @@ fn decode_composite(value: queries::user::UserComposite) -> anyhow::Result<UserC
         terms_version: value.terms_version.map(TryInto::try_into).transpose()?,
         terms_accepted_at: value.terms_accepted_at.map(Into::into),
         age_confirmed_at: value.age_confirmed_at.map(Into::into),
+        terms_declined_at: value.terms_declined_at.map(Into::into),
     };
 
     let profile = UserProfile {

@@ -53,6 +53,10 @@ pub struct ApiUser {
     /// Timestamp at which the user accepted the terms and conditions
     /// (read-only)
     pub terms_accepted_at: Option<i64>,
+    /// Timestamp at which the user most recently declined to accept the
+    /// version of the terms and conditions the platform currently asks for
+    /// (read-only, null once the user accepts)
+    pub terms_declined_at: Option<i64>,
     /// Whether the user represents a business instead of a private person
     pub business: Option<bool>,
     /// First name of the user
@@ -102,6 +106,7 @@ impl From<UserComposite> for ApiUser {
             admin: user.admin,
             terms_version: user.terms_version,
             terms_accepted_at: user.terms_accepted_at.map(|x| x.timestamp()),
+            terms_declined_at: user.terms_declined_at.map(|x| x.timestamp()),
 
             display_name: profile.display_name,
             description: profile.bio,

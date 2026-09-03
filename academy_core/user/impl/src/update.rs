@@ -201,6 +201,21 @@ where
         user.terms_version = Some(terms_version);
         user.terms_accepted_at = Some(now);
         user.age_confirmed_at = Some(age_confirmed_at);
+        user.terms_declined_at = None;
+
+        Ok(user)
+    }
+
+    #[trace_instrument(skip(self, txn))]
+    async fn decline_terms(&self, txn: &mut Txn, mut user: User) -> anyhow::Result<User> {
+        let now = self.time.now();
+
+        self.user_repo
+            .update_terms_decline(txn, user.id, now)
+            .await
+            .context("Failed to update terms refusal in database")?;
+
+        user.terms_declined_at = Some(now);
 
         Ok(user)
     }
@@ -325,6 +340,113 @@ mod tests {
         let result = sut
             .accept_terms(&mut (), ADMIN.user.clone(), terms_version)
             .await;
+
+        // Assert
+        assert_eq!(result.unwrap(), expected);
+    }
+
+    /// Accepting settles an earlier refusal, so the recorded refusal is
+    /// cleared.
+    #[tokio::test]
+    async fn accept_terms_ok_clears_previous_refusal() {
+        // Arrange
+        let declined_at = FOO.user.terms_accepted_at.unwrap() + Duration::from_secs(3600);
+        let now = declined_at + Duration::from_secs(3600);
+        let terms_version: TermsVersion = "2026-09".try_into().unwrap();
+
+        let declined = User {
+            terms_declined_at: Some(declined_at),
+            ..FOO.user.clone()
+        };
+
+        let expected = User {
+            terms_version: Some(terms_version.clone()),
+            terms_accepted_at: Some(now),
+            age_confirmed_at: FOO.user.age_confirmed_at,
+            terms_declined_at: None,
+            ..FOO.user.clone()
+        };
+
+        let time = MockTimeService::new().with_now(now);
+
+        let user_repo = MockUserRepository::new().with_update_terms_acceptance(
+            FOO.user.id,
+            terms_version.clone(),
+            now,
+            FOO.user.age_confirmed_at.unwrap(),
+            true,
+        );
+
+        let sut = UserUpdateServiceImpl {
+            time,
+            user_repo,
+            ..Sut::default()
+        };
+
+        // Act
+        let result = sut.accept_terms(&mut (), declined, terms_version).await;
+
+        // Assert
+        assert_eq!(result.unwrap(), expected);
+    }
+
+    #[tokio::test]
+    async fn decline_terms_ok() {
+        // Arrange
+        let now = FOO.user.terms_accepted_at.unwrap() + Duration::from_secs(3600);
+
+        // The version the user accepted before is untouched and keeps applying.
+        let expected = User {
+            terms_declined_at: Some(now),
+            ..FOO.user.clone()
+        };
+
+        let time = MockTimeService::new().with_now(now);
+
+        let user_repo = MockUserRepository::new().with_update_terms_decline(FOO.user.id, now, true);
+
+        let sut = UserUpdateServiceImpl {
+            time,
+            user_repo,
+            ..Sut::default()
+        };
+
+        // Act
+        let result = sut.decline_terms(&mut (), FOO.user.clone()).await;
+
+        // Assert
+        assert_eq!(result.unwrap(), expected);
+    }
+
+    /// Declining again is allowed and only moves the timestamp forward.
+    #[tokio::test]
+    async fn decline_terms_ok_repeated() {
+        // Arrange
+        let first = FOO.user.terms_accepted_at.unwrap() + Duration::from_secs(3600);
+        let now = first + Duration::from_secs(3600);
+
+        let declined = User {
+            terms_declined_at: Some(first),
+            ..FOO.user.clone()
+        };
+
+        let expected = User {
+            terms_declined_at: Some(now),
+            ..FOO.user.clone()
+        };
+
+        let time = MockTimeService::new().with_now(now);
+
+        let user_repo = MockUserRepository::new().with_update_terms_decline(FOO.user.id, now, true);
+
+        let sut = UserUpdateServiceImpl {
+            time,
+            user_repo,
+            ..Sut::default()
+        };
+
+        // Act
+        let result = sut.decline_terms(&mut (), declined).await;
 
         // Assert
         assert_eq!(result.unwrap(), expected);

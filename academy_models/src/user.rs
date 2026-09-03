@@ -69,6 +69,11 @@ pub struct User {
     /// Time at which the user confirmed to meet the minimum age.
     #[no_patch]
     pub age_confirmed_at: Option<DateTime<Utc>>,
+    /// Time at which the user most recently declined to accept the current
+    /// version of the terms and conditions. Cleared as soon as the user
+    /// accepts.
+    #[no_patch]
+    pub terms_declined_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Patch)]

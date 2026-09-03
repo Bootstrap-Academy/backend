@@ -58,12 +58,25 @@ pub trait UserUpdateService<Txn: Send + Sync + 'static>: Send + Sync + 'static {
     ///
     /// `terms_accepted_at` is set to the current time. `age_confirmed_at` is
     /// only set if the user has not confirmed their age before, so that the
-    /// original confirmation is never overwritten.
+    /// original confirmation is never overwritten. A previously recorded
+    /// refusal is cleared.
     fn accept_terms(
         &self,
         txn: &mut Txn,
         user: User,
         terms_version: TermsVersion,
+    ) -> impl Future<Output = anyhow::Result<User>> + Send;
+
+    /// Record that a user declined to accept the current version of the terms
+    /// and conditions.
+    ///
+    /// `terms_declined_at` is set to the current time; the version the user
+    /// accepted before is left untouched and keeps applying. Repeating the
+    /// refusal is allowed and only moves the timestamp forward.
+    fn decline_terms(
+        &self,
+        txn: &mut Txn,
+        user: User,
     ) -> impl Future<Output = anyhow::Result<User>> + Send;
 
     /// Update a user's invoice information.
@@ -190,6 +203,14 @@ impl<Txn: Send + Sync + 'static> MockUserUpdateService<Txn> {
                 mockall::predicate::eq(terms_version),
             )
             .return_once(|_, _, _| Box::pin(std::future::ready(Ok(result))));
+        self
+    }
+
+    pub fn with_decline_terms(mut self, user: User, result: User) -> Self {
+        self.expect_decline_terms()
+            .once()
+            .with(mockall::predicate::always(), mockall::predicate::eq(user))
+            .return_once(|_, _| Box::pin(std::future::ready(Ok(result))));
         self
     }
 

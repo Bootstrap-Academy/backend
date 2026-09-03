@@ -12,7 +12,6 @@ use academy_models::{
 };
 use schemars::{JsonSchema, Schema, SchemaGenerator, json_schema};
 use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
 
 use crate::const_schema;
 
@@ -76,7 +75,8 @@ pub struct ApiUser {
     pub can_buy_coins: bool,
     /// Whether the user can receive coins
     pub can_receive_coins: bool,
-    /// URL of the user's avatar
+    /// URL of the user's avatar (always null; the platform renders a
+    /// first-party default avatar instead of using an external service)
     pub avatar_url: Option<Url>,
 }
 
@@ -91,8 +91,6 @@ impl From<UserComposite> for ApiUser {
             details,
             invoice_info,
         } = user_composite;
-
-        let avatar_url = user.email.as_ref().map(get_avatar_url);
 
         Self {
             id: user.id,
@@ -124,7 +122,7 @@ impl From<UserComposite> for ApiUser {
             country: invoice_info.country,
             vat_id: invoice_info.vat_id,
 
-            avatar_url,
+            avatar_url: None,
             can_buy_coins,
             can_receive_coins,
         }
@@ -240,15 +238,6 @@ pub enum ApiUserPasswordOrEmpty {
     Password(UserPassword),
 }
 
-fn get_avatar_url(email: &EmailAddress) -> Url {
-    let hash = Sha256::new()
-        .chain_update(email.as_str().trim().to_lowercase())
-        .finalize();
-    format!("https://gravatar.com/avatar/{hash:x}")
-        .parse()
-        .unwrap()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -300,14 +289,5 @@ mod tests {
         let result =
             serde_json::from_value::<ApiUserPasswordOrEmpty>(serde_json::Value::String(input));
         assert!(result.is_err());
-    }
-
-    #[test]
-    fn get_avatar_url() {
-        let result = super::get_avatar_url(&"Test@Example.com".parse().unwrap());
-        assert_eq!(
-            result.as_str(),
-            "https://gravatar.com/avatar/973dfe463ec85785f5f95af5ba3906eedb2d931c24e69824a89ea65dba4e813b"
-        );
     }
 }

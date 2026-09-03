@@ -33,7 +33,7 @@ FOO = {
     "vat_id": "1234",
     "can_buy_coins": True,
     "can_receive_coins": True,
-    "avatar_url": "https://gravatar.com/avatar/321ba197033e81286fedb719d60d4ed5cecaed170733cb4a92013811afc0e3b6",
+    "avatar_url": None,
 }
 
 # auth

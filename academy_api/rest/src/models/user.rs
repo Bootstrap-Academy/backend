@@ -5,9 +5,9 @@ use academy_models::{
     email_address::EmailAddress,
     url::Url,
     user::{
-        UserBio, UserCity, UserComposite, UserCountry, UserDisplayName, UserFilter, UserFirstName,
-        UserId, UserIdOrSelf, UserLastName, UserName, UserPassword, UserStreet, UserTags,
-        UserVatId, UserZipCode,
+        TermsVersion, UserBio, UserCity, UserComposite, UserCountry, UserDisplayName, UserFilter,
+        UserFirstName, UserId, UserIdOrSelf, UserLastName, UserName, UserPassword, UserStreet,
+        UserTags, UserVatId, UserZipCode,
     },
 };
 use schemars::{JsonSchema, Schema, SchemaGenerator, json_schema};
@@ -50,6 +50,12 @@ pub struct ApiUser {
     pub tags: UserTags,
     /// Whether the user is subscribed to the newsletter
     pub newsletter: bool,
+    /// Version of the terms and conditions the user accepted (read-only, null
+    /// for accounts created before acceptance was recorded)
+    pub terms_version: Option<TermsVersion>,
+    /// Timestamp at which the user accepted the terms and conditions
+    /// (read-only)
+    pub terms_accepted_at: Option<i64>,
     /// Whether the user represents a business instead of a private person
     pub business: Option<bool>,
     /// First name of the user
@@ -99,6 +105,8 @@ impl From<UserComposite> for ApiUser {
             enabled: user.enabled,
             admin: user.admin,
             newsletter: user.newsletter,
+            terms_version: user.terms_version,
+            terms_accepted_at: user.terms_accepted_at.map(|x| x.timestamp()),
 
             display_name: profile.display_name,
             description: profile.bio,

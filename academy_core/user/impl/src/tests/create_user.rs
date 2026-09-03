@@ -1,3 +1,5 @@
+use std::sync::LazyLock;
+
 use academy_core_oauth2_contracts::registration::MockOAuth2RegistrationService;
 use academy_core_session_contracts::session::MockSessionService;
 use academy_core_user_contracts::{
@@ -12,12 +14,15 @@ use academy_demo::{
 use academy_models::{
     auth::Login,
     oauth2::{OAuth2Registration, OAuth2RegistrationToken},
+    user::TermsVersion,
 };
 use academy_persistence_contracts::MockDatabase;
 use academy_shared_contracts::captcha::{CaptchaCheckError, MockCaptchaService};
 use academy_utils::assert_matches;
 
 use crate::{UserFeatureServiceImpl, tests::Sut};
+
+static TERMS_VERSION: LazyLock<TermsVersion> = LazyLock::new(|| "2026-09".try_into().unwrap());
 
 #[tokio::test]
 async fn ok() {
@@ -28,6 +33,8 @@ async fn ok() {
         email: FOO.user.email.clone().unwrap(),
         password: Some("secure password".try_into().unwrap()),
         oauth2_registration_token: None,
+        terms_version: TERMS_VERSION.clone(),
+        age_confirmed: true,
     };
 
     let expected = Login {
@@ -85,6 +92,8 @@ async fn ok_oauth2() {
         email: FOO.user.email.clone().unwrap(),
         password: None,
         oauth2_registration_token: Some(token.clone()),
+        terms_version: TERMS_VERSION.clone(),
+        age_confirmed: true,
     };
 
     let expected = Login {
@@ -148,6 +157,8 @@ async fn no_login_method() {
         email: FOO.user.email.clone().unwrap(),
         password: None,
         oauth2_registration_token: None,
+        terms_version: TERMS_VERSION.clone(),
+        age_confirmed: true,
     };
 
     let sut = Sut::default();
@@ -162,6 +173,30 @@ async fn no_login_method() {
 }
 
 #[tokio::test]
+async fn age_not_confirmed() {
+    // Arrange
+    let request = UserCreateRequest {
+        name: FOO.user.name.clone(),
+        display_name: FOO.profile.display_name.clone(),
+        email: FOO.user.email.clone().unwrap(),
+        password: Some("secure password".try_into().unwrap()),
+        oauth2_registration_token: None,
+        terms_version: TERMS_VERSION.clone(),
+        age_confirmed: false,
+    };
+
+    let sut = Sut::default();
+
+    // Act
+    let result = sut
+        .create_user(request, FOO_1.device_name.clone(), None)
+        .await;
+
+    // Assert
+    assert_matches!(result, Err(UserCreateError::AgeNotConfirmed));
+}
+
+#[tokio::test]
 async fn invalid_recaptcha_response() {
     // Arrange
     let request = UserCreateRequest {
@@ -170,6 +205,8 @@ async fn invalid_recaptcha_response() {
         email: FOO.user.email.clone().unwrap(),
         password: Some("secure password".try_into().unwrap()),
         oauth2_registration_token: None,
+        terms_version: TERMS_VERSION.clone(),
+        age_confirmed: true,
     };
 
     let captcha =
@@ -202,6 +239,8 @@ async fn name_conflict() {
         email: FOO.user.email.clone().unwrap(),
         password: Some("secure password".try_into().unwrap()),
         oauth2_registration_token: None,
+        terms_version: TERMS_VERSION.clone(),
+        age_confirmed: true,
     };
 
     let db = MockDatabase::build(false);
@@ -238,6 +277,8 @@ async fn email_conflict() {
         email: FOO.user.email.clone().unwrap(),
         password: Some("secure password".try_into().unwrap()),
         oauth2_registration_token: None,
+        terms_version: TERMS_VERSION.clone(),
+        age_confirmed: true,
     };
 
     let db = MockDatabase::build(false);
@@ -278,6 +319,8 @@ async fn oauth2_invalid_registration_token() {
         email: FOO.user.email.clone().unwrap(),
         password: None,
         oauth2_registration_token: Some(token.clone()),
+        terms_version: TERMS_VERSION.clone(),
+        age_confirmed: true,
     };
 
     let captcha = MockCaptchaService::new().with_check(Some("resp"), Ok(()));
@@ -320,6 +363,8 @@ async fn oauth2_remote_already_linked() {
                 .try_into()
                 .unwrap(),
         ),
+        terms_version: TERMS_VERSION.clone(),
+        age_confirmed: true,
     };
 
     let db = MockDatabase::build(false);
@@ -376,5 +421,7 @@ fn req_to_cmd(req: &UserCreateRequest) -> UserCreateCommand {
                 provider_id: TEST_OAUTH2_PROVIDER_ID.clone(),
                 remote_user: FOO_OAUTH2_LINK_1.remote_user.clone(),
             }),
+        terms_version: Some(req.terms_version.clone()),
+        age_confirmed: req.age_confirmed,
     }
 }

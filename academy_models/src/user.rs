@@ -61,6 +61,15 @@ pub struct User {
     pub enabled: bool,
     pub admin: bool,
     pub newsletter: bool,
+    /// Version of the terms and conditions the user accepted on registration.
+    #[no_patch]
+    pub terms_version: Option<TermsVersion>,
+    /// Time at which the user accepted the terms and conditions.
+    #[no_patch]
+    pub terms_accepted_at: Option<DateTime<Utc>>,
+    /// Time at which the user confirmed to meet the minimum age.
+    #[no_patch]
+    pub age_confirmed_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Patch)]
@@ -147,6 +156,8 @@ nutype_string!(UserDisplayName(validate(
     len_char_min = 1,
     len_char_max = 64
 )));
+
+nutype_string!(TermsVersion(validate(len_char_min = 1, len_char_max = 32)));
 
 nutype_string!(UserPassword(
     sensitive,

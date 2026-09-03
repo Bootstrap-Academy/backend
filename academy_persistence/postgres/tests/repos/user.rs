@@ -292,6 +292,10 @@ async fn update_user() {
             name: "othername".try_into().unwrap(),
             email: Some("other@email".parse().unwrap()),
             created_at: BAR.user.created_at,
+            // the consent columns are not part of the patch and stay unchanged
+            terms_version: BAR.user.terms_version.clone(),
+            terms_accepted_at: BAR.user.terms_accepted_at,
+            age_confirmed_at: BAR.user.age_confirmed_at,
             ..FOO.user.clone()
         },
         ..BAR.clone()

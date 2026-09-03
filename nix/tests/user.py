@@ -18,12 +18,35 @@ c.headers["User-Agent"] = "httpx test client"
 
 # create
 password = "my secure password"
-req = {"name": "user", "display_name": "User 123", "email": "user@example.com", "password": password}
+req = {
+    "name": "user",
+    "display_name": "User 123",
+    "email": "user@example.com",
+    "password": password,
+    "terms_version": "2026-09",
+    "age_confirmed": True,
+}
 
 ## recaptcha error
 resp = c.post("/auth/users", json={**req, "recaptcha_response": "success-0.3"})
 assert resp.status_code == 412
 assert resp.json() == {"detail": "Recaptcha failed"}
+
+## age not confirmed
+resp = c.post("/auth/users", json={**req, "age_confirmed": False, "recaptcha_response": "success-1.0"})
+assert resp.status_code == 412
+assert resp.json() == {"detail": "Age not confirmed"}
+
+## consent fields are required
+for missing in ["terms_version", "age_confirmed"]:
+    resp = c.post(
+        "/auth/users", json={k: v for k, v in req.items() if k != missing} | {"recaptcha_response": "success-1.0"}
+    )
+    assert resp.status_code == 422, missing
+
+## terms version must not be empty
+resp = c.post("/auth/users", json={**req, "terms_version": "", "recaptcha_response": "success-1.0"})
+assert resp.status_code == 422
 
 ## success
 start = time.time() - 1
@@ -48,6 +71,8 @@ assert login == {
         "description": "",
         "tags": [],
         "newsletter": False,
+        "terms_version": "2026-09",
+        "terms_accepted_at": login["user"]["terms_accepted_at"],
         "business": None,
         "first_name": None,
         "last_name": None,
@@ -71,11 +96,20 @@ assert login == {
 }
 assert start <= login["user"]["registration"] <= end
 assert start <= login["user"]["last_login"] <= end
+assert start <= login["user"]["terms_accepted_at"] <= end
 assert start <= login["session"]["last_update"] <= end
 
 resp = c.post(
     "/auth/users",
-    json={"name": "user", "display_name": "x", "email": "x@x", "password": "x", "recaptcha_response": "success-1.0"},
+    json={
+        "name": "user",
+        "display_name": "x",
+        "email": "x@x",
+        "password": "x",
+        "terms_version": "2026-09",
+        "age_confirmed": True,
+        "recaptcha_response": "success-1.0",
+    },
 )
 assert resp.status_code == 409
 assert resp.json() == {"detail": "User already exists"}
@@ -87,6 +121,8 @@ resp = c.post(
         "display_name": "x",
         "email": "user@example.com",
         "password": "x",
+        "terms_version": "2026-09",
+        "age_confirmed": True,
         "recaptcha_response": "success-1.0",
     },
 )

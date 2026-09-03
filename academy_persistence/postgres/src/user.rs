@@ -174,6 +174,9 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
             enabled: user.enabled,
             admin: user.admin,
             newsletter: user.newsletter,
+            terms_version: user.terms_version.as_deref(),
+            terms_accepted_at: user.terms_accepted_at.map(Into::into),
+            age_confirmed_at: user.age_confirmed_at.map(Into::into),
         };
 
         let profile_params = CreateProfileParams {
@@ -396,6 +399,9 @@ fn decode_composite(value: queries::user::UserComposite) -> anyhow::Result<UserC
         enabled: value.enabled,
         admin: value.admin,
         newsletter: value.newsletter,
+        terms_version: value.terms_version.map(TryInto::try_into).transpose()?,
+        terms_accepted_at: value.terms_accepted_at.map(Into::into),
+        age_confirmed_at: value.age_confirmed_at.map(Into::into),
     };
 
     let profile = UserProfile {

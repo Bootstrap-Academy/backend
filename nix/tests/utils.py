@@ -92,6 +92,8 @@ def create_account(name, email, password, client=None):
             "display_name": name,
             "email": email,
             "password": password,
+            "terms_version": "2026-09",
+            "age_confirmed": True,
             "recaptcha_response": "success-1.0",
         },
     )

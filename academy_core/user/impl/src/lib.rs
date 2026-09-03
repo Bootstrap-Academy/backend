@@ -168,6 +168,10 @@ where
             return Err(UserCreateError::NoLoginMethod);
         }
 
+        if !request.age_confirmed {
+            return Err(UserCreateError::AgeNotConfirmed);
+        }
+
         self.captcha
             .check(recaptcha_response.as_deref().map(String::as_str))
             .await
@@ -198,6 +202,8 @@ where
             enabled: true,
             email_verified: false,
             oauth2_registration,
+            terms_version: Some(request.terms_version),
+            age_confirmed: request.age_confirmed,
         };
 
         let user = self.user.create(&mut txn, cmd).await.map_err(|err| {

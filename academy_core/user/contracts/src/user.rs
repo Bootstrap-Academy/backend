@@ -4,7 +4,7 @@ use academy_models::{
     email_address::EmailAddress,
     oauth2::OAuth2Registration,
     pagination::PaginationSlice,
-    user::{UserComposite, UserDisplayName, UserFilter, UserName, UserPassword},
+    user::{TermsVersion, UserComposite, UserDisplayName, UserFilter, UserName, UserPassword},
 };
 use thiserror::Error;
 
@@ -47,6 +47,10 @@ pub struct UserCreateCommand {
     pub enabled: bool,
     pub email_verified: bool,
     pub oauth2_registration: Option<OAuth2Registration>,
+    /// Version of the terms and conditions the user accepted, if any.
+    pub terms_version: Option<TermsVersion>,
+    /// Whether the user confirmed to meet the minimum age.
+    pub age_confirmed: bool,
 }
 
 #[derive(Debug, Error)]

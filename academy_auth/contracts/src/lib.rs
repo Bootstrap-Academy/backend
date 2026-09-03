@@ -35,7 +35,15 @@ pub trait AuthService<Txn: Send + Sync + 'static>: Send + Sync + 'static {
     ) -> impl Future<Output = Result<SessionId, AuthenticateByRefreshTokenError>> + Send;
 
     /// Issues an access and refresh token for a given user and session.
-    fn issue_tokens(&self, user: &User, session_id: SessionId) -> anyhow::Result<Tokens>;
+    ///
+    /// `mfa_verified` records whether the session was established with a
+    /// verified second factor.
+    fn issue_tokens(
+        &self,
+        user: &User,
+        session_id: SessionId,
+        mfa_verified: bool,
+    ) -> anyhow::Result<Tokens>;
 
     /// Invalidates all previously issued access tokens of a user.
     fn invalidate_access_tokens(
@@ -59,6 +67,8 @@ pub struct Authentication {
     pub refresh_token_hash: SessionRefreshTokenHash,
     pub admin: bool,
     pub email_verified: bool,
+    /// Whether the session was established with a verified second factor.
+    pub mfa_verified: bool,
 }
 
 #[derive(Debug, Error)]
@@ -80,9 +90,15 @@ pub enum AuthenticateByRefreshTokenError {
 }
 
 impl Authentication {
-    /// Return an error if the authenticated user is not an administrator.
+    /// Return an error if the authenticated user is not an administrator or
+    /// did not authenticate with a second factor.
     pub fn ensure_admin(&self) -> Result<(), AuthorizeError> {
-        self.admin.then_some(()).ok_or(AuthorizeError::Admin)
+        if !self.admin {
+            return Err(AuthorizeError::Admin);
+        }
+        self.mfa_verified
+            .then_some(())
+            .ok_or(AuthorizeError::AdminMfa)
     }
 
     /// Return an error if the authenticated user has not verified their email
@@ -96,9 +112,10 @@ impl Authentication {
     /// Return an error if the authenticated user is neither the same as the one
     /// identified by the given `user_id` nor an administrator.
     pub fn ensure_self_or_admin(&self, user_id: UserId) -> Result<(), AuthorizeError> {
-        (self.user_id == user_id || self.admin)
-            .then_some(())
-            .ok_or(AuthorizeError::Admin)
+        if self.user_id == user_id {
+            return Ok(());
+        }
+        self.ensure_admin()
     }
 }
 
@@ -132,6 +149,7 @@ impl<Txn: Send + Sync + 'static> MockAuthService<Txn> {
                         refresh_token_hash: SessionRefreshTokenHash::new(Default::default()),
                         admin: user.admin,
                         email_verified: user.email_verified,
+                        mfa_verified: session.mfa_verified,
                     })
                     .ok_or(AuthenticateError::InvalidToken),
                 ))
@@ -174,14 +192,21 @@ impl<Txn: Send + Sync + 'static> MockAuthService<Txn> {
         self
     }
 
-    pub fn with_issue_tokens(mut self, user: User, session_id: SessionId, tokens: Tokens) -> Self {
+    pub fn with_issue_tokens(
+        mut self,
+        user: User,
+        session_id: SessionId,
+        mfa_verified: bool,
+        tokens: Tokens,
+    ) -> Self {
         self.expect_issue_tokens()
             .once()
             .with(
                 mockall::predicate::eq(user),
                 mockall::predicate::eq(session_id),
+                mockall::predicate::eq(mfa_verified),
             )
-            .return_once(|_, _| Ok(tokens));
+            .return_once(|_, _, _| Ok(tokens));
         self
     }
 

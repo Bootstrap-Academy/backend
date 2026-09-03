@@ -10,12 +10,17 @@ use thiserror::Error;
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait SessionService<Txn: Send + Sync + 'static>: Send + Sync + 'static {
     /// Create a new session for the given user.
+    ///
+    /// `mfa_verified` records whether the second factor of the user was
+    /// verified before the session was created. Only sessions created with a
+    /// verified second factor grant administrative privileges.
     fn create(
         &self,
         txn: &mut Txn,
         user_composite: UserComposite,
         device_name: Option<DeviceName>,
         update_last_login: bool,
+        mfa_verified: bool,
     ) -> impl Future<Output = anyhow::Result<Login>> + Send;
 
     /// Refresh the given session by invalidating the current access/refresh
@@ -58,6 +63,7 @@ impl<Txn: Send + Sync + 'static> MockSessionService<Txn> {
         user_composite: UserComposite,
         device_name: Option<DeviceName>,
         update_last_login: bool,
+        mfa_verified: bool,
         result: Login,
     ) -> Self {
         self.expect_create()
@@ -67,8 +73,9 @@ impl<Txn: Send + Sync + 'static> MockSessionService<Txn> {
                 mockall::predicate::eq(user_composite),
                 mockall::predicate::eq(device_name),
                 mockall::predicate::eq(update_last_login),
+                mockall::predicate::eq(mfa_verified),
             )
-            .return_once(|_, _, _, _| Box::pin(std::future::ready(Ok(result))));
+            .return_once(|_, _, _, _, _| Box::pin(std::future::ready(Ok(result))));
         self
     }
 

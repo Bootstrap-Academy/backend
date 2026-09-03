@@ -18,6 +18,9 @@ pub struct ApiSession {
     pub device_name: Option<DeviceName>,
     /// Timestamp of last refresh
     pub last_update: i64,
+    /// Whether the session was authenticated with a second factor.
+    /// Administrative endpoints require this.
+    pub mfa_verified: bool,
 }
 
 impl From<Session> for ApiSession {
@@ -27,6 +30,7 @@ impl From<Session> for ApiSession {
             user_id: value.user_id,
             device_name: value.device_name,
             last_update: value.updated_at.timestamp(),
+            mfa_verified: value.mfa_verified,
         }
     }
 }

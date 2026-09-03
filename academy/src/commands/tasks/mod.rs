@@ -1,12 +1,16 @@
 use academy_config::Config;
 use academy_core_premium_contracts::premium::PremiumService;
 use academy_di::Provide;
+use academy_models::admin_audit::ADMIN_AUDIT_LOG_RETENTION_MONTHS;
 use academy_persistence_contracts::{
-    Database, Transaction, premium::PremiumRepository, session::SessionRepository,
+    Database, Transaction, admin_audit::AdminAuditRepository, premium::PremiumRepository,
+    session::SessionRepository,
 };
-use academy_persistence_postgres::session::PostgresSessionRepository;
-use anyhow::Context;
-use chrono::Utc;
+use academy_persistence_postgres::{
+    admin_audit::PostgresAdminAuditRepository, session::PostgresSessionRepository,
+};
+use anyhow::{Context, anyhow};
+use chrono::{Months, Utc};
 use clap::Subcommand;
 use tracing::info;
 
@@ -36,13 +40,24 @@ async fn prune_database(config: Config) -> anyhow::Result<()> {
     let db = database::connect(&config.database).await?;
     let mut txn = db.begin_transaction().await?;
 
-    let session_repo = PostgresSessionRepository;
     let now = Utc::now();
+
+    let session_repo = PostgresSessionRepository;
     let pruned = session_repo
         .delete_by_updated_at(&mut txn, now - config.session.refresh_token_ttl.0)
         .await
         .context("Failed to prune sessions")?;
     info!("Pruned {pruned} expired sessions.");
+
+    let admin_audit_repo = PostgresAdminAuditRepository;
+    let audit_log_cutoff = now
+        .checked_sub_months(Months::new(ADMIN_AUDIT_LOG_RETENTION_MONTHS))
+        .ok_or_else(|| anyhow!("Failed to determine the audit log retention cutoff"))?;
+    let pruned = admin_audit_repo
+        .delete_by_at(&mut txn, audit_log_cutoff)
+        .await
+        .context("Failed to prune audit log entries")?;
+    info!("Pruned {pruned} audit log entries older than {audit_log_cutoff}.");
 
     txn.commit().await?;
 

@@ -72,6 +72,7 @@ impl SessionRepository<PostgresTransaction> for PostgresSessionRepository {
             device_name: session.device_name.as_deref(),
             created_at: session.created_at.into(),
             updated_at: session.updated_at.into(),
+            mfa_verified: session.mfa_verified,
         };
 
         queries::session::create()
@@ -201,5 +202,6 @@ fn decode_session(value: queries::session::Session) -> anyhow::Result<Session> {
         device_name: value.device_name.map(TryInto::try_into).transpose()?,
         created_at: value.created_at.into(),
         updated_at: value.updated_at.into(),
+        mfa_verified: value.mfa_verified,
     })
 }

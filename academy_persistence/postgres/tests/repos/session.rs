@@ -84,6 +84,7 @@ async fn create() {
         device_name: Some("some device name".try_into().unwrap()),
         created_at: ADMIN.user.created_at + Duration::from_secs(10 * 3600),
         updated_at: ADMIN.user.created_at + Duration::from_secs(7 * 24 * 3600),
+        mfa_verified: true,
     };
 
     let mut txn = db.begin_transaction().await.unwrap();

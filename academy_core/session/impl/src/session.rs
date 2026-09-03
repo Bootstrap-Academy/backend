@@ -39,6 +39,7 @@ where
         mut user_composite: UserComposite,
         device_name: Option<DeviceName>,
         update_last_login: bool,
+        mfa_verified: bool,
     ) -> anyhow::Result<Login> {
         let id = self.id.generate();
         let now = self.time.now();
@@ -49,11 +50,12 @@ where
             device_name,
             created_at: now,
             updated_at: now,
+            mfa_verified,
         };
 
         let tokens = self
             .auth
-            .issue_tokens(&user_composite.user, session.id)
+            .issue_tokens(&user_composite.user, session.id, session.mfa_verified)
             .context("Failed to issue tokens")?;
 
         self.session_repo
@@ -119,7 +121,7 @@ where
         // issue new token pair
         let tokens = self
             .auth
-            .issue_tokens(&user_composite.user, session_id)
+            .issue_tokens(&user_composite.user, session_id, session.mfa_verified)
             .context("Failed to issue tokens")?;
 
         // update session
@@ -226,6 +228,7 @@ mod tests {
                 device_name: FOO_1.device_name.clone(),
                 created_at: FOO_1.created_at,
                 updated_at: FOO_1.created_at,
+                mfa_verified: true,
             },
             access_token: tokens.access_token.clone(),
             refresh_token: tokens.refresh_token.clone(),
@@ -233,8 +236,12 @@ mod tests {
 
         let id = MockIdService::new().with_generate(FOO_1.id);
         let time = MockTimeService::new().with_now(FOO_1.created_at);
-        let auth =
-            MockAuthService::new().with_issue_tokens(FOO.user.clone(), FOO_1.id, tokens.clone());
+        let auth = MockAuthService::new().with_issue_tokens(
+            FOO.user.clone(),
+            FOO_1.id,
+            true,
+            tokens.clone(),
+        );
         let session_repo = MockSessionRepository::new()
             .with_create(expected.session.clone())
             .with_save_refresh_token_hash(FOO_1.id, (*SHA256HASH1).into());
@@ -256,7 +263,7 @@ mod tests {
 
         // Act
         let result = sut
-            .create(&mut (), FOO.clone(), FOO_1.device_name.clone(), true)
+            .create(&mut (), FOO.clone(), FOO_1.device_name.clone(), true, true)
             .await;
 
         // Assert
@@ -280,6 +287,7 @@ mod tests {
                 device_name: FOO_1.device_name.clone(),
                 created_at: FOO_1.created_at,
                 updated_at: FOO_1.created_at,
+                mfa_verified: true,
             },
             access_token: tokens.access_token.clone(),
             refresh_token: tokens.refresh_token.clone(),
@@ -287,8 +295,12 @@ mod tests {
 
         let id = MockIdService::new().with_generate(FOO_1.id);
         let time = MockTimeService::new().with_now(FOO_1.created_at);
-        let auth =
-            MockAuthService::new().with_issue_tokens(FOO.user.clone(), FOO_1.id, tokens.clone());
+        let auth = MockAuthService::new().with_issue_tokens(
+            FOO.user.clone(),
+            FOO_1.id,
+            true,
+            tokens.clone(),
+        );
         let session_repo = MockSessionRepository::new()
             .with_create(expected.session.clone())
             .with_save_refresh_token_hash(FOO_1.id, (*SHA256HASH1).into());
@@ -306,7 +318,7 @@ mod tests {
 
         // Act
         let result = sut
-            .create(&mut (), FOO.clone(), FOO_1.device_name.clone(), false)
+            .create(&mut (), FOO.clone(), FOO_1.device_name.clone(), false, true)
             .await;
 
         // Assert
@@ -332,7 +344,12 @@ mod tests {
             refresh_token: tokens.refresh_token.clone(),
         };
 
-        let auth = MockAuthService::new().with_issue_tokens(FOO.user.clone(), FOO_1.id, tokens);
+        let auth = MockAuthService::new().with_issue_tokens(
+            FOO.user.clone(),
+            FOO_1.id,
+            FOO_1.mfa_verified,
+            tokens,
+        );
 
         let auth_access_token =
             MockAuthAccessTokenService::new().with_invalidate((*SHA256HASH1).into());

@@ -17,6 +17,7 @@ use academy_shared_contracts::captcha::MockCaptchaService;
 
 use crate::{UserFeatureConfig, UserFeatureServiceImpl};
 
+mod accept_terms;
 mod create_user;
 mod delete_user;
 mod get_user;

@@ -7,8 +7,8 @@ use academy_di::Build;
 use academy_models::{
     email_address::EmailAddress,
     user::{
-        User, UserId, UserInvoiceInfo, UserInvoiceInfoPatch, UserName, UserPassword, UserPatch,
-        UserPatchRef,
+        TermsVersion, User, UserId, UserInvoiceInfo, UserInvoiceInfoPatch, UserName, UserPassword,
+        UserPatch, UserPatchRef,
     },
 };
 use academy_persistence_contracts::user::{UserRepoError, UserRepository};
@@ -183,6 +183,29 @@ where
     }
 
     #[trace_instrument(skip(self, txn))]
+    async fn accept_terms(
+        &self,
+        txn: &mut Txn,
+        mut user: User,
+        terms_version: TermsVersion,
+    ) -> anyhow::Result<User> {
+        let now = self.time.now();
+        // A user who already confirmed their age keeps the original timestamp.
+        let age_confirmed_at = user.age_confirmed_at.unwrap_or(now);
+
+        self.user_repo
+            .update_terms_acceptance(txn, user.id, &terms_version, now, age_confirmed_at)
+            .await
+            .context("Failed to update terms acceptance in database")?;
+
+        user.terms_version = Some(terms_version);
+        user.terms_accepted_at = Some(now);
+        user.age_confirmed_at = Some(age_confirmed_at);
+
+        Ok(user)
+    }
+
+    #[trace_instrument(skip(self, txn))]
     async fn update_invoice_info(
         &self,
         txn: &mut Txn,
@@ -224,6 +247,88 @@ mod tests {
         MockSessionService<()>,
         MockUserRepository<()>,
     >;
+
+    #[tokio::test]
+    async fn accept_terms_ok() {
+        // Arrange
+        let now = FOO.user.terms_accepted_at.unwrap() + Duration::from_secs(3600);
+        let terms_version: TermsVersion = "2026-09".try_into().unwrap();
+
+        // The age confirmation the user gave earlier must not be overwritten.
+        let expected = User {
+            terms_version: Some(terms_version.clone()),
+            terms_accepted_at: Some(now),
+            age_confirmed_at: FOO.user.age_confirmed_at,
+            ..FOO.user.clone()
+        };
+
+        let time = MockTimeService::new().with_now(now);
+
+        let user_repo = MockUserRepository::new().with_update_terms_acceptance(
+            FOO.user.id,
+            terms_version.clone(),
+            now,
+            FOO.user.age_confirmed_at.unwrap(),
+            true,
+        );
+
+        let sut = UserUpdateServiceImpl {
+            time,
+            user_repo,
+            ..Sut::default()
+        };
+
+        // Act
+        let result = sut
+            .accept_terms(&mut (), FOO.user.clone(), terms_version)
+            .await;
+
+        // Assert
+        assert_eq!(result.unwrap(), expected);
+    }
+
+    /// Accounts created before the age confirmation existed have no
+    /// `age_confirmed_at`, so accepting the terms records it for the first
+    /// time.
+    #[tokio::test]
+    async fn accept_terms_ok_first_age_confirmation() {
+        // Arrange
+        let now = ADMIN.user.created_at + Duration::from_secs(3600);
+        let terms_version: TermsVersion = "2026-09".try_into().unwrap();
+
+        assert!(ADMIN.user.age_confirmed_at.is_none());
+
+        let expected = User {
+            terms_version: Some(terms_version.clone()),
+            terms_accepted_at: Some(now),
+            age_confirmed_at: Some(now),
+            ..ADMIN.user.clone()
+        };
+
+        let time = MockTimeService::new().with_now(now);
+
+        let user_repo = MockUserRepository::new().with_update_terms_acceptance(
+            ADMIN.user.id,
+            terms_version.clone(),
+            now,
+            now,
+            true,
+        );
+
+        let sut = UserUpdateServiceImpl {
+            time,
+            user_repo,
+            ..Sut::default()
+        };
+
+        // Act
+        let result = sut
+            .accept_terms(&mut (), ADMIN.user.clone(), terms_version)
+            .await;
+
+        // Assert
+        assert_eq!(result.unwrap(), expected);
+    }
 
     #[tokio::test]
     async fn update_name_ok_rate_limit() {

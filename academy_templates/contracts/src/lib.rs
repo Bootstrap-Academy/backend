@@ -1,12 +1,13 @@
 use std::{fmt::Debug, sync::LazyLock};
 
 use academy_assets::templates;
-use academy_utils::static_value;
 use base64::{Engine, prelude::BASE64_STANDARD};
 use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
 use serde::{Serialize, Serializer};
 
+/// The logo as it is embedded into every template, so that no mail has to load
+/// an image from a remote host.
 pub static LOGO_BASE64: LazyLock<String> =
     LazyLock::new(|| BASE64_STANDARD.encode(academy_assets::email::LOGO_TEXT_PNG));
 
@@ -150,8 +151,6 @@ pub struct InvoiceTemplate {
     pub vat_total: Decimal,
     #[serde(serialize_with = "rounded_2")]
     pub gross_total: Decimal,
-    #[serde(flatten)]
-    pub _static: InvoiceTemplateStatic,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -169,10 +168,3 @@ pub struct InvoiceItem {
     #[serde(serialize_with = "rounded_2")]
     pub net_total: Decimal,
 }
-
-#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize)]
-pub struct InvoiceTemplateStatic {
-    logo_base64: LogoBase64,
-}
-
-static_value!(LogoBase64(LOGO_BASE64.as_str()));

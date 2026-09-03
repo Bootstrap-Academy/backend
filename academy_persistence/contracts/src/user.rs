@@ -5,10 +5,12 @@ use academy_models::{
     oauth2::{OAuth2ProviderId, OAuth2RemoteUserId},
     pagination::PaginationSlice,
     user::{
-        User, UserComposite, UserFilter, UserId, UserInvoiceInfo, UserInvoiceInfoPatchRef,
-        UserName, UserNameOrEmailAddress, UserPatchRef, UserProfile, UserProfilePatchRef,
+        TermsVersion, User, UserComposite, UserFilter, UserId, UserInvoiceInfo,
+        UserInvoiceInfoPatchRef, UserName, UserNameOrEmailAddress, UserPatchRef, UserProfile,
+        UserProfilePatchRef,
     },
 };
+use chrono::{DateTime, Utc};
 use thiserror::Error;
 
 #[cfg_attr(feature = "mock", mockall::automock)]
@@ -118,6 +120,20 @@ pub trait UserRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
         txn: &mut Txn,
         user_id: UserId,
         patch: UserInvoiceInfoPatchRef<'a>,
+    ) -> impl Future<Output = anyhow::Result<bool>> + Send;
+
+    /// Record which version of the terms and conditions a user accepted, when
+    /// they accepted it and when they confirmed to meet the minimum age.
+    ///
+    /// All three values are always written, so the caller has to pass the
+    /// `age_confirmed_at` that is supposed to be stored.
+    fn update_terms_acceptance(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
+        terms_version: &TermsVersion,
+        terms_accepted_at: DateTime<Utc>,
+        age_confirmed_at: DateTime<Utc>,
     ) -> impl Future<Output = anyhow::Result<bool>> + Send;
 
     /// Delete an existing user.
@@ -327,6 +343,27 @@ impl<Txn: Send + Sync + 'static> MockUserRepository<Txn> {
             .once()
             .withf(move |_, id, p| *id == user_id && p == &patch.as_ref())
             .return_once(move |_, _, _| Box::pin(std::future::ready(Ok(result))));
+        self
+    }
+
+    pub fn with_update_terms_acceptance(
+        mut self,
+        user_id: UserId,
+        terms_version: TermsVersion,
+        terms_accepted_at: DateTime<Utc>,
+        age_confirmed_at: DateTime<Utc>,
+        result: bool,
+    ) -> Self {
+        self.expect_update_terms_acceptance()
+            .once()
+            .with(
+                mockall::predicate::always(),
+                mockall::predicate::eq(user_id),
+                mockall::predicate::eq(terms_version),
+                mockall::predicate::eq(terms_accepted_at),
+                mockall::predicate::eq(age_confirmed_at),
+            )
+            .return_once(move |_, _, _, _, _| Box::pin(std::future::ready(Ok(result))));
         self
     }
 

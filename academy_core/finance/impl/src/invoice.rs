@@ -133,7 +133,6 @@ where
                 net_total,
                 vat_total,
                 gross_total,
-                _static: Default::default(),
             })
             .context("Failed to render invoice template")?;
 
@@ -224,7 +223,6 @@ where
                 net_total: price_total.net_total,
                 vat_total: price_total.vat_total,
                 gross_total: price_total.gross_total,
-                _static: Default::default(),
             })
             .context("Failed to render credit note template")?;
 
@@ -337,7 +335,6 @@ mod tests {
                 net_total: prices.net_total,
                 vat_total: prices.vat_total,
                 gross_total: prices.gross_total,
-                _static: Default::default(),
             },
             "invoice-template-html".into(),
         );
@@ -580,7 +577,6 @@ mod tests {
                 net_total: prices.net_total,
                 vat_total: prices.vat_total,
                 gross_total: prices.gross_total,
-                _static: Default::default(),
             },
             "credit-note-template-html".into(),
         );

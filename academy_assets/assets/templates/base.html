@@ -189,7 +189,12 @@
 		<main>
 			<header></header>
 			<section>
-				<img src="https://static.bootstrap.academy/logo-text.svg" alt="" />
+				<!--
+					The logo is embedded as base64 so that opening the mail does not
+					cause any request to a server and therefore cannot reveal the
+					recipient's IP address.
+				-->
+				<img src="data:image/png;base64,{{ logo_base64 }}" alt="" />
 
 				<h1>{% block title %}{% endblock title %}</h1>
 
@@ -256,8 +261,8 @@
 					und unter bestimmten Umständen die Einschränkung der Verarbeitung
 					Ihrer personenbezogenen Daten verlangen. Details entnehmen Sie unserer
 					Datenschutzerklärung (
-					<a href="https://bootstrap.academy/datenschutz">
-						https://bootstrap.academy/datenschutz
+					<a href="https://bootstrap.academy/docs/privacy">
+						https://bootstrap.academy/docs/privacy
 					</a>
 					).
 				</p>

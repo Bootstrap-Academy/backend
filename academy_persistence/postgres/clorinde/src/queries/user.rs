@@ -127,6 +127,13 @@ pub struct UpdateInvoiceInfoParams<
     pub user_id: uuid::Uuid,
 }
 #[derive(Debug)]
+pub struct UpdateTermsAcceptanceParams<T1: crate::StringSql> {
+    pub terms_version: T1,
+    pub terms_accepted_at: chrono::DateTime<chrono::FixedOffset>,
+    pub age_confirmed_at: chrono::DateTime<chrono::FixedOffset>,
+    pub id: uuid::Uuid,
+}
+#[derive(Debug)]
 pub struct SetPasswordHashParams<T1: crate::StringSql> {
     pub user_id: uuid::Uuid,
     pub password_hash: T1,
@@ -1509,6 +1516,65 @@ impl<
             &params.clear_vat_id,
             &params.vat_id,
             &params.user_id,
+        ))
+    }
+}
+pub struct UpdateTermsAcceptanceStmt(&'static str, Option<tokio_postgres::Statement>);
+pub fn update_terms_acceptance() -> UpdateTermsAcceptanceStmt {
+    UpdateTermsAcceptanceStmt(
+        "update users set terms_version=$1, terms_accepted_at=$2, age_confirmed_at=$3 where id=$4",
+        None,
+    )
+}
+impl UpdateTermsAcceptanceStmt {
+    pub async fn prepare<'a, C: GenericClient>(
+        mut self,
+        client: &'a C,
+    ) -> Result<Self, tokio_postgres::Error> {
+        self.1 = Some(client.prepare(self.0).await?);
+        Ok(self)
+    }
+    pub async fn bind<'c, 'a, 's, C: GenericClient, T1: crate::StringSql>(
+        &'s self,
+        client: &'c C,
+        terms_version: &'a T1,
+        terms_accepted_at: &'a chrono::DateTime<chrono::FixedOffset>,
+        age_confirmed_at: &'a chrono::DateTime<chrono::FixedOffset>,
+        id: &'a uuid::Uuid,
+    ) -> Result<u64, tokio_postgres::Error> {
+        client
+            .execute(
+                self.0,
+                &[terms_version, terms_accepted_at, age_confirmed_at, id],
+            )
+            .await
+    }
+}
+impl<'a, C: GenericClient + Send + Sync, T1: crate::StringSql>
+    crate::client::async_::Params<
+        'a,
+        'a,
+        'a,
+        UpdateTermsAcceptanceParams<T1>,
+        std::pin::Pin<
+            Box<dyn futures::Future<Output = Result<u64, tokio_postgres::Error>> + Send + 'a>,
+        >,
+        C,
+    > for UpdateTermsAcceptanceStmt
+{
+    fn params(
+        &'a self,
+        client: &'a C,
+        params: &'a UpdateTermsAcceptanceParams<T1>,
+    ) -> std::pin::Pin<
+        Box<dyn futures::Future<Output = Result<u64, tokio_postgres::Error>> + Send + 'a>,
+    > {
+        Box::pin(self.bind(
+            client,
+            &params.terms_version,
+            &params.terms_accepted_at,
+            &params.age_confirmed_at,
+            &params.id,
         ))
     }
 }

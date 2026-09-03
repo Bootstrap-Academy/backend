@@ -71,6 +71,18 @@ pub trait UserFeatureService: Send + Sync + 'static {
         request: UserUpdateRequest,
     ) -> impl Future<Output = Result<UserComposite, UserUpdateError>> + Send;
 
+    /// Record that the authenticated user accepted a version of the terms and
+    /// conditions.
+    ///
+    /// Sets `terms_version` and `terms_accepted_at`, and `age_confirmed_at` if
+    /// the user has not confirmed their age before. Only the user themselves
+    /// can accept the terms and conditions.
+    fn accept_terms(
+        &self,
+        token: &AccessToken,
+        request: UserAcceptTermsRequest,
+    ) -> impl Future<Output = Result<UserComposite, UserAcceptTermsError>> + Send;
+
     /// Delete a user.
     ///
     /// Requires admin privileges if not used on the authenticated user.
@@ -209,6 +221,26 @@ pub enum UserUpdateError {
     NameChangeRateLimit { until: DateTime<Utc> },
     #[error("The vat id is invalid.")]
     InvalidVatId,
+    #[error(transparent)]
+    Other(#[from] anyhow::Error),
+}
+
+#[derive(Debug)]
+pub struct UserAcceptTermsRequest {
+    /// Version of the terms and conditions the user accepts.
+    pub terms_version: TermsVersion,
+    /// Whether the user confirmed to meet the minimum age. Must be `true`.
+    pub age_confirmed: bool,
+}
+
+#[derive(Debug, Error)]
+pub enum UserAcceptTermsError {
+    #[error(transparent)]
+    Auth(#[from] AuthError),
+    #[error("The user does not exist.")]
+    NotFound,
+    #[error("The user did not confirm to meet the minimum age.")]
+    AgeNotConfirmed,
     #[error(transparent)]
     Other(#[from] anyhow::Error),
 }

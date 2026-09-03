@@ -2,7 +2,9 @@ use std::future::Future;
 
 use academy_models::{
     email_address::EmailAddress,
-    user::{User, UserId, UserInvoiceInfo, UserInvoiceInfoPatch, UserName, UserPassword},
+    user::{
+        TermsVersion, User, UserId, UserInvoiceInfo, UserInvoiceInfoPatch, UserName, UserPassword,
+    },
 };
 use chrono::{DateTime, Utc};
 use thiserror::Error;
@@ -50,6 +52,19 @@ pub trait UserUpdateService<Txn: Send + Sync + 'static>: Send + Sync + 'static {
         user_id: UserId,
         admin: bool,
     ) -> impl Future<Output = anyhow::Result<bool>> + Send;
+
+    /// Record that a user accepted the given version of the terms and
+    /// conditions.
+    ///
+    /// `terms_accepted_at` is set to the current time. `age_confirmed_at` is
+    /// only set if the user has not confirmed their age before, so that the
+    /// original confirmation is never overwritten.
+    fn accept_terms(
+        &self,
+        txn: &mut Txn,
+        user: User,
+        terms_version: TermsVersion,
+    ) -> impl Future<Output = anyhow::Result<User>> + Send;
 
     /// Update a user's invoice information.
     fn update_invoice_info(
@@ -158,6 +173,23 @@ impl<Txn: Send + Sync + 'static> MockUserUpdateService<Txn> {
                 mockall::predicate::eq(admin),
             )
             .return_once(move |_, _, _| Box::pin(std::future::ready(Ok(result))));
+        self
+    }
+
+    pub fn with_accept_terms(
+        mut self,
+        user: User,
+        terms_version: TermsVersion,
+        result: User,
+    ) -> Self {
+        self.expect_accept_terms()
+            .once()
+            .with(
+                mockall::predicate::always(),
+                mockall::predicate::eq(user),
+                mockall::predicate::eq(terms_version),
+            )
+            .return_once(|_, _, _| Box::pin(std::future::ready(Ok(result))));
         self
     }
 

@@ -2,7 +2,7 @@ use std::{fmt::Debug, sync::Arc};
 
 use academy_assets::templates;
 use academy_di::Build;
-use academy_templates_contracts::{TEMPLATES, Template, TemplateService};
+use academy_templates_contracts::{LOGO_BASE64, TEMPLATES, Template, TemplateService};
 use anyhow::Context;
 use tera::Tera;
 use tracing::instrument;
@@ -33,8 +33,12 @@ impl Default for State {
 impl TemplateService for TemplateServiceImpl {
     #[instrument(skip(self))]
     fn render<T: Template>(&self, template: &T) -> anyhow::Result<String> {
-        let context = tera::Context::from_serialize(template)
+        let mut context = tera::Context::from_serialize(template)
             .with_context(|| format!("Failed to build tera context for template {}", T::NAME))?;
+
+        // Every template embeds the logo as base64 instead of loading it from a
+        // remote host, so opening a mail never causes a request.
+        context.insert("logo_base64", LOGO_BASE64.as_str());
 
         self.state
             .0
@@ -71,13 +75,18 @@ mod tests {
 
     #[test]
     fn purchase_confirmation() {
-        test_template(PurchaseConfirmationTemplate {
+        let rendered = render_template(PurchaseConfirmationTemplate {
             coins: 4207,
             vat_percent: 19.into(),
             vat_total: 7.into(),
             gross_total: 49.into(),
             withdrawal_consent: None,
         });
+
+        // The attached documents are the version in force at the time of the
+        // order, so the mail also has to point at the current online version.
+        assert!(rendered.contains("https://bootstrap.academy/docs/terms-and-conditions"));
+        assert!(rendered.contains("https://bootstrap.academy/docs/right-of-withdrawal"));
     }
 
     #[test]
@@ -121,7 +130,6 @@ mod tests {
             net_total: 42.into(),
             vat_total: 7.into(),
             gross_total: 49.into(),
-            _static: Default::default(),
         });
     }
 
@@ -179,24 +187,38 @@ mod tests {
         assert!(rendered.contains("Diese Bestätigung erfolgt nach § 356a BGB."));
     }
 
+    /// No template may reference a remote resource. The logo used to be loaded
+    /// from a static host, which disclosed the recipient's IP address to
+    /// whoever operates it as soon as the mail was opened.
+    #[test]
+    fn templates_do_not_reference_remote_resources() {
+        for &(name, template) in std::iter::once(&("base", templates::BASE_HTML)).chain(TEMPLATES) {
+            for needle in ["src=\"http", "url(http", "<link"] {
+                assert!(
+                    !template.contains(needle),
+                    "template {name} contains `{needle}`"
+                );
+            }
+        }
+    }
+
     fn render_template<T: Template + 'static>(template: T) -> String {
         let sut = TemplateServiceImpl {
             state: Default::default(),
         };
 
-        sut.render(&template).unwrap()
+        let rendered = sut.render(&template).unwrap();
+
+        assert!(
+            rendered.contains("src=\"data:image/png;base64,"),
+            "template {} does not embed the logo",
+            T::NAME
+        );
+
+        rendered
     }
 
     fn test_template<T: Template + 'static>(template: T) {
-        // Arrange
-        let sut = TemplateServiceImpl {
-            state: Default::default(),
-        };
-
-        // Act
-        let result = sut.render(&template);
-
-        // Assert
-        result.unwrap();
+        render_template(template);
     }
 }

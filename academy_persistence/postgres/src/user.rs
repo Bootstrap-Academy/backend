@@ -6,13 +6,14 @@ use academy_models::{
     oauth2::{OAuth2ProviderId, OAuth2RemoteUserId},
     pagination::PaginationSlice,
     user::{
-        User, UserComposite, UserDetails, UserFilter, UserId, UserInvoiceInfo,
+        TermsVersion, User, UserComposite, UserDetails, UserFilter, UserId, UserInvoiceInfo,
         UserInvoiceInfoPatchRef, UserName, UserPatchRef, UserProfile, UserProfilePatchRef,
     },
 };
 use academy_persistence_contracts::user::{UserRepoError, UserRepository};
 use academy_utils::trace_instrument;
 use bb8_postgres::tokio_postgres;
+use chrono::{DateTime, Utc};
 use clorinde::{
     client::Params,
     queries::{
@@ -21,6 +22,7 @@ use clorinde::{
             CountCompositesParams, CreateInvoiceInfoParams, CreateParams, CreateProfileParams,
             GetCompositeByOauth2ProviderIdAndRemoteUserIdParams, ListCompositesParams,
             UpdateInvoiceInfoParams, UpdateParams, UpdateProfileParams,
+            UpdateTermsAcceptanceParams,
         },
     },
 };
@@ -313,6 +315,29 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
         };
 
         queries::user::update_invoice_info()
+            .params(txn.txn(), &params)
+            .await
+            .map(|n| n != 0)
+            .map_err(Into::into)
+    }
+
+    #[trace_instrument(skip(self, txn))]
+    async fn update_terms_acceptance(
+        &self,
+        txn: &mut PostgresTransaction,
+        user_id: UserId,
+        terms_version: &TermsVersion,
+        terms_accepted_at: DateTime<Utc>,
+        age_confirmed_at: DateTime<Utc>,
+    ) -> anyhow::Result<bool> {
+        let params = UpdateTermsAcceptanceParams {
+            id: *user_id,
+            terms_version: &**terms_version,
+            terms_accepted_at: terms_accepted_at.into(),
+            age_confirmed_at: age_confirmed_at.into(),
+        };
+
+        queries::user::update_terms_acceptance()
             .params(txn.txn(), &params)
             .await
             .map(|n| n != 0)

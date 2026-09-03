@@ -118,6 +118,8 @@ struct CreateRequest {
     password: UserPassword,
     mfa_code: StringOption<TotpCode>,
     recovery_code: StringOption<MfaRecoveryCode>,
+    /// reCAPTCHA response. Only evaluated if reCAPTCHA is enabled.
+    #[serde(default)]
     recaptcha_response: StringOption<RecaptchaResponse>,
 }
 
@@ -298,4 +300,18 @@ error_code! {
     SessionNotFoundError(NOT_FOUND, "Session not found");
     /// The refresh token is invalid or has expired.
     InvalidRefreshTokenError(UNAUTHORIZED, "Invalid refresh token");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// `recaptcha_response` must not be advertised as required, so that clients
+    /// can omit it when reCAPTCHA is disabled.
+    #[test]
+    fn create_request_recaptcha_response_is_optional() {
+        let schema = serde_json::to_value(schemars::schema_for!(CreateRequest)).unwrap();
+        let required = schema["required"].as_array().unwrap();
+        assert!(!required.iter().any(|field| field == "recaptcha_response"));
+    }
 }

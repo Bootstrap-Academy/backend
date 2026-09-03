@@ -154,6 +154,8 @@ struct CreateRequest {
     email: EmailAddress,
     password: StringOption<UserPassword>,
     oauth_register_token: StringOption<OAuth2RegistrationToken>,
+    /// reCAPTCHA response. Only evaluated if reCAPTCHA is enabled.
+    #[serde(default)]
     recaptcha_response: StringOption<RecaptchaResponse>,
 }
 
@@ -456,6 +458,8 @@ fn verify_newsletter_subscription_docs(op: TransformOperation) -> TransformOpera
 #[derive(Deserialize, JsonSchema)]
 struct RequestPasswordResetRequest {
     email: EmailAddress,
+    /// reCAPTCHA response. Only evaluated if reCAPTCHA is enabled.
+    #[serde(default)]
     recaptcha_response: StringOption<RecaptchaResponse>,
 }
 
@@ -546,4 +550,22 @@ error_code! {
     InvalidEmailError(BAD_REQUEST, "Invalid email");
     /// Only the email address of the currently authenticated user can be verified.
     CanOnlyVerifyEmailForSelfError(BAD_REQUEST, "Can only verify email for self");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// `recaptcha_response` must not be advertised as required, so that clients
+    /// can omit it when reCAPTCHA is disabled.
+    #[test]
+    fn recaptcha_response_is_optional() {
+        for schema in [
+            serde_json::to_value(schemars::schema_for!(CreateRequest)).unwrap(),
+            serde_json::to_value(schemars::schema_for!(RequestPasswordResetRequest)).unwrap(),
+        ] {
+            let required = schema["required"].as_array().unwrap();
+            assert!(!required.iter().any(|field| field == "recaptcha_response"));
+        }
+    }
 }

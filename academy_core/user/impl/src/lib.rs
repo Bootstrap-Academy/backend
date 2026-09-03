@@ -5,9 +5,10 @@ use academy_core_oauth2_contracts::registration::OAuth2RegistrationService;
 use academy_core_session_contracts::session::SessionService;
 use academy_core_user_contracts::{
     PasswordUpdate, UserAcceptTermsError, UserAcceptTermsRequest, UserCreateError,
-    UserCreateRequest, UserDeleteError, UserFeatureService, UserGetError, UserListError,
-    UserRequestPasswordResetError, UserRequestVerificationEmailError, UserResetPasswordError,
-    UserUpdateError, UserUpdateRequest, UserUpdateUserRequest, UserVerifyEmailError,
+    UserCreateRequest, UserDeclineTermsError, UserDeleteError, UserFeatureService, UserGetError,
+    UserListError, UserRequestPasswordResetError, UserRequestVerificationEmailError,
+    UserResetPasswordError, UserUpdateError, UserUpdateRequest, UserUpdateUserRequest,
+    UserVerifyEmailError,
     email_confirmation::{
         UserEmailConfirmationResetPasswordError, UserEmailConfirmationService,
         UserEmailConfirmationVerifyEmailError,
@@ -471,6 +472,33 @@ where
             .accept_terms(&mut txn, user_composite.user, terms_version)
             .await
             .context("Failed to record terms acceptance")?;
+
+        txn.commit().await?;
+
+        Ok(user_composite)
+    }
+
+    #[trace_instrument(skip(self))]
+    async fn decline_terms(
+        &self,
+        token: &AccessToken,
+    ) -> Result<UserComposite, UserDeclineTermsError> {
+        let auth = self.auth.authenticate(token).await.map_auth_err()?;
+
+        let mut txn = self.db.begin_transaction().await?;
+
+        let mut user_composite = self
+            .user_repo
+            .get_composite(&mut txn, auth.user_id)
+            .await
+            .context("Failed to get user from database")?
+            .ok_or(UserDeclineTermsError::NotFound)?;
+
+        user_composite.user = self
+            .user_update
+            .decline_terms(&mut txn, user_composite.user)
+            .await
+            .context("Failed to record terms refusal")?;
 
         txn.commit().await?;
 

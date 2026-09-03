@@ -22,6 +22,7 @@ FOO = {
     "tags": ["foo", "bar", "baz"],
     "terms_version": "2024-03",
     "terms_accepted_at": 1710423462,
+    "terms_declined_at": None,
     "business": True,
     "first_name": "x",
     "last_name": "y",

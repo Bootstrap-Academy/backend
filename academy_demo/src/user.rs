@@ -28,6 +28,7 @@ pub static ADMIN: LazyLock<UserComposite> = LazyLock::new(|| UserComposite {
         terms_version: None,
         terms_accepted_at: None,
         age_confirmed_at: None,
+        terms_declined_at: None,
     },
     profile: UserProfile {
         display_name: "Administrator".try_into().unwrap(),
@@ -59,6 +60,7 @@ pub static ADMIN2: LazyLock<UserComposite> = LazyLock::new(|| UserComposite {
         terms_version: None,
         terms_accepted_at: None,
         age_confirmed_at: None,
+        terms_declined_at: None,
     },
     profile: UserProfile {
         display_name: "Administrator2".try_into().unwrap(),
@@ -90,6 +92,7 @@ pub static FOO: LazyLock<UserComposite> = LazyLock::new(|| UserComposite {
         terms_version: Some("2024-03".try_into().unwrap()),
         terms_accepted_at: Some(Utc.with_ymd_and_hms(2024, 3, 14, 13, 37, 42).unwrap()),
         age_confirmed_at: Some(Utc.with_ymd_and_hms(2024, 3, 14, 13, 37, 42).unwrap()),
+        terms_declined_at: None,
     },
     profile: UserProfile {
         display_name: "Foo 42".try_into().unwrap(),
@@ -136,6 +139,7 @@ pub static BAR: LazyLock<UserComposite> = LazyLock::new(|| UserComposite {
         terms_version: Some("2024-06".try_into().unwrap()),
         terms_accepted_at: Some(Utc.with_ymd_and_hms(2024, 6, 28, 3, 14, 15).unwrap()),
         age_confirmed_at: Some(Utc.with_ymd_and_hms(2024, 6, 28, 3, 14, 15).unwrap()),
+        terms_declined_at: None,
     },
     profile: UserProfile {
         display_name: "Bar".try_into().unwrap(),

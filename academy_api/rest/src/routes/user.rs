@@ -2,9 +2,10 @@ use std::sync::Arc;
 
 use academy_core_user_contracts::{
     PasswordUpdate, UserAcceptTermsError, UserAcceptTermsRequest, UserCreateError,
-    UserCreateRequest, UserDeleteError, UserFeatureService, UserGetError, UserListError,
-    UserRequestPasswordResetError, UserRequestVerificationEmailError, UserResetPasswordError,
-    UserUpdateError, UserUpdateRequest, UserUpdateUserRequest, UserVerifyEmailError,
+    UserCreateRequest, UserDeclineTermsError, UserDeleteError, UserFeatureService, UserGetError,
+    UserListError, UserRequestPasswordResetError, UserRequestVerificationEmailError,
+    UserResetPasswordError, UserUpdateError, UserUpdateRequest, UserUpdateUserRequest,
+    UserVerifyEmailError,
     user::{UserListQuery, UserListResult},
 };
 use academy_models::{
@@ -69,6 +70,10 @@ pub fn router(service: Arc<impl UserFeatureService>) -> ApiRouter<()> {
         .api_route(
             "/auth/users/{user_id}/terms",
             routing::post_with(accept_terms, accept_terms_docs),
+        )
+        .api_route(
+            "/auth/users/{user_id}/terms/decline",
+            routing::post_with(decline_terms, decline_terms_docs),
         )
         .api_route(
             "/auth/password_reset",
@@ -390,6 +395,41 @@ fn accept_terms_docs(op: TransformOperation) -> TransformOperation {
         .with(internal_server_error_docs)
 }
 
+/// Recording the refusal needs no request body: the user says no to the version
+/// the platform currently asks for, and the version they accepted before stays
+/// in place.
+async fn decline_terms(
+    user_service: State<Arc<impl UserFeatureService>>,
+    token: ApiToken,
+    Path(PathUserIdOrSelf { user_id }): Path<PathUserIdOrSelf>,
+) -> Response {
+    let ApiUserIdOrSelf::Slf = user_id else {
+        return CanOnlyDeclineTermsForSelfError.into_response();
+    };
+
+    match user_service.decline_terms(&token.0).await {
+        Ok(user) => Json(ApiUser::from(user)).into_response(),
+        Err(UserDeclineTermsError::NotFound) => UserNotFoundError.into_response(),
+        Err(UserDeclineTermsError::Auth(err)) => auth_error(err),
+        Err(UserDeclineTermsError::Other(err)) => internal_server_error(err),
+    }
+}
+
+fn decline_terms_docs(op: TransformOperation) -> TransformOperation {
+    op.summary("Decline the current version of the terms and conditions.")
+        .description(
+            "Records that the authenticated user does not accept the version of the terms and \
+             conditions the platform currently asks for. The version the user accepted before is \
+             kept and keeps applying to the existing contract. Repeating the request is allowed \
+             and only updates the timestamp.",
+        )
+        .add_response::<ApiUser>(StatusCode::OK, "The refusal has been recorded.")
+        .add_error::<UserNotFoundError>()
+        .add_error::<CanOnlyDeclineTermsForSelfError>()
+        .with(auth_error_docs)
+        .with(internal_server_error_docs)
+}
+
 async fn delete(
     user_service: State<Arc<impl UserFeatureService>>,
     token: ApiToken,
@@ -572,6 +612,8 @@ error_code! {
     CanOnlyVerifyEmailForSelfError(BAD_REQUEST, "Can only verify email for self");
     /// Only the currently authenticated user can accept the terms and conditions.
     CanOnlyAcceptTermsForSelfError(BAD_REQUEST, "Can only accept terms for self");
+    /// Only the currently authenticated user can decline the terms and conditions.
+    CanOnlyDeclineTermsForSelfError(BAD_REQUEST, "Can only decline terms for self");
 }
 
 #[cfg(test)]

@@ -19,6 +19,7 @@ use crate::{UserFeatureConfig, UserFeatureServiceImpl};
 
 mod accept_terms;
 mod create_user;
+mod decline_terms;
 mod delete_user;
 mod get_user;
 mod list_users;

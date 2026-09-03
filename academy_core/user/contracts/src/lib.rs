@@ -75,13 +75,26 @@ pub trait UserFeatureService: Send + Sync + 'static {
     /// conditions.
     ///
     /// Sets `terms_version` and `terms_accepted_at`, and `age_confirmed_at` if
-    /// the user has not confirmed their age before. Only the user themselves
-    /// can accept the terms and conditions.
+    /// the user has not confirmed their age before, and clears
+    /// `terms_declined_at`. Only the user themselves can accept the terms and
+    /// conditions.
     fn accept_terms(
         &self,
         token: &AccessToken,
         request: UserAcceptTermsRequest,
     ) -> impl Future<Output = Result<UserComposite, UserAcceptTermsError>> + Send;
+
+    /// Record that the authenticated user declined to accept the current
+    /// version of the terms and conditions.
+    ///
+    /// Sets `terms_declined_at` to the current time and leaves the accepted
+    /// version untouched, so the version the user agreed to keeps applying.
+    /// Repeating the refusal is allowed. Only the user themselves can decline
+    /// the terms and conditions.
+    fn decline_terms(
+        &self,
+        token: &AccessToken,
+    ) -> impl Future<Output = Result<UserComposite, UserDeclineTermsError>> + Send;
 
     /// Delete a user.
     ///
@@ -241,6 +254,16 @@ pub enum UserAcceptTermsError {
     NotFound,
     #[error("The user did not confirm to meet the minimum age.")]
     AgeNotConfirmed,
+    #[error(transparent)]
+    Other(#[from] anyhow::Error),
+}
+
+#[derive(Debug, Error)]
+pub enum UserDeclineTermsError {
+    #[error(transparent)]
+    Auth(#[from] AuthError),
+    #[error("The user does not exist.")]
+    NotFound,
     #[error(transparent)]
     Other(#[from] anyhow::Error),
 }

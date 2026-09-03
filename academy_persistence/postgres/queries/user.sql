@@ -1,4 +1,4 @@
---: UserComposite (email?, last_login?, last_name_change?, terms_version?, terms_accepted_at?, age_confirmed_at?, business?, first_name?, last_name?, street?, zip_code?, city?, country?, vat_id?)
+--: UserComposite (email?, last_login?, last_name_change?, terms_version?, terms_accepted_at?, age_confirmed_at?, terms_declined_at?, business?, first_name?, last_name?, street?, zip_code?, city?, country?, vat_id?)
 
 --! count_composites (name?, email?, enabled?, admin?, mfa_enabled?, email_verified?)
 select count(*) from user_composites
@@ -92,7 +92,13 @@ update users
   set
     terms_version=:terms_version,
     terms_accepted_at=:terms_accepted_at,
-    age_confirmed_at=:age_confirmed_at
+    age_confirmed_at=:age_confirmed_at,
+    terms_declined_at=null
+  where id=:id;
+
+--! update_terms_decline
+update users
+  set terms_declined_at=:terms_declined_at
   where id=:id;
 
 --! delete

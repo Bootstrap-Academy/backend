@@ -133,6 +133,11 @@ pub struct UpdateTermsAcceptanceParams<T1: crate::StringSql> {
     pub age_confirmed_at: chrono::DateTime<chrono::FixedOffset>,
     pub id: uuid::Uuid,
 }
+#[derive(Clone, Copy, Debug)]
+pub struct UpdateTermsDeclineParams {
+    pub terms_declined_at: chrono::DateTime<chrono::FixedOffset>,
+    pub id: uuid::Uuid,
+}
 #[derive(Debug)]
 pub struct SetPasswordHashParams<T1: crate::StringSql> {
     pub user_id: uuid::Uuid,
@@ -153,6 +158,7 @@ pub struct UserComposite {
     pub terms_version: Option<String>,
     pub terms_accepted_at: Option<chrono::DateTime<chrono::FixedOffset>>,
     pub age_confirmed_at: Option<chrono::DateTime<chrono::FixedOffset>>,
+    pub terms_declined_at: Option<chrono::DateTime<chrono::FixedOffset>>,
     pub display_name: String,
     pub bio: String,
     pub tags: Vec<String>,
@@ -182,6 +188,7 @@ pub struct UserCompositeBorrowed<'a> {
     pub terms_version: Option<&'a str>,
     pub terms_accepted_at: Option<chrono::DateTime<chrono::FixedOffset>>,
     pub age_confirmed_at: Option<chrono::DateTime<chrono::FixedOffset>>,
+    pub terms_declined_at: Option<chrono::DateTime<chrono::FixedOffset>>,
     pub display_name: &'a str,
     pub bio: &'a str,
     pub tags: crate::ArrayIterator<'a, &'a str>,
@@ -213,6 +220,7 @@ impl<'a> From<UserCompositeBorrowed<'a>> for UserComposite {
             terms_version,
             terms_accepted_at,
             age_confirmed_at,
+            terms_declined_at,
             display_name,
             bio,
             tags,
@@ -243,6 +251,7 @@ impl<'a> From<UserCompositeBorrowed<'a>> for UserComposite {
             terms_version: terms_version.map(|v| v.into()),
             terms_accepted_at,
             age_confirmed_at,
+            terms_declined_at,
             display_name: display_name.into(),
             bio: bio.into(),
             tags: tags.map(|v| v.into()).collect(),
@@ -639,20 +648,21 @@ impl ListCompositesStmt {
                         terms_version: row.try_get(10)?,
                         terms_accepted_at: row.try_get(11)?,
                         age_confirmed_at: row.try_get(12)?,
-                        display_name: row.try_get(13)?,
-                        bio: row.try_get(14)?,
-                        tags: row.try_get(15)?,
-                        mfa_enabled: row.try_get(16)?,
-                        password_login: row.try_get(17)?,
-                        oauth2_login: row.try_get(18)?,
-                        business: row.try_get(19)?,
-                        first_name: row.try_get(20)?,
-                        last_name: row.try_get(21)?,
-                        street: row.try_get(22)?,
-                        zip_code: row.try_get(23)?,
-                        city: row.try_get(24)?,
-                        country: row.try_get(25)?,
-                        vat_id: row.try_get(26)?,
+                        terms_declined_at: row.try_get(13)?,
+                        display_name: row.try_get(14)?,
+                        bio: row.try_get(15)?,
+                        tags: row.try_get(16)?,
+                        mfa_enabled: row.try_get(17)?,
+                        password_login: row.try_get(18)?,
+                        oauth2_login: row.try_get(19)?,
+                        business: row.try_get(20)?,
+                        first_name: row.try_get(21)?,
+                        last_name: row.try_get(22)?,
+                        street: row.try_get(23)?,
+                        zip_code: row.try_get(24)?,
+                        city: row.try_get(25)?,
+                        country: row.try_get(26)?,
+                        vat_id: row.try_get(27)?,
                     })
                 },
             mapper: |it| UserComposite::from(it),
@@ -752,20 +762,21 @@ impl GetCompositeStmt {
                         terms_version: row.try_get(10)?,
                         terms_accepted_at: row.try_get(11)?,
                         age_confirmed_at: row.try_get(12)?,
-                        display_name: row.try_get(13)?,
-                        bio: row.try_get(14)?,
-                        tags: row.try_get(15)?,
-                        mfa_enabled: row.try_get(16)?,
-                        password_login: row.try_get(17)?,
-                        oauth2_login: row.try_get(18)?,
-                        business: row.try_get(19)?,
-                        first_name: row.try_get(20)?,
-                        last_name: row.try_get(21)?,
-                        street: row.try_get(22)?,
-                        zip_code: row.try_get(23)?,
-                        city: row.try_get(24)?,
-                        country: row.try_get(25)?,
-                        vat_id: row.try_get(26)?,
+                        terms_declined_at: row.try_get(13)?,
+                        display_name: row.try_get(14)?,
+                        bio: row.try_get(15)?,
+                        tags: row.try_get(16)?,
+                        mfa_enabled: row.try_get(17)?,
+                        password_login: row.try_get(18)?,
+                        oauth2_login: row.try_get(19)?,
+                        business: row.try_get(20)?,
+                        first_name: row.try_get(21)?,
+                        last_name: row.try_get(22)?,
+                        street: row.try_get(23)?,
+                        zip_code: row.try_get(24)?,
+                        city: row.try_get(25)?,
+                        country: row.try_get(26)?,
+                        vat_id: row.try_get(27)?,
                     })
                 },
             mapper: |it| UserComposite::from(it),
@@ -813,20 +824,21 @@ impl GetCompositeByNameStmt {
                         terms_version: row.try_get(10)?,
                         terms_accepted_at: row.try_get(11)?,
                         age_confirmed_at: row.try_get(12)?,
-                        display_name: row.try_get(13)?,
-                        bio: row.try_get(14)?,
-                        tags: row.try_get(15)?,
-                        mfa_enabled: row.try_get(16)?,
-                        password_login: row.try_get(17)?,
-                        oauth2_login: row.try_get(18)?,
-                        business: row.try_get(19)?,
-                        first_name: row.try_get(20)?,
-                        last_name: row.try_get(21)?,
-                        street: row.try_get(22)?,
-                        zip_code: row.try_get(23)?,
-                        city: row.try_get(24)?,
-                        country: row.try_get(25)?,
-                        vat_id: row.try_get(26)?,
+                        terms_declined_at: row.try_get(13)?,
+                        display_name: row.try_get(14)?,
+                        bio: row.try_get(15)?,
+                        tags: row.try_get(16)?,
+                        mfa_enabled: row.try_get(17)?,
+                        password_login: row.try_get(18)?,
+                        oauth2_login: row.try_get(19)?,
+                        business: row.try_get(20)?,
+                        first_name: row.try_get(21)?,
+                        last_name: row.try_get(22)?,
+                        street: row.try_get(23)?,
+                        zip_code: row.try_get(24)?,
+                        city: row.try_get(25)?,
+                        country: row.try_get(26)?,
+                        vat_id: row.try_get(27)?,
                     })
                 },
             mapper: |it| UserComposite::from(it),
@@ -874,20 +886,21 @@ impl GetCompositeByEmailStmt {
                         terms_version: row.try_get(10)?,
                         terms_accepted_at: row.try_get(11)?,
                         age_confirmed_at: row.try_get(12)?,
-                        display_name: row.try_get(13)?,
-                        bio: row.try_get(14)?,
-                        tags: row.try_get(15)?,
-                        mfa_enabled: row.try_get(16)?,
-                        password_login: row.try_get(17)?,
-                        oauth2_login: row.try_get(18)?,
-                        business: row.try_get(19)?,
-                        first_name: row.try_get(20)?,
-                        last_name: row.try_get(21)?,
-                        street: row.try_get(22)?,
-                        zip_code: row.try_get(23)?,
-                        city: row.try_get(24)?,
-                        country: row.try_get(25)?,
-                        vat_id: row.try_get(26)?,
+                        terms_declined_at: row.try_get(13)?,
+                        display_name: row.try_get(14)?,
+                        bio: row.try_get(15)?,
+                        tags: row.try_get(16)?,
+                        mfa_enabled: row.try_get(17)?,
+                        password_login: row.try_get(18)?,
+                        oauth2_login: row.try_get(19)?,
+                        business: row.try_get(20)?,
+                        first_name: row.try_get(21)?,
+                        last_name: row.try_get(22)?,
+                        street: row.try_get(23)?,
+                        zip_code: row.try_get(24)?,
+                        city: row.try_get(25)?,
+                        country: row.try_get(26)?,
+                        vat_id: row.try_get(27)?,
                     })
                 },
             mapper: |it| UserComposite::from(it),
@@ -940,20 +953,21 @@ impl GetCompositeByOauth2ProviderIdAndRemoteUserIdStmt {
                         terms_version: row.try_get(10)?,
                         terms_accepted_at: row.try_get(11)?,
                         age_confirmed_at: row.try_get(12)?,
-                        display_name: row.try_get(13)?,
-                        bio: row.try_get(14)?,
-                        tags: row.try_get(15)?,
-                        mfa_enabled: row.try_get(16)?,
-                        password_login: row.try_get(17)?,
-                        oauth2_login: row.try_get(18)?,
-                        business: row.try_get(19)?,
-                        first_name: row.try_get(20)?,
-                        last_name: row.try_get(21)?,
-                        street: row.try_get(22)?,
-                        zip_code: row.try_get(23)?,
-                        city: row.try_get(24)?,
-                        country: row.try_get(25)?,
-                        vat_id: row.try_get(26)?,
+                        terms_declined_at: row.try_get(13)?,
+                        display_name: row.try_get(14)?,
+                        bio: row.try_get(15)?,
+                        tags: row.try_get(16)?,
+                        mfa_enabled: row.try_get(17)?,
+                        password_login: row.try_get(18)?,
+                        oauth2_login: row.try_get(19)?,
+                        business: row.try_get(20)?,
+                        first_name: row.try_get(21)?,
+                        last_name: row.try_get(22)?,
+                        street: row.try_get(23)?,
+                        zip_code: row.try_get(24)?,
+                        city: row.try_get(25)?,
+                        country: row.try_get(26)?,
+                        vat_id: row.try_get(27)?,
                     })
                 },
             mapper: |it| UserComposite::from(it),
@@ -1522,7 +1536,7 @@ impl<
 pub struct UpdateTermsAcceptanceStmt(&'static str, Option<tokio_postgres::Statement>);
 pub fn update_terms_acceptance() -> UpdateTermsAcceptanceStmt {
     UpdateTermsAcceptanceStmt(
-        "update users set terms_version=$1, terms_accepted_at=$2, age_confirmed_at=$3 where id=$4",
+        "update users set terms_version=$1, terms_accepted_at=$2, age_confirmed_at=$3, terms_declined_at=null where id=$4",
         None,
     )
 }
@@ -1576,6 +1590,49 @@ impl<'a, C: GenericClient + Send + Sync, T1: crate::StringSql>
             &params.age_confirmed_at,
             &params.id,
         ))
+    }
+}
+pub struct UpdateTermsDeclineStmt(&'static str, Option<tokio_postgres::Statement>);
+pub fn update_terms_decline() -> UpdateTermsDeclineStmt {
+    UpdateTermsDeclineStmt("update users set terms_declined_at=$1 where id=$2", None)
+}
+impl UpdateTermsDeclineStmt {
+    pub async fn prepare<'a, C: GenericClient>(
+        mut self,
+        client: &'a C,
+    ) -> Result<Self, tokio_postgres::Error> {
+        self.1 = Some(client.prepare(self.0).await?);
+        Ok(self)
+    }
+    pub async fn bind<'c, 'a, 's, C: GenericClient>(
+        &'s self,
+        client: &'c C,
+        terms_declined_at: &'a chrono::DateTime<chrono::FixedOffset>,
+        id: &'a uuid::Uuid,
+    ) -> Result<u64, tokio_postgres::Error> {
+        client.execute(self.0, &[terms_declined_at, id]).await
+    }
+}
+impl<'a, C: GenericClient + Send + Sync>
+    crate::client::async_::Params<
+        'a,
+        'a,
+        'a,
+        UpdateTermsDeclineParams,
+        std::pin::Pin<
+            Box<dyn futures::Future<Output = Result<u64, tokio_postgres::Error>> + Send + 'a>,
+        >,
+        C,
+    > for UpdateTermsDeclineStmt
+{
+    fn params(
+        &'a self,
+        client: &'a C,
+        params: &'a UpdateTermsDeclineParams,
+    ) -> std::pin::Pin<
+        Box<dyn futures::Future<Output = Result<u64, tokio_postgres::Error>> + Send + 'a>,
+    > {
+        Box::pin(self.bind(client, &params.terms_declined_at, &params.id))
     }
 }
 pub struct DeleteStmt(&'static str, Option<tokio_postgres::Statement>);

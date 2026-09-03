@@ -377,6 +377,136 @@ async fn update_terms_acceptance_user_not_found() {
 }
 
 #[tokio::test]
+async fn update_terms_decline() {
+    let db = setup().await;
+
+    let terms_declined_at = Utc.with_ymd_and_hms(2026, 9, 3, 12, 0, 0).unwrap();
+
+    // The version the user accepted keeps applying, only the refusal is added.
+    let expected = UserComposite {
+        user: User {
+            terms_declined_at: Some(terms_declined_at),
+            ..FOO.user.clone()
+        },
+        ..FOO.clone()
+    };
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    let result = REPO
+        .update_terms_decline(&mut txn, FOO.user.id, terms_declined_at)
+        .await
+        .unwrap();
+    assert!(result);
+    txn.commit().await.unwrap();
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    let result = REPO
+        .get_composite(&mut txn, FOO.user.id)
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(result, expected);
+}
+
+/// Declining twice is allowed and keeps the most recent refusal.
+#[tokio::test]
+async fn update_terms_decline_repeated() {
+    let db = setup().await;
+
+    let first = Utc.with_ymd_and_hms(2026, 9, 3, 12, 0, 0).unwrap();
+    let second = Utc.with_ymd_and_hms(2026, 9, 4, 12, 0, 0).unwrap();
+
+    let expected = UserComposite {
+        user: User {
+            terms_declined_at: Some(second),
+            ..FOO.user.clone()
+        },
+        ..FOO.clone()
+    };
+
+    for terms_declined_at in [first, second] {
+        let mut txn = db.begin_transaction().await.unwrap();
+        let result = REPO
+            .update_terms_decline(&mut txn, FOO.user.id, terms_declined_at)
+            .await
+            .unwrap();
+        assert!(result);
+        txn.commit().await.unwrap();
+    }
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    let result = REPO
+        .get_composite(&mut txn, FOO.user.id)
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(result, expected);
+}
+
+/// Accepting a version settles the refusal, so `terms_declined_at` is cleared.
+#[tokio::test]
+async fn update_terms_acceptance_clears_decline() {
+    let db = setup().await;
+
+    let terms_version: TermsVersion = "2026-09".try_into().unwrap();
+    let terms_accepted_at = Utc.with_ymd_and_hms(2026, 9, 4, 12, 0, 0).unwrap();
+
+    let expected = UserComposite {
+        user: User {
+            terms_version: Some(terms_version.clone()),
+            terms_accepted_at: Some(terms_accepted_at),
+            age_confirmed_at: FOO.user.age_confirmed_at,
+            terms_declined_at: None,
+            ..FOO.user.clone()
+        },
+        ..FOO.clone()
+    };
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    REPO.update_terms_decline(
+        &mut txn,
+        FOO.user.id,
+        Utc.with_ymd_and_hms(2026, 9, 3, 12, 0, 0).unwrap(),
+    )
+    .await
+    .unwrap();
+    REPO.update_terms_acceptance(
+        &mut txn,
+        FOO.user.id,
+        &terms_version,
+        terms_accepted_at,
+        FOO.user.age_confirmed_at.unwrap(),
+    )
+    .await
+    .unwrap();
+    txn.commit().await.unwrap();
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    let result = REPO
+        .get_composite(&mut txn, FOO.user.id)
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(result, expected);
+}
+
+#[tokio::test]
+async fn update_terms_decline_user_not_found() {
+    let db = setup().await;
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    let result = REPO
+        .update_terms_decline(
+            &mut txn,
+            UUID1.into(),
+            Utc.with_ymd_and_hms(2026, 9, 3, 12, 0, 0).unwrap(),
+        )
+        .await
+        .unwrap();
+    assert!(!result);
+}
+
+#[tokio::test]
 async fn update_user_name_conflict() {
     let db = setup().await;
 

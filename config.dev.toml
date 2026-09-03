@@ -38,6 +38,11 @@ client_secret = "test-secret"
 [render]
 daemon_url = "http://127.0.0.1:8001/"
 
+[microservices]
+skills_url = "http://127.0.0.1:8104/skills/"
+challenges_url = "http://127.0.0.1:8104/challenges/"
+events_url = "http://127.0.0.1:8104/events/"
+
 [finance]
 invoices_archive = ".invoices"
 credit_notes_archive = ".credit_notes"

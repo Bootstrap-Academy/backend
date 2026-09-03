@@ -77,6 +77,10 @@ in
     ${lib.getExe testing} paypal --port 8103
   '';
 
+  processes.testing-microservices.exec = ''
+    ${lib.getExe testing} microservices --port 8104
+  '';
+
   env = {
     ACADEMY_DEVENV = "1";
 

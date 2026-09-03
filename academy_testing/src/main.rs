@@ -1,6 +1,6 @@
 use std::net::IpAddr;
 
-use academy_testing::{oauth2, paypal, recaptcha, vat};
+use academy_testing::{microservices, oauth2, paypal, recaptcha, vat};
 use academy_utils::{academy_version, bin_name};
 use clap::{CommandFactory, Parser, Subcommand};
 use clap_complete::CompleteEnv;
@@ -37,6 +37,7 @@ async fn main() -> anyhow::Result<()> {
             client_id,
             client_secret,
         } => paypal::start_server(host, port, client_id, client_secret).await?,
+        Command::Microservices { host, port } => microservices::start_server(host, port).await?,
     }
 
     Ok(())
@@ -91,5 +92,12 @@ enum Command {
         client_id: String,
         #[arg(long, default_value = "test-secret")]
         client_secret: String,
+    },
+    /// Start the microservices testing server
+    Microservices {
+        #[arg(long, default_value = "127.0.0.1")]
+        host: IpAddr,
+        #[arg(long)]
+        port: u16,
     },
 }

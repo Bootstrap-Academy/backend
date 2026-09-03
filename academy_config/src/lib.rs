@@ -96,6 +96,7 @@ pub struct Config {
     pub heart: HeartConfig,
     pub premium: PremiumConfig,
     pub render: RenderConfig,
+    pub microservices: MicroservicesConfig,
     pub finance: FinanceConfig,
     pub sentry: Option<SentryConfig>,
     pub oauth2: Option<OAuth2Config>,
@@ -243,6 +244,35 @@ pub struct RenderConfig {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct MicroservicesConfig {
+    #[serde(default, deserialize_with = "deserialize_optional_url")]
+    pub skills_url: Option<Url>,
+    #[serde(default, deserialize_with = "deserialize_optional_url")]
+    pub challenges_url: Option<Url>,
+    #[serde(default, deserialize_with = "deserialize_optional_url")]
+    pub events_url: Option<Url>,
+    pub timeout: Duration,
+}
+
+/// Deserialize an optional [`Url`], treating an empty string like a missing
+/// value.
+fn deserialize_optional_url<'de, D>(deserializer: D) -> Result<Option<Url>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let Some(url) = Option::<String>::deserialize(deserializer)? else {
+        return Ok(None);
+    };
+
+    let url = url.trim();
+    if url.is_empty() {
+        return Ok(None);
+    }
+
+    url.parse().map(Some).map_err(serde::de::Error::custom)
+}
+
+#[derive(Debug, Deserialize)]
 pub struct FinanceConfig {
     pub vat_percent: Decimal,
     pub invoices_archive: PathBuf,
@@ -278,6 +308,31 @@ pub struct OAuth2ProviderConfig {
 
 #[cfg(test)]
 mod tests {
+    /// The minimal set of properties that have no default value and therefore
+    /// need to be set by the deployment.
+    const MINIMAL_OVERRIDES: [&str; 20] = [
+        "http.address = \"0.0.0.0:8000\"",
+        "database.url = \"\"",
+        "cache.url = \"\"",
+        "email.smtp_url = \"\"",
+        "email.from = \"Test <test@example.com>\"",
+        "jwt.secret = \"\"",
+        "contact.email = \"test@example.com\"",
+        "recaptcha.sitekey = \"\"",
+        "recaptcha.secret = \"\"",
+        "paypal.client_id = \"\"",
+        "paypal.client_secret = \"\"",
+        "render.daemon_url = \"http://localhost:8001\"",
+        "finance.invoices_archive = \"\"",
+        "finance.credit_notes_archive = \"\"",
+        "oauth2.providers.github.client_id = \"\"",
+        "oauth2.providers.github.client_secret = \"\"",
+        "oauth2.providers.discord.client_id = \"\"",
+        "oauth2.providers.discord.client_secret = \"\"",
+        "oauth2.providers.google.client_id = \"\"",
+        "oauth2.providers.google.client_secret = \"\"",
+    ];
+
     #[test]
     fn load_dev_config() {
         super::load_dev_config().unwrap();
@@ -285,28 +340,7 @@ mod tests {
 
     #[test]
     fn load_minimal_config() {
-        let overrides = [
-            "http.address = \"0.0.0.0:8000\"",
-            "database.url = \"\"",
-            "cache.url = \"\"",
-            "email.smtp_url = \"\"",
-            "email.from = \"Test <test@example.com>\"",
-            "jwt.secret = \"\"",
-            "contact.email = \"test@example.com\"",
-            "recaptcha.sitekey = \"\"",
-            "recaptcha.secret = \"\"",
-            "paypal.client_id = \"\"",
-            "paypal.client_secret = \"\"",
-            "render.daemon_url = \"http://localhost:8001\"",
-            "finance.invoices_archive = \"\"",
-            "finance.credit_notes_archive = \"\"",
-            "oauth2.providers.github.client_id = \"\"",
-            "oauth2.providers.github.client_secret = \"\"",
-            "oauth2.providers.discord.client_id = \"\"",
-            "oauth2.providers.discord.client_secret = \"\"",
-            "oauth2.providers.google.client_id = \"\"",
-            "oauth2.providers.google.client_secret = \"\"",
-        ];
+        let overrides = MINIMAL_OVERRIDES;
 
         super::load_paths(&[] as &[&str], &overrides).unwrap();
 
@@ -322,5 +356,33 @@ mod tests {
                 overrides[i]
             );
         }
+    }
+
+    #[test]
+    fn microservices_disabled_by_default() {
+        let config = super::load_paths(&[] as &[&str], &MINIMAL_OVERRIDES).unwrap();
+
+        assert!(config.microservices.skills_url.is_none());
+        assert!(config.microservices.challenges_url.is_none());
+        assert!(config.microservices.events_url.is_none());
+    }
+
+    #[test]
+    fn empty_microservice_url() {
+        let overrides = MINIMAL_OVERRIDES
+            .into_iter()
+            .chain([
+                "microservices.skills_url = \"\"",
+                "microservices.challenges_url = \"http://localhost:8001/\"",
+            ])
+            .collect::<Vec<_>>();
+
+        let config = super::load_paths(&[] as &[&str], &overrides).unwrap();
+
+        assert!(config.microservices.skills_url.is_none());
+        assert_eq!(
+            config.microservices.challenges_url.unwrap().as_str(),
+            "http://localhost:8001/"
+        );
     }
 }

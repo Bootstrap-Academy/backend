@@ -88,6 +88,12 @@ yearly_price = 10000
 [render]
 # daemon_url = ""
 
+[microservices]
+# skills_url = ""
+# challenges_url = ""
+# events_url = ""
+timeout = "10s"
+
 [finance]
 vat_percent = 19
 # invoices_archive = ""

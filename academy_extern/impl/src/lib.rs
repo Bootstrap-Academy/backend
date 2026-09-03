@@ -1,4 +1,5 @@
 mod http;
+pub mod microservices;
 pub mod oauth2;
 pub mod paypal;
 pub mod recaptcha;

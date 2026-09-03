@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use rust_decimal::Decimal;
 
 use crate::{
     macros::{id, nutype_string},
@@ -6,6 +7,15 @@ use crate::{
 };
 
 id!(TransactionId);
+
+/// Public pricing information for Morphcoin purchases.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct CoinConfig {
+    /// Number of Morphcoins that correspond to one Euro.
+    pub coins_per_euro: u64,
+    /// Vat percentage included in all prices.
+    pub vat_percent: Decimal,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct Balance {

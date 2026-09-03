@@ -42,6 +42,7 @@ base64.workspace = true
 futures.workspace = true
 mime.workspace = true
 regex.workspace = true
+rust_decimal.workspace = true
 schemars.workspace = true
 serde.workspace = true
 serde_json.workspace = true

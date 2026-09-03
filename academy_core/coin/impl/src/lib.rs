@@ -2,10 +2,11 @@ use academy_auth_contracts::{AuthResultExt, AuthService};
 use academy_core_coin_contracts::{
     CoinAddCoinsError, CoinFeatureService, CoinGetBalanceError, coin::CoinService,
 };
+use academy_core_finance_contracts::coin::FinanceCoinService;
 use academy_di::Build;
 use academy_models::{
     auth::AccessToken,
-    coin::{Balance, TransactionDescription},
+    coin::{Balance, CoinConfig, TransactionDescription},
     user::UserIdOrSelf,
 };
 use academy_persistence_contracts::{
@@ -19,23 +20,33 @@ pub mod coin;
 mod tests;
 
 #[derive(Debug, Clone, Default, Build)]
-pub struct CoinFeatureServiceImpl<Db, Auth, UserRepo, CoinRepo, Coin> {
+pub struct CoinFeatureServiceImpl<Db, Auth, UserRepo, CoinRepo, Coin, FinanceCoin> {
     db: Db,
     auth: Auth,
     user_repo: UserRepo,
     coin_repo: CoinRepo,
     coin: Coin,
+    finance_coin: FinanceCoin,
 }
 
-impl<Db, Auth, UserRepo, CoinRepo, Coin> CoinFeatureService
-    for CoinFeatureServiceImpl<Db, Auth, UserRepo, CoinRepo, Coin>
+impl<Db, Auth, UserRepo, CoinRepo, Coin, FinanceCoin> CoinFeatureService
+    for CoinFeatureServiceImpl<Db, Auth, UserRepo, CoinRepo, Coin, FinanceCoin>
 where
     Db: Database,
     Auth: AuthService<Db::Transaction>,
     UserRepo: UserRepository<Db::Transaction>,
     CoinRepo: CoinRepository<Db::Transaction>,
     Coin: CoinService<Db::Transaction>,
+    FinanceCoin: FinanceCoinService,
 {
+    #[trace_instrument(skip(self))]
+    fn get_config(&self) -> CoinConfig {
+        CoinConfig {
+            coins_per_euro: self.finance_coin.coins_per_euro(),
+            vat_percent: self.finance_coin.vat_percent(),
+        }
+    }
+
     #[trace_instrument(skip(self))]
     async fn get_balance(
         &self,

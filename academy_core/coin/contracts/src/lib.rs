@@ -2,7 +2,7 @@ use std::future::Future;
 
 use academy_models::{
     auth::{AccessToken, AuthError},
-    coin::{Balance, TransactionDescription},
+    coin::{Balance, CoinConfig, TransactionDescription},
     user::UserIdOrSelf,
 };
 use thiserror::Error;
@@ -10,6 +10,9 @@ use thiserror::Error;
 pub mod coin;
 
 pub trait CoinFeatureService: Send + Sync + 'static {
+    /// Return the public Morphcoin pricing configuration.
+    fn get_config(&self) -> CoinConfig;
+
     /// Return the Morphcoin balance of the given user.
     ///
     /// Requires admin privileges if not used on the authenticated user.

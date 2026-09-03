@@ -52,7 +52,6 @@ pub async fn load(db: PostgresDatabase, auth: DbConnection) -> anyhow::Result<()
         let email_verification_code: Option<String> = row.get("email_verification_code");
         let description: Option<String> = row.get("description");
         let tags: Option<String> = row.get("_tags");
-        let newsletter: Option<bool> = row.get("newsletter");
         let last_name_change: Option<NaiveDateTime> = row.get("last_name_change");
         let business: Option<bool> = row.get("business");
         let first_name: Option<String> = row.get("first_name");
@@ -75,7 +74,6 @@ pub async fn load(db: PostgresDatabase, auth: DbConnection) -> anyhow::Result<()
                 .filter(|x| x.timestamp() != 0),
             enabled,
             admin,
-            newsletter: newsletter.unwrap_or(false),
             terms_version: None,
             terms_accepted_at: None,
             age_confirmed_at: None,

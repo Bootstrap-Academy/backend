@@ -1,6 +1,6 @@
 --: UserComposite (email?, last_login?, last_name_change?, terms_version?, terms_accepted_at?, age_confirmed_at?, business?, first_name?, last_name?, street?, zip_code?, city?, country?, vat_id?)
 
---! count_composites (name?, email?, enabled?, admin?, mfa_enabled?, email_verified?, newsletter?)
+--! count_composites (name?, email?, enabled?, admin?, mfa_enabled?, email_verified?)
 select count(*) from user_composites
   where (:name::text is null
     or position(lower(:name) in lower(name)) > 0
@@ -9,10 +9,9 @@ select count(*) from user_composites
   and (:enabled::boolean is null or enabled = :enabled)
   and (:admin::boolean is null or admin = :admin)
   and (:mfa_enabled::boolean is null or mfa_enabled = :mfa_enabled)
-  and (:email_verified::boolean is null or email_verified = :email_verified)
-  and (:newsletter::boolean is null or newsletter = :newsletter);
+  and (:email_verified::boolean is null or email_verified = :email_verified);
 
---! list_composites (name?, email?, enabled?, admin?, mfa_enabled?, email_verified?, newsletter?) : UserComposite
+--! list_composites (name?, email?, enabled?, admin?, mfa_enabled?, email_verified?) : UserComposite
 select * from user_composites
   where (:name::text is null
     or position(lower(:name) in lower(name)) > 0
@@ -22,7 +21,6 @@ select * from user_composites
   and (:admin::boolean is null or admin = :admin)
   and (:mfa_enabled::boolean is null or mfa_enabled = :mfa_enabled)
   and (:email_verified::boolean is null or email_verified = :email_verified)
-  and (:newsletter::boolean is null or newsletter = :newsletter)
   order by created_at asc
   limit :limit offset :offset;
 
@@ -45,8 +43,8 @@ with cte as (
 select * from user_composites inner join cte using (id);
 
 --! create (email?, last_login?, last_name_change?, terms_version?, terms_accepted_at?, age_confirmed_at?)
-insert into users (id, name, email, email_verified, created_at, last_login, last_name_change, enabled, admin, newsletter, terms_version, terms_accepted_at, age_confirmed_at)
-  values (:id, :name, :email, :email_verified, :created_at, :last_login, :last_name_change, :enabled, :admin, :newsletter, :terms_version, :terms_accepted_at, :age_confirmed_at);
+insert into users (id, name, email, email_verified, created_at, last_login, last_name_change, enabled, admin, terms_version, terms_accepted_at, age_confirmed_at)
+  values (:id, :name, :email, :email_verified, :created_at, :last_login, :last_name_change, :enabled, :admin, :terms_version, :terms_accepted_at, :age_confirmed_at);
 
 --! create_profile
 insert into user_profiles (user_id, display_name, bio, tags)
@@ -56,7 +54,7 @@ insert into user_profiles (user_id, display_name, bio, tags)
 insert into user_invoice_info (user_id, business, first_name, last_name, street, zip_code, city, country, vat_id)
   values (:user_id, :business, :first_name, :last_name, :street, :zip_code, :city, :country, :vat_id);
 
---! update (name?, email?, email_verified?, last_login?, last_name_change?, enabled?, admin?, newsletter?)
+--! update (name?, email?, email_verified?, last_login?, last_name_change?, enabled?, admin?)
 update users
   set
     name=coalesce(:name, name),
@@ -65,8 +63,7 @@ update users
     last_login=coalesce(:last_login, last_login),
     last_name_change=coalesce(:last_name_change, last_name_change),
     enabled=coalesce(:enabled, enabled),
-    admin=coalesce(:admin, admin),
-    newsletter=coalesce(:newsletter, newsletter)
+    admin=coalesce(:admin, admin)
   where id=:id;
 
 --! update_profile (display_name?, bio?, tags?)

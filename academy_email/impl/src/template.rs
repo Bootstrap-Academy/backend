@@ -7,8 +7,8 @@ use academy_email_contracts::{
 use academy_models::email_address::EmailAddressWithName;
 use academy_templates_contracts::{
     ContractCancellationConfirmationTemplate, ContractWithdrawalConfirmationTemplate,
-    PurchaseConfirmationTemplate, ResetPasswordTemplate, SubscribeNewsletterTemplate, Template,
-    TemplateService, VerifyEmailTemplate,
+    PurchaseConfirmationTemplate, ResetPasswordTemplate, Template, TemplateService,
+    VerifyEmailTemplate,
 };
 use academy_utils::trace_instrument;
 
@@ -33,21 +33,6 @@ where
             recipient,
             data,
             "Passwort zurücksetzen - Bootstrap Academy",
-            Vec::new(),
-        )
-        .await
-    }
-
-    #[trace_instrument(skip(self))]
-    async fn send_subscribe_newsletter_email(
-        &self,
-        recipient: EmailAddressWithName,
-        data: &SubscribeNewsletterTemplate,
-    ) -> anyhow::Result<bool> {
-        self.send_email(
-            recipient,
-            data,
-            "Newsletter abonnieren - Bootstrap Academy",
             Vec::new(),
         )
         .await

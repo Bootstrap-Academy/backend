@@ -17,7 +17,6 @@ mod email;
 mod enabled;
 mod invoice_info;
 mod name;
-mod newsletter;
 mod no_op;
 mod password;
 mod profile;

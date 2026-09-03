@@ -42,8 +42,6 @@ verification_code_ttl = "4h"
 verification_redirect_url = "https://bootstrap.academy/auth/verify-account"
 password_reset_code_ttl = "4h"
 password_reset_redirect_url = "https://bootstrap.academy/auth/reset-password"
-newsletter_code_ttl = "4h"
-newsletter_redirect_url = "https://bootstrap.academy/account/newsletter"
 
 [session]
 access_token_ttl = "5m"

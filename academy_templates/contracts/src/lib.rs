@@ -54,7 +54,6 @@ macro_rules! templates {
 templates! {
     ResetPasswordTemplate(templates::RESET_PASSWORD_HTML),
     VerifyEmailTemplate(templates::VERIFY_EMAIL_HTML),
-    SubscribeNewsletterTemplate(templates::SUBSCRIBE_NEWSLETTER_HTML),
     PurchaseConfirmationTemplate(templates::PURCHASE_CONFIRMATION_HTML),
     InvoiceTemplate(templates::INVOICE_HTML),
     ContractCancellationConfirmationTemplate(templates::CONTRACT_CANCELLATION_CONFIRMATION_HTML),
@@ -69,12 +68,6 @@ pub struct ResetPasswordTemplate {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct VerifyEmailTemplate {
-    pub code: String,
-    pub url: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub struct SubscribeNewsletterTemplate {
     pub code: String,
     pub url: String,
 }

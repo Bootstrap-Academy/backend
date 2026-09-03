@@ -7,10 +7,10 @@ use academy_core_user_contracts::{
     PasswordUpdate, UserCreateError, UserCreateRequest, UserDeleteError, UserFeatureService,
     UserGetError, UserListError, UserRequestPasswordResetError, UserRequestVerificationEmailError,
     UserResetPasswordError, UserUpdateError, UserUpdateRequest, UserUpdateUserRequest,
-    UserVerifyEmailError, UserVerifyNewsletterSubscriptionError,
+    UserVerifyEmailError,
     email_confirmation::{
         UserEmailConfirmationResetPasswordError, UserEmailConfirmationService,
-        UserEmailConfirmationSubscribeToNewsletterError, UserEmailConfirmationVerifyEmailError,
+        UserEmailConfirmationVerifyEmailError,
     },
     update::{
         UserUpdateEmailError, UserUpdateNameError, UserUpdateNameRateLimitPolicy, UserUpdateService,
@@ -24,7 +24,7 @@ use academy_models::{
     auth::{AccessToken, Login},
     email_address::EmailAddress,
     session::DeviceName,
-    user::{UserComposite, UserIdOrSelf, UserInvoiceInfoPatch, UserPassword, UserPatchRef},
+    user::{UserComposite, UserIdOrSelf, UserInvoiceInfoPatch, UserPassword},
 };
 use academy_persistence_contracts::{
     Database, Transaction, coin::CoinRepository, user::UserRepository,
@@ -79,8 +79,6 @@ pub struct UserFeatureConfig {
     pub verification_verification_code_ttl: Duration,
     pub password_reset_redirect_url: Arc<String>,
     pub password_reset_verification_code_ttl: Duration,
-    pub newsletter_subscription_redirect_url: Arc<String>,
-    pub newsletter_subscription_verification_code_ttl: Duration,
 }
 
 impl<
@@ -253,7 +251,6 @@ where
                     password,
                     enabled,
                     admin,
-                    newsletter,
                 },
             profile: profile_update,
             invoice_info: invoice_info_update,
@@ -287,7 +284,6 @@ where
             email_verified.minimize(&(user.email_verified && email.is_unchanged()));
         let enabled = enabled.minimize(&user.enabled);
         let admin = admin.minimize(&user.admin);
-        let newsletter = newsletter.minimize(&user.newsletter);
 
         let profile_update = profile_update.minimize(&profile);
 
@@ -415,32 +411,6 @@ where
             PatchValue::Unchanged => (),
         }
 
-        if let PatchValue::Update(newsletter) = newsletter {
-            if newsletter && !auth.admin {
-                let email = user.email.clone().ok_or(UserUpdateError::NoEmail)?;
-                self.user_email_confirmation
-                    .request_newsletter_subscription(
-                        user_id,
-                        email.with_name(profile.display_name.clone().into_inner()),
-                    )
-                    .await
-                    .context("Failed to request newsletter subscription email")?;
-            } else {
-                user.newsletter = newsletter;
-                self.user_repo
-                    .update(
-                        &mut txn,
-                        user_id,
-                        UserPatchRef::new().update_newsletter(&newsletter),
-                    )
-                    .await
-                    .map_err(|err| {
-                        anyhow!(err).context("Failed to update user newsletter status in database")
-                    })?;
-                commit = true;
-            }
-        }
-
         let invoice_info_updated = invoice_info_update.is_update();
         if invoice_info_updated {
             invoice_info = self
@@ -564,49 +534,6 @@ where
                 Err(err.context("Failed to verify email").into())
             }
         }
-    }
-
-    #[trace_instrument(skip(self))]
-    async fn verify_newsletter_subscription(
-        &self,
-        token: &AccessToken,
-        user_id: UserIdOrSelf,
-        code: VerificationCode,
-    ) -> Result<UserComposite, UserVerifyNewsletterSubscriptionError> {
-        let auth = self.auth.authenticate(token).await.map_auth_err()?;
-        let user_id = user_id.unwrap_or(auth.user_id);
-        auth.ensure_self_or_admin(user_id).map_auth_err()?;
-
-        let mut txn = self.db.begin_transaction().await?;
-
-        let mut user_composite = self
-            .user_repo
-            .get_composite(&mut txn, user_id)
-            .await
-            .context("Failed to get user from database")?
-            .ok_or(UserVerifyNewsletterSubscriptionError::NotFound)?;
-
-        if user_composite.user.newsletter {
-            return Err(UserVerifyNewsletterSubscriptionError::AlreadySubscribed);
-        }
-
-        self.user_email_confirmation
-            .subscribe_to_newsletter(&mut txn, user_id, code)
-            .await
-            .map_err(|err| match err {
-                UserEmailConfirmationSubscribeToNewsletterError::InvalidCode => {
-                    UserVerifyNewsletterSubscriptionError::InvalidCode
-                }
-                UserEmailConfirmationSubscribeToNewsletterError::Other(err) => err
-                    .context("Failed to confirm newsletter subscription")
-                    .into(),
-            })?;
-
-        user_composite.user.newsletter = true;
-
-        txn.commit().await?;
-
-        Ok(user_composite)
     }
 
     #[trace_instrument(skip(self))]

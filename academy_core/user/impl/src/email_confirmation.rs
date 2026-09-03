@@ -2,7 +2,7 @@ use academy_auth_contracts::AuthService;
 use academy_cache_contracts::CacheService;
 use academy_core_user_contracts::email_confirmation::{
     UserEmailConfirmationResetPasswordError, UserEmailConfirmationService,
-    UserEmailConfirmationSubscribeToNewsletterError, UserEmailConfirmationVerifyEmailError,
+    UserEmailConfirmationVerifyEmailError,
 };
 use academy_di::Build;
 use academy_email_contracts::template::TemplateEmailService;
@@ -13,9 +13,7 @@ use academy_models::{
 };
 use academy_persistence_contracts::user::UserRepository;
 use academy_shared_contracts::{password::PasswordService, secret::SecretService};
-use academy_templates_contracts::{
-    ResetPasswordTemplate, SubscribeNewsletterTemplate, VerifyEmailTemplate,
-};
+use academy_templates_contracts::{ResetPasswordTemplate, VerifyEmailTemplate};
 use academy_utils::trace_instrument;
 use anyhow::{Context, anyhow};
 
@@ -194,76 +192,10 @@ where
 
         Ok(())
     }
-
-    #[trace_instrument(skip(self))]
-    async fn request_newsletter_subscription(
-        &self,
-        user_id: UserId,
-        email: EmailAddressWithName,
-    ) -> anyhow::Result<()> {
-        let code = self.secret.generate_verification_code();
-
-        self.cache
-            .set(
-                &subscribe_newsletter_cache_key(user_id),
-                &code,
-                Some(self.config.newsletter_subscription_verification_code_ttl),
-            )
-            .await
-            .context("Failed to save code in cache")?;
-
-        self.template_email
-            .send_subscribe_newsletter_email(
-                email,
-                &SubscribeNewsletterTemplate {
-                    code: code.into_inner(),
-                    url: self.config.newsletter_subscription_redirect_url.to_string(),
-                },
-            )
-            .await
-            .context("Failed to send email")?;
-
-        Ok(())
-    }
-
-    #[trace_instrument(skip(self, txn))]
-    async fn subscribe_to_newsletter(
-        &self,
-        txn: &mut Txn,
-        user_id: UserId,
-        code: VerificationCode,
-    ) -> Result<(), UserEmailConfirmationSubscribeToNewsletterError> {
-        let cache_key = subscribe_newsletter_cache_key(user_id);
-
-        let expected_code = self
-            .cache
-            .get(&cache_key)
-            .await
-            .context("Failed to get expected code from cache")?;
-        if expected_code != Some(code) {
-            return Err(UserEmailConfirmationSubscribeToNewsletterError::InvalidCode);
-        }
-
-        self.user_repo
-            .update(txn, user_id, UserPatchRef::new().update_newsletter(&true))
-            .await
-            .map_err(|err| anyhow!(err).context("Failed to update user in database"))?;
-
-        self.cache
-            .remove(&cache_key)
-            .await
-            .context("Failed to remove code from cache")?;
-
-        Ok(())
-    }
 }
 
 fn verification_cache_key(verification_code: &VerificationCode) -> String {
     format!("verification:{}", **verification_code)
-}
-
-fn subscribe_newsletter_cache_key(user_id: UserId) -> String {
-    format!("subscribe_newsletter_code:{}", user_id.hyphenated())
 }
 
 fn reset_password_cache_key(user_id: UserId) -> String {
@@ -607,143 +539,6 @@ mod tests {
         assert_matches!(
             result,
             Err(UserEmailConfirmationResetPasswordError::InvalidCode)
-        );
-    }
-
-    #[tokio::test]
-    async fn request_newsletter_subscription() {
-        // Arrange
-        let config = UserFeatureConfig::default();
-
-        let secret =
-            MockSecretService::new().with_generate_verification_code(VERIFICATION_CODE_1.clone());
-
-        let expected_email = SubscribeNewsletterTemplate {
-            code: VERIFICATION_CODE_1.clone().into_inner(),
-            url: (*config.newsletter_subscription_redirect_url).clone(),
-        };
-
-        let template_email = MockTemplateEmailService::new().with_send_subscribe_newsletter_email(
-            FOO.user
-                .email
-                .clone()
-                .unwrap()
-                .with_name(FOO.profile.display_name.clone().into_inner()),
-            expected_email,
-            true,
-        );
-
-        let cache = MockCacheService::new().with_set(
-            format!("subscribe_newsletter_code:{}", FOO.user.id.hyphenated()),
-            VERIFICATION_CODE_1.clone(),
-            Some(config.newsletter_subscription_verification_code_ttl),
-        );
-
-        let sut = UserEmailConfirmationServiceImpl {
-            secret,
-            template_email,
-            cache,
-            ..Sut::default()
-        };
-
-        // Act
-        let result = sut
-            .request_newsletter_subscription(
-                FOO.user.id,
-                FOO.user
-                    .email
-                    .clone()
-                    .unwrap()
-                    .with_name(FOO.profile.display_name.clone().into_inner()),
-            )
-            .await;
-
-        // Assert
-        result.unwrap();
-    }
-
-    #[tokio::test]
-    async fn subscribe_to_newsletter_ok() {
-        // Arrange
-        let user_repo = MockUserRepository::new().with_update(
-            FOO.user.id,
-            UserPatch::new().update_newsletter(true),
-            Ok(true),
-        );
-
-        let cache_key = format!("subscribe_newsletter_code:{}", FOO.user.id.hyphenated());
-        let cache = MockCacheService::new()
-            .with_get(cache_key.clone(), VERIFICATION_CODE_1.clone().into())
-            .with_remove(cache_key);
-
-        let sut = UserEmailConfirmationServiceImpl {
-            user_repo,
-            cache,
-            ..Sut::default()
-        };
-
-        // Act
-        let result = sut
-            .subscribe_to_newsletter(&mut (), FOO.user.id, VERIFICATION_CODE_1.clone())
-            .await;
-
-        // Assert
-        result.unwrap();
-    }
-
-    #[tokio::test]
-    async fn subscribe_to_newsletter_no_code_requested() {
-        // Arrange
-        let user_repo = MockUserRepository::new();
-
-        let cache = MockCacheService::new().with_get(
-            format!("subscribe_newsletter_code:{}", FOO.user.id.hyphenated()),
-            None::<VerificationCode>,
-        );
-
-        let sut = UserEmailConfirmationServiceImpl {
-            user_repo,
-            cache,
-            ..Sut::default()
-        };
-
-        // Act
-        let result = sut
-            .subscribe_to_newsletter(&mut (), FOO.user.id, VERIFICATION_CODE_1.clone())
-            .await;
-
-        // Assert
-        assert_matches!(
-            result,
-            Err(UserEmailConfirmationSubscribeToNewsletterError::InvalidCode)
-        );
-    }
-
-    #[tokio::test]
-    async fn subscribe_to_newsletter_invalid_code() {
-        // Arrange
-        let user_repo = MockUserRepository::new();
-
-        let cache = MockCacheService::new().with_get(
-            format!("subscribe_newsletter_code:{}", FOO.user.id.hyphenated()),
-            VERIFICATION_CODE_2.clone().into(),
-        );
-
-        let sut = UserEmailConfirmationServiceImpl {
-            user_repo,
-            cache,
-            ..Sut::default()
-        };
-
-        // Act
-        let result = sut
-            .subscribe_to_newsletter(&mut (), FOO.user.id, VERIFICATION_CODE_1.clone())
-            .await;
-
-        // Assert
-        assert_matches!(
-            result,
-            Err(UserEmailConfirmationSubscribeToNewsletterError::InvalidCode)
         );
     }
 }

@@ -60,7 +60,6 @@ pub struct User {
     pub last_name_change: Option<DateTime<Utc>>,
     pub enabled: bool,
     pub admin: bool,
-    pub newsletter: bool,
     /// Version of the terms and conditions the user accepted on registration.
     #[no_patch]
     pub terms_version: Option<TermsVersion>,
@@ -215,7 +214,6 @@ pub struct UserFilter {
     pub admin: Option<bool>,
     pub mfa_enabled: Option<bool>,
     pub email_verified: Option<bool>,
-    pub newsletter: Option<bool>,
 }
 
 #[cfg(test)]

@@ -45,7 +45,6 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
             admin: filter.admin,
             mfa_enabled: filter.mfa_enabled,
             email_verified: filter.email_verified,
-            newsletter: filter.newsletter,
         };
 
         queries::user::count_composites()
@@ -70,7 +69,6 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
             admin: filter.admin,
             mfa_enabled: filter.mfa_enabled,
             email_verified: filter.email_verified,
-            newsletter: filter.newsletter,
             limit: (*pagination.limit).try_into()?,
             offset: pagination.offset.try_into()?,
         };
@@ -173,7 +171,6 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
             last_name_change: user.last_name_change.map(Into::into),
             enabled: user.enabled,
             admin: user.admin,
-            newsletter: user.newsletter,
             terms_version: user.terms_version.as_deref(),
             terms_accepted_at: user.terms_accepted_at.map(Into::into),
             age_confirmed_at: user.age_confirmed_at.map(Into::into),
@@ -229,7 +226,6 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
             last_name_change,
             enabled,
             admin,
-            newsletter,
         }: UserPatchRef<'a>,
     ) -> Result<bool, UserRepoError> {
         let params = UpdateParams {
@@ -244,7 +240,6 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
             last_name_change: last_name_change.update().copied().flatten().map(Into::into),
             enabled: enabled.update().copied(),
             admin: admin.update().copied(),
-            newsletter: newsletter.update().copied(),
         };
 
         queries::user::update()
@@ -398,7 +393,6 @@ fn decode_composite(value: queries::user::UserComposite) -> anyhow::Result<UserC
         last_name_change: value.last_name_change.map(Into::into),
         enabled: value.enabled,
         admin: value.admin,
-        newsletter: value.newsletter,
         terms_version: value.terms_version.map(TryInto::try_into).transpose()?,
         terms_accepted_at: value.terms_accepted_at.map(Into::into),
         age_confirmed_at: value.age_confirmed_at.map(Into::into),

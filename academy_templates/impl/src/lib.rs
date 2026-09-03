@@ -47,8 +47,8 @@ impl TemplateService for TemplateServiceImpl {
 mod tests {
     use academy_templates_contracts::{
         ContractCancellationConfirmationTemplate, ContractWithdrawalConfirmationTemplate,
-        InvoiceTemplate, PurchaseConfirmationTemplate, ResetPasswordTemplate,
-        SubscribeNewsletterTemplate, VerifyEmailTemplate, WithdrawalConsentConfirmation,
+        InvoiceTemplate, PurchaseConfirmationTemplate, ResetPasswordTemplate, VerifyEmailTemplate,
+        WithdrawalConsentConfirmation,
     };
 
     use super::*;
@@ -64,14 +64,6 @@ mod tests {
     #[test]
     fn verify_email() {
         test_template(VerifyEmailTemplate {
-            code: "code".into(),
-            url: "https://bootstrap.academy/".into(),
-        });
-    }
-
-    #[test]
-    fn subscribe_newsletter() {
-        test_template(SubscribeNewsletterTemplate {
             code: "code".into(),
             url: "https://bootstrap.academy/".into(),
         });

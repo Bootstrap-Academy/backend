@@ -87,7 +87,6 @@ where
             last_name_change: None,
             enabled,
             admin,
-            newsletter: false,
             terms_accepted_at: terms_version.is_some().then_some(now),
             terms_version,
             age_confirmed_at: age_confirmed.then_some(now),
@@ -198,7 +197,6 @@ mod tests {
                 admin: Some(false),
                 mfa_enabled: None,
                 email_verified: Some(true),
-                newsletter: Some(false),
             },
         };
         let expected = ALL_USERS.iter().copied().cloned().collect::<Vec<_>>();
@@ -539,7 +537,6 @@ mod tests {
                 last_name_change: None,
                 enabled: true,
                 admin: false,
-                newsletter: false,
                 terms_version: FOO.user.terms_version.clone(),
                 terms_accepted_at: Some(FOO.user.created_at),
                 age_confirmed_at: Some(FOO.user.created_at),

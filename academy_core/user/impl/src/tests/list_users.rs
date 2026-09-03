@@ -108,7 +108,6 @@ fn build_query() -> UserListQuery {
             admin: Some(false),
             mfa_enabled: None,
             email_verified: Some(true),
-            newsletter: Some(false),
         },
     }
 }

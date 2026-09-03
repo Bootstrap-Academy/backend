@@ -1,0 +1,42 @@
+{% extends "base" %}
+{% block title %}Kündigungsbestätigung{% endblock title %}
+{% block content %}
+	<p>
+    Wir bestätigen den Eingang Ihrer Kündigungserklärung.
+	</p>
+
+	<p>
+    Eingegangen am {{ received_at }} (Uhrzeit in der Zeitzone Europe/Berlin).
+	</p>
+
+  <h2>Inhalt Ihrer Erklärung</h2>
+
+  <ul>
+    <li>Name: {{ name | escape }}</li>
+    <li>E-Mail-Adresse: {{ email | escape }}</li>
+    <li>Vertrag: {{ contract | escape }}</li>
+    <li>Art der Kündigung: {{ cancellation_type | escape }}</li>
+    {% if details %}<li>Begründung: {{ details | escape }}</li>{% endif %}
+    <li>
+      Gewünschter Beendigungszeitpunkt:
+      {% if requested_end %}{{ requested_end }}{% else %}zum nächstmöglichen Zeitpunkt{% endif %}
+    </li>
+  </ul>
+
+  {% if effective_end %}
+	<p>
+    Ihr Vertrag endet zum {{ effective_end }}. Die automatische Verlängerung ist abgeschaltet;
+    bis zum Vertragsende können Sie Premium weiter nutzen.
+    Für den bereits bezahlten Zeitraum erfolgt keine Erstattung.
+	</p>
+  {% else %}
+	<p>
+    Den Zeitpunkt, zu dem der Vertrag endet, können wir zu Ihren Angaben nicht automatisch ermitteln.
+    Wir prüfen Ihre Erklärung und teilen Ihnen den Beendigungszeitpunkt gesondert in Textform mit.
+	</p>
+  {% endif %}
+
+	<p>
+    Diese Bestätigung erfolgt nach § 312k Abs. 4 BGB.
+	</p>
+{% endblock content %}

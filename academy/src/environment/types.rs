@@ -8,6 +8,7 @@ use academy_cache_valkey::ValkeyCache;
 use academy_core_coin_impl::{CoinFeatureServiceImpl, coin::CoinServiceImpl};
 use academy_core_config_impl::ConfigFeatureServiceImpl;
 use academy_core_contact_impl::ContactFeatureServiceImpl;
+use academy_core_contract_impl::ContractFeatureServiceImpl;
 use academy_core_finance_impl::{
     FinanceFeatureServiceImpl, coin::FinanceCoinServiceImpl, invoice::FinanceInvoiceServiceImpl,
 };
@@ -42,10 +43,10 @@ use academy_extern_impl::{
     render::RenderApiServiceImpl, vat::VatApiServiceImpl,
 };
 use academy_persistence_postgres::{
-    PostgresDatabase, coin::PostgresCoinRepository, heart::PostgresHeartRepository,
-    mfa::PostgresMfaRepository, oauth2::PostgresOAuth2Repository, paypal::PostgresPaypalRepository,
-    premium::PostgresPremiumRepository, session::PostgresSessionRepository,
-    user::PostgresUserRepository,
+    PostgresDatabase, coin::PostgresCoinRepository, contract::PostgresContractRepository,
+    heart::PostgresHeartRepository, mfa::PostgresMfaRepository, oauth2::PostgresOAuth2Repository,
+    paypal::PostgresPaypalRepository, premium::PostgresPremiumRepository,
+    session::PostgresSessionRepository, user::PostgresUserRepository,
 };
 use academy_shared_impl::{
     captcha::CaptchaServiceImpl, fs::FsServiceImpl, hash::HashServiceImpl, id::IdServiceImpl,
@@ -61,6 +62,7 @@ pub type RestServer = academy_api_rest::RestServer<
     UserFeature,
     SessionFeature,
     ContactFeature,
+    ContractFeature,
     MfaFeature,
     OAuth2Feature,
     CoinFeature,
@@ -111,6 +113,7 @@ pub type CoinRepo = PostgresCoinRepository;
 pub type PaypalRepo = PostgresPaypalRepository;
 pub type HeartRepo = PostgresHeartRepository;
 pub type PremiumRepo = PostgresPremiumRepository;
+pub type ContractRepo = PostgresContractRepository;
 
 // Auth
 pub type Auth =
@@ -156,6 +159,20 @@ pub type Session = SessionServiceImpl<Id, Time, Auth, AuthAccessToken, SessionRe
 pub type SessionFailedAuthCount = SessionFailedAuthCountServiceImpl<Hash, Cache>;
 
 pub type ContactFeature = ContactFeatureServiceImpl<Captcha, Email>;
+
+pub type ContractFeature = ContractFeatureServiceImpl<
+    Database,
+    Auth,
+    Id,
+    Time,
+    Cache,
+    Hash,
+    TemplateEmail,
+    Email,
+    UserRepo,
+    PremiumRepo,
+    ContractRepo,
+>;
 
 pub type MfaFeature = MfaFeatureServiceImpl<
     Database,

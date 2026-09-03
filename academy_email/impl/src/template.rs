@@ -6,6 +6,7 @@ use academy_email_contracts::{
 };
 use academy_models::email_address::EmailAddressWithName;
 use academy_templates_contracts::{
+    ContractCancellationConfirmationTemplate, ContractWithdrawalConfirmationTemplate,
     PurchaseConfirmationTemplate, ResetPasswordTemplate, SubscribeNewsletterTemplate, Template,
     TemplateService, VerifyEmailTemplate,
 };
@@ -97,6 +98,36 @@ where
             data,
             "Kaufbestätigung - Bootstrap Academy",
             vec![invoice, terms, revocation_policy],
+        )
+        .await
+    }
+
+    #[trace_instrument(skip(self))]
+    async fn send_contract_cancellation_confirmation_email(
+        &self,
+        recipient: EmailAddressWithName,
+        data: &ContractCancellationConfirmationTemplate,
+    ) -> anyhow::Result<bool> {
+        self.send_email(
+            recipient,
+            data,
+            "Kündigungsbestätigung - Bootstrap Academy",
+            Vec::new(),
+        )
+        .await
+    }
+
+    #[trace_instrument(skip(self))]
+    async fn send_contract_withdrawal_confirmation_email(
+        &self,
+        recipient: EmailAddressWithName,
+        data: &ContractWithdrawalConfirmationTemplate,
+    ) -> anyhow::Result<bool> {
+        self.send_email(
+            recipient,
+            data,
+            "Widerrufsbestätigung - Bootstrap Academy",
+            Vec::new(),
         )
         .await
     }

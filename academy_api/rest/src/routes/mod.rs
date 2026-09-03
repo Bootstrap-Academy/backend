@@ -1,6 +1,7 @@
 pub mod coin;
 pub mod config;
 pub mod contact;
+pub mod contract;
 pub mod finance;
 pub mod health;
 pub mod heart;

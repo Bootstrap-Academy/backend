@@ -20,6 +20,7 @@ academy_core_coin_contracts.workspace = true
 academy_core_coin_impl.workspace = true
 academy_core_config_impl.workspace = true
 academy_core_contact_impl.workspace = true
+academy_core_contract_impl.workspace = true
 academy_core_finance_contracts.workspace = true
 academy_core_finance_impl.workspace = true
 academy_core_health_impl.workspace = true

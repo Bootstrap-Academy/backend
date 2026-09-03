@@ -57,6 +57,8 @@ templates! {
     SubscribeNewsletterTemplate(templates::SUBSCRIBE_NEWSLETTER_HTML),
     PurchaseConfirmationTemplate(templates::PURCHASE_CONFIRMATION_HTML),
     InvoiceTemplate(templates::INVOICE_HTML),
+    ContractCancellationConfirmationTemplate(templates::CONTRACT_CANCELLATION_CONFIRMATION_HTML),
+    ContractWithdrawalConfirmationTemplate(templates::CONTRACT_WITHDRAWAL_CONFIRMATION_HTML),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -75,6 +77,33 @@ pub struct VerifyEmailTemplate {
 pub struct SubscribeNewsletterTemplate {
     pub code: String,
     pub url: String,
+}
+
+/// Confirmation of a contract cancellation (§ 312k BGB).
+///
+/// All timestamps are pre-formatted strings in the `Europe/Berlin` time zone.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct ContractCancellationConfirmationTemplate {
+    pub received_at: String,
+    pub name: String,
+    pub email: String,
+    pub contract: String,
+    pub cancellation_type: String,
+    pub details: Option<String>,
+    pub requested_end: Option<String>,
+    pub effective_end: Option<String>,
+}
+
+/// Confirmation of a withdrawal from a contract (§ 356a BGB).
+///
+/// All timestamps are pre-formatted strings in the `Europe/Berlin` time zone.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct ContractWithdrawalConfirmationTemplate {
+    pub received_at: String,
+    pub name: String,
+    pub email: String,
+    pub contract: String,
+    pub details: Option<String>,
 }
 
 macro_rules! rounded {

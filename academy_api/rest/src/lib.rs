@@ -6,6 +6,7 @@ use std::{
 use academy_core_coin_contracts::CoinFeatureService;
 use academy_core_config_contracts::ConfigFeatureService;
 use academy_core_contact_contracts::ContactFeatureService;
+use academy_core_contract_contracts::ContractFeatureService;
 use academy_core_finance_contracts::FinanceFeatureService;
 use academy_core_health_contracts::HealthFeatureService;
 use academy_core_heart_contracts::HeartFeatureService;
@@ -50,6 +51,7 @@ pub struct RestServer<
     User,
     Session,
     Contact,
+    Contract,
     Mfa,
     OAuth2,
     Coin,
@@ -65,6 +67,7 @@ pub struct RestServer<
     user: User,
     session: Session,
     contact: Contact,
+    contract: Contract,
     mfa: Mfa,
     oauth2: OAuth2,
     coin: Coin,
@@ -94,6 +97,7 @@ impl<
     User,
     Session,
     Contact,
+    Contract,
     Mfa,
     OAuth2,
     Coin,
@@ -109,6 +113,7 @@ impl<
         User,
         Session,
         Contact,
+        Contract,
         Mfa,
         OAuth2,
         Coin,
@@ -124,6 +129,7 @@ where
     User: UserFeatureService,
     Session: SessionFeatureService,
     Contact: ContactFeatureService,
+    Contract: ContractFeatureService,
     Mfa: MfaFeatureService,
     OAuth2: OAuth2FeatureService,
     Coin: CoinFeatureService,
@@ -153,6 +159,7 @@ where
                 routes::health::TAG,
                 routes::config::TAG,
                 routes::contact::TAG,
+                routes::contract::TAG,
                 routes::user::TAG,
                 routes::session::TAG,
                 routes::mfa::TAG,
@@ -232,6 +239,7 @@ where
             .merge(routes::user::router(self.user.into()))
             .merge(routes::session::router(self.session.into()))
             .merge(routes::contact::router(self.contact.into()))
+            .merge(routes::contract::router(self.contract.into()))
             .merge(routes::mfa::router(self.mfa.into()))
             .merge(routes::oauth2::router(self.oauth2.into()))
             .merge(routes::coin::router(self.coin.into()))

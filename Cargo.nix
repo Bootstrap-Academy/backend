@@ -183,6 +183,26 @@ rec {
       # File a bug if you depend on any for non-debug work!
       debug = internal.debugCrate { inherit packageId; };
     };
+    "academy_core_contract_contracts" = rec {
+      packageId = "academy_core_contract_contracts";
+      build = internal.buildRustCrateWithFeatures {
+        packageId = "academy_core_contract_contracts";
+      };
+
+      # Debug support which might change between releases.
+      # File a bug if you depend on any for non-debug work!
+      debug = internal.debugCrate { inherit packageId; };
+    };
+    "academy_core_contract_impl" = rec {
+      packageId = "academy_core_contract_impl";
+      build = internal.buildRustCrateWithFeatures {
+        packageId = "academy_core_contract_impl";
+      };
+
+      # Debug support which might change between releases.
+      # File a bug if you depend on any for non-debug work!
+      debug = internal.debugCrate { inherit packageId; };
+    };
     "academy_core_finance_contracts" = rec {
       packageId = "academy_core_finance_contracts";
       build = internal.buildRustCrateWithFeatures {
@@ -651,6 +671,10 @@ rec {
             packageId = "academy_core_contact_impl";
           }
           {
+            name = "academy_core_contract_impl";
+            packageId = "academy_core_contract_impl";
+          }
+          {
             name = "academy_core_finance_contracts";
             packageId = "academy_core_finance_contracts";
           }
@@ -892,6 +916,10 @@ rec {
             packageId = "academy_core_contact_contracts";
           }
           {
+            name = "academy_core_contract_contracts";
+            packageId = "academy_core_contract_contracts";
+          }
+          {
             name = "academy_core_finance_contracts";
             packageId = "academy_core_finance_contracts";
           }
@@ -971,6 +999,12 @@ rec {
             name = "base64";
             packageId = "base64 0.22.1";
             usesDefaultFeatures = false;
+          }
+          {
+            name = "chrono";
+            packageId = "chrono";
+            usesDefaultFeatures = false;
+            features = [ "serde" "clock" ];
           }
           {
             name = "futures";
@@ -1611,6 +1645,161 @@ rec {
           {
             name = "academy_email_contracts";
             packageId = "academy_email_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_shared_contracts";
+            packageId = "academy_shared_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "tokio";
+            packageId = "tokio";
+            usesDefaultFeatures = false;
+            features = [ "rt-multi-thread" "macros" "sync" "fs" "process" ];
+          }
+        ];
+
+      };
+      "academy_core_contract_contracts" = rec {
+        crateName = "academy_core_contract_contracts";
+        version = "0.0.0";
+        edition = "2024";
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/contract/contracts; };
+        dependencies = [
+          {
+            name = "academy_models";
+            packageId = "academy_models";
+          }
+          {
+            name = "anyhow";
+            packageId = "anyhow";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "chrono";
+            packageId = "chrono";
+            usesDefaultFeatures = false;
+            features = [ "serde" "clock" ];
+          }
+          {
+            name = "mockall";
+            packageId = "mockall";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "thiserror";
+            packageId = "thiserror 2.0.18";
+            usesDefaultFeatures = false;
+          }
+        ];
+        features = {
+          "mock" = [ "dep:mockall" ];
+        };
+        resolvedDefaultFeatures = [ "mock" ];
+      };
+      "academy_core_contract_impl" = rec {
+        crateName = "academy_core_contract_impl";
+        version = "0.0.0";
+        edition = "2024";
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/contract/impl; };
+        dependencies = [
+          {
+            name = "academy_auth_contracts";
+            packageId = "academy_auth_contracts";
+          }
+          {
+            name = "academy_cache_contracts";
+            packageId = "academy_cache_contracts";
+          }
+          {
+            name = "academy_core_contract_contracts";
+            packageId = "academy_core_contract_contracts";
+          }
+          {
+            name = "academy_di";
+            packageId = "academy_di";
+          }
+          {
+            name = "academy_email_contracts";
+            packageId = "academy_email_contracts";
+          }
+          {
+            name = "academy_models";
+            packageId = "academy_models";
+          }
+          {
+            name = "academy_persistence_contracts";
+            packageId = "academy_persistence_contracts";
+          }
+          {
+            name = "academy_shared_contracts";
+            packageId = "academy_shared_contracts";
+          }
+          {
+            name = "academy_templates_contracts";
+            packageId = "academy_templates_contracts";
+          }
+          {
+            name = "academy_utils";
+            packageId = "academy_utils";
+          }
+          {
+            name = "anyhow";
+            packageId = "anyhow";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "chrono";
+            packageId = "chrono";
+            usesDefaultFeatures = false;
+            features = [ "serde" "clock" ];
+          }
+          {
+            name = "chrono-tz";
+            packageId = "chrono-tz";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "hex";
+            packageId = "hex";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "tracing";
+            packageId = "tracing";
+            usesDefaultFeatures = false;
+            features = [ "attributes" ];
+          }
+        ];
+        devDependencies = [
+          {
+            name = "academy_auth_contracts";
+            packageId = "academy_auth_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_cache_contracts";
+            packageId = "academy_cache_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_demo";
+            packageId = "academy_demo";
+          }
+          {
+            name = "academy_email_contracts";
+            packageId = "academy_email_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_persistence_contracts";
+            packageId = "academy_persistence_contracts";
             features = [ "mock" ];
           }
           {

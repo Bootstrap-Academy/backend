@@ -13,6 +13,7 @@ use ouroboros::self_referencing;
 use tracing::trace;
 
 pub mod coin;
+pub mod contract;
 pub mod heart;
 pub mod mfa;
 pub mod oauth2;

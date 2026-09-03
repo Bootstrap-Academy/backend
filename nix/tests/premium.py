@@ -79,22 +79,29 @@ resp = c.put("/shop/premium/autopay", json={"plan": "YEARLY"})
 assert resp.status_code == 200
 assert resp.json() is True
 
+# a yearly subscription is renewed month by month at the monthly price and the
+# stored subscription is updated accordingly
 os.system("date -s '+32days'")
 save_auth(login := c.post("/auth/sessions", json={"name_or_email": "a", "password": "a"}).json())
 status = c.get("/shop/premium/me").json()
 assert status["premium"] is True
-assert status["autopay"] == "YEARLY"
-assert c.get("/shop/coins/me").json()["coins"] == 2000
+assert status["autopay"] == "MONTHLY"
+assert c.get("/shop/coins/me").json()["coins"] == 11000
+assert abs(status["until"] - status["since"] - 3600 * 24 * 365.25 / 12) <= 2
 
 assert c.put("/shop/premium/autopay", json={"plan": "MONTHLY"}).status_code == 200
 
 os.system("date -s '+367days'")
 save_auth(login := c.post("/auth/sessions", json={"name_or_email": "a", "password": "a"}).json())
 os.system("systemctl start --wait academy-task-refresh-premium.service")
-assert c.get("/shop/coins/me").json()["coins"] == 1000
+assert c.get("/shop/coins/me").json()["coins"] == 10000
 status = c.get("/shop/premium/me").json()
 assert status["premium"] is True
 assert status["autopay"] == "MONTHLY"
+
+# leave just enough coins for a single renewal
+assert subprocess.getstatusoutput(f"academy admin coin add {login['user']['id']} -- -9000")[0] == 0
+assert c.get("/shop/coins/me").json()["coins"] == 1000
 
 os.system("date -s '+32days'")
 save_auth(login := c.post("/auth/sessions", json={"name_or_email": "a", "password": "a"}).json())

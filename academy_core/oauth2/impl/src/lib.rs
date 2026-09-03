@@ -2,22 +2,24 @@ use std::{collections::HashMap, sync::Arc, time::Duration};
 
 use academy_auth_contracts::{AuthResultExt, AuthService};
 use academy_core_oauth2_contracts::{
-    OAuth2CreateLinkError, OAuth2CreateSessionError, OAuth2CreateSessionResponse,
-    OAuth2DeleteLinkError, OAuth2FeatureService, OAuth2ListLinksError,
+    OAuth2BeginAuthorizationError, OAuth2CreateLinkError, OAuth2CreateSessionError,
+    OAuth2CreateSessionResponse, OAuth2DeleteLinkError, OAuth2FeatureService, OAuth2ListLinksError,
+    authorization::{OAuth2AuthorizationService, OAuth2AuthorizationServiceError},
     link::{OAuth2LinkService, OAuth2LinkServiceError},
     login::{OAuth2LoginService, OAuth2LoginServiceError},
     registration::OAuth2RegistrationService,
 };
 use academy_core_session_contracts::session::SessionService;
 use academy_di::Build;
-use academy_extern_contracts::oauth2::OAuth2ApiService;
 use academy_models::{
     auth::AccessToken,
     oauth2::{
-        OAuth2Link, OAuth2LinkId, OAuth2Login, OAuth2Provider, OAuth2ProviderId,
-        OAuth2ProviderSummary, OAuth2Registration,
+        OAuth2AuthorizationUrl, OAuth2Callback, OAuth2Link, OAuth2LinkId, OAuth2Login,
+        OAuth2Provider, OAuth2ProviderId, OAuth2ProviderSummary, OAuth2Registration,
+        OAuth2UserInfo,
     },
     session::DeviceName,
+    url::Url,
     user::UserIdOrSelf,
 };
 use academy_persistence_contracts::{
@@ -26,6 +28,7 @@ use academy_persistence_contracts::{
 use academy_utils::trace_instrument;
 use anyhow::Context;
 
+pub mod authorization;
 pub mod link;
 pub mod login;
 pub mod registration;
@@ -38,20 +41,20 @@ mod tests;
 pub struct OAuth2FeatureServiceImpl<
     Db,
     Auth,
-    OAuth2Api,
     UserRepo,
     OAuth2Repo,
     OAuth2Link,
+    OAuth2Authorization,
     OAuth2Login,
     OAuth2Registration,
     Session,
 > {
     db: Db,
     auth: Auth,
-    oauth2_api: OAuth2Api,
     user_repo: UserRepo,
     oauth2_repo: OAuth2Repo,
     oauth2_create_link: OAuth2Link,
+    oauth2_authorization: OAuth2Authorization,
     oauth2_login: OAuth2Login,
     oauth2_registration: OAuth2Registration,
     session: Session,
@@ -62,15 +65,18 @@ pub struct OAuth2FeatureServiceImpl<
 pub struct OAuth2FeatureConfig {
     pub providers: Arc<HashMap<OAuth2ProviderId, OAuth2Provider>>,
     pub registration_token_ttl: Duration,
+    /// How long a started authorization flow stays redeemable. Only has to
+    /// cover the round trip through the provider's consent screen.
+    pub authorization_ttl: Duration,
 }
 
 impl<
     Db,
     Auth,
-    OAuth2Api,
     UserRepo,
     OAuth2Repo,
     OAuth2LinkS,
+    OAuth2AuthorizationS,
     OAuth2LoginS,
     OAuth2RegistrationS,
     Session,
@@ -78,10 +84,10 @@ impl<
     for OAuth2FeatureServiceImpl<
         Db,
         Auth,
-        OAuth2Api,
         UserRepo,
         OAuth2Repo,
         OAuth2LinkS,
+        OAuth2AuthorizationS,
         OAuth2LoginS,
         OAuth2RegistrationS,
         Session,
@@ -89,10 +95,10 @@ impl<
 where
     Db: Database,
     Auth: AuthService<Db::Transaction>,
-    OAuth2Api: OAuth2ApiService,
     UserRepo: UserRepository<Db::Transaction>,
     OAuth2Repo: OAuth2Repository<Db::Transaction>,
     OAuth2LinkS: OAuth2LinkService<Db::Transaction>,
+    OAuth2AuthorizationS: OAuth2AuthorizationService,
     OAuth2LoginS: OAuth2LoginService,
     OAuth2RegistrationS: OAuth2RegistrationService,
     Session: SessionService<Db::Transaction>,
@@ -105,9 +111,27 @@ where
             .map(|(id, provider)| OAuth2ProviderSummary {
                 id: id.clone(),
                 name: provider.name.clone(),
-                auth_url: self.oauth2_api.generate_auth_url(provider),
             })
             .collect()
+    }
+
+    #[trace_instrument(skip(self))]
+    async fn begin_authorization(
+        &self,
+        provider_id: OAuth2ProviderId,
+        redirect_uri: Url,
+    ) -> Result<OAuth2AuthorizationUrl, OAuth2BeginAuthorizationError> {
+        self.oauth2_authorization
+            .begin(provider_id, redirect_uri)
+            .await
+            .map_err(|err| match err {
+                OAuth2AuthorizationServiceError::InvalidProvider => {
+                    OAuth2BeginAuthorizationError::InvalidProvider
+                }
+                OAuth2AuthorizationServiceError::Other(err) => {
+                    err.context("Failed to begin OAuth2 authorization").into()
+                }
+            })
     }
 
     #[trace_instrument(skip(self))]
@@ -148,7 +172,7 @@ where
         &self,
         token: &AccessToken,
         user_id: UserIdOrSelf,
-        login: OAuth2Login,
+        callback: OAuth2Callback,
     ) -> Result<OAuth2Link, OAuth2CreateLinkError> {
         let auth = self.auth.authenticate(token).await.map_auth_err()?;
         let user_id = user_id.unwrap_or(auth.user_id);
@@ -165,19 +189,15 @@ where
             return Err(OAuth2CreateLinkError::NotFound);
         }
 
-        let provider_id = login.provider_id.clone();
-
-        let user_info = self
-            .oauth2_login
-            .login(login)
-            .await
-            .map_err(|err| match err {
-                OAuth2LoginServiceError::InvalidProvider => OAuth2CreateLinkError::InvalidProvider,
-                OAuth2LoginServiceError::InvalidCode => OAuth2CreateLinkError::InvalidCode,
-                OAuth2LoginServiceError::Other(err) => {
-                    err.context("Failed to perform OAuth2 login").into()
-                }
-            })?;
+        let (provider_id, user_info) =
+            resolve_callback(&self.oauth2_authorization, &self.oauth2_login, callback)
+                .await
+                .map_err(|err| match err {
+                    ResolveCallbackError::InvalidState => OAuth2CreateLinkError::InvalidState,
+                    ResolveCallbackError::InvalidProvider => OAuth2CreateLinkError::InvalidProvider,
+                    ResolveCallbackError::InvalidCode => OAuth2CreateLinkError::InvalidCode,
+                    ResolveCallbackError::Other(err) => err.into(),
+                })?;
 
         let link = self
             .oauth2_create_link
@@ -243,23 +263,20 @@ where
     #[trace_instrument(skip(self))]
     async fn create_session(
         &self,
-        login: OAuth2Login,
+        callback: OAuth2Callback,
         device_name: Option<DeviceName>,
     ) -> Result<OAuth2CreateSessionResponse, OAuth2CreateSessionError> {
-        let provider_id = login.provider_id.clone();
-        let user_info = self
-            .oauth2_login
-            .login(login)
-            .await
-            .map_err(|err| match err {
-                OAuth2LoginServiceError::InvalidProvider => {
-                    OAuth2CreateSessionError::InvalidProvider
-                }
-                OAuth2LoginServiceError::InvalidCode => OAuth2CreateSessionError::InvalidCode,
-                OAuth2LoginServiceError::Other(err) => {
-                    err.context("Failed to perform OAuth2 login").into()
-                }
-            })?;
+        let (provider_id, user_info) =
+            resolve_callback(&self.oauth2_authorization, &self.oauth2_login, callback)
+                .await
+                .map_err(|err| match err {
+                    ResolveCallbackError::InvalidState => OAuth2CreateSessionError::InvalidState,
+                    ResolveCallbackError::InvalidProvider => {
+                        OAuth2CreateSessionError::InvalidProvider
+                    }
+                    ResolveCallbackError::InvalidCode => OAuth2CreateSessionError::InvalidCode,
+                    ResolveCallbackError::Other(err) => err.into(),
+                })?;
 
         let mut txn = self.db.begin_transaction().await?;
 
@@ -303,5 +320,56 @@ where
         txn.commit().await?;
 
         Ok(OAuth2CreateSessionResponse::Login(login.into()))
+    }
+}
+
+/// Redeem the `state` of an OAuth2 callback and exchange the authorization code
+/// it came with.
+///
+/// The `state` decides which provider and redirect URI the exchange uses, so a
+/// callback can neither be replayed nor pointed at a different provider than
+/// the flow it belongs to.
+async fn resolve_callback(
+    authorization: &impl OAuth2AuthorizationService,
+    login: &impl OAuth2LoginService,
+    callback: OAuth2Callback,
+) -> Result<(OAuth2ProviderId, OAuth2UserInfo), ResolveCallbackError> {
+    let pending = authorization
+        .consume(&callback.state)
+        .await
+        .context("Failed to get OAuth2 authorization")?
+        .ok_or(ResolveCallbackError::InvalidState)?;
+
+    let provider_id = pending.provider_id.clone();
+
+    let user_info = login
+        .login(OAuth2Login {
+            provider_id: pending.provider_id,
+            code: callback.code,
+            redirect_uri: pending.redirect_uri,
+            code_verifier: pending.code_verifier,
+        })
+        .await
+        .map_err(|err| match err {
+            OAuth2LoginServiceError::InvalidProvider => ResolveCallbackError::InvalidProvider,
+            OAuth2LoginServiceError::InvalidCode => ResolveCallbackError::InvalidCode,
+            OAuth2LoginServiceError::Other(err) => {
+                ResolveCallbackError::Other(err.context("Failed to perform OAuth2 login"))
+            }
+        })?;
+
+    Ok((provider_id, user_info))
+}
+
+enum ResolveCallbackError {
+    InvalidState,
+    InvalidProvider,
+    InvalidCode,
+    Other(anyhow::Error),
+}
+
+impl From<anyhow::Error> for ResolveCallbackError {
+    fn from(value: anyhow::Error) -> Self {
+        Self::Other(value)
     }
 }

@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use academy_core_oauth2_contracts::{
-    OAuth2CreateLinkError, OAuth2CreateSessionError, OAuth2CreateSessionResponse,
-    OAuth2DeleteLinkError, OAuth2FeatureService, OAuth2ListLinksError,
+    OAuth2BeginAuthorizationError, OAuth2CreateLinkError, OAuth2CreateSessionError,
+    OAuth2CreateSessionResponse, OAuth2DeleteLinkError, OAuth2FeatureService, OAuth2ListLinksError,
 };
 use academy_models::{
     oauth2::{OAuth2LinkId, OAuth2RegistrationToken},
@@ -29,7 +29,10 @@ use crate::{
     extractors::{auth::ApiToken, user_agent::UserAgent},
     models::{
         OkResponse,
-        oauth2::{ApiOAuth2Link, ApiOAuth2Login, ApiOAuth2ProviderSummary},
+        oauth2::{
+            ApiOAuth2AuthorizationRequest, ApiOAuth2AuthorizationUrl, ApiOAuth2Callback,
+            ApiOAuth2Link, ApiOAuth2ProviderSummary,
+        },
         session::ApiLogin,
         user::{ApiUserIdOrSelf, PathUserIdOrSelf},
     },
@@ -42,6 +45,10 @@ pub fn router(service: Arc<impl OAuth2FeatureService>) -> ApiRouter<()> {
         .api_route(
             "/auth/oauth/providers",
             routing::get_with(list_providers, list_providers_docs),
+        )
+        .api_route(
+            "/auth/oauth/authorize",
+            routing::post_with(begin_authorization, begin_authorization_docs),
         )
         .api_route(
             "/auth/oauth/links/{user_id}",
@@ -75,6 +82,35 @@ fn list_providers_docs(op: TransformOperation) -> TransformOperation {
         .add_response::<Vec<ApiOAuth2ProviderSummary>>(StatusCode::OK, None)
 }
 
+async fn begin_authorization(
+    service: State<Arc<impl OAuth2FeatureService>>,
+    Json(ApiOAuth2AuthorizationRequest {
+        provider_id,
+        redirect_uri,
+    }): Json<ApiOAuth2AuthorizationRequest>,
+) -> Response {
+    match service.begin_authorization(provider_id, redirect_uri).await {
+        Ok(url) => Json(ApiOAuth2AuthorizationUrl::from(url)).into_response(),
+        Err(OAuth2BeginAuthorizationError::InvalidProvider) => {
+            ProviderNotFoundError.into_response()
+        }
+        Err(OAuth2BeginAuthorizationError::Other(err)) => internal_server_error(err),
+    }
+}
+
+fn begin_authorization_docs(op: TransformOperation) -> TransformOperation {
+    op.summary("Start an OAuth2 authorization flow.")
+        .description(
+            "Returns the authorize URL to open, including an unguessable single use `state` \
+             nonce and, for providers supporting it, a PKCE code challenge. The `state` is \
+             returned separately as well so the client can compare it against the one the \
+             provider hands back before submitting the callback.",
+        )
+        .add_response::<ApiOAuth2AuthorizationUrl>(StatusCode::OK, None)
+        .add_error::<ProviderNotFoundError>()
+        .with(internal_server_error_docs)
+}
+
 async fn list_links(
     service: State<Arc<impl OAuth2FeatureService>>,
     token: ApiToken,
@@ -106,13 +142,14 @@ async fn create_link(
     service: State<Arc<impl OAuth2FeatureService>>,
     token: ApiToken,
     Path(PathUserIdOrSelf { user_id }): Path<PathUserIdOrSelf>,
-    Json(login): Json<ApiOAuth2Login>,
+    Json(callback): Json<ApiOAuth2Callback>,
 ) -> Response {
     match service
-        .create_link(&token.0, user_id.into(), login.into())
+        .create_link(&token.0, user_id.into(), callback.into())
         .await
     {
         Ok(link) => Json(ApiOAuth2Link::from(link)).into_response(),
+        Err(OAuth2CreateLinkError::InvalidState) => InvalidStateError.into_response(),
         Err(OAuth2CreateLinkError::InvalidProvider) => ProviderNotFoundError.into_response(),
         Err(OAuth2CreateLinkError::InvalidCode) => InvalidCodeError.into_response(),
         Err(OAuth2CreateLinkError::RemoteAlreadyLinked) => RemoteAlreadyLinkedError.into_response(),
@@ -124,7 +161,9 @@ async fn create_link(
 
 fn create_link_docs(op: TransformOperation) -> TransformOperation {
     op.summary("Create a new OAuth2 link for the given user.")
+        .description("The authorization flow has to be started via `POST /auth/oauth/authorize`.")
         .add_response::<ApiOAuth2Link>(StatusCode::OK, "OAuth2 link has been created.")
+        .add_error::<InvalidStateError>()
         .add_error::<ProviderNotFoundError>()
         .add_error::<InvalidCodeError>()
         .add_error::<RemoteAlreadyLinkedError>()
@@ -180,11 +219,11 @@ struct CreateSessionRegistrationTokenResponse {
 async fn create_session(
     service: State<Arc<impl OAuth2FeatureService>>,
     user_agent: UserAgent,
-    Json(login): Json<ApiOAuth2Login>,
+    Json(callback): Json<ApiOAuth2Callback>,
 ) -> Response {
     match service
         .create_session(
-            login.into(),
+            callback.into(),
             user_agent.0.map(DeviceName::from_string_truncated),
         )
         .await
@@ -196,6 +235,7 @@ async fn create_session(
         Ok(OAuth2CreateSessionResponse::RegistrationToken(register_token)) => {
             Json(CreateSessionRegistrationTokenResponse { register_token }).into_response()
         }
+        Err(OAuth2CreateSessionError::InvalidState) => InvalidStateError.into_response(),
         Err(OAuth2CreateSessionError::InvalidProvider) => ProviderNotFoundError.into_response(),
         Err(OAuth2CreateSessionError::InvalidCode) => InvalidCodeError.into_response(),
         Err(OAuth2CreateSessionError::UserDisabled) => UserDisabledError.into_response(),
@@ -206,8 +246,9 @@ async fn create_session(
 fn create_session_docs(op: TransformOperation) -> TransformOperation {
     op.summary("Create a session via OAuth2")
         .description(
-            "If the remote user is not yet linked to a local user account, a registration token \
-             is returned instead.",
+            "The authorization flow has to be started via `POST /auth/oauth/authorize`. If the \
+             remote user is not yet linked to a local user account, a registration token is \
+             returned instead.",
         )
         .add_response::<CreateSessionLoginResponse>(
             StatusCode::OK,
@@ -217,6 +258,7 @@ fn create_session_docs(op: TransformOperation) -> TransformOperation {
             StatusCode::OK,
             "A registration token has been generated.",
         )
+        .add_error::<InvalidStateError>()
         .add_error::<ProviderNotFoundError>()
         .add_error::<InvalidCodeError>()
         .add_error::<UserDisabledError>()
@@ -224,6 +266,9 @@ fn create_session_docs(op: TransformOperation) -> TransformOperation {
 }
 
 error_code! {
+    /// The authorization flow does not exist, has expired or has already been
+    /// used.
+    InvalidStateError(UNAUTHORIZED, "Invalid state");
     /// The OAuth2 provider does not exist.
     ProviderNotFoundError(NOT_FOUND, "Provider not found");
     /// The authorization code is invalid.

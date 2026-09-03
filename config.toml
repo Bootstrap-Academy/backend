@@ -104,9 +104,13 @@ vat_percent = 19
 [oauth2]
 enable = true
 registration_token_ttl = "10m"
+# how long a started authorization flow can be completed; only has to cover the
+# round trip through the provider's consent screen
+authorization_ttl = "10m"
 
 [oauth2.providers.github]
 enable = true
+pkce = true
 name = "GitHub"
 # client_id = ""
 # client_secret = ""
@@ -119,6 +123,7 @@ scopes = []
 
 [oauth2.providers.discord]
 enable = true
+pkce = true
 name = "Discord"
 # client_id = ""
 # client_secret = ""
@@ -131,6 +136,7 @@ scopes = ["identify"]
 
 [oauth2.providers.google]
 enable = true
+pkce = true
 name = "Google"
 # client_id = ""
 # client_secret = ""

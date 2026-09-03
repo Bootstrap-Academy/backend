@@ -21,7 +21,8 @@ use academy_core_mfa_impl::{
     totp_device::MfaTotpDeviceServiceImpl,
 };
 use academy_core_oauth2_impl::{
-    OAuth2FeatureServiceImpl, link::OAuth2LinkServiceImpl, login::OAuth2LoginServiceImpl,
+    OAuth2FeatureServiceImpl, authorization::OAuth2AuthorizationServiceImpl,
+    link::OAuth2LinkServiceImpl, login::OAuth2LoginServiceImpl,
     registration::OAuth2RegistrationServiceImpl,
 };
 use academy_core_paypal_impl::{PaypalFeatureServiceImpl, coin_order::PaypalCoinOrderServiceImpl};
@@ -200,15 +201,16 @@ pub type MfaTotpDevice = MfaTotpDeviceServiceImpl<Id, Time, Totp, MfaRepo>;
 pub type OAuth2Feature = OAuth2FeatureServiceImpl<
     Database,
     Auth,
-    OAuth2Api,
     UserRepo,
     OAuth2Repo,
     OAuth2Link,
+    OAuth2Authorization,
     OAuth2Login,
     OAuth2Registration,
     Session,
 >;
 pub type OAuth2Link = OAuth2LinkServiceImpl<Id, Time, OAuth2Repo>;
+pub type OAuth2Authorization = OAuth2AuthorizationServiceImpl<Secret, Cache, OAuth2Api>;
 pub type OAuth2Login = OAuth2LoginServiceImpl<OAuth2Api>;
 pub type OAuth2Registration = OAuth2RegistrationServiceImpl<Secret, Cache>;
 

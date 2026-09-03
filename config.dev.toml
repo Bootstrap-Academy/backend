@@ -49,6 +49,7 @@ credit_notes_archive = ".credit_notes"
 
 [oauth2.providers.test]
 enable = true
+pkce = true
 name = "Test"
 client_id = "client-id"
 client_secret = "client-secret"

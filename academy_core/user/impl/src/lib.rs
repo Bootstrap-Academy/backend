@@ -226,11 +226,18 @@ where
             .await
             .context("Failed to create session")?;
 
+        // invalidate the registration token; this is what makes it single use,
+        // so a token that another request has already redeemed aborts this one
         if let Some(oauth2_registration_token) = request.oauth2_registration_token {
-            self.oauth2_registration
-                .remove(&oauth2_registration_token)
+            let consumed = self
+                .oauth2_registration
+                .consume(&oauth2_registration_token)
                 .await
                 .context("Failed to remove OAuth2 registration")?;
+            if !consumed {
+                txn.rollback().await?;
+                return Err(UserCreateError::InvalidOAuthRegistrationToken);
+            }
         }
 
         txn.commit().await.unwrap();

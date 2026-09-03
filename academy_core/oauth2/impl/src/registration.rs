@@ -54,11 +54,12 @@ where
     }
 
     #[trace_instrument(skip(self))]
-    async fn remove(&self, registration_token: &OAuth2RegistrationToken) -> anyhow::Result<()> {
+    async fn consume(&self, registration_token: &OAuth2RegistrationToken) -> anyhow::Result<bool> {
         self.cache
-            .remove(&oauth2_registration_cache_key(registration_token))
+            .pop::<OAuth2Registration>(&oauth2_registration_cache_key(registration_token))
             .await
             .context("Failed to remove OAuth2 registration from cache")
+            .map(|registration| registration.is_some())
     }
 }
 
@@ -151,11 +152,14 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn remove() {
+    async fn consume() {
         // Arrange
         let token = token();
 
-        let cache = MockCacheService::new().with_remove(format!("oauth2_registration:{}", *token));
+        let cache = MockCacheService::new().with_pop(
+            format!("oauth2_registration:{}", *token),
+            Some(registration()),
+        );
 
         let sut = OAuth2RegistrationServiceImpl {
             cache,
@@ -163,10 +167,32 @@ mod tests {
         };
 
         // Act
-        let result = sut.remove(&token).await;
+        let result = sut.consume(&token).await;
 
         // Assert
-        result.unwrap();
+        assert!(result.unwrap());
+    }
+
+    #[tokio::test]
+    async fn consume_already_used() {
+        // Arrange
+        let token = token();
+
+        let cache = MockCacheService::new().with_pop(
+            format!("oauth2_registration:{}", *token),
+            None::<OAuth2Registration>,
+        );
+
+        let sut = OAuth2RegistrationServiceImpl {
+            cache,
+            ..Sut::default()
+        };
+
+        // Act
+        let result = sut.consume(&token).await;
+
+        // Assert
+        assert!(!result.unwrap());
     }
 
     fn token() -> OAuth2RegistrationToken {

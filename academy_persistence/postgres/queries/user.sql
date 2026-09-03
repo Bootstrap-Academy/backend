@@ -47,8 +47,8 @@ insert into users (id, name, email, email_verified, created_at, last_login, last
   values (:id, :name, :email, :email_verified, :created_at, :last_login, :last_name_change, :enabled, :admin, :terms_version, :terms_accepted_at, :age_confirmed_at);
 
 --! create_profile
-insert into user_profiles (user_id, display_name, bio, tags)
-  values (:user_id, :display_name, :bio, :tags);
+insert into user_profiles (user_id, display_name, bio, tags, leaderboard_opt_out)
+  values (:user_id, :display_name, :bio, :tags, :leaderboard_opt_out);
 
 --! create_invoice_info (business?, first_name?, last_name?, street?, zip_code?, city?, country?, vat_id?)
 insert into user_invoice_info (user_id, business, first_name, last_name, street, zip_code, city, country, vat_id)
@@ -66,12 +66,13 @@ update users
     admin=coalesce(:admin, admin)
   where id=:id;
 
---! update_profile (display_name?, bio?, tags?)
+--! update_profile (display_name?, bio?, tags?, leaderboard_opt_out?)
 update user_profiles
   set
     display_name=coalesce(:display_name, display_name),
     bio=coalesce(:bio, bio),
-    tags=coalesce(:tags, tags)
+    tags=coalesce(:tags, tags),
+    leaderboard_opt_out=coalesce(:leaderboard_opt_out, leaderboard_opt_out)
   where user_id=:user_id;
 
 --! update_invoice_info (business?, first_name?, last_name?, street?, zip_code?, city?, country?, vat_id?)

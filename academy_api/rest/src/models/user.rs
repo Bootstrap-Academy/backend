@@ -47,6 +47,8 @@ pub struct ApiUser {
     pub description: UserBio,
     /// Tags of the user profile
     pub tags: UserTags,
+    /// Whether the user has asked not to be listed on the leaderboards
+    pub leaderboard_opt_out: bool,
     /// Version of the terms and conditions the user accepted (read-only, null
     /// for accounts created before acceptance was recorded)
     pub terms_version: Option<TermsVersion>,
@@ -111,6 +113,7 @@ impl From<UserComposite> for ApiUser {
             display_name: profile.display_name,
             description: profile.bio,
             tags: profile.tags,
+            leaderboard_opt_out: profile.leaderboard_opt_out,
 
             mfa_enabled: details.mfa_enabled,
             password: details.password_login,

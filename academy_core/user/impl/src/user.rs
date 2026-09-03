@@ -97,6 +97,7 @@ where
             display_name,
             bio: Default::default(),
             tags: Default::default(),
+            leaderboard_opt_out: false,
         };
 
         let details = UserDetails {
@@ -547,6 +548,7 @@ mod tests {
                 display_name: FOO.profile.display_name.clone(),
                 bio: Default::default(),
                 tags: Default::default(),
+                leaderboard_opt_out: false,
             },
             details: UserDetails {
                 mfa_enabled: false,

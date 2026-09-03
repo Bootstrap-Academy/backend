@@ -54,6 +54,7 @@ pub struct CreateProfileParams<
     pub display_name: T1,
     pub bio: T2,
     pub tags: T4,
+    pub leaderboard_opt_out: bool,
 }
 #[derive(Debug)]
 pub struct CreateInvoiceInfoParams<
@@ -96,6 +97,7 @@ pub struct UpdateProfileParams<
     pub display_name: Option<T1>,
     pub bio: Option<T2>,
     pub tags: Option<T4>,
+    pub leaderboard_opt_out: Option<bool>,
     pub user_id: uuid::Uuid,
 }
 #[derive(Debug)]
@@ -162,6 +164,7 @@ pub struct UserComposite {
     pub display_name: String,
     pub bio: String,
     pub tags: Vec<String>,
+    pub leaderboard_opt_out: bool,
     pub mfa_enabled: bool,
     pub password_login: bool,
     pub oauth2_login: bool,
@@ -192,6 +195,7 @@ pub struct UserCompositeBorrowed<'a> {
     pub display_name: &'a str,
     pub bio: &'a str,
     pub tags: crate::ArrayIterator<'a, &'a str>,
+    pub leaderboard_opt_out: bool,
     pub mfa_enabled: bool,
     pub password_login: bool,
     pub oauth2_login: bool,
@@ -224,6 +228,7 @@ impl<'a> From<UserCompositeBorrowed<'a>> for UserComposite {
             display_name,
             bio,
             tags,
+            leaderboard_opt_out,
             mfa_enabled,
             password_login,
             oauth2_login,
@@ -255,6 +260,7 @@ impl<'a> From<UserCompositeBorrowed<'a>> for UserComposite {
             display_name: display_name.into(),
             bio: bio.into(),
             tags: tags.map(|v| v.into()).collect(),
+            leaderboard_opt_out,
             mfa_enabled,
             password_login,
             oauth2_login,
@@ -652,17 +658,18 @@ impl ListCompositesStmt {
                         display_name: row.try_get(14)?,
                         bio: row.try_get(15)?,
                         tags: row.try_get(16)?,
-                        mfa_enabled: row.try_get(17)?,
-                        password_login: row.try_get(18)?,
-                        oauth2_login: row.try_get(19)?,
-                        business: row.try_get(20)?,
-                        first_name: row.try_get(21)?,
-                        last_name: row.try_get(22)?,
-                        street: row.try_get(23)?,
-                        zip_code: row.try_get(24)?,
-                        city: row.try_get(25)?,
-                        country: row.try_get(26)?,
-                        vat_id: row.try_get(27)?,
+                        leaderboard_opt_out: row.try_get(17)?,
+                        mfa_enabled: row.try_get(18)?,
+                        password_login: row.try_get(19)?,
+                        oauth2_login: row.try_get(20)?,
+                        business: row.try_get(21)?,
+                        first_name: row.try_get(22)?,
+                        last_name: row.try_get(23)?,
+                        street: row.try_get(24)?,
+                        zip_code: row.try_get(25)?,
+                        city: row.try_get(26)?,
+                        country: row.try_get(27)?,
+                        vat_id: row.try_get(28)?,
                     })
                 },
             mapper: |it| UserComposite::from(it),
@@ -766,17 +773,18 @@ impl GetCompositeStmt {
                         display_name: row.try_get(14)?,
                         bio: row.try_get(15)?,
                         tags: row.try_get(16)?,
-                        mfa_enabled: row.try_get(17)?,
-                        password_login: row.try_get(18)?,
-                        oauth2_login: row.try_get(19)?,
-                        business: row.try_get(20)?,
-                        first_name: row.try_get(21)?,
-                        last_name: row.try_get(22)?,
-                        street: row.try_get(23)?,
-                        zip_code: row.try_get(24)?,
-                        city: row.try_get(25)?,
-                        country: row.try_get(26)?,
-                        vat_id: row.try_get(27)?,
+                        leaderboard_opt_out: row.try_get(17)?,
+                        mfa_enabled: row.try_get(18)?,
+                        password_login: row.try_get(19)?,
+                        oauth2_login: row.try_get(20)?,
+                        business: row.try_get(21)?,
+                        first_name: row.try_get(22)?,
+                        last_name: row.try_get(23)?,
+                        street: row.try_get(24)?,
+                        zip_code: row.try_get(25)?,
+                        city: row.try_get(26)?,
+                        country: row.try_get(27)?,
+                        vat_id: row.try_get(28)?,
                     })
                 },
             mapper: |it| UserComposite::from(it),
@@ -828,17 +836,18 @@ impl GetCompositeByNameStmt {
                         display_name: row.try_get(14)?,
                         bio: row.try_get(15)?,
                         tags: row.try_get(16)?,
-                        mfa_enabled: row.try_get(17)?,
-                        password_login: row.try_get(18)?,
-                        oauth2_login: row.try_get(19)?,
-                        business: row.try_get(20)?,
-                        first_name: row.try_get(21)?,
-                        last_name: row.try_get(22)?,
-                        street: row.try_get(23)?,
-                        zip_code: row.try_get(24)?,
-                        city: row.try_get(25)?,
-                        country: row.try_get(26)?,
-                        vat_id: row.try_get(27)?,
+                        leaderboard_opt_out: row.try_get(17)?,
+                        mfa_enabled: row.try_get(18)?,
+                        password_login: row.try_get(19)?,
+                        oauth2_login: row.try_get(20)?,
+                        business: row.try_get(21)?,
+                        first_name: row.try_get(22)?,
+                        last_name: row.try_get(23)?,
+                        street: row.try_get(24)?,
+                        zip_code: row.try_get(25)?,
+                        city: row.try_get(26)?,
+                        country: row.try_get(27)?,
+                        vat_id: row.try_get(28)?,
                     })
                 },
             mapper: |it| UserComposite::from(it),
@@ -890,17 +899,18 @@ impl GetCompositeByEmailStmt {
                         display_name: row.try_get(14)?,
                         bio: row.try_get(15)?,
                         tags: row.try_get(16)?,
-                        mfa_enabled: row.try_get(17)?,
-                        password_login: row.try_get(18)?,
-                        oauth2_login: row.try_get(19)?,
-                        business: row.try_get(20)?,
-                        first_name: row.try_get(21)?,
-                        last_name: row.try_get(22)?,
-                        street: row.try_get(23)?,
-                        zip_code: row.try_get(24)?,
-                        city: row.try_get(25)?,
-                        country: row.try_get(26)?,
-                        vat_id: row.try_get(27)?,
+                        leaderboard_opt_out: row.try_get(17)?,
+                        mfa_enabled: row.try_get(18)?,
+                        password_login: row.try_get(19)?,
+                        oauth2_login: row.try_get(20)?,
+                        business: row.try_get(21)?,
+                        first_name: row.try_get(22)?,
+                        last_name: row.try_get(23)?,
+                        street: row.try_get(24)?,
+                        zip_code: row.try_get(25)?,
+                        city: row.try_get(26)?,
+                        country: row.try_get(27)?,
+                        vat_id: row.try_get(28)?,
                     })
                 },
             mapper: |it| UserComposite::from(it),
@@ -957,17 +967,18 @@ impl GetCompositeByOauth2ProviderIdAndRemoteUserIdStmt {
                         display_name: row.try_get(14)?,
                         bio: row.try_get(15)?,
                         tags: row.try_get(16)?,
-                        mfa_enabled: row.try_get(17)?,
-                        password_login: row.try_get(18)?,
-                        oauth2_login: row.try_get(19)?,
-                        business: row.try_get(20)?,
-                        first_name: row.try_get(21)?,
-                        last_name: row.try_get(22)?,
-                        street: row.try_get(23)?,
-                        zip_code: row.try_get(24)?,
-                        city: row.try_get(25)?,
-                        country: row.try_get(26)?,
-                        vat_id: row.try_get(27)?,
+                        leaderboard_opt_out: row.try_get(17)?,
+                        mfa_enabled: row.try_get(18)?,
+                        password_login: row.try_get(19)?,
+                        oauth2_login: row.try_get(20)?,
+                        business: row.try_get(21)?,
+                        first_name: row.try_get(22)?,
+                        last_name: row.try_get(23)?,
+                        street: row.try_get(24)?,
+                        zip_code: row.try_get(25)?,
+                        city: row.try_get(26)?,
+                        country: row.try_get(27)?,
+                        vat_id: row.try_get(28)?,
                     })
                 },
             mapper: |it| UserComposite::from(it),
@@ -1097,7 +1108,7 @@ impl<
 pub struct CreateProfileStmt(&'static str, Option<tokio_postgres::Statement>);
 pub fn create_profile() -> CreateProfileStmt {
     CreateProfileStmt(
-        "insert into user_profiles (user_id, display_name, bio, tags) values ($1, $2, $3, $4)",
+        "insert into user_profiles (user_id, display_name, bio, tags, leaderboard_opt_out) values ($1, $2, $3, $4, $5)",
         None,
     )
 }
@@ -1125,9 +1136,13 @@ impl CreateProfileStmt {
         display_name: &'a T1,
         bio: &'a T2,
         tags: &'a T4,
+        leaderboard_opt_out: &'a bool,
     ) -> Result<u64, tokio_postgres::Error> {
         client
-            .execute(self.0, &[user_id, display_name, bio, tags])
+            .execute(
+                self.0,
+                &[user_id, display_name, bio, tags, leaderboard_opt_out],
+            )
             .await
     }
 }
@@ -1163,6 +1178,7 @@ impl<
             &params.display_name,
             &params.bio,
             &params.tags,
+            &params.leaderboard_opt_out,
         ))
     }
 }
@@ -1339,7 +1355,7 @@ impl<'a, C: GenericClient + Send + Sync, T1: crate::StringSql, T2: crate::String
 pub struct UpdateProfileStmt(&'static str, Option<tokio_postgres::Statement>);
 pub fn update_profile() -> UpdateProfileStmt {
     UpdateProfileStmt(
-        "update user_profiles set display_name=coalesce($1, display_name), bio=coalesce($2, bio), tags=coalesce($3, tags) where user_id=$4",
+        "update user_profiles set display_name=coalesce($1, display_name), bio=coalesce($2, bio), tags=coalesce($3, tags), leaderboard_opt_out=coalesce($4, leaderboard_opt_out) where user_id=$5",
         None,
     )
 }
@@ -1366,10 +1382,14 @@ impl UpdateProfileStmt {
         display_name: &'a Option<T1>,
         bio: &'a Option<T2>,
         tags: &'a Option<T4>,
+        leaderboard_opt_out: &'a Option<bool>,
         user_id: &'a uuid::Uuid,
     ) -> Result<u64, tokio_postgres::Error> {
         client
-            .execute(self.0, &[display_name, bio, tags, user_id])
+            .execute(
+                self.0,
+                &[display_name, bio, tags, leaderboard_opt_out, user_id],
+            )
             .await
     }
 }
@@ -1404,6 +1424,7 @@ impl<
             &params.display_name,
             &params.bio,
             &params.tags,
+            &params.leaderboard_opt_out,
             &params.user_id,
         ))
     }

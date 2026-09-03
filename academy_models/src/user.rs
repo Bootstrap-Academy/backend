@@ -81,6 +81,8 @@ pub struct UserProfile {
     pub display_name: UserDisplayName,
     pub bio: UserBio,
     pub tags: UserTags,
+    /// Whether the user has asked not to be listed on the public leaderboards.
+    pub leaderboard_opt_out: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

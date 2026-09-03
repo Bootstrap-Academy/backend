@@ -20,6 +20,7 @@ FOO = {
     "mfa_enabled": False,
     "description": "blubb",
     "tags": ["foo", "bar", "baz"],
+    "leaderboard_opt_out": False,
     "terms_version": "2024-03",
     "terms_accepted_at": 1710423462,
     "terms_declined_at": None,

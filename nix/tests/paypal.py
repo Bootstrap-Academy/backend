@@ -92,6 +92,7 @@ assert (
 )
 assert "Fassung der Widerrufsbelehrung 2026-09" in content
 assert "https://bootstrap.academy/docs/right-of-withdrawal" in content
+assert "https://bootstrap.academy/docs/terms-and-conditions" in content
 
 assert invoice["Content-Disposition"] == 'attachment; filename="rechnung.pdf"'
 assert invoice["Content-Type"] == "application/pdf"
@@ -108,15 +109,17 @@ assert "Foo Bar" in invoice_text
 assert "Germany" in invoice_text
 assert "foobar@example.com" in invoice_text
 
-assert terms["Content-Disposition"] == 'attachment;\n filename*0="allgemeine_geschaeftsbedingungen.pdf"'
+# The file names carry the version of the documents, so a mail always says
+# which version was attached. `get_filename` is used instead of comparing the
+# raw header because long names are folded and continued over several lines.
+assert terms.get_filename() == "agb-2026-09.pdf"
 assert terms["Content-Type"] == "application/pdf"
 hash = hashlib.sha256(decode_mail_part(terms)).hexdigest()
-assert hash == "7a8568f6ee99b914463265a8e42bb9736f719aca832cee63019ab9ced284dcf8"
+assert hash == "a8e335e0faf7deab2e54f1538119603e366f3d625168f8a65e8713d2ffdb0cac"
 
-print(repr(revocation_policy["Content-Disposition"]))
-assert revocation_policy["Content-Disposition"] == 'attachment; filename="widerrufsbelehrung.pdf"'
+assert revocation_policy.get_filename() == "widerrufsbelehrung-2026-09.pdf"
 assert revocation_policy["Content-Type"] == "application/pdf"
 hash = hashlib.sha256(decode_mail_part(revocation_policy)).hexdigest()
-assert hash == "046c90a8d66a67acbb6e5154b83a3b61ef3b17ec0f4a91bea189b1c5d1076d74"
+assert hash == "5b455a02e3bdcd1a6b83b17d4e87a94549f875d960f4a633705f1c655eb1b480"
 
 assert open("/var/lib/academy/invoices/R0000001.pdf", "rb").read() == invoice_pdf

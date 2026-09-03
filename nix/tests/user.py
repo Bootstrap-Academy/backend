@@ -153,6 +153,12 @@ content = decode_mail_payload(mail)
 code = re.search(r"([A-Z0-9]{4}-){3}[A-Z0-9]{4}", content)
 assert code, "Failed to find verification code in email"
 
+# The logo is embedded, so opening the mail cannot disclose the recipient's IP
+# address to a host outside our infrastructure.
+assert 'src="data:image/png;base64,' in content
+assert 'src="http' not in content
+assert "https://bootstrap.academy/docs/privacy" in content
+
 resp = c.put("/auth/users/me/email", json={"code": code[0]})
 assert resp.status_code == 200
 assert resp.json() is True
@@ -331,6 +337,41 @@ assert c.get("/auth/users/me").json() == user
 resp = c.patch(f"/auth/users/14b871aa-6324-4e41-85ab-1e7fdb0481cb", json={"display_name": "foo"})
 assert resp.status_code == 403
 assert resp.json() == {"detail": "Permission denied"}
+
+# accept a new version of the terms and conditions
+## the age has to be confirmed again, exactly as on signup
+resp = c.post("/auth/users/me/terms", json={"terms_version": "2026-10", "age_confirmed": False})
+assert resp.status_code == 412
+assert resp.json() == {"detail": "Age not confirmed"}
+
+## both fields are required
+for missing in ["terms_version", "age_confirmed"]:
+    body = {"terms_version": "2026-10", "age_confirmed": True}
+    del body[missing]
+    resp = c.post("/auth/users/me/terms", json=body)
+    assert resp.status_code == 422, missing
+
+## the terms version must not be empty
+resp = c.post("/auth/users/me/terms", json={"terms_version": "", "age_confirmed": True})
+assert resp.status_code == 422
+
+## only the authenticated user can accept
+resp = c.post(
+    "/auth/users/14b871aa-6324-4e41-85ab-1e7fdb0481cb/terms", json={"terms_version": "2026-10", "age_confirmed": True}
+)
+assert resp.status_code == 400
+assert resp.json() == {"detail": "Can only accept terms for self"}
+
+## success
+start = time.time() - 1
+resp = c.post("/auth/users/me/terms", json={"terms_version": "2026-10", "age_confirmed": True})
+end = time.time() + 1
+assert resp.status_code == 200
+user["terms_version"] = "2026-10"
+user["terms_accepted_at"] = resp.json()["terms_accepted_at"]
+assert start <= user["terms_accepted_at"] <= end
+assert resp.json() == user
+assert c.get("/auth/users/me").json() == user
 
 # reset password
 discard_auth()

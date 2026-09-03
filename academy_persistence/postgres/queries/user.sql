@@ -87,6 +87,14 @@ update user_invoice_info
     vat_id=case when :clear_vat_id then null else coalesce(:vat_id, vat_id) end
   where user_id=:user_id;
 
+--! update_terms_acceptance
+update users
+  set
+    terms_version=:terms_version,
+    terms_accepted_at=:terms_accepted_at,
+    age_confirmed_at=:age_confirmed_at
+  where id=:id;
+
 --! delete
 delete from users where id=:id;
 

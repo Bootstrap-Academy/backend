@@ -1,4 +1,4 @@
-use academy_assets::email::{ALLGEMEINE_GESCHAEFTSBEDINGUNGEN_PDF, WIDERRUFSBELEHRUNG_PDF};
+use academy_assets::email::{AGB_2026_09_PDF, WIDERRUFSBELEHRUNG_2026_09_PDF};
 use academy_di::Build;
 use academy_email_contracts::{
     AttachmentContentType, ContentType, Email, EmailAttachment, EmailService,
@@ -66,16 +66,19 @@ where
             content: invoice,
         };
 
+        // § 312f Abs. 2 BGB requires the contract content including the terms
+        // and conditions on a durable medium, so both documents are attached in
+        // the version that was in force. The file names carry that version.
         let terms = EmailAttachment {
-            filename: "allgemeine_geschaeftsbedingungen.pdf".into(),
+            filename: "agb-2026-09.pdf".into(),
             content_type: AttachmentContentType::Pdf,
-            content: ALLGEMEINE_GESCHAEFTSBEDINGUNGEN_PDF.into(),
+            content: AGB_2026_09_PDF.into(),
         };
 
         let revocation_policy = EmailAttachment {
-            filename: "widerrufsbelehrung.pdf".into(),
+            filename: "widerrufsbelehrung-2026-09.pdf".into(),
             content_type: AttachmentContentType::Pdf,
-            content: WIDERRUFSBELEHRUNG_PDF.into(),
+            content: WIDERRUFSBELEHRUNG_2026_09_PDF.into(),
         };
 
         self.send_email(

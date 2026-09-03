@@ -4,10 +4,10 @@ use academy_auth_contracts::{AuthResultExt, AuthService};
 use academy_core_oauth2_contracts::registration::OAuth2RegistrationService;
 use academy_core_session_contracts::session::SessionService;
 use academy_core_user_contracts::{
-    PasswordUpdate, UserCreateError, UserCreateRequest, UserDeleteError, UserFeatureService,
-    UserGetError, UserListError, UserRequestPasswordResetError, UserRequestVerificationEmailError,
-    UserResetPasswordError, UserUpdateError, UserUpdateRequest, UserUpdateUserRequest,
-    UserVerifyEmailError,
+    PasswordUpdate, UserAcceptTermsError, UserAcceptTermsRequest, UserCreateError,
+    UserCreateRequest, UserDeleteError, UserFeatureService, UserGetError, UserListError,
+    UserRequestPasswordResetError, UserRequestVerificationEmailError, UserResetPasswordError,
+    UserUpdateError, UserUpdateRequest, UserUpdateUserRequest, UserVerifyEmailError,
     email_confirmation::{
         UserEmailConfirmationResetPasswordError, UserEmailConfirmationService,
         UserEmailConfirmationVerifyEmailError,
@@ -438,6 +438,41 @@ where
         if commit {
             txn.commit().await?;
         }
+
+        Ok(user_composite)
+    }
+
+    #[trace_instrument(skip(self))]
+    async fn accept_terms(
+        &self,
+        token: &AccessToken,
+        UserAcceptTermsRequest {
+            terms_version,
+            age_confirmed,
+        }: UserAcceptTermsRequest,
+    ) -> Result<UserComposite, UserAcceptTermsError> {
+        let auth = self.auth.authenticate(token).await.map_auth_err()?;
+
+        if !age_confirmed {
+            return Err(UserAcceptTermsError::AgeNotConfirmed);
+        }
+
+        let mut txn = self.db.begin_transaction().await?;
+
+        let mut user_composite = self
+            .user_repo
+            .get_composite(&mut txn, auth.user_id)
+            .await
+            .context("Failed to get user from database")?
+            .ok_or(UserAcceptTermsError::NotFound)?;
+
+        user_composite.user = self
+            .user_update
+            .accept_terms(&mut txn, user_composite.user, terms_version)
+            .await
+            .context("Failed to record terms acceptance")?;
+
+        txn.commit().await?;
 
         Ok(user_composite)
     }

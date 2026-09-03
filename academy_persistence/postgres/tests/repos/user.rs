@@ -5,13 +5,14 @@ use academy_demo::{
     oauth2::FOO_OAUTH2_LINK_1,
     user::{ADMIN, ADMIN2, ALL_USERS, BAR, FOO},
 };
-use academy_models::user::{User, UserComposite, UserDetails, UserFilter};
+use academy_models::user::{TermsVersion, User, UserComposite, UserDetails, UserFilter};
 use academy_persistence_contracts::{
     Database, Transaction,
     user::{UserRepoError, UserRepository},
 };
 use academy_persistence_postgres::user::PostgresUserRepository;
 use academy_utils::{assert_matches, patch::Patch};
+use chrono::{TimeZone, Utc};
 
 use crate::{
     common::setup,
@@ -314,6 +315,65 @@ async fn update_user() {
         .unwrap()
         .unwrap();
     assert_eq!(result, expected);
+}
+
+#[tokio::test]
+async fn update_terms_acceptance() {
+    let db = setup().await;
+
+    let terms_version: TermsVersion = "2026-09".try_into().unwrap();
+    let terms_accepted_at = Utc.with_ymd_and_hms(2026, 9, 3, 12, 0, 0).unwrap();
+    let age_confirmed_at = Utc.with_ymd_and_hms(2026, 9, 3, 12, 0, 1).unwrap();
+
+    let expected = UserComposite {
+        user: User {
+            terms_version: Some(terms_version.clone()),
+            terms_accepted_at: Some(terms_accepted_at),
+            age_confirmed_at: Some(age_confirmed_at),
+            ..ADMIN.user.clone()
+        },
+        ..ADMIN.clone()
+    };
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    let result = REPO
+        .update_terms_acceptance(
+            &mut txn,
+            ADMIN.user.id,
+            &terms_version,
+            terms_accepted_at,
+            age_confirmed_at,
+        )
+        .await
+        .unwrap();
+    assert!(result);
+    txn.commit().await.unwrap();
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    let result = REPO
+        .get_composite(&mut txn, ADMIN.user.id)
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(result, expected);
+}
+
+#[tokio::test]
+async fn update_terms_acceptance_user_not_found() {
+    let db = setup().await;
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    let result = REPO
+        .update_terms_acceptance(
+            &mut txn,
+            UUID1.into(),
+            &"2026-09".try_into().unwrap(),
+            Utc.with_ymd_and_hms(2026, 9, 3, 12, 0, 0).unwrap(),
+            Utc.with_ymd_and_hms(2026, 9, 3, 12, 0, 0).unwrap(),
+        )
+        .await
+        .unwrap();
+    assert!(!result);
 }
 
 #[tokio::test]

@@ -115,7 +115,7 @@ async fn ok_oauth2() {
                 remote_user: FOO_OAUTH2_LINK_1.remote_user.clone(),
             }),
         )
-        .with_remove(token);
+        .with_consume(token, true);
 
     let user = MockUserService::new().with_create(req_to_cmd(&request), Ok(FOO.clone()));
 
@@ -146,6 +146,76 @@ async fn ok_oauth2() {
 
     // Assert
     assert_eq!(result.unwrap(), expected);
+}
+
+/// A registration token that a concurrent request has already redeemed does not
+/// create a second account.
+#[tokio::test]
+async fn oauth2_registration_token_already_used() {
+    // Arrange
+    let token = OAuth2RegistrationToken::try_new(
+        "K7oACiokVoyttnGgYxJwCc2VCvDbQI10Bewthc5exlyQly2JZCViycDereak92oB",
+    )
+    .unwrap();
+
+    let request = UserCreateRequest {
+        name: FOO.user.name.clone(),
+        display_name: FOO.profile.display_name.clone(),
+        email: FOO.user.email.clone().unwrap(),
+        password: None,
+        oauth2_registration_token: Some(token.clone()),
+        terms_version: TERMS_VERSION.clone(),
+        age_confirmed: true,
+    };
+
+    let db = MockDatabase::build_expect_rollback();
+
+    let captcha = MockCaptchaService::new().with_check(Some("resp"), Ok(()));
+
+    let oauth2_registration = MockOAuth2RegistrationService::new()
+        .with_get(
+            token.clone(),
+            Some(OAuth2Registration {
+                provider_id: TEST_OAUTH2_PROVIDER_ID.clone(),
+                remote_user: FOO_OAUTH2_LINK_1.remote_user.clone(),
+            }),
+        )
+        .with_consume(token, false);
+
+    let user = MockUserService::new().with_create(req_to_cmd(&request), Ok(FOO.clone()));
+
+    let session = MockSessionService::new().with_create(
+        FOO.clone(),
+        FOO_1.device_name.clone(),
+        true,
+        Login {
+            user_composite: FOO.clone(),
+            session: FOO_1.clone(),
+            access_token: "the access token".into(),
+            refresh_token: "some refresh token".into(),
+        },
+    );
+
+    let sut = UserFeatureServiceImpl {
+        db,
+        captcha,
+        user,
+        oauth2_registration,
+        session,
+        ..Sut::default()
+    };
+
+    // Act
+    let result = sut
+        .create_user(
+            request,
+            FOO_1.device_name.clone(),
+            Some("resp".try_into().unwrap()),
+        )
+        .await;
+
+    // Assert
+    assert_matches!(result, Err(UserCreateError::InvalidOAuthRegistrationToken));
 }
 
 #[tokio::test]

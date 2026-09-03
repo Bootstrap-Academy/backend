@@ -27,7 +27,12 @@ where
 
         let user_info = self
             .oauth2_api
-            .resolve_code(provider.clone(), login.code, login.redirect_uri)
+            .resolve_code(
+                provider.clone(),
+                login.code,
+                login.redirect_uri,
+                login.code_verifier,
+            )
             .await
             .map_err(|err| match err {
                 OAuth2ResolveCodeError::InvalidCode => OAuth2LoginServiceError::InvalidCode,
@@ -44,25 +49,59 @@ where
 mod tests {
     use academy_demo::oauth2::{FOO_OAUTH2_LINK_1, TEST_OAUTH2_PROVIDER, TEST_OAUTH2_PROVIDER_ID};
     use academy_extern_contracts::oauth2::MockOAuth2ApiService;
+    use academy_models::oauth2::OAuth2CodeVerifier;
     use academy_utils::assert_matches;
 
     use super::*;
 
     type Sut = OAuth2LoginServiceImpl<MockOAuth2ApiService>;
 
-    #[tokio::test]
-    async fn ok() {
-        // Arrange
-        let login = OAuth2Login {
+    const CODE_VERIFIER: &str = "AeuBJdgSAaAJPUEkeGoLHUKKxSlOCXvxpBGoWqZVUYplavKBhcgnnLSPMxBKKlrp";
+
+    fn make_login(code_verifier: Option<OAuth2CodeVerifier>) -> OAuth2Login {
+        OAuth2Login {
             provider_id: TEST_OAUTH2_PROVIDER_ID.clone(),
             code: "code".try_into().unwrap(),
             redirect_uri: "http://test/redirect".parse().unwrap(),
-        };
+            code_verifier,
+        }
+    }
+
+    #[tokio::test]
+    async fn ok() {
+        // Arrange
+        let login = make_login(None);
 
         let oauth2_api = MockOAuth2ApiService::new().with_resolve_code(
             TEST_OAUTH2_PROVIDER.clone(),
             login.code.clone(),
             login.redirect_uri.clone(),
+            None,
+            Ok(FOO_OAUTH2_LINK_1.remote_user.clone()),
+        );
+
+        let sut = OAuth2LoginServiceImpl {
+            oauth2_api,
+            ..Sut::default()
+        };
+
+        // Act
+        let result = sut.login(login).await;
+
+        // Assert
+        assert_eq!(result.unwrap(), FOO_OAUTH2_LINK_1.remote_user);
+    }
+
+    #[tokio::test]
+    async fn ok_with_pkce() {
+        // Arrange
+        let login = make_login(Some(CODE_VERIFIER.try_into().unwrap()));
+
+        let oauth2_api = MockOAuth2ApiService::new().with_resolve_code(
+            TEST_OAUTH2_PROVIDER.clone(),
+            login.code.clone(),
+            login.redirect_uri.clone(),
+            Some(CODE_VERIFIER.try_into().unwrap()),
             Ok(FOO_OAUTH2_LINK_1.remote_user.clone()),
         );
 
@@ -83,8 +122,7 @@ mod tests {
         // Arrange
         let login = OAuth2Login {
             provider_id: "invalid-provider".into(),
-            code: "code".try_into().unwrap(),
-            redirect_uri: "http://test/redirect".parse().unwrap(),
+            ..make_login(None)
         };
 
         let sut = Sut::default();
@@ -99,16 +137,13 @@ mod tests {
     #[tokio::test]
     async fn invalid_code() {
         // Arrange
-        let login = OAuth2Login {
-            provider_id: TEST_OAUTH2_PROVIDER_ID.clone(),
-            code: "code".try_into().unwrap(),
-            redirect_uri: "http://test/redirect".parse().unwrap(),
-        };
+        let login = make_login(None);
 
         let oauth2_api = MockOAuth2ApiService::new().with_resolve_code(
             TEST_OAUTH2_PROVIDER.clone(),
             login.code.clone(),
             login.redirect_uri.clone(),
+            None,
             Err(OAuth2ResolveCodeError::InvalidCode),
         );
 

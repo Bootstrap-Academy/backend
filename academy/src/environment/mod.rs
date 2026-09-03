@@ -191,6 +191,11 @@ impl ConfigProvider {
                 .as_ref()
                 .map(|oauth2| oauth2.registration_token_ttl.0)
                 .unwrap_or_default(),
+            authorization_ttl: config
+                .oauth2
+                .as_ref()
+                .map(|oauth2| oauth2.authorization_ttl.0)
+                .unwrap_or_default(),
             providers: config
                 .oauth2
                 .iter()
@@ -208,6 +213,7 @@ impl ConfigProvider {
                             userinfo_id_key: provider.userinfo_id_key.clone(),
                             userinfo_name_key: provider.userinfo_name_key.clone(),
                             scopes: provider.scopes.clone(),
+                            pkce: provider.pkce.unwrap_or(true),
                         },
                     )
                 })

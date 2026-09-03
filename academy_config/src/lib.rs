@@ -287,6 +287,7 @@ pub struct SentryConfig {
 pub struct OAuth2Config {
     pub enable: Option<bool>,
     pub registration_token_ttl: Duration,
+    pub authorization_ttl: Duration,
     pub providers: HashMap<String, OAuth2ProviderConfig>,
 }
 
@@ -302,6 +303,9 @@ pub struct OAuth2ProviderConfig {
     pub userinfo_id_key: String,
     pub userinfo_name_key: String,
     pub scopes: Vec<String>,
+    /// Whether the provider supports PKCE (RFC 7636). Defaults to `true`;
+    /// only set it to `false` for a provider that rejects `code_challenge`.
+    pub pkce: Option<bool>,
 }
 
 #[cfg(test)]

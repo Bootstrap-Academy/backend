@@ -1,7 +1,8 @@
 use academy_models::{
     oauth2::{
-        OAuth2AuthorizationCode, OAuth2Link, OAuth2LinkId, OAuth2Login, OAuth2ProviderId,
-        OAuth2ProviderName, OAuth2ProviderSummary, OAuth2RemoteUserName,
+        OAuth2AuthorizationCode, OAuth2AuthorizationUrl, OAuth2Callback, OAuth2Link, OAuth2LinkId,
+        OAuth2ProviderId, OAuth2ProviderName, OAuth2ProviderSummary, OAuth2RemoteUserName,
+        OAuth2State,
     },
     url::Url,
 };
@@ -14,9 +15,6 @@ pub struct ApiOAuth2ProviderSummary {
     pub id: OAuth2ProviderId,
     /// Display name
     pub name: OAuth2ProviderName,
-    /// Remote authorize endpoint URL *without* `state` and `redirect_uri`
-    /// parameters
-    pub authorize_url: Url,
 }
 
 impl From<OAuth2ProviderSummary> for ApiOAuth2ProviderSummary {
@@ -24,7 +22,6 @@ impl From<OAuth2ProviderSummary> for ApiOAuth2ProviderSummary {
         Self {
             id: value.id,
             name: value.name,
-            authorize_url: value.auth_url,
         }
     }
 }
@@ -49,22 +46,51 @@ impl From<OAuth2Link> for ApiOAuth2Link {
     }
 }
 
-#[derive(Deserialize, JsonSchema)]
-pub struct ApiOAuth2Login {
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct ApiOAuth2AuthorizationRequest {
     /// OAuth2 provider ID
     pub provider_id: OAuth2ProviderId,
-    /// Authorization code returned by the OAuth2 provider
-    pub code: OAuth2AuthorizationCode,
-    /// Redirect URI that was used for this authentication.
+    /// Redirect URI the provider is asked to send the user agent back to. The
+    /// same URI is used for the token exchange, so it cannot change in
+    /// between.
     pub redirect_uri: Url,
 }
 
-impl From<ApiOAuth2Login> for OAuth2Login {
-    fn from(value: ApiOAuth2Login) -> Self {
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct ApiOAuth2AuthorizationUrl {
+    /// Remote authorize endpoint URL, ready to be opened. Includes `state`,
+    /// `redirect_uri` and, for providers supporting PKCE, the code challenge.
+    pub authorize_url: Url,
+    /// The `state` nonce contained in `authorize_url`. Clients keep it for the
+    /// duration of the flow and compare it against the `state` the provider
+    /// hands back, so a callback from a flow the browser did not start is
+    /// rejected.
+    pub state: OAuth2State,
+}
+
+impl From<OAuth2AuthorizationUrl> for ApiOAuth2AuthorizationUrl {
+    fn from(value: OAuth2AuthorizationUrl) -> Self {
         Self {
-            provider_id: value.provider_id,
+            authorize_url: value.authorize_url,
+            state: value.state,
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct ApiOAuth2Callback {
+    /// The `state` nonce the OAuth2 provider returned. It identifies the
+    /// authorization flow and can be redeemed only once.
+    pub state: OAuth2State,
+    /// Authorization code returned by the OAuth2 provider
+    pub code: OAuth2AuthorizationCode,
+}
+
+impl From<ApiOAuth2Callback> for OAuth2Callback {
+    fn from(value: ApiOAuth2Callback) -> Self {
+        Self {
+            state: value.state,
             code: value.code,
-            redirect_uri: value.redirect_uri,
         }
     }
 }

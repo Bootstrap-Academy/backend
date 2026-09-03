@@ -160,6 +160,10 @@ pub struct JwtConfig {
 #[derive(Debug, Deserialize)]
 pub struct InternalConfig {
     pub jwt_ttl: Duration,
+    /// Secrets for the internal service tokens, one per audience. An audience
+    /// which is missing here falls back to [`JwtConfig::secret`].
+    #[serde(default)]
+    pub secrets: HashMap<String, String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -354,6 +358,36 @@ mod tests {
                 overrides[i]
             );
         }
+    }
+
+    #[test]
+    fn internal_secrets_empty_by_default() {
+        let config = super::load_paths(&[] as &[&str], &MINIMAL_OVERRIDES).unwrap();
+
+        assert!(config.internal.secrets.is_empty());
+    }
+
+    #[test]
+    fn internal_secrets_per_audience() {
+        let overrides = MINIMAL_OVERRIDES
+            .into_iter()
+            .chain([
+                "internal.secrets.skills = \"the skills secret\"",
+                "internal.secrets.events = \"the events secret\"",
+            ])
+            .collect::<Vec<_>>();
+
+        let config = super::load_paths(&[] as &[&str], &overrides).unwrap();
+
+        assert_eq!(
+            config.internal.secrets.get("skills").map(String::as_str),
+            Some("the skills secret")
+        );
+        assert_eq!(
+            config.internal.secrets.get("events").map(String::as_str),
+            Some("the events secret")
+        );
+        assert!(!config.internal.secrets.contains_key("auth"));
     }
 
     #[test]

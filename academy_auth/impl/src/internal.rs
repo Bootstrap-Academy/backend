@@ -22,7 +22,8 @@ where
     #[trace_instrument(skip(self))]
     fn issue_token(&self, audience: &str) -> anyhow::Result<InternalToken> {
         self.jwt
-            .sign(
+            .sign_with_key(
+                audience,
                 Token {
                     aud: audience.into(),
                 },
@@ -41,7 +42,7 @@ where
         audience: &str,
     ) -> Result<(), AuthInternalAuthenticateError> {
         self.jwt
-            .verify::<Token>(token)
+            .verify_with_key::<Token>(audience, token)
             .ok()
             .filter(|data| data.aud == audience)
             .map(|_| ())
@@ -70,7 +71,8 @@ mod tests {
 
         let expected = "the internal auth token";
 
-        let jwt = MockJwtService::new().with_sign(
+        let jwt = MockJwtService::new().with_sign_with_key(
+            "test",
             Token { aud: "test".into() },
             config.internal_token_ttl,
             Ok(expected.into()),
@@ -91,8 +93,11 @@ mod tests {
     #[test]
     fn authenticate_ok() {
         // Arrange
-        let jwt =
-            MockJwtService::new().with_verify("token".into(), Ok(Token { aud: "auth".into() }));
+        let jwt = MockJwtService::new().with_verify_with_key(
+            "auth",
+            "token".into(),
+            Ok(Token { aud: "auth".into() }),
+        );
 
         let sut = AuthInternalServiceImpl {
             jwt,
@@ -109,8 +114,11 @@ mod tests {
     #[test]
     fn authenticate_invalid() {
         // Arrange
-        let jwt = MockJwtService::new()
-            .with_verify("token".into(), Err(VerifyJwtError::<Token>::Invalid));
+        let jwt = MockJwtService::new().with_verify_with_key(
+            "auth",
+            "token".into(),
+            Err(VerifyJwtError::<Token>::Invalid),
+        );
 
         let sut = AuthInternalServiceImpl {
             jwt,
@@ -127,7 +135,8 @@ mod tests {
     #[test]
     fn authenticate_expired() {
         // Arrange
-        let jwt = MockJwtService::new().with_verify(
+        let jwt = MockJwtService::new().with_verify_with_key(
+            "auth",
             "token".into(),
             Err(VerifyJwtError::Expired(Token { aud: "auth".into() })),
         );

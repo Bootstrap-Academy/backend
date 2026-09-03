@@ -114,4 +114,17 @@ mod tests {
         );
         assert_eq!(y, None);
     }
+
+    #[test]
+    fn string_option_missing_field() {
+        #[derive(Deserialize)]
+        struct Request {
+            #[serde(default)]
+            password: StringOption<UserPassword>,
+        }
+
+        let request =
+            serde_json::from_value::<Request>(serde_json::json!({})).expect("field is optional");
+        assert_eq!(Option::<UserPassword>::from(request.password), None);
+    }
 }

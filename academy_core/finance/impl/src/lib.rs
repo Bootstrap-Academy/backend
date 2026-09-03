@@ -35,6 +35,9 @@ pub struct FinanceFeatureConfig {
     pub vat_percent: Decimal,
     pub invoices_archive: Arc<Path>,
     pub credit_notes_archive: Arc<Path>,
+    /// Number of years invoices and credit notes are kept, counted from the
+    /// end of the calendar year in which they were issued.
+    pub retention_years: u32,
     pub download_token_ttl: Duration,
 }
 

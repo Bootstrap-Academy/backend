@@ -816,6 +816,7 @@ dependencies = [
  "rand 0.10.2",
  "serde",
  "sha2 0.10.9",
+ "tempfile",
  "tokio",
  "totp-rs",
  "tracing",

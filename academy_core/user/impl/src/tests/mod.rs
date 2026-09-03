@@ -11,7 +11,8 @@ use academy_extern_contracts::{
     microservices::MockMicroservicesApiService, vat::MockVatApiService,
 };
 use academy_persistence_contracts::{
-    MockDatabase, MockTransaction, coin::MockCoinRepository, user::MockUserRepository,
+    MockDatabase, MockTransaction, coin::MockCoinRepository,
+    finance::MockFinancialDocumentRepository, user::MockUserRepository,
 };
 use academy_shared_contracts::captcha::MockCaptchaService;
 
@@ -42,6 +43,7 @@ type Sut = UserFeatureServiceImpl<
     MockOAuth2RegistrationService,
     MockUserRepository<MockTransaction>,
     MockCoinRepository<MockTransaction>,
+    MockFinancialDocumentRepository<MockTransaction>,
 >;
 
 impl Default for UserFeatureConfig {

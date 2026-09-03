@@ -4198,6 +4198,11 @@ rec {
             usesDefaultFeatures = false;
             features = [ "std" ];
           }
+          {
+            name = "tempfile";
+            packageId = "tempfile";
+            usesDefaultFeatures = false;
+          }
         ];
 
       };

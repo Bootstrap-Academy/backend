@@ -37,3 +37,4 @@ academy_extern_contracts = { workspace = true, features = ["mock"] }
 academy_shared_contracts = { workspace = true, features = ["mock"] }
 academy_utils.workspace = true
 hex.workspace = true
+tempfile.workspace = true

@@ -275,6 +275,9 @@ pub struct FinanceConfig {
     pub vat_percent: Decimal,
     pub invoices_archive: PathBuf,
     pub credit_notes_archive: PathBuf,
+    /// Number of years invoices and credit notes are kept, counted from the
+    /// end of the calendar year in which they were issued.
+    pub retention_years: u32,
 }
 
 #[derive(Debug, Deserialize)]

@@ -5,7 +5,9 @@ use academy_demo::{
     oauth2::FOO_OAUTH2_LINK_1,
     user::{ADMIN, ADMIN2, ALL_USERS, BAR, FOO},
 };
-use academy_models::user::{TermsVersion, User, UserComposite, UserDetails, UserFilter};
+use academy_models::user::{
+    TermsVersion, User, UserComposite, UserDetails, UserFilter, UserProfile, UserProfilePatch,
+};
 use academy_persistence_contracts::{
     Database, Transaction,
     user::{UserRepoError, UserRepository},
@@ -558,6 +560,37 @@ async fn update_profile() {
     let mut txn = db.begin_transaction().await.unwrap();
     let result = REPO
         .update_profile(&mut txn, BAR.user.id, expected.profile.as_patch_ref())
+        .await
+        .unwrap();
+    assert!(result);
+    txn.commit().await.unwrap();
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    let result = REPO
+        .get_composite(&mut txn, BAR.user.id)
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(result, expected);
+}
+
+#[tokio::test]
+async fn update_leaderboard_opt_out() {
+    let db = setup().await;
+
+    let expected = UserComposite {
+        profile: UserProfile {
+            leaderboard_opt_out: true,
+            ..BAR.profile.clone()
+        },
+        ..BAR.clone()
+    };
+
+    let patch = UserProfilePatch::default().update_leaderboard_opt_out(true);
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    let result = REPO
+        .update_profile(&mut txn, BAR.user.id, patch.as_ref())
         .await
         .unwrap();
     assert!(result);

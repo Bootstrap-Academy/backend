@@ -238,6 +238,8 @@ struct UpdateRequest {
     admin: Option<bool>,
     description: StringOption<UserBio>,
     tags: Option<UserTags>,
+    /// Whether the user asks not to be listed on the leaderboards
+    leaderboard_opt_out: Option<bool>,
     business: Option<bool>,
     first_name: StringOption<UserFirstName>,
     last_name: StringOption<UserLastName>,
@@ -262,6 +264,7 @@ async fn update(
         admin,
         description,
         tags,
+        leaderboard_opt_out,
         business,
         first_name,
         last_name,
@@ -294,6 +297,7 @@ async fn update(
                     display_name: Option::from(display_name).into(),
                     bio: Option::from(description).into(),
                     tags: tags.into(),
+                    leaderboard_opt_out: leaderboard_opt_out.into(),
                 },
                 invoice_info: UserInvoiceInfo {
                     business,

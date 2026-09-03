@@ -87,6 +87,7 @@ pub async fn load(db: PostgresDatabase, auth: DbConnection) -> anyhow::Result<()
                 .transpose()?
                 .unwrap_or_default(),
             tags: serde_json::from_str(tags.as_deref().unwrap_or("[]"))?,
+            leaderboard_opt_out: false,
         };
 
         let invoice_info = UserInvoiceInfo {

@@ -70,6 +70,7 @@ assert login == {
         "mfa_enabled": False,
         "description": "",
         "tags": [],
+        "leaderboard_opt_out": False,
         "terms_version": "2026-09",
         "terms_accepted_at": login["user"]["terms_accepted_at"],
         "terms_declined_at": None,
@@ -185,6 +186,20 @@ user = resp.json()
 user["display_name"] = "321 User"
 user["description"] = "just a test account"
 user["tags"] = ["foo", "bar", "test"]
+assert resp.json() == user
+assert c.get("/auth/users/me").json() == user
+
+## leaderboard opt-out
+assert user["leaderboard_opt_out"] is False
+resp = c.patch("/auth/users/me", json={"leaderboard_opt_out": True})
+assert resp.status_code == 200
+user["leaderboard_opt_out"] = True
+assert resp.json() == user
+assert c.get("/auth/users/me").json() == user
+
+resp = c.patch("/auth/users/me", json={"leaderboard_opt_out": False})
+assert resp.status_code == 200
+user["leaderboard_opt_out"] = False
 assert resp.json() == user
 assert c.get("/auth/users/me").json() == user
 

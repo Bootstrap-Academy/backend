@@ -183,6 +183,7 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
             display_name: &*profile.display_name,
             bio: &*profile.bio,
             tags: profile.tags.iter().map(|tag| &**tag).collect::<Vec<_>>(),
+            leaderboard_opt_out: profile.leaderboard_opt_out,
         };
 
         let invoice_info_params = CreateInvoiceInfoParams {
@@ -260,6 +261,7 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
             display_name,
             bio,
             tags,
+            leaderboard_opt_out,
         }: UserProfilePatchRef<'a>,
     ) -> anyhow::Result<bool> {
         let params = UpdateProfileParams {
@@ -269,6 +271,7 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
             tags: tags
                 .update()
                 .map(|tags| tags.iter().map(|x| &**x).collect::<Vec<_>>()),
+            leaderboard_opt_out: leaderboard_opt_out.update().copied(),
         };
 
         queries::user::update_profile()
@@ -447,6 +450,7 @@ fn decode_composite(value: queries::user::UserComposite) -> anyhow::Result<UserC
             .map(|tag| tag.try_into())
             .collect::<Result<Vec<_>, _>>()?
             .try_into()?,
+        leaderboard_opt_out: value.leaderboard_opt_out,
     };
 
     let details = UserDetails {

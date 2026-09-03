@@ -34,6 +34,7 @@ pub static ADMIN: LazyLock<UserComposite> = LazyLock::new(|| UserComposite {
         display_name: "Administrator".try_into().unwrap(),
         bio: Default::default(),
         tags: Default::default(),
+        leaderboard_opt_out: false,
     },
     details: UserDetails {
         mfa_enabled: false,
@@ -66,6 +67,7 @@ pub static ADMIN2: LazyLock<UserComposite> = LazyLock::new(|| UserComposite {
         display_name: "Administrator2".try_into().unwrap(),
         bio: Default::default(),
         tags: Default::default(),
+        leaderboard_opt_out: false,
     },
     details: UserDetails {
         mfa_enabled: true,
@@ -104,6 +106,7 @@ pub static FOO: LazyLock<UserComposite> = LazyLock::new(|| UserComposite {
             .unwrap()
             .try_into()
             .unwrap(),
+        leaderboard_opt_out: false,
     },
     details: UserDetails {
         mfa_enabled: false,
@@ -151,6 +154,7 @@ pub static BAR: LazyLock<UserComposite> = LazyLock::new(|| UserComposite {
             .unwrap()
             .try_into()
             .unwrap(),
+        leaderboard_opt_out: false,
     },
     details: UserDetails {
         mfa_enabled: false,

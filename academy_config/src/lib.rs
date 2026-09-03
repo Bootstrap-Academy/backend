@@ -176,8 +176,6 @@ pub struct UserConfig {
     pub verification_redirect_url: String,
     pub password_reset_code_ttl: Duration,
     pub password_reset_redirect_url: String,
-    pub newsletter_code_ttl: Duration,
-    pub newsletter_redirect_url: String,
 }
 
 #[derive(Debug, Deserialize)]

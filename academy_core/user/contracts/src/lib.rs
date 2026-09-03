@@ -60,9 +60,6 @@ pub trait UserFeatureService: Send + Sync + 'static {
     /// If the authenticated user is not an administrator:
     /// - Only the authenticated user itself can be updated.
     /// - Changing the `name` is rate-limited.
-    /// - Changing the `newsletter` field from `false` to `true` does not
-    ///   immediately update the field's value but rather results in a
-    ///   verification email being sent to the user.
     /// - Changing any of the following fields is not allowed:
     ///   - `enabled`
     ///   - `admin`
@@ -98,17 +95,6 @@ pub trait UserFeatureService: Send + Sync + 'static {
         &self,
         code: VerificationCode,
     ) -> impl Future<Output = Result<(), UserVerifyEmailError>> + Send;
-
-    /// Verifie the newsletter subscription using the verification code sent
-    /// via email.
-    ///
-    /// Requires admin privileges if not used on the authenticated user.
-    fn verify_newsletter_subscription(
-        &self,
-        token: &AccessToken,
-        user_id: UserIdOrSelf,
-        code: VerificationCode,
-    ) -> impl Future<Output = Result<UserComposite, UserVerifyNewsletterSubscriptionError>> + Send;
 
     /// Request an email with a verification code to reset a user's password.
     fn request_password_reset(
@@ -192,7 +178,6 @@ pub struct UserUpdateUserRequest {
     pub password: PatchValue<PasswordUpdate>,
     pub enabled: PatchValue<bool>,
     pub admin: PatchValue<bool>,
-    pub newsletter: PatchValue<bool>,
 }
 
 #[derive(Debug)]
@@ -222,8 +207,6 @@ pub enum UserUpdateError {
     CannotDemoteSelf,
     #[error("The user cannot change their name until {until}.")]
     NameChangeRateLimit { until: DateTime<Utc> },
-    #[error("The user does not have an email address.")]
-    NoEmail,
     #[error("The vat id is invalid.")]
     InvalidVatId,
     #[error(transparent)]
@@ -257,20 +240,6 @@ pub enum UserRequestVerificationEmailError {
 #[derive(Debug, Error)]
 pub enum UserVerifyEmailError {
     #[error("The verification code is invalid.")]
-    InvalidCode,
-    #[error(transparent)]
-    Other(#[from] anyhow::Error),
-}
-
-#[derive(Debug, Error)]
-pub enum UserVerifyNewsletterSubscriptionError {
-    #[error(transparent)]
-    Auth(#[from] AuthError),
-    #[error("The user does not exist.")]
-    NotFound,
-    #[error("The user is already subscribed to the newsletter.")]
-    AlreadySubscribed,
-    #[error("The verification code is incorrect.")]
     InvalidCode,
     #[error(transparent)]
     Other(#[from] anyhow::Error),

@@ -4,7 +4,7 @@ use academy_core_user_contracts::{
     PasswordUpdate, UserCreateError, UserCreateRequest, UserDeleteError, UserFeatureService,
     UserGetError, UserListError, UserRequestPasswordResetError, UserRequestVerificationEmailError,
     UserResetPasswordError, UserUpdateError, UserUpdateRequest, UserUpdateUserRequest,
-    UserVerifyEmailError, UserVerifyNewsletterSubscriptionError,
+    UserVerifyEmailError,
     user::{UserListQuery, UserListResult},
 };
 use academy_models::{
@@ -65,13 +65,6 @@ pub fn router(service: Arc<impl UserFeatureService>) -> ApiRouter<()> {
             "/auth/users/{user_id}/email",
             routing::post_with(request_verification_email, request_verification_email_docs)
                 .put_with(verify_email, verify_email_docs),
-        )
-        .api_route(
-            "/auth/users/{user_id}/newsletter",
-            routing::put_with(
-                verify_newsletter_subscription,
-                verify_newsletter_subscription_docs,
-            ),
         )
         .api_route(
             "/auth/password_reset",
@@ -236,7 +229,6 @@ struct UpdateRequest {
     admin: Option<bool>,
     description: StringOption<UserBio>,
     tags: Option<UserTags>,
-    newsletter: Option<bool>,
     business: Option<bool>,
     first_name: StringOption<UserFirstName>,
     last_name: StringOption<UserLastName>,
@@ -261,7 +253,6 @@ async fn update(
         admin,
         description,
         tags,
-        newsletter,
         business,
         first_name,
         last_name,
@@ -289,7 +280,6 @@ async fn update(
                         .into(),
                     enabled: enabled.into(),
                     admin: admin.into(),
-                    newsletter: newsletter.into(),
                 },
                 profile: UserProfilePatch {
                     display_name: Option::from(display_name).into(),
@@ -322,7 +312,6 @@ async fn update(
             | UserUpdateError::CannotDemoteSelf
             | UserUpdateError::NameChangeRateLimit { .. },
         ) => PermissionDeniedError.into_response(),
-        Err(UserUpdateError::NoEmail) => NoEmailError.into_response(),
         Err(UserUpdateError::InvalidVatId) => InvalidVatIdError.into_response(),
         Err(UserUpdateError::Auth(err)) => auth_error(err),
         Err(UserUpdateError::Other(err)) => internal_server_error(err),
@@ -337,7 +326,6 @@ fn update_docs(op: TransformOperation) -> TransformOperation {
         .add_error::<EmailAlreadyExistsError>()
         .add_error::<CannotDeleteLastLoginMethodError>()
         .add_error::<PermissionDeniedError>()
-        .add_error::<NoEmailError>()
         .add_error::<InvalidVatIdError>()
         .with(auth_error_docs)
         .with(internal_server_error_docs)
@@ -429,47 +417,6 @@ fn verify_email_docs(op: TransformOperation) -> TransformOperation {
 }
 
 #[derive(Deserialize, JsonSchema)]
-struct VerifyNewsletterSubscriptionRequest {
-    code: VerificationCode,
-}
-
-async fn verify_newsletter_subscription(
-    service: State<Arc<impl UserFeatureService>>,
-    token: ApiToken,
-    Path(PathUserIdOrSelf { user_id }): Path<PathUserIdOrSelf>,
-    Json(VerifyNewsletterSubscriptionRequest { code }): Json<VerifyNewsletterSubscriptionRequest>,
-) -> Response {
-    match service
-        .verify_newsletter_subscription(&token.0, user_id.into(), code)
-        .await
-    {
-        Ok(user) => Json(ApiUser::from(user)).into_response(),
-        Err(UserVerifyNewsletterSubscriptionError::NotFound) => UserNotFoundError.into_response(),
-        Err(UserVerifyNewsletterSubscriptionError::AlreadySubscribed) => {
-            NewsletterAlreadySubscribedError.into_response()
-        }
-        Err(UserVerifyNewsletterSubscriptionError::InvalidCode) => {
-            InvalidVerificationCodeError.into_response()
-        }
-        Err(UserVerifyNewsletterSubscriptionError::Auth(err)) => auth_error(err),
-        Err(UserVerifyNewsletterSubscriptionError::Other(err)) => internal_server_error(err),
-    }
-}
-
-fn verify_newsletter_subscription_docs(op: TransformOperation) -> TransformOperation {
-    op.summary("Verify the newsletter subscription using a verification code.")
-        .add_response::<ApiUser>(
-            StatusCode::OK,
-            "The user's newsletter subscription has been verified.",
-        )
-        .add_error::<UserNotFoundError>()
-        .add_error::<NewsletterAlreadySubscribedError>()
-        .add_error::<InvalidVerificationCodeError>()
-        .with(auth_error_docs)
-        .with(internal_server_error_docs)
-}
-
-#[derive(Deserialize, JsonSchema)]
 struct RequestPasswordResetRequest {
     email: EmailAddress,
     /// reCAPTCHA response. Only evaluated if reCAPTCHA is enabled.
@@ -556,8 +503,6 @@ error_code! {
     PasswordResetFailedError(UNAUTHORIZED, "Password reset failed");
     /// The verification code is invalid.
     InvalidVerificationCodeError(UNAUTHORIZED, "Invalid verification code");
-    /// The user is already subscribed to the newsletter.
-    NewsletterAlreadySubscribedError(CONFLICT, "Newsletter already subscribed");
     /// The user does not have an email address.
     NoEmailError(FORBIDDEN, "No email");
     /// The user's email address has already been verified.

@@ -26,7 +26,6 @@ mod request_verification_email;
 mod reset_password;
 mod update_user;
 mod verify_email;
-mod verify_newsletter_subscription;
 
 type Sut = UserFeatureServiceImpl<
     MockDatabase,
@@ -55,10 +54,6 @@ impl Default for UserFeatureConfig {
                 .to_owned()
                 .into(),
             password_reset_verification_code_ttl: Duration::from_secs(3600),
-            newsletter_subscription_redirect_url: "https://bootstrap.academy/account/newsletter"
-                .to_owned()
-                .into(),
-            newsletter_subscription_verification_code_ttl: Duration::from_secs(3600),
         }
     }
 }

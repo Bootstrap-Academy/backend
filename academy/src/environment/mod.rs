@@ -256,12 +256,6 @@ impl ConfigProvider {
             verification_verification_code_ttl: config.user.verification_code_ttl.into(),
             password_reset_redirect_url: config.user.password_reset_redirect_url.clone().into(),
             password_reset_verification_code_ttl: config.user.password_reset_code_ttl.into(),
-            newsletter_subscription_redirect_url: config
-                .user
-                .newsletter_redirect_url
-                .clone()
-                .into(),
-            newsletter_subscription_verification_code_ttl: config.user.newsletter_code_ttl.into(),
         };
 
         let paypal_feature_config = PaypalFeatureConfig {

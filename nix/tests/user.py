@@ -70,7 +70,6 @@ assert login == {
         "mfa_enabled": False,
         "description": "",
         "tags": [],
-        "newsletter": False,
         "terms_version": "2026-09",
         "terms_accepted_at": login["user"]["terms_accepted_at"],
         "business": None,
@@ -305,31 +304,6 @@ save_auth(login)
 user["last_login"] = login["user"]["last_login"]
 assert start <= user["last_login"] <= end
 assert login["user"] == user
-
-## newsletter
-resp = c.patch("/auth/users/me", json={"newsletter": True})
-assert resp.status_code == 200
-assert resp.json() == user
-assert user["newsletter"] is False
-
-mail = fetch_mail()
-assert mail[f"X-Original-To"] == user["email"]
-assert mail["Subject"] == "Newsletter abonnieren - Bootstrap Academy"
-content = decode_mail_payload(mail)
-code = re.search(r"([A-Z0-9]{4}-){3}[A-Z0-9]{4}", content)
-assert code, "Failed to find verification code in email"
-
-resp = c.put("/auth/users/me/newsletter", json={"code": code[0]})
-assert resp.status_code == 200
-user["newsletter"] = True
-assert resp.json() == user
-assert c.get("/auth/users/me").json() == user
-
-resp = c.patch("/auth/users/me", json={"newsletter": False})
-assert resp.status_code == 200
-user["newsletter"] = False
-assert resp.json() == user
-assert c.get("/auth/users/me").json() == user
 
 ## name (rate limit)
 resp = c.patch("/auth/users/me", json={"name": "asdf"})

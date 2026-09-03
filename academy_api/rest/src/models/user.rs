@@ -47,8 +47,6 @@ pub struct ApiUser {
     pub description: UserBio,
     /// Tags of the user profile
     pub tags: UserTags,
-    /// Whether the user is subscribed to the newsletter
-    pub newsletter: bool,
     /// Version of the terms and conditions the user accepted (read-only, null
     /// for accounts created before acceptance was recorded)
     pub terms_version: Option<TermsVersion>,
@@ -102,7 +100,6 @@ impl From<UserComposite> for ApiUser {
             last_name_change: user.last_name_change.map(|x| x.timestamp()),
             enabled: user.enabled,
             admin: user.admin,
-            newsletter: user.newsletter,
             terms_version: user.terms_version,
             terms_accepted_at: user.terms_accepted_at.map(|x| x.timestamp()),
 
@@ -143,8 +140,6 @@ pub struct ApiUserFilter {
     pub mfa_enabled: Option<bool>,
     /// Filter by `email_verified`
     pub email_verified: Option<bool>,
-    /// Filter by `newsletter`
-    pub newsletter: Option<bool>,
 }
 
 impl From<ApiUserFilter> for UserFilter {
@@ -156,7 +151,6 @@ impl From<ApiUserFilter> for UserFilter {
             admin: value.admin,
             mfa_enabled: value.mfa_enabled,
             email_verified: value.email_verified,
-            newsletter: value.newsletter,
         }
     }
 }

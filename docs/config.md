@@ -65,6 +65,7 @@ Durations are strings built from `d`, `h`, `m` and `s` parts, e.g. `"30d"`, `"10
 | Property | Default | Description |
 | --- | --- | --- |
 | `name_change_rate_limit` | `"30d"` | Minimum time between two changes of a user name. |
+| `export_rate_limit` | `"10m"` | Minimum time between two data exports (`GET /auth/users/{user_id}/export`) of the same user. Administrators are exempt. |
 | `verification_code_ttl` | `"4h"` | Lifetime of an email verification code. |
 | `verification_redirect_url` | `"https://bootstrap.academy/auth/verify-account"` | Target of the link in the verification email. |
 | `password_reset_code_ttl` | `"4h"` | Lifetime of a password reset code. |
@@ -136,7 +137,7 @@ The section is always parsed, so `sitekey` and `secret` have to be set even when
 | `daemon_url` | **required** | Base url of the render daemon (`academy_render_daemon`), which renders HTML to PDF. |
 
 ## `[microservices]`
-Base urls of the microservices the backend calls over the internal API, currently to propagate account deletions (see [`ARCHITECTURE.md`](../ARCHITECTURE.md#account-deletion)).
+Base urls of the microservices the backend calls over the internal API, to propagate account deletions (see [`ARCHITECTURE.md`](../ARCHITECTURE.md#account-deletion)) and to collect the data export of a user (see [`ARCHITECTURE.md`](../ARCHITECTURE.md#data-export)).
 A microservice without a url is skipped; an empty string counts as no url.
 
 | Property | Default | Description |
@@ -145,6 +146,8 @@ A microservice without a url is skipped; an empty string counts as no url.
 | `challenges_url` | *unset* | Base url of [challenges-ms](https://github.com/Bootstrap-Academy/challenges-ms). |
 | `events_url` | *unset* | Base url of [events-ms](https://github.com/Bootstrap-Academy/events-ms). |
 | `timeout` | `"10s"` | Timeout of a single internal request. |
+| `export_timeout` | `"30s"` | Timeout of a single export request, which reads more data than a deletion. |
+| `max_export_size` | `33554432` | Maximum size in bytes of the export response of a single microservice. A larger response fails the export instead of being buffered. |
 
 ## `[finance]`
 | Property | Default | Description |

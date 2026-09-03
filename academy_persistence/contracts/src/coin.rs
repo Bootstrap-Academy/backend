@@ -40,6 +40,13 @@ pub trait CoinRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
         datetime_range: Range<DateTime<Utc>>,
     ) -> impl Future<Output = anyhow::Result<Vec<Transaction>>> + Send;
 
+    /// Return all transactions of the given user, oldest first.
+    fn get_all_transactions(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
+    ) -> impl Future<Output = anyhow::Result<Vec<Transaction>>> + Send;
+
     /// Create a new transaction.
     fn create_transaction(
         &self,
@@ -113,6 +120,17 @@ impl<Txn: Send + Sync + 'static> MockCoinRepository<Txn> {
                 mockall::predicate::eq(datetime_range),
             )
             .return_once(|_, _, _| Box::pin(std::future::ready(Ok(result))));
+        self
+    }
+
+    pub fn with_get_all_transactions(mut self, user_id: UserId, result: Vec<Transaction>) -> Self {
+        self.expect_get_all_transactions()
+            .once()
+            .with(
+                mockall::predicate::always(),
+                mockall::predicate::eq(user_id),
+            )
+            .return_once(|_, _| Box::pin(std::future::ready(Ok(result))));
         self
     }
 

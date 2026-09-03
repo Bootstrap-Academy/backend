@@ -13,10 +13,12 @@ use academy_models::{
 };
 use academy_utils::patch::PatchValue;
 use chrono::{DateTime, Utc};
+use export::UserDataExport;
 use thiserror::Error;
 use user::{UserListQuery, UserListResult};
 
 pub mod email_confirmation;
+pub mod export;
 pub mod update;
 pub mod user;
 
@@ -104,6 +106,16 @@ pub trait UserFeatureService: Send + Sync + 'static {
         token: &AccessToken,
         user_id: UserIdOrSelf,
     ) -> impl Future<Output = Result<(), UserDeleteError>> + Send;
+
+    /// Return everything the platform stores about a user.
+    ///
+    /// Requires admin privileges if not used on the authenticated user. Rate
+    /// limited per exported user, administrators are exempt.
+    fn export_user_data(
+        &self,
+        token: &AccessToken,
+        user_id: UserIdOrSelf,
+    ) -> impl Future<Output = Result<UserDataExport, UserExportError>> + Send;
 
     /// Request an email with a verification code to verify a user's email
     /// address.
@@ -274,6 +286,18 @@ pub enum UserDeleteError {
     Auth(#[from] AuthError),
     #[error("The user does not exist.")]
     NotFound,
+    #[error(transparent)]
+    Other(#[from] anyhow::Error),
+}
+
+#[derive(Debug, Error)]
+pub enum UserExportError {
+    #[error(transparent)]
+    Auth(#[from] AuthError),
+    #[error("The user does not exist.")]
+    NotFound,
+    #[error("The user has requested an export too recently.")]
+    RateLimit,
     #[error(transparent)]
     Other(#[from] anyhow::Error),
 }

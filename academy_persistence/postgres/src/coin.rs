@@ -101,6 +101,21 @@ impl CoinRepository<PostgresTransaction> for PostgresCoinRepository {
     }
 
     #[trace_instrument(skip(self, txn))]
+    async fn get_all_transactions(
+        &self,
+        txn: &mut PostgresTransaction,
+        user_id: UserId,
+    ) -> anyhow::Result<Vec<Transaction>> {
+        queries::coin::list_all_transactions()
+            .bind(txn.txn(), &user_id)
+            .iter()
+            .await?
+            .map(|row| row.map_err(Into::into).and_then(decode_transaction))
+            .try_collect()
+            .await
+    }
+
+    #[trace_instrument(skip(self, txn))]
     async fn create_transaction(
         &self,
         txn: &mut PostgresTransaction,

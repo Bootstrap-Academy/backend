@@ -375,6 +375,46 @@ impl<'c, 'a, 's, C: GenericClient>
         self.bind(client, &params.user_id, &params.start, &params.end)
     }
 }
+pub struct ListAllTransactionsStmt(&'static str, Option<tokio_postgres::Statement>);
+pub fn list_all_transactions() -> ListAllTransactionsStmt {
+    ListAllTransactionsStmt(
+        "select * from transactions where user_id=$1 order by created_at asc",
+        None,
+    )
+}
+impl ListAllTransactionsStmt {
+    pub async fn prepare<'a, C: GenericClient>(
+        mut self,
+        client: &'a C,
+    ) -> Result<Self, tokio_postgres::Error> {
+        self.1 = Some(client.prepare(self.0).await?);
+        Ok(self)
+    }
+    pub fn bind<'c, 'a, 's, C: GenericClient>(
+        &'s self,
+        client: &'c C,
+        user_id: &'a uuid::Uuid,
+    ) -> TransactionQuery<'c, 'a, 's, C, Transaction, 1> {
+        TransactionQuery {
+            client,
+            params: [user_id],
+            query: self.0,
+            cached: self.1.as_ref(),
+            extractor:
+                |row: &tokio_postgres::Row| -> Result<TransactionBorrowed, tokio_postgres::Error> {
+                    Ok(TransactionBorrowed {
+                        id: row.try_get(0)?,
+                        user_id: row.try_get(1)?,
+                        created_at: row.try_get(2)?,
+                        coins: row.try_get(3)?,
+                        description: row.try_get(4)?,
+                        include_in_credit_note: row.try_get(5)?,
+                    })
+                },
+            mapper: |it| Transaction::from(it),
+        }
+    }
+}
 pub struct CreateTransactionStmt(&'static str, Option<tokio_postgres::Statement>);
 pub fn create_transaction() -> CreateTransactionStmt {
     CreateTransactionStmt(

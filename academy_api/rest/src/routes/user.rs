@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use academy_core_user_contracts::{
     PasswordUpdate, UserAcceptTermsError, UserAcceptTermsRequest, UserCreateError,
-    UserCreateRequest, UserDeclineTermsError, UserDeleteError, UserFeatureService, UserGetError,
-    UserListError, UserRequestPasswordResetError, UserRequestVerificationEmailError,
+    UserCreateRequest, UserDeclineTermsError, UserDeleteError, UserExportError, UserFeatureService,
+    UserGetError, UserListError, UserRequestPasswordResetError, UserRequestVerificationEmailError,
     UserResetPasswordError, UserUpdateError, UserUpdateRequest, UserUpdateUserRequest,
     UserVerifyEmailError,
     user::{UserListQuery, UserListResult},
@@ -32,7 +32,7 @@ use axum::{
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use super::oauth2::RemoteAlreadyLinkedError;
+use super::{contract::TooManyRequestsError, oauth2::RemoteAlreadyLinkedError};
 use crate::{
     docs::TransformOperationExt,
     error_code,
@@ -45,6 +45,7 @@ use crate::{
         ApiPaginationSlice, OkResponse, StringOption,
         session::ApiLogin,
         user::{ApiUser, ApiUserFilter, ApiUserIdOrSelf, ApiUserPasswordOrEmpty, PathUserIdOrSelf},
+        user_export::ApiUserDataExport,
     },
 };
 
@@ -61,6 +62,10 @@ pub fn router(service: Arc<impl UserFeatureService>) -> ApiRouter<()> {
             routing::get_with(get, get_docs)
                 .patch_with(update, update_docs)
                 .delete_with(delete, delete_docs),
+        )
+        .api_route(
+            "/auth/users/{user_id}/export",
+            routing::get_with(export_data, export_data_docs),
         )
         .api_route(
             "/auth/users/{user_id}/email",
@@ -447,6 +452,42 @@ fn delete_docs(op: TransformOperation) -> TransformOperation {
     op.summary("Delete the given user.")
         .add_response::<OkResponse>(StatusCode::OK, "The user has been deleted.")
         .add_error::<UserNotFoundError>()
+        .with(auth_error_docs)
+        .with(internal_server_error_docs)
+}
+
+async fn export_data(
+    user_service: State<Arc<impl UserFeatureService>>,
+    token: ApiToken,
+    Path(PathUserIdOrSelf { user_id }): Path<PathUserIdOrSelf>,
+) -> Response {
+    match user_service
+        .export_user_data(&token.0, user_id.into())
+        .await
+    {
+        Ok(export) => Json(ApiUserDataExport::from(export)).into_response(),
+        Err(UserExportError::NotFound) => UserNotFoundError.into_response(),
+        Err(UserExportError::RateLimit) => TooManyRequestsError.into_response(),
+        Err(UserExportError::Auth(err)) => auth_error(err),
+        Err(UserExportError::Other(err)) => internal_server_error(err),
+    }
+}
+
+fn export_data_docs(op: TransformOperation) -> TransformOperation {
+    op.summary("Return all data the platform has stored about the given user.")
+        .description(
+            "Returns the account, the sessions, the linked OAuth2 accounts, the Morphcoin \
+             balance and transactions, the premium membership, the invoices, the contract \
+             declarations and the withdrawal declarations of this service, plus the learning \
+             progress, the submissions and the event bookings of each microservice under \
+             `services`. Timestamps are RFC 3339 strings, except within `account.user`, which \
+             is the same representation as `GET /auth/users/{user_id}` and uses Unix \
+             timestamps. Requires admin privileges if not used on the authenticated user. \
+             Limited to one export per user and time window; administrators are exempt.",
+        )
+        .add_response::<ApiUserDataExport>(StatusCode::OK, None)
+        .add_error::<UserNotFoundError>()
+        .add_error::<TooManyRequestsError>()
         .with(auth_error_docs)
         .with(internal_server_error_docs)
 }

@@ -1,6 +1,9 @@
 use std::slice;
 
-use academy_demo::{UUID1, UUID2, user::FOO};
+use academy_demo::{
+    UUID1, UUID2,
+    user::{BAR, FOO},
+};
 use academy_models::coin::{Balance, Transaction};
 use academy_persistence_contracts::{
     Database, Transaction as _,
@@ -9,6 +12,7 @@ use academy_persistence_contracts::{
 use academy_persistence_postgres::coin::PostgresCoinRepository;
 use academy_utils::assert_matches;
 use chrono::{TimeZone, Utc};
+use uuid::uuid;
 
 use crate::common::setup;
 
@@ -188,6 +192,52 @@ async fn transactions() {
         .await
         .unwrap();
     assert_eq!(result, [t2]);
+}
+
+/// The export reads every transaction of one user, regardless of its age.
+#[tokio::test]
+async fn all_transactions() {
+    let db = setup().await;
+    let mut txn = db.begin_transaction().await.unwrap();
+
+    let t1 = Transaction {
+        id: UUID1.into(),
+        user_id: FOO.user.id,
+        coins: 42,
+        description: Some("first".try_into().unwrap()),
+        created_at: Utc.with_ymd_and_hms(2024, 1, 2, 0, 0, 0).unwrap(),
+        include_in_credit_note: true,
+    };
+    let t2 = Transaction {
+        id: UUID2.into(),
+        user_id: FOO.user.id,
+        coins: -1337,
+        description: None,
+        created_at: Utc.with_ymd_and_hms(2026, 9, 3, 0, 0, 0).unwrap(),
+        include_in_credit_note: false,
+    };
+    let other = Transaction {
+        id: uuid!("8bb6b8e2-0f8e-4c72-9a1a-fd3ba1cc4b4d").into(),
+        user_id: BAR.user.id,
+        coins: 7,
+        description: None,
+        created_at: Utc.with_ymd_and_hms(2025, 1, 1, 0, 0, 0).unwrap(),
+        include_in_credit_note: true,
+    };
+
+    let result = REPO.get_all_transactions(&mut txn, FOO.user.id).await;
+    assert_eq!(result.unwrap(), []);
+
+    // inserted in the wrong order to cover the ordering of the query
+    REPO.create_transaction(&mut txn, &t2).await.unwrap();
+    REPO.create_transaction(&mut txn, &t1).await.unwrap();
+    REPO.create_transaction(&mut txn, &other).await.unwrap();
+
+    let result = REPO.get_all_transactions(&mut txn, FOO.user.id).await;
+    assert_eq!(result.unwrap(), [t1, t2]);
+
+    let result = REPO.get_all_transactions(&mut txn, BAR.user.id).await;
+    assert_eq!(result.unwrap(), [other]);
 }
 
 fn balance(coins: u64, withheld_coins: u64) -> Balance {

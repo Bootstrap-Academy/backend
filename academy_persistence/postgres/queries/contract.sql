@@ -10,6 +10,11 @@ select * from contract_declarations
   order by received_at desc
   limit :limit offset :offset;
 
+--! list_by_user_id : ContractDeclaration
+select * from contract_declarations
+  where user_id=:user_id
+  order by received_at;
+
 --! count (kind?)
 select count(*) from contract_declarations
   where (:kind::contract_declaration_kind is null or kind = :kind);

@@ -6,6 +6,7 @@ use academy_models::{
         ContractCancellationType, ContractDeclaration, ContractDeclarationKind, ContractKind,
     },
     pagination::PaginationSlice,
+    user::UserId,
 };
 use academy_persistence_contracts::contract::ContractRepository;
 use academy_utils::trace_instrument;
@@ -67,6 +68,21 @@ impl ContractRepository<PostgresTransaction> for PostgresContractRepository {
 
         queries::contract::list()
             .params(txn.txn(), &params)
+            .iter()
+            .await?
+            .map(|row| row.map_err(Into::into).and_then(decode_declaration))
+            .try_collect()
+            .await
+    }
+
+    #[trace_instrument(skip(self, txn))]
+    async fn list_by_user_id(
+        &self,
+        txn: &mut PostgresTransaction,
+        user_id: UserId,
+    ) -> anyhow::Result<Vec<ContractDeclaration>> {
+        queries::contract::list_by_user_id()
+            .bind(txn.txn(), &user_id)
             .iter()
             .await?
             .map(|row| row.map_err(Into::into).and_then(decode_declaration))

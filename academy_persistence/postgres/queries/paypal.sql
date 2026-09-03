@@ -10,6 +10,9 @@ select count(*) from paypal_coin_orders;
 --! list_coin_orders : CoinOrder
 select * from paypal_coin_orders;
 
+--! list_coin_orders_by_user_id : CoinOrder
+select * from paypal_coin_orders where user_id=:user_id order by created_at;
+
 --! get_coin_order : CoinOrder
 select * from paypal_coin_orders where id=:id;
 

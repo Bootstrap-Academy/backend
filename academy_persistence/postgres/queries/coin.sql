@@ -22,6 +22,9 @@ select * from transactions
     and created_at < :end
   order by created_at asc;
 
+--! list_all_transactions : Transaction
+select * from transactions where user_id=:user_id order by created_at asc;
+
 --! create_transaction (description?)
 insert into transactions (id, user_id, created_at, coins, description, include_in_credit_note)
   values (:id, :user_id, :created_at, :coins, :description, :include_in_credit_note);

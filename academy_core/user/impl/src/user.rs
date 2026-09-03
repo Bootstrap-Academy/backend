@@ -61,6 +61,8 @@ where
             enabled,
             email_verified,
             oauth2_registration,
+            terms_version,
+            age_confirmed,
         }: UserCreateCommand,
     ) -> Result<UserComposite, UserCreateError> {
         let password_hash = match password {
@@ -73,17 +75,22 @@ where
             None => None,
         };
 
+        let now = self.time.now();
+
         let user = User {
             id: self.id.generate(),
             name,
             email: Some(email),
             email_verified,
-            created_at: self.time.now(),
+            created_at: now,
             last_login: None,
             last_name_change: None,
             enabled,
             admin,
             newsletter: false,
+            terms_accepted_at: terms_version.is_some().then_some(now),
+            terms_version,
+            age_confirmed_at: age_confirmed.then_some(now),
         };
 
         let profile = UserProfile {
@@ -253,6 +260,62 @@ mod tests {
             enabled: true,
             email_verified: false,
             oauth2_registration: None,
+            terms_version: FOO.user.terms_version.clone(),
+            age_confirmed: true,
+        };
+
+        // Act
+        let result = sut.create(&mut (), command).await;
+
+        // Assert
+        assert_eq!(result.unwrap(), expected);
+    }
+
+    #[tokio::test]
+    async fn create_ok_without_consent() {
+        // Arrange
+        let user_password = UserPassword::try_new("secure password").unwrap();
+        let user_password_hash = "password_hash".to_owned();
+
+        let mut expected = make_user_composite(true, false);
+        expected.user.terms_version = None;
+        expected.user.terms_accepted_at = None;
+        expected.user.age_confirmed_at = None;
+
+        let id = MockIdService::new().with_generate(FOO.user.id);
+        let time = MockTimeService::new().with_now(FOO.user.created_at);
+        let password = MockPasswordService::new().with_hash(
+            user_password.clone().into_inner(),
+            user_password_hash.clone(),
+        );
+        let user_repo = MockUserRepository::new()
+            .with_create(
+                expected.user.clone(),
+                expected.profile.clone(),
+                Default::default(),
+                Ok(()),
+            )
+            .with_save_password_hash(FOO.user.id, user_password_hash);
+
+        let sut = UserServiceImpl {
+            id,
+            time,
+            password,
+            user_repo,
+            ..Sut::default()
+        };
+
+        let command = UserCreateCommand {
+            name: FOO.user.name.clone(),
+            display_name: FOO.profile.display_name.clone(),
+            email: FOO.user.email.clone().unwrap(),
+            password: Some(user_password),
+            admin: false,
+            enabled: true,
+            email_verified: false,
+            oauth2_registration: None,
+            terms_version: None,
+            age_confirmed: false,
         };
 
         // Act
@@ -303,6 +366,8 @@ mod tests {
                 provider_id: TEST_OAUTH2_PROVIDER_ID.clone(),
                 remote_user: FOO_OAUTH2_LINK_1.remote_user.clone(),
             }),
+            terms_version: FOO.user.terms_version.clone(),
+            age_confirmed: true,
         };
 
         // Act
@@ -350,6 +415,8 @@ mod tests {
             enabled: true,
             email_verified: false,
             oauth2_registration: None,
+            terms_version: FOO.user.terms_version.clone(),
+            age_confirmed: true,
         };
 
         // Act
@@ -397,6 +464,8 @@ mod tests {
             enabled: true,
             email_verified: false,
             oauth2_registration: None,
+            terms_version: FOO.user.terms_version.clone(),
+            age_confirmed: true,
         };
 
         // Act
@@ -447,6 +516,8 @@ mod tests {
                 provider_id: TEST_OAUTH2_PROVIDER_ID.clone(),
                 remote_user: FOO_OAUTH2_LINK_1.remote_user.clone(),
             }),
+            terms_version: FOO.user.terms_version.clone(),
+            age_confirmed: true,
         };
 
         // Act
@@ -469,6 +540,9 @@ mod tests {
                 enabled: true,
                 admin: false,
                 newsletter: false,
+                terms_version: FOO.user.terms_version.clone(),
+                terms_accepted_at: Some(FOO.user.created_at),
+                age_confirmed_at: Some(FOO.user.created_at),
             },
             profile: UserProfile {
                 display_name: FOO.profile.display_name.clone(),

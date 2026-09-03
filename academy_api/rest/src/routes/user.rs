@@ -13,9 +13,9 @@ use academy_models::{
     oauth2::OAuth2RegistrationToken,
     session::DeviceName,
     user::{
-        UserBio, UserCity, UserCountry, UserDisplayName, UserFirstName, UserInvoiceInfo,
-        UserLastName, UserName, UserPassword, UserProfilePatch, UserStreet, UserTags, UserVatId,
-        UserZipCode,
+        TermsVersion, UserBio, UserCity, UserCountry, UserDisplayName, UserFirstName,
+        UserInvoiceInfo, UserLastName, UserName, UserPassword, UserProfilePatch, UserStreet,
+        UserTags, UserVatId, UserZipCode,
     },
 };
 use aide::{
@@ -154,6 +154,10 @@ struct CreateRequest {
     email: EmailAddress,
     password: StringOption<UserPassword>,
     oauth_register_token: StringOption<OAuth2RegistrationToken>,
+    /// Version of the terms and conditions the user accepts.
+    terms_version: TermsVersion,
+    /// Confirmation that the user meets the minimum age. Must be `true`.
+    age_confirmed: bool,
     /// reCAPTCHA response. Only evaluated if reCAPTCHA is enabled.
     #[serde(default)]
     recaptcha_response: StringOption<RecaptchaResponse>,
@@ -168,6 +172,8 @@ async fn create(
         email,
         password,
         oauth_register_token,
+        terms_version,
+        age_confirmed,
         recaptcha_response,
     }): Json<CreateRequest>,
 ) -> Response {
@@ -179,6 +185,8 @@ async fn create(
                 email,
                 password: password.into(),
                 oauth2_registration_token: oauth_register_token.into(),
+                terms_version,
+                age_confirmed,
             },
             user_agent.0.map(DeviceName::from_string_truncated),
             recaptcha_response.into(),
@@ -190,6 +198,7 @@ async fn create(
         Err(UserCreateError::EmailConflict) => EmailAlreadyExistsError.into_response(),
         Err(UserCreateError::Recaptcha) => RecaptchaFailedError.into_response(),
         Err(UserCreateError::NoLoginMethod) => NoLoginMethodError.into_response(),
+        Err(UserCreateError::AgeNotConfirmed) => AgeNotConfirmedError.into_response(),
         Err(UserCreateError::InvalidOAuthRegistrationToken) => {
             InvalidOAuthTokenError.into_response()
         }
@@ -200,12 +209,17 @@ async fn create(
 
 fn create_docs(op: TransformOperation) -> TransformOperation {
     op.summary("Create a new user account.")
-        .description("Also creates a session for the new user.")
+        .description(
+            "Also creates a session for the new user. The request must contain the version of \
+             the terms and conditions the user accepts and confirm that the user meets the \
+             minimum age.",
+        )
         .add_response::<ApiLogin>(StatusCode::OK, None)
         .add_error::<UserAlreadyExistsError>()
         .add_error::<EmailAlreadyExistsError>()
         .add_error::<RecaptchaFailedError>()
         .add_error::<NoLoginMethodError>()
+        .add_error::<AgeNotConfirmedError>()
         .add_error::<InvalidOAuthTokenError>()
         .add_error::<RemoteAlreadyLinkedError>()
         .with(internal_server_error_docs)
@@ -532,6 +546,8 @@ error_code! {
     EmailAlreadyExistsError(CONFLICT, "Email already exists");
     /// No login method was provided.
     NoLoginMethodError(PRECONDITION_FAILED, "No login method");
+    /// The user did not confirm to meet the minimum age.
+    AgeNotConfirmedError(PRECONDITION_FAILED, "Age not confirmed");
     /// The OAuth2 registration token is invalid or has expired.
     InvalidOAuthTokenError(UNAUTHORIZED, "Invalid OAuth token");
     /// The vat id is invalid.
@@ -566,6 +582,20 @@ mod tests {
         ] {
             let required = schema["required"].as_array().unwrap();
             assert!(!required.iter().any(|field| field == "recaptcha_response"));
+        }
+    }
+
+    /// The consent fields must be advertised as required so that clients know
+    /// they have to be sent.
+    #[test]
+    fn consent_fields_are_required() {
+        let schema = serde_json::to_value(schemars::schema_for!(CreateRequest)).unwrap();
+        let required = schema["required"].as_array().unwrap();
+        for field in ["terms_version", "age_confirmed"] {
+            assert!(
+                required.iter().any(|x| x == field),
+                "{field} is not required"
+            );
         }
     }
 }

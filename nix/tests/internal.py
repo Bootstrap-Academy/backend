@@ -21,6 +21,8 @@ FOO = {
     "description": "blubb",
     "tags": ["foo", "bar", "baz"],
     "newsletter": True,
+    "terms_version": "2024-03",
+    "terms_accepted_at": 1710423462,
     "business": True,
     "first_name": "x",
     "last_name": "y",

@@ -89,6 +89,8 @@ resp = c.post(
         "display_name": "b",
         "email": "b@b",
         "oauth_register_token": register_token,
+        "terms_version": "2026-09",
+        "age_confirmed": True,
         "recaptcha_response": "success-1.0",
     },
 )

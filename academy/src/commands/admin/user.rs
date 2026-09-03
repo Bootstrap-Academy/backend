@@ -76,6 +76,8 @@ async fn create(
                 enabled,
                 email_verified,
                 oauth2_registration: None,
+                terms_version: None,
+                age_confirmed: false,
             },
         )
         .await

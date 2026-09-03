@@ -7,8 +7,8 @@ use academy_models::{
     oauth2::OAuth2RegistrationToken,
     session::DeviceName,
     user::{
-        UserComposite, UserDisplayName, UserIdOrSelf, UserInvoiceInfo, UserName, UserPassword,
-        UserProfilePatch,
+        TermsVersion, UserComposite, UserDisplayName, UserIdOrSelf, UserInvoiceInfo, UserName,
+        UserPassword, UserProfilePatch,
     },
 };
 use academy_utils::patch::PatchValue;
@@ -40,6 +40,9 @@ pub trait UserFeatureService: Send + Sync + 'static {
     ) -> impl Future<Output = Result<UserComposite, UserGetError>> + Send;
 
     /// Create a new user and logs them in.
+    ///
+    /// The request must contain the version of the terms and conditions the
+    /// user accepted and confirm that the user meets the minimum age.
     fn create_user(
         &self,
         request: UserCreateRequest,
@@ -148,6 +151,10 @@ pub struct UserCreateRequest {
     pub email: EmailAddress,
     pub password: Option<UserPassword>,
     pub oauth2_registration_token: Option<OAuth2RegistrationToken>,
+    /// Version of the terms and conditions the user accepted.
+    pub terms_version: TermsVersion,
+    /// Whether the user confirmed to meet the minimum age. Must be `true`.
+    pub age_confirmed: bool,
 }
 
 #[derive(Debug, Error)]
@@ -160,6 +167,8 @@ pub enum UserCreateError {
     Recaptcha,
     #[error("No login method has been provided.")]
     NoLoginMethod,
+    #[error("The user did not confirm to meet the minimum age.")]
+    AgeNotConfirmed,
     #[error("The oauth registration token is invalid or has expired.")]
     InvalidOAuthRegistrationToken,
     #[error("The remote user has already been linked.")]

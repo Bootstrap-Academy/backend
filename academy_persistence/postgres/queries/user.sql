@@ -1,4 +1,4 @@
---: UserComposite (email?, last_login?, last_name_change?, business?, first_name?, last_name?, street?, zip_code?, city?, country?, vat_id?)
+--: UserComposite (email?, last_login?, last_name_change?, terms_version?, terms_accepted_at?, age_confirmed_at?, business?, first_name?, last_name?, street?, zip_code?, city?, country?, vat_id?)
 
 --! count_composites (name?, email?, enabled?, admin?, mfa_enabled?, email_verified?, newsletter?)
 select count(*) from user_composites
@@ -44,9 +44,9 @@ with cte as (
 )
 select * from user_composites inner join cte using (id);
 
---! create (email?, last_login?, last_name_change?)
-insert into users (id, name, email, email_verified, created_at, last_login, last_name_change, enabled, admin, newsletter)
-  values (:id, :name, :email, :email_verified, :created_at, :last_login, :last_name_change, :enabled, :admin, :newsletter);
+--! create (email?, last_login?, last_name_change?, terms_version?, terms_accepted_at?, age_confirmed_at?)
+insert into users (id, name, email, email_verified, created_at, last_login, last_name_change, enabled, admin, newsletter, terms_version, terms_accepted_at, age_confirmed_at)
+  values (:id, :name, :email, :email_verified, :created_at, :last_login, :last_name_change, :enabled, :admin, :newsletter, :terms_version, :terms_accepted_at, :age_confirmed_at);
 
 --! create_profile
 insert into user_profiles (user_id, display_name, bio, tags)

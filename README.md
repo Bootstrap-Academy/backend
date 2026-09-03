@@ -34,6 +34,9 @@ For development in [VSCode](https://code.visualstudio.com/)/[VSCodium](https://v
 - `psql`: Connect to the local Postgres database
 - `valkey-cli`: Connect to the local Valkey cache
 - `cargo run -- --help`: List all commands provided by the backend CLI
+- `cargo run -- check-config -v`: Validate the configuration and print it
+- `cargo run -- task prune-database`: Delete sessions that have not been refreshed within `session.refresh_token_ttl`
+- `cargo run -- task refresh-premium`: Renew the premium memberships whose period has ended (always as a monthly period, see [`ARCHITECTURE.md`](ARCHITECTURE.md#scheduled-tasks))
 - `just`: List all recipes provided by the `justfile`
 - `generate`: Regenerate `Cargo.nix`. Run this command after changing any `Cargo.toml` or `Cargo.lock` file.
 - `generate-clorinde`: Regenerate `academy_persistence/postgres/clorinde`. Run this command after changing the database schema or the queries in `academy_persistence/postgres/queries`.
@@ -41,6 +44,10 @@ For development in [VSCode](https://code.visualstudio.com/)/[VSCodium](https://v
 ### Services
 - The web interface of [smtp4dev](https://github.com/rnwood/smtp4dev) is available on http://localhost:5000/
 - Various services for mocking external APIs are running on ports starting at 8001. See the logs of the `testing-*` services in `devenv up` for details.
+
+## Configuration
+The backend reads one or more TOML files listed in the `ACADEMY_CONFIG` environment variable; [`config.toml`](config.toml) holds the defaults and is always loaded.
+Every property, its default and whether it has to be set by the deployment are documented in [`docs/config.md`](docs/config.md).
 
 ## Tests
 This repository contains three different kinds of tests: Unit tests, integration tests and system tests.

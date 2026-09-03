@@ -6,11 +6,13 @@ use academy_core_premium_contracts::{
     PremiumUpdateSubscriptionError, plan::PremiumPlanService, premium::PremiumService,
     purchase::PremiumPurchaseService,
 };
+use academy_core_withdrawal_contracts::consent::WithdrawalConsentService;
 use academy_di::Build;
 use academy_models::{
     auth::AccessToken,
     premium::{PremiumPlan, PremiumPlanDetails, PremiumStatus},
     user::UserIdOrSelf,
+    withdrawal::{WithdrawalConsentDeclaration, WithdrawalSubject},
 };
 use academy_persistence_contracts::{
     Database, Transaction, premium::PremiumRepository, user::UserRepository,
@@ -34,6 +36,7 @@ pub struct PremiumFeatureServiceImpl<
     PremiumPurchase,
     UserRepo,
     PremiumRepo,
+    WithdrawalConsentS,
 > {
     db: Db,
     auth: Auth,
@@ -42,6 +45,7 @@ pub struct PremiumFeatureServiceImpl<
     premium_purchase: PremiumPurchase,
     user_repo: UserRepo,
     premium_repo: PremiumRepo,
+    withdrawal_consent: WithdrawalConsentS,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -50,7 +54,8 @@ pub struct PremiumFeatureConfig {
     pub yearly_price: u64,
 }
 
-impl<Db, Auth, PremiumPlanS, PremiumS, PremiumPurchase, UserRepo, PremiumRepo> PremiumFeatureService
+impl<Db, Auth, PremiumPlanS, PremiumS, PremiumPurchase, UserRepo, PremiumRepo, WithdrawalConsentS>
+    PremiumFeatureService
     for PremiumFeatureServiceImpl<
         Db,
         Auth,
@@ -59,6 +64,7 @@ impl<Db, Auth, PremiumPlanS, PremiumS, PremiumPurchase, UserRepo, PremiumRepo> P
         PremiumPurchase,
         UserRepo,
         PremiumRepo,
+        WithdrawalConsentS,
     >
 where
     Db: Database,
@@ -68,6 +74,7 @@ where
     PremiumPurchase: PremiumPurchaseService<Db::Transaction>,
     UserRepo: UserRepository<Db::Transaction>,
     PremiumRepo: PremiumRepository<Db::Transaction>,
+    WithdrawalConsentS: WithdrawalConsentService<Db::Transaction>,
 {
     #[trace_instrument(skip(self))]
     fn get_plans(&self) -> HashMap<PremiumPlan, PremiumPlanDetails> {
@@ -118,7 +125,15 @@ where
         token: &AccessToken,
         plan: PremiumPlan,
         subscribe: bool,
+        declaration: WithdrawalConsentDeclaration,
     ) -> Result<PremiumStatus, PremiumPurchaseError> {
+        // Premium is a service, so the order is only accepted if the consumer
+        // gave the declarations under § 356 Abs. 5 Nr. 2 BGB.
+        let withdrawal_text_version = declaration
+            .text_version()
+            .ok_or(PremiumPurchaseError::WithdrawalConsentMissing)?
+            .clone();
+
         let auth = self.auth.authenticate(token).await.map_auth_err()?;
         let user_id = auth.user_id;
         auth.ensure_email_verified().map_auth_err()?;
@@ -136,6 +151,16 @@ where
                     E::Other(err) => err.into(),
                 }
             })?;
+
+        self.withdrawal_consent
+            .record(
+                &mut txn,
+                user_id,
+                WithdrawalSubject::Premium,
+                None,
+                withdrawal_text_version,
+            )
+            .await?;
 
         let subscription = if subscribe {
             self.premium_repo

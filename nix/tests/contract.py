@@ -41,7 +41,10 @@ login = create_verified_account("dieter", "dieter@example.com", "supersecurepass
 user_id = login["user"]["id"]
 assert subprocess.getstatusoutput(f"academy admin coin add {user_id} 5000")[0] == 0
 
-resp = c.post("/shop/premium", json={"plan": "MONTHLY", "autopay": True})
+resp = c.post(
+    "/shop/premium",
+    json={"plan": "MONTHLY", "autopay": True, "withdrawal_consent": True, "withdrawal_text_version": "2026-09"},
+)
 assert resp.status_code == 200
 premium = resp.json()
 assert premium["premium"] is True

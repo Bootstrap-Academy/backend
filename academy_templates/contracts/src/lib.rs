@@ -126,6 +126,21 @@ pub struct PurchaseConfirmationTemplate {
     pub vat_total: Decimal,
     #[serde(serialize_with = "rounded_2")]
     pub gross_total: Decimal,
+    /// The declarations the consumer gave at checkout, repeated in the
+    /// confirmation of the contract (§ 312f Abs. 3 BGB).
+    pub withdrawal_consent: Option<WithdrawalConsentConfirmation>,
+}
+
+/// The declarations under § 356 Abs. 5 Nr. 2 / Abs. 6 Nr. 2 BGB as they are
+/// repeated in a confirmation email.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct WithdrawalConsentConfirmation {
+    /// Wording of the declarations, verbatim.
+    pub text: String,
+    /// Version of the withdrawal instruction the wording was taken from.
+    pub version: String,
+    /// Time at which the declarations were given, already formatted.
+    pub timestamp: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]

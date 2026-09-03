@@ -17,12 +17,13 @@ use axum::{
 use schemars::JsonSchema;
 use serde::Deserialize;
 
+use super::withdrawal::WithdrawalConsentMissingError;
 use crate::{
     docs::TransformOperationExt,
     error_code,
     errors::{auth_error, auth_error_docs, internal_server_error, internal_server_error_docs},
     extractors::auth::ApiToken,
-    models::coin::ApiBalance,
+    models::{coin::ApiBalance, withdrawal::ApiWithdrawalConsentDeclaration},
 };
 
 pub const TAG: &str = "PayPal";
@@ -58,16 +59,24 @@ fn get_client_id_docs(op: TransformOperation) -> TransformOperation {
 struct CreateCoinOrderRequest {
     /// The number of Morphcoins to buy.
     coins: u64,
+    #[serde(flatten)]
+    declaration: ApiWithdrawalConsentDeclaration,
 }
 
 async fn create_coin_order(
     service: State<Arc<impl PaypalFeatureService>>,
     token: ApiToken,
-    Json(CreateCoinOrderRequest { coins }): Json<CreateCoinOrderRequest>,
+    Json(CreateCoinOrderRequest { coins, declaration }): Json<CreateCoinOrderRequest>,
 ) -> Response {
-    match service.create_coin_order(&token.0, coins).await {
+    match service
+        .create_coin_order(&token.0, coins, declaration.into())
+        .await
+    {
         Ok(order_id) => Json(order_id).into_response(),
         Err(PaypalCreateCoinOrderError::InvalidAmount(_)) => InvalidAmountError.into_response(),
+        Err(PaypalCreateCoinOrderError::WithdrawalConsentMissing) => {
+            WithdrawalConsentMissingError.into_response()
+        }
         Err(PaypalCreateCoinOrderError::IncompleteInvoiceInfo) => {
             UserInfoMissingError.into_response()
         }
@@ -83,6 +92,7 @@ fn create_coin_order_docs(op: TransformOperation) -> TransformOperation {
     op.summary("Create a new PayPal order to purchase the specified number of Morphcoins.")
         .add_response::<String>(StatusCode::OK, "The order has been created.")
         .add_error::<InvalidAmountError>()
+        .add_error::<WithdrawalConsentMissingError>()
         .add_error::<UserInfoMissingError>()
         .add_error::<CouldNotCreateOrderError>()
         .with(auth_error_docs)

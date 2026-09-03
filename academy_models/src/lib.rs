@@ -20,6 +20,7 @@ pub mod premium;
 pub mod session;
 pub mod url;
 pub mod user;
+pub mod withdrawal;
 
 #[derive(Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Sha256Hash(#[serde(with = "academy_utils::serde::hex")] pub [u8; 32]);

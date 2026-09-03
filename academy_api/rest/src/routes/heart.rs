@@ -11,8 +11,12 @@ use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
 };
+use schemars::JsonSchema;
+use serde::Deserialize;
 
-use super::{coin::NotEnoughCoinsError, user::UserNotFoundError};
+use super::{
+    coin::NotEnoughCoinsError, user::UserNotFoundError, withdrawal::WithdrawalConsentMissingError,
+};
 use crate::{
     docs::TransformOperationExt,
     errors::{auth_error, auth_error_docs, internal_server_error, internal_server_error_docs},
@@ -20,6 +24,7 @@ use crate::{
     models::{
         heart::{ApiHeartConfig, ApiHearts},
         user::PathUserIdOrSelf,
+        withdrawal::ApiWithdrawalConsentDeclaration,
     },
 };
 
@@ -67,10 +72,23 @@ fn get_docs(op: TransformOperation) -> TransformOperation {
         .with(internal_server_error_docs)
 }
 
-async fn refill(service: State<Arc<impl HeartFeatureService>>, token: ApiToken) -> Response {
-    match service.refill(&token.0).await {
+#[derive(Deserialize, JsonSchema)]
+struct RefillRequest {
+    #[serde(flatten)]
+    declaration: ApiWithdrawalConsentDeclaration,
+}
+
+async fn refill(
+    service: State<Arc<impl HeartFeatureService>>,
+    token: ApiToken,
+    Json(RefillRequest { declaration }): Json<RefillRequest>,
+) -> Response {
+    match service.refill(&token.0, declaration.into()).await {
         Ok(hearts) => Json(ApiHearts::from(hearts)).into_response(),
         Err(HeartRefillError::NotEnoughCoins) => NotEnoughCoinsError.into_response(),
+        Err(HeartRefillError::WithdrawalConsentMissing) => {
+            WithdrawalConsentMissingError.into_response()
+        }
         Err(HeartRefillError::Auth(err)) => auth_error(err),
         Err(HeartRefillError::Other(err)) => internal_server_error(err),
     }
@@ -80,6 +98,7 @@ fn refill_docs(op: TransformOperation) -> TransformOperation {
     op.summary("Manually refill hearts to maximum.")
         .add_response::<ApiHearts>(StatusCode::OK, None)
         .add_error::<NotEnoughCoinsError>()
+        .add_error::<WithdrawalConsentMissingError>()
         .with(auth_error_docs)
         .with(internal_server_error_docs)
 }

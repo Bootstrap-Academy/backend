@@ -14,11 +14,16 @@ use academy_email_contracts::template::TemplateEmailService;
 use academy_extern_contracts::paypal::{
     PaypalApiService, PaypalCaptureOrderError, PaypalCreateOrderError,
 };
-use academy_models::{auth::AccessToken, coin::Balance, paypal::PaypalOrderId};
+use academy_models::{
+    auth::AccessToken,
+    coin::Balance,
+    paypal::{PaypalCoinOrder, PaypalOrderId},
+    withdrawal::{WithdrawalConsentDeclaration, WithdrawalSubject},
+};
 use academy_persistence_contracts::{
     Database, Transaction, paypal::PaypalRepository, user::UserRepository,
 };
-use academy_templates_contracts::PurchaseConfirmationTemplate;
+use academy_templates_contracts::{PurchaseConfirmationTemplate, WithdrawalConsentConfirmation};
 use academy_utils::trace_instrument;
 use anyhow::{Context, anyhow};
 
@@ -100,12 +105,20 @@ where
         &self,
         token: &AccessToken,
         coins: u64,
+        declaration: WithdrawalConsentDeclaration,
     ) -> Result<PaypalOrderId, PaypalCreateCoinOrderError> {
         if !self.config.purchase_range.contains(&coins) {
             return Err(PaypalCreateCoinOrderError::InvalidAmount(
                 self.config.purchase_range.clone(),
             ));
         }
+
+        // Morphcoins are digital content, so the order is only accepted if the
+        // consumer gave the declarations under § 356 Abs. 6 Nr. 2 BGB.
+        let withdrawal_text_version = declaration
+            .text_version()
+            .ok_or(PaypalCreateCoinOrderError::WithdrawalConsentMissing)?
+            .clone();
 
         let auth = self.auth.authenticate(token).await.map_auth_err()?;
         auth.ensure_email_verified().map_auth_err()?;
@@ -133,7 +146,13 @@ where
 
         let order = self
             .paypal_coin_order
-            .create(&mut txn, order_id, auth.user_id, coins)
+            .create(
+                &mut txn,
+                order_id,
+                auth.user_id,
+                coins,
+                withdrawal_text_version,
+            )
             .await?;
 
         txn.commit().await?;
@@ -179,6 +198,7 @@ where
 
         let invoice_number = order.invoice_number;
         let coins = order.coins;
+        let withdrawal_consent = withdrawal_consent_confirmation(&order);
         let new_balance = self.paypal_coin_order.capture(&mut txn, order).await?;
 
         if let Some(email) = user_composite.user.email {
@@ -206,6 +226,7 @@ where
                         vat_percent: self.finance_coin.vat_percent(),
                         vat_total,
                         gross_total,
+                        withdrawal_consent,
                     },
                     invoice_pdf,
                 )
@@ -217,4 +238,19 @@ where
 
         Ok(new_balance)
     }
+}
+
+/// The declarations recorded on the order, for the confirmation of the
+/// contract (§ 312f Abs. 3 BGB).
+fn withdrawal_consent_confirmation(
+    order: &PaypalCoinOrder,
+) -> Option<WithdrawalConsentConfirmation> {
+    let consented_at = order.withdrawal_consent_at?;
+    let text_version = order.withdrawal_text_version.as_ref()?;
+
+    Some(WithdrawalConsentConfirmation {
+        text: WithdrawalSubject::Coins.consent_text().into(),
+        version: text_version.to_string(),
+        timestamp: consented_at.format("%d.%m.%Y, %H:%M Uhr (UTC)").to_string(),
+    })
 }

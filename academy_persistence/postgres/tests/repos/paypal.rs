@@ -19,6 +19,8 @@ async fn get_create_capture() {
         captured_at: None,
         coins: 1337,
         invoice_number: 42,
+        withdrawal_consent_at: Some(FOO.user.created_at),
+        withdrawal_text_version: Some("2026-09".try_into().unwrap()),
     };
 
     let mut txn = db.begin_transaction().await.unwrap();

@@ -10,11 +10,19 @@ use academy_extern_contracts::paypal::MockPaypalApiService;
 use academy_models::{
     auth::{AuthError, AuthenticateError, AuthorizeError},
     paypal::PaypalCoinOrder,
+    withdrawal::WithdrawalConsentDeclaration,
 };
 use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
 use academy_utils::{Apply, assert_matches};
 
 use crate::{PaypalFeatureServiceImpl, tests::Sut};
+
+fn declaration() -> WithdrawalConsentDeclaration {
+    WithdrawalConsentDeclaration {
+        given: true,
+        text_version: Some("2026-09".try_into().unwrap()),
+    }
+}
 
 #[tokio::test]
 async fn ok() {
@@ -26,6 +34,8 @@ async fn ok() {
         captured_at: None,
         coins: 1337,
         invoice_number: 42,
+        withdrawal_consent_at: Some(FOO.user.created_at),
+        withdrawal_text_version: Some("2026-09".try_into().unwrap()),
     };
 
     let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
@@ -36,7 +46,8 @@ async fn ok() {
 
     let paypal_api = MockPaypalApiService::new().with_create_order(1337, Some(expected.id.clone()));
 
-    let paypal_coin_order = MockPaypalCoinOrderService::new().with_create(expected.clone());
+    let paypal_coin_order = MockPaypalCoinOrderService::new()
+        .with_create("2026-09".try_into().unwrap(), expected.clone());
 
     let sut = PaypalFeatureServiceImpl {
         auth,
@@ -48,7 +59,9 @@ async fn ok() {
     };
 
     // Act
-    let result = sut.create_coin_order(&"token".into(), 1337).await;
+    let result = sut
+        .create_coin_order(&"token".into(), 1337, declaration())
+        .await;
 
     // Assert
     assert_eq!(result.unwrap(), expected.id);
@@ -60,7 +73,9 @@ async fn amount_too_low() {
     let sut = Sut::default();
 
     // Act
-    let result = sut.create_coin_order(&"token".into(), 4).await;
+    let result = sut
+        .create_coin_order(&"token".into(), 4, declaration())
+        .await;
 
     // Assert
     assert_matches!(
@@ -76,7 +91,9 @@ async fn amount_too_high() {
     let sut = Sut::default();
 
     // Act
-    let result = sut.create_coin_order(&"token".into(), 5001).await;
+    let result = sut
+        .create_coin_order(&"token".into(), 5001, declaration())
+        .await;
 
     // Assert
     assert_matches!(
@@ -97,7 +114,9 @@ async fn unauthenticated() {
     };
 
     // Act
-    let result = sut.create_coin_order(&"token".into(), 1337).await;
+    let result = sut
+        .create_coin_order(&"token".into(), 1337, declaration())
+        .await;
 
     // Assert
     assert_matches!(
@@ -119,7 +138,9 @@ async fn unauthorized() {
     };
 
     // Act
-    let result = sut.create_coin_order(&"token".into(), 1337).await;
+    let result = sut
+        .create_coin_order(&"token".into(), 1337, declaration())
+        .await;
 
     // Assert
     assert_matches!(
@@ -150,7 +171,9 @@ async fn incomplete_invoice_info() {
     };
 
     // Act
-    let result = sut.create_coin_order(&"token".into(), 1337).await;
+    let result = sut
+        .create_coin_order(&"token".into(), 1337, declaration())
+        .await;
 
     // Assert
     assert_matches!(
@@ -179,8 +202,58 @@ async fn create_order_failure() {
     };
 
     // Act
-    let result = sut.create_coin_order(&"token".into(), 1337).await;
+    let result = sut
+        .create_coin_order(&"token".into(), 1337, declaration())
+        .await;
 
     // Assert
     assert_matches!(result, Err(PaypalCreateCoinOrderError::CreateOrderFailure));
+}
+
+#[tokio::test]
+async fn withdrawal_consent_missing() {
+    // Arrange
+    let sut = Sut::default();
+
+    // Act
+    let result = sut
+        .create_coin_order(
+            &"token".into(),
+            1337,
+            WithdrawalConsentDeclaration {
+                given: false,
+                ..declaration()
+            },
+        )
+        .await;
+
+    // Assert
+    assert_matches!(
+        result,
+        Err(PaypalCreateCoinOrderError::WithdrawalConsentMissing)
+    );
+}
+
+#[tokio::test]
+async fn withdrawal_text_version_missing() {
+    // Arrange
+    let sut = Sut::default();
+
+    // Act
+    let result = sut
+        .create_coin_order(
+            &"token".into(),
+            1337,
+            WithdrawalConsentDeclaration {
+                given: true,
+                text_version: None,
+            },
+        )
+        .await;
+
+    // Assert
+    assert_matches!(
+        result,
+        Err(PaypalCreateCoinOrderError::WithdrawalConsentMissing)
+    );
 }

@@ -16,11 +16,12 @@ use academy_models::{
     auth::{AuthError, AuthenticateError, AuthorizeError},
     coin::Balance,
     paypal::{PaypalCoinOrder, PaypalOrderId},
+    withdrawal::WITHDRAWAL_CONSENT_DIGITAL_CONTENT,
 };
 use academy_persistence_contracts::{
     MockDatabase, paypal::MockPaypalRepository, user::MockUserRepository,
 };
-use academy_templates_contracts::PurchaseConfirmationTemplate;
+use academy_templates_contracts::{PurchaseConfirmationTemplate, WithdrawalConsentConfirmation};
 use academy_utils::{Apply, assert_matches};
 use rust_decimal_macros::dec;
 
@@ -36,6 +37,8 @@ async fn ok() {
         captured_at: None,
         coins: 1337,
         invoice_number: 42,
+        withdrawal_consent_at: Some(FOO.user.created_at),
+        withdrawal_text_version: Some("2026-09".try_into().unwrap()),
     };
 
     let expected = Balance {
@@ -84,6 +87,15 @@ async fn ok() {
             vat_percent: dec!(19),
             vat_total: prices.vat_total,
             gross_total: prices.gross_total,
+            withdrawal_consent: Some(WithdrawalConsentConfirmation {
+                text: WITHDRAWAL_CONSENT_DIGITAL_CONTENT.into(),
+                version: "2026-09".into(),
+                timestamp: FOO
+                    .user
+                    .created_at
+                    .format("%d.%m.%Y, %H:%M Uhr (UTC)")
+                    .to_string(),
+            }),
         },
         pdf.clone(),
         true,
@@ -192,6 +204,8 @@ async fn different_user() {
         captured_at: None,
         coins: 1337,
         invoice_number: 42,
+        withdrawal_consent_at: Some(FOO.user.created_at),
+        withdrawal_text_version: Some("2026-09".try_into().unwrap()),
     };
 
     let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
@@ -225,6 +239,8 @@ async fn already_captured() {
         captured_at: Some(FOO.user.last_login.unwrap()),
         coins: 1337,
         invoice_number: 42,
+        withdrawal_consent_at: Some(FOO.user.created_at),
+        withdrawal_text_version: Some("2026-09".try_into().unwrap()),
     };
 
     let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
@@ -258,6 +274,8 @@ async fn incomplete_invoice_info() {
         captured_at: None,
         coins: 1337,
         invoice_number: 42,
+        withdrawal_consent_at: Some(FOO.user.created_at),
+        withdrawal_text_version: Some("2026-09".try_into().unwrap()),
     };
 
     let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
@@ -300,6 +318,8 @@ async fn capture_order_failure() {
         captured_at: None,
         coins: 1337,
         invoice_number: 42,
+        withdrawal_consent_at: Some(FOO.user.created_at),
+        withdrawal_text_version: Some("2026-09".try_into().unwrap()),
     };
 
     let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));

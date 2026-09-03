@@ -12,3 +12,4 @@ pub mod paypal;
 pub mod premium;
 pub mod session;
 pub mod user;
+pub mod withdrawal;

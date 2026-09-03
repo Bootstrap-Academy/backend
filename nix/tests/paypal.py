@@ -17,8 +17,21 @@ assert resp.json() == "test-client"
 
 
 # create order
-## invoice info missing
+## withdrawal declarations missing
 resp = c.post("/shop/coins/paypal/orders", json={"coins": 1337})
+assert resp.status_code == 412
+assert resp.json() == {"detail": "Withdrawal consent missing"}
+
+resp = c.post(
+    "/shop/coins/paypal/orders", json={"coins": 1337, "withdrawal_consent": False, "withdrawal_text_version": "2026-09"}
+)
+assert resp.status_code == 412
+assert resp.json() == {"detail": "Withdrawal consent missing"}
+
+## invoice info missing
+resp = c.post(
+    "/shop/coins/paypal/orders", json={"coins": 1337, "withdrawal_consent": True, "withdrawal_text_version": "2026-09"}
+)
 assert resp.status_code == 412
 assert resp.json() == {"detail": "User Infos missing"}
 
@@ -29,7 +42,9 @@ assert resp.status_code == 200
 assert resp.json()["can_buy_coins"] is True
 
 ## success
-resp = c.post("/shop/coins/paypal/orders", json={"coins": 1337})
+resp = c.post(
+    "/shop/coins/paypal/orders", json={"coins": 1337, "withdrawal_consent": True, "withdrawal_text_version": "2026-09"}
+)
 assert resp.status_code == 200
 order_id = resp.json()
 
@@ -69,6 +84,14 @@ assert decode_mail_header(mail["Subject"]) == "Kaufbestätigung - Bootstrap Acad
 payload, invoice, terms, revocation_policy = get_mail_parts(mail)
 content = decode_mail_part(payload).decode()
 assert "Du hast erfolgreich 1337 MorphCoins gekauft! Das entspricht 13.37€ inklusive 19% MwSt. von 2.13€." in content
+assert "Deine Erklärungen zum Widerrufsrecht bei dieser Bestellung" in content
+assert (
+    "Ich stimme ausdrücklich zu, dass Sie vor Ablauf der Widerrufsfrist mit der Ausführung des "
+    "Vertrags beginnen. Mir ist bekannt, dass mein Widerrufsrecht mit Beginn der Ausführung des "
+    "Vertrags erlischt." in content
+)
+assert "Fassung der Widerrufsbelehrung 2026-09" in content
+assert "https://bootstrap.academy/docs/right-of-withdrawal" in content
 
 assert invoice["Content-Disposition"] == 'attachment; filename="rechnung.pdf"'
 assert invoice["Content-Type"] == "application/pdf"

@@ -21,6 +21,27 @@ pub trait JwtService: Send + Sync + 'static {
         &self,
         jwt: &str,
     ) -> Result<T, VerifyJwtError<T>>;
+
+    /// Like [`JwtService::sign`], but signed with the secret that is configured
+    /// for `key` instead of the default JWT secret.
+    ///
+    /// Keys without their own secret fall back to the default JWT secret.
+    fn sign_with_key<T: Serialize + Debug + 'static>(
+        &self,
+        key: &str,
+        data: T,
+        ttl: Duration,
+    ) -> anyhow::Result<String>;
+
+    /// Like [`JwtService::verify`], but verified with the secret that is
+    /// configured for `key` instead of the default JWT secret.
+    ///
+    /// Keys without their own secret fall back to the default JWT secret.
+    fn verify_with_key<T: DeserializeOwned + Debug + 'static>(
+        &self,
+        key: &str,
+        jwt: &str,
+    ) -> Result<T, VerifyJwtError<T>>;
 }
 
 #[derive(Debug, Error)]
@@ -55,6 +76,37 @@ impl MockJwtService {
             .once()
             .with(mockall::predicate::eq(jwt))
             .return_once(|_| result);
+        self
+    }
+
+    pub fn with_sign_with_key<T: Debug + PartialEq + Serialize + Send + 'static>(
+        mut self,
+        key: &'static str,
+        data: T,
+        ttl: Duration,
+        result: anyhow::Result<String>,
+    ) -> Self {
+        self.expect_sign_with_key()
+            .once()
+            .with(
+                mockall::predicate::eq(key),
+                mockall::predicate::eq(data),
+                mockall::predicate::eq(ttl),
+            )
+            .return_once(|_, _, _| result);
+        self
+    }
+
+    pub fn with_verify_with_key<T: DeserializeOwned + Debug + Send + 'static>(
+        mut self,
+        key: &'static str,
+        jwt: String,
+        result: Result<T, VerifyJwtError<T>>,
+    ) -> Self {
+        self.expect_verify_with_key()
+            .once()
+            .with(mockall::predicate::eq(key), mockall::predicate::eq(jwt))
+            .return_once(|_, _| result);
         self
     }
 }

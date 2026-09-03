@@ -31,6 +31,16 @@ download_token_ttl = "10m"
 [internal]
 jwt_ttl = "10s"
 
+# Secrets for the internal service tokens, one per audience. An audience which
+# is missing here falls back to `jwt.secret`, so the shared secret stays in use
+# until a dedicated one is deployed to every sender and to the receiver.
+[internal.secrets]
+# auth = ""
+# shop = ""
+# skills = ""
+# challenges = ""
+# events = ""
+
 [health]
 database_cache_ttl = "10s"
 cache_cache_ttl = "10s"

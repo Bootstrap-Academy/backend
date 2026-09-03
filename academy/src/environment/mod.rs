@@ -183,7 +183,8 @@ impl ConfigProvider {
             None => CaptchaServiceConfig::Disabled,
         };
 
-        let jwt_service_config = JwtServiceConfig::new(&config.jwt.secret)?;
+        let jwt_service_config =
+            JwtServiceConfig::new(&config.jwt.secret, &config.internal.secrets)?;
 
         let oauth2_service_config = OAuth2FeatureConfig {
             registration_token_ttl: config

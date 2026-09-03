@@ -48,7 +48,7 @@ mod tests {
     use academy_templates_contracts::{
         ContractCancellationConfirmationTemplate, ContractWithdrawalConfirmationTemplate,
         InvoiceTemplate, PurchaseConfirmationTemplate, ResetPasswordTemplate,
-        SubscribeNewsletterTemplate, VerifyEmailTemplate,
+        SubscribeNewsletterTemplate, VerifyEmailTemplate, WithdrawalConsentConfirmation,
     };
 
     use super::*;
@@ -84,7 +84,37 @@ mod tests {
             vat_percent: 19.into(),
             vat_total: 7.into(),
             gross_total: 49.into(),
+            withdrawal_consent: None,
         });
+    }
+
+    #[test]
+    fn purchase_confirmation_with_withdrawal_consent() {
+        // Arrange
+        let template = PurchaseConfirmationTemplate {
+            coins: 4207,
+            vat_percent: 19.into(),
+            vat_total: 7.into(),
+            gross_total: 49.into(),
+            withdrawal_consent: Some(WithdrawalConsentConfirmation {
+                text: "Ich stimme ausdrücklich zu, ...".into(),
+                version: "2026-09".into(),
+                timestamp: "03.09.2026, 14:23 Uhr (UTC)".into(),
+            }),
+        };
+
+        let sut = TemplateServiceImpl {
+            state: Default::default(),
+        };
+
+        // Act
+        let result = sut.render(&template).unwrap();
+
+        // Assert
+        assert!(result.contains("Ich stimme ausdrücklich zu, ..."));
+        assert!(result.contains("2026-09"));
+        assert!(result.contains("03.09.2026, 14:23 Uhr (UTC)"));
+        assert!(result.contains("https://bootstrap.academy/docs/right-of-withdrawal"));
     }
 
     #[test]

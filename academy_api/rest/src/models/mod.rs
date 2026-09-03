@@ -14,6 +14,7 @@ pub mod oauth2;
 pub mod premium;
 pub mod session;
 pub mod user;
+pub mod withdrawal;
 
 const_schema! {
     pub OkResponse(true);

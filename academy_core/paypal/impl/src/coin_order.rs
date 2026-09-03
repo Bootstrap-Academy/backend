@@ -5,6 +5,7 @@ use academy_models::{
     coin::Balance,
     paypal::{PaypalCoinOrder, PaypalOrderId},
     user::UserId,
+    withdrawal::WithdrawalTextVersion,
 };
 use academy_persistence_contracts::paypal::PaypalRepository;
 use academy_shared_contracts::time::TimeService;
@@ -32,6 +33,7 @@ where
         id: PaypalOrderId,
         user_id: UserId,
         coins: u64,
+        withdrawal_text_version: WithdrawalTextVersion,
     ) -> anyhow::Result<PaypalCoinOrder> {
         let now = self.time.now();
         let invoice_number = self.paypal_repo.get_next_invoice_number(txn).await?;
@@ -43,6 +45,8 @@ where
             captured_at: None,
             coins,
             invoice_number,
+            withdrawal_consent_at: Some(now),
+            withdrawal_text_version: Some(withdrawal_text_version),
         };
 
         self.paypal_repo.create_coin_order(txn, &coin_order).await?;
@@ -98,6 +102,8 @@ mod tests {
             captured_at: None,
             coins: 1337,
             invoice_number: 42,
+            withdrawal_consent_at: Some(FOO.user.created_at),
+            withdrawal_text_version: Some("2026-09".try_into().unwrap()),
         };
 
         let time = MockTimeService::new().with_now(expected.created_at);
@@ -119,6 +125,7 @@ mod tests {
                 expected.id.clone(),
                 expected.user_id,
                 expected.coins,
+                "2026-09".try_into().unwrap(),
             )
             .await;
 
@@ -136,6 +143,8 @@ mod tests {
             captured_at: None,
             coins: 1337,
             invoice_number: 42,
+            withdrawal_consent_at: Some(FOO.user.created_at),
+            withdrawal_text_version: Some("2026-09".try_into().unwrap()),
         };
         let now = order.created_at + Duration::from_secs(300);
 

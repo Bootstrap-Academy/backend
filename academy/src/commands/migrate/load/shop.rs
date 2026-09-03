@@ -167,6 +167,8 @@ pub async fn load(db: PostgresDatabase, shop: DbConnection) -> anyhow::Result<()
             captured_at: (!pending).then(|| created_at.and_utc()),
             coins: coins as _,
             invoice_number: invoice_no as _,
+            withdrawal_consent_at: None,
+            withdrawal_text_version: None,
         };
 
         paypal_repo.create_coin_order(&mut txn, &coin_order).await?;

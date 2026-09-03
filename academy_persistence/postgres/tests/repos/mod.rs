@@ -9,6 +9,7 @@ mod paypal;
 mod premium;
 mod session;
 mod user;
+mod withdrawal;
 
 pub fn make_slice(limit: u64, offset: u64) -> PaginationSlice {
     PaginationSlice {

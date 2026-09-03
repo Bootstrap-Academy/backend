@@ -4,17 +4,22 @@ use academy_models::{
     coin::Balance,
     paypal::{PaypalCoinOrder, PaypalOrderId},
     user::UserId,
+    withdrawal::WithdrawalTextVersion,
 };
 
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait PaypalCoinOrderService<Txn: Send + Sync + 'static>: Send + Sync + 'static {
     /// Create a new coin order.
+    ///
+    /// The declarations under § 356 Abs. 6 Nr. 2 BGB are recorded on the order
+    /// together with the time at which the order was placed.
     fn create(
         &self,
         txn: &mut Txn,
         id: PaypalOrderId,
         user_id: UserId,
         coins: u64,
+        withdrawal_text_version: WithdrawalTextVersion,
     ) -> impl Future<Output = anyhow::Result<PaypalCoinOrder>> + Send;
 
     /// Mark a previously coin order as captured and add the Morphcoins to the
@@ -28,7 +33,11 @@ pub trait PaypalCoinOrderService<Txn: Send + Sync + 'static>: Send + Sync + 'sta
 
 #[cfg(feature = "mock")]
 impl<Txn: Send + Sync + 'static> MockPaypalCoinOrderService<Txn> {
-    pub fn with_create(mut self, result: PaypalCoinOrder) -> Self {
+    pub fn with_create(
+        mut self,
+        withdrawal_text_version: WithdrawalTextVersion,
+        result: PaypalCoinOrder,
+    ) -> Self {
         self.expect_create()
             .once()
             .with(
@@ -36,8 +45,9 @@ impl<Txn: Send + Sync + 'static> MockPaypalCoinOrderService<Txn> {
                 mockall::predicate::eq(result.id.clone()),
                 mockall::predicate::eq(result.user_id),
                 mockall::predicate::eq(result.coins),
+                mockall::predicate::eq(withdrawal_text_version),
             )
-            .return_once(|_, _, _, _| Box::pin(std::future::ready(Ok(result))));
+            .return_once(|_, _, _, _, _| Box::pin(std::future::ready(Ok(result))));
         self
     }
 

@@ -293,6 +293,8 @@ mod tests {
             captured_at: None,
             coins: 1337,
             invoice_number: 42,
+            withdrawal_consent_at: None,
+            withdrawal_text_version: None,
         };
 
         let pdf = vec![1, 2, 3, 4];
@@ -398,6 +400,8 @@ mod tests {
             captured_at: None,
             coins: 1337,
             invoice_number: 42,
+            withdrawal_consent_at: None,
+            withdrawal_text_version: None,
         };
         let paypal_repo = MockPaypalRepository::new()
             .with_get_coin_order_by_invoice_number(42, Some(order.clone()));
@@ -433,6 +437,8 @@ mod tests {
             captured_at: None,
             coins: 1337,
             invoice_number: 42,
+            withdrawal_consent_at: None,
+            withdrawal_text_version: None,
         };
         let paypal_repo = MockPaypalRepository::new()
             .with_get_coin_order_by_invoice_number(42, Some(order.clone()));
@@ -487,6 +493,8 @@ mod tests {
             captured_at: None,
             coins: 1337,
             invoice_number: 42,
+            withdrawal_consent_at: None,
+            withdrawal_text_version: None,
         };
 
         let fs = MockFsService::new().with_read_file("/invoices/R0000042.pdf".into(), None);

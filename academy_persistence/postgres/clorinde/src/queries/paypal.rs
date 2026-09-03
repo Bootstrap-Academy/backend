@@ -1,13 +1,15 @@
 // This file was generated with `clorinde`. Do not modify.
 
 #[derive(Debug)]
-pub struct CreateCoinOrderParams<T1: crate::StringSql> {
+pub struct CreateCoinOrderParams<T1: crate::StringSql, T2: crate::StringSql> {
     pub id: T1,
     pub user_id: uuid::Uuid,
     pub created_at: chrono::DateTime<chrono::FixedOffset>,
     pub captured_at: Option<chrono::DateTime<chrono::FixedOffset>>,
     pub coins: i64,
     pub invoice_number: i64,
+    pub withdrawal_consent_at: Option<chrono::DateTime<chrono::FixedOffset>>,
+    pub withdrawal_text_version: Option<T2>,
 }
 #[derive(Debug)]
 pub struct CaptureCoinOrderParams<T1: crate::StringSql> {
@@ -22,6 +24,8 @@ pub struct CoinOrder {
     pub captured_at: Option<chrono::DateTime<chrono::FixedOffset>>,
     pub coins: i64,
     pub invoice_number: i64,
+    pub withdrawal_consent_at: Option<chrono::DateTime<chrono::FixedOffset>>,
+    pub withdrawal_text_version: Option<String>,
 }
 pub struct CoinOrderBorrowed<'a> {
     pub id: &'a str,
@@ -30,6 +34,8 @@ pub struct CoinOrderBorrowed<'a> {
     pub captured_at: Option<chrono::DateTime<chrono::FixedOffset>>,
     pub coins: i64,
     pub invoice_number: i64,
+    pub withdrawal_consent_at: Option<chrono::DateTime<chrono::FixedOffset>>,
+    pub withdrawal_text_version: Option<&'a str>,
 }
 impl<'a> From<CoinOrderBorrowed<'a>> for CoinOrder {
     fn from(
@@ -40,6 +46,8 @@ impl<'a> From<CoinOrderBorrowed<'a>> for CoinOrder {
             captured_at,
             coins,
             invoice_number,
+            withdrawal_consent_at,
+            withdrawal_text_version,
         }: CoinOrderBorrowed<'a>,
     ) -> Self {
         Self {
@@ -49,6 +57,8 @@ impl<'a> From<CoinOrderBorrowed<'a>> for CoinOrder {
             captured_at,
             coins,
             invoice_number,
+            withdrawal_consent_at,
+            withdrawal_text_version: withdrawal_text_version.map(|v| v.into()),
         }
     }
 }
@@ -185,7 +195,7 @@ where
 pub struct CreateCoinOrderStmt(&'static str, Option<tokio_postgres::Statement>);
 pub fn create_coin_order() -> CreateCoinOrderStmt {
     CreateCoinOrderStmt(
-        "insert into paypal_coin_orders (id, user_id, created_at, captured_at, coins, invoice_number) values ($1, $2, $3, $4, $5, $6)",
+        "insert into paypal_coin_orders (id, user_id, created_at, captured_at, coins, invoice_number, withdrawal_consent_at, withdrawal_text_version) values ($1, $2, $3, $4, $5, $6, $7, $8)",
         None,
     )
 }
@@ -197,7 +207,7 @@ impl CreateCoinOrderStmt {
         self.1 = Some(client.prepare(self.0).await?);
         Ok(self)
     }
-    pub async fn bind<'c, 'a, 's, C: GenericClient, T1: crate::StringSql>(
+    pub async fn bind<'c, 'a, 's, C: GenericClient, T1: crate::StringSql, T2: crate::StringSql>(
         &'s self,
         client: &'c C,
         id: &'a T1,
@@ -206,21 +216,32 @@ impl CreateCoinOrderStmt {
         captured_at: &'a Option<chrono::DateTime<chrono::FixedOffset>>,
         coins: &'a i64,
         invoice_number: &'a i64,
+        withdrawal_consent_at: &'a Option<chrono::DateTime<chrono::FixedOffset>>,
+        withdrawal_text_version: &'a Option<T2>,
     ) -> Result<u64, tokio_postgres::Error> {
         client
             .execute(
                 self.0,
-                &[id, user_id, created_at, captured_at, coins, invoice_number],
+                &[
+                    id,
+                    user_id,
+                    created_at,
+                    captured_at,
+                    coins,
+                    invoice_number,
+                    withdrawal_consent_at,
+                    withdrawal_text_version,
+                ],
             )
             .await
     }
 }
-impl<'a, C: GenericClient + Send + Sync, T1: crate::StringSql>
+impl<'a, C: GenericClient + Send + Sync, T1: crate::StringSql, T2: crate::StringSql>
     crate::client::async_::Params<
         'a,
         'a,
         'a,
-        CreateCoinOrderParams<T1>,
+        CreateCoinOrderParams<T1, T2>,
         std::pin::Pin<
             Box<dyn futures::Future<Output = Result<u64, tokio_postgres::Error>> + Send + 'a>,
         >,
@@ -230,7 +251,7 @@ impl<'a, C: GenericClient + Send + Sync, T1: crate::StringSql>
     fn params(
         &'a self,
         client: &'a C,
-        params: &'a CreateCoinOrderParams<T1>,
+        params: &'a CreateCoinOrderParams<T1, T2>,
     ) -> std::pin::Pin<
         Box<dyn futures::Future<Output = Result<u64, tokio_postgres::Error>> + Send + 'a>,
     > {
@@ -242,6 +263,8 @@ impl<'a, C: GenericClient + Send + Sync, T1: crate::StringSql>
             &params.captured_at,
             &params.coins,
             &params.invoice_number,
+            &params.withdrawal_consent_at,
+            &params.withdrawal_text_version,
         ))
     }
 }
@@ -301,6 +324,8 @@ impl ListCoinOrdersStmt {
                         captured_at: row.try_get(3)?,
                         coins: row.try_get(4)?,
                         invoice_number: row.try_get(5)?,
+                        withdrawal_consent_at: row.try_get(6)?,
+                        withdrawal_text_version: row.try_get(7)?,
                     })
                 },
             mapper: |it| CoinOrder::from(it),
@@ -338,6 +363,8 @@ impl GetCoinOrderStmt {
                         captured_at: row.try_get(3)?,
                         coins: row.try_get(4)?,
                         invoice_number: row.try_get(5)?,
+                        withdrawal_consent_at: row.try_get(6)?,
+                        withdrawal_text_version: row.try_get(7)?,
                     })
                 },
             mapper: |it| CoinOrder::from(it),
@@ -378,6 +405,8 @@ impl GetCoinOrderByInvoiceNumberStmt {
                         captured_at: row.try_get(3)?,
                         coins: row.try_get(4)?,
                         invoice_number: row.try_get(5)?,
+                        withdrawal_consent_at: row.try_get(6)?,
+                        withdrawal_text_version: row.try_get(7)?,
                     })
                 },
             mapper: |it| CoinOrder::from(it),

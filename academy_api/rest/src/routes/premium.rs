@@ -17,7 +17,9 @@ use axum::{
 use schemars::JsonSchema;
 use serde::Deserialize;
 
-use super::{coin::NotEnoughCoinsError, user::UserNotFoundError};
+use super::{
+    coin::NotEnoughCoinsError, user::UserNotFoundError, withdrawal::WithdrawalConsentMissingError,
+};
 use crate::{
     docs::TransformOperationExt,
     error_code,
@@ -27,6 +29,7 @@ use crate::{
         OkResponse,
         premium::{ApiPremiumPlan, ApiPremiumPlanDetails, ApiPremiumStatus},
         user::PathUserIdOrSelf,
+        withdrawal::ApiWithdrawalConsentDeclaration,
     },
 };
 
@@ -93,19 +96,33 @@ struct PurchaseRequest {
     plan: ApiPremiumPlan,
     #[serde(rename = "autopay")]
     subscribe: Option<bool>,
+    #[serde(flatten)]
+    declaration: ApiWithdrawalConsentDeclaration,
 }
 
 async fn purchase(
     service: State<Arc<impl PremiumFeatureService>>,
     token: ApiToken,
-    Json(PurchaseRequest { plan, subscribe }): Json<PurchaseRequest>,
+    Json(PurchaseRequest {
+        plan,
+        subscribe,
+        declaration,
+    }): Json<PurchaseRequest>,
 ) -> Response {
     match service
-        .purchase(&token.0, plan.into(), subscribe.unwrap_or(false))
+        .purchase(
+            &token.0,
+            plan.into(),
+            subscribe.unwrap_or(false),
+            declaration.into(),
+        )
         .await
     {
         Ok(status) => Json(ApiPremiumStatus::from(status)).into_response(),
         Err(PremiumPurchaseError::NotEnoughCoins) => NotEnoughCoinsError.into_response(),
+        Err(PremiumPurchaseError::WithdrawalConsentMissing) => {
+            WithdrawalConsentMissingError.into_response()
+        }
         Err(PremiumPurchaseError::Auth(err)) => auth_error(err),
         Err(PremiumPurchaseError::Other(err)) => internal_server_error(err),
     }
@@ -115,6 +132,7 @@ fn purchase_docs(op: TransformOperation) -> TransformOperation {
     op.summary("Purchase premium for the authenticated user.")
         .add_response::<ApiPremiumStatus>(StatusCode::OK, None)
         .add_error::<NotEnoughCoinsError>()
+        .add_error::<WithdrawalConsentMissingError>()
         .with(auth_error_docs)
         .with(internal_server_error_docs)
 }

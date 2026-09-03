@@ -74,10 +74,15 @@ resp = c.get("/shop/hearts/me")
 assert resp.status_code == 200
 assert resp.json() == {"hearts": 2}
 
+## withdrawal declarations missing
+resp = c.put("/shop/hearts", json={})
+assert resp.status_code == 412
+assert resp.json() == {"detail": "Withdrawal consent missing"}
+
 ## not enough coins
 assert c.get(f"/shop/coins/me").json()["coins"] == 0
 
-resp = c.put("/shop/hearts")
+resp = c.put("/shop/hearts", json={"withdrawal_consent": True, "withdrawal_text_version": "2026-09"})
 assert resp.status_code == 412
 assert resp.json() == {"detail": "Not enough coins"}
 
@@ -89,7 +94,7 @@ assert resp.json() == {"hearts": 2}
 assert subprocess.getstatusoutput(f"academy admin coin add {login['user']['id']} 70")[0] == 0
 assert c.get(f"/shop/coins/me").json()["coins"] == 70
 
-resp = c.put("/shop/hearts")
+resp = c.put("/shop/hearts", json={"withdrawal_consent": True, "withdrawal_text_version": "2026-09"})
 assert resp.status_code == 200
 assert resp.json() == {"hearts": 6}
 

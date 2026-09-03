@@ -26,6 +26,7 @@ academy_core_paypal_contracts.workspace = true
 academy_core_premium_contracts.workspace = true
 academy_core_session_contracts.workspace = true
 academy_core_user_contracts.workspace = true
+academy_core_withdrawal_contracts.workspace = true
 academy_di.workspace = true
 academy_models.workspace = true
 academy_utils.workspace = true

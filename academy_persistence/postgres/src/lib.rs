@@ -21,6 +21,7 @@ pub mod paypal;
 pub mod premium;
 pub mod session;
 pub mod user;
+pub mod withdrawal;
 
 type PgClient = tokio_postgres::Client;
 type PgPooledConnection = PooledConnection<'static, PostgresConnectionManager<NoTls>>;

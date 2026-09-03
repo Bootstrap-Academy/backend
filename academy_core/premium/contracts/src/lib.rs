@@ -4,6 +4,7 @@ use academy_models::{
     auth::{AccessToken, AuthError},
     premium::{PremiumPlan, PremiumPlanDetails, PremiumStatus},
     user::UserIdOrSelf,
+    withdrawal::WithdrawalConsentDeclaration,
 };
 use thiserror::Error;
 
@@ -27,12 +28,14 @@ pub trait PremiumFeatureService: Send + Sync + 'static {
     /// Purchase premium for the authenticated user using the given plan and
     /// optionally set up a subscription.
     ///
-    /// Requires a verified email address.
+    /// Requires a verified email address and the declarations under
+    /// § 356 Abs. 5 Nr. 2 BGB.
     fn purchase(
         &self,
         token: &AccessToken,
         plan: PremiumPlan,
         subscribe: bool,
+        declaration: WithdrawalConsentDeclaration,
     ) -> impl Future<Output = Result<PremiumStatus, PremiumPurchaseError>> + Send;
 
     /// Update or cancel a premium subscription.
@@ -59,6 +62,8 @@ pub enum PremiumGetStatusError {
 pub enum PremiumPurchaseError {
     #[error("The user does not have enough coins.")]
     NotEnoughCoins,
+    #[error("The user did not give the withdrawal declarations.")]
+    WithdrawalConsentMissing,
     #[error(transparent)]
     Auth(#[from] AuthError),
     #[error(transparent)]

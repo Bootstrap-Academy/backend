@@ -3,11 +3,13 @@ use academy_core_coin_contracts::coin::{CoinAddCoinsError, CoinService};
 use academy_core_heart_contracts::{
     HeartFeatureService, HeartGetError, HeartRefillError, heart::HeartService,
 };
+use academy_core_withdrawal_contracts::consent::WithdrawalConsentService;
 use academy_di::Build;
 use academy_models::{
     auth::AccessToken,
     heart::{HeartConfig, Hearts},
     user::UserIdOrSelf,
+    withdrawal::{WithdrawalConsentDeclaration, WithdrawalSubject},
 };
 use academy_persistence_contracts::{Database, Transaction, user::UserRepository};
 use academy_utils::trace_instrument;
@@ -20,12 +22,13 @@ mod tests;
 
 #[derive(Debug, Clone, Build)]
 #[cfg_attr(test, derive(Default))]
-pub struct HeartFeatureServiceImpl<Db, Auth, UserRepo, Heart, Coin> {
+pub struct HeartFeatureServiceImpl<Db, Auth, UserRepo, Heart, Coin, WithdrawalConsentS> {
     db: Db,
     auth: Auth,
     user_repo: UserRepo,
     heart: Heart,
     coin: Coin,
+    withdrawal_consent: WithdrawalConsentS,
     config: HeartFeatureConfig,
 }
 
@@ -36,14 +39,15 @@ pub struct HeartFeatureConfig {
     pub auto_refill_time: NaiveTime,
 }
 
-impl<Db, Auth, UserRepo, Heart, Coin> HeartFeatureService
-    for HeartFeatureServiceImpl<Db, Auth, UserRepo, Heart, Coin>
+impl<Db, Auth, UserRepo, Heart, Coin, WithdrawalConsentS> HeartFeatureService
+    for HeartFeatureServiceImpl<Db, Auth, UserRepo, Heart, Coin, WithdrawalConsentS>
 where
     Db: Database,
     Auth: AuthService<Db::Transaction>,
     UserRepo: UserRepository<Db::Transaction>,
     Heart: HeartService<Db::Transaction>,
     Coin: CoinService<Db::Transaction>,
+    WithdrawalConsentS: WithdrawalConsentService<Db::Transaction>,
 {
     #[trace_instrument(skip(self))]
     fn get_config(&self) -> HeartConfig {
@@ -73,7 +77,19 @@ where
     }
 
     #[trace_instrument(skip(self))]
-    async fn refill(&self, token: &AccessToken) -> Result<Hearts, HeartRefillError> {
+    async fn refill(
+        &self,
+        token: &AccessToken,
+        declaration: WithdrawalConsentDeclaration,
+    ) -> Result<Hearts, HeartRefillError> {
+        // Refilling hearts is a purchase of digital content, so the order is
+        // only accepted if the consumer gave the declarations under
+        // § 356 Abs. 6 Nr. 2 BGB.
+        let withdrawal_text_version = declaration
+            .text_version()
+            .ok_or(HeartRefillError::WithdrawalConsentMissing)?
+            .clone();
+
         let auth = self.auth.authenticate(token).await.map_auth_err()?;
         let user_id = auth.user_id;
 
@@ -104,6 +120,16 @@ where
             .add(&mut txn, user_id, self.config.hearts_max as _)
             .await
             .map_err(anyhow::Error::from)?;
+
+        self.withdrawal_consent
+            .record(
+                &mut txn,
+                user_id,
+                WithdrawalSubject::Hearts,
+                None,
+                withdrawal_text_version,
+            )
+            .await?;
 
         txn.commit().await?;
 

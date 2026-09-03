@@ -37,6 +37,9 @@ use academy_core_user_impl::{
     UserFeatureServiceImpl, email_confirmation::UserEmailConfirmationServiceImpl,
     update::UserUpdateServiceImpl, user::UserServiceImpl,
 };
+use academy_core_withdrawal_impl::{
+    WithdrawalFeatureServiceImpl, consent::WithdrawalConsentServiceImpl,
+};
 use academy_email_impl::{EmailServiceImpl, template::TemplateEmailServiceImpl};
 use academy_extern_impl::{
     microservices::MicroservicesApiServiceImpl, oauth2::OAuth2ApiServiceImpl,
@@ -48,6 +51,7 @@ use academy_persistence_postgres::{
     heart::PostgresHeartRepository, mfa::PostgresMfaRepository, oauth2::PostgresOAuth2Repository,
     paypal::PostgresPaypalRepository, premium::PostgresPremiumRepository,
     session::PostgresSessionRepository, user::PostgresUserRepository,
+    withdrawal::PostgresWithdrawalRepository,
 };
 use academy_shared_impl::{
     captcha::CaptchaServiceImpl, fs::FsServiceImpl, hash::HashServiceImpl, id::IdServiceImpl,
@@ -71,6 +75,7 @@ pub type RestServer = academy_api_rest::RestServer<
     FinanceFeature,
     HeartFeature,
     PremiumFeature,
+    WithdrawalFeature,
     Internal,
 >;
 
@@ -116,6 +121,7 @@ pub type PaypalRepo = PostgresPaypalRepository;
 pub type HeartRepo = PostgresHeartRepository;
 pub type PremiumRepo = PostgresPremiumRepository;
 pub type ContractRepo = PostgresContractRepository;
+pub type WithdrawalRepo = PostgresWithdrawalRepository;
 
 // Auth
 pub type Auth =
@@ -236,7 +242,8 @@ pub type FinanceInvoice = FinanceInvoiceServiceImpl<
 >;
 pub type FinanceCoin = FinanceCoinServiceImpl;
 
-pub type HeartFeature = HeartFeatureServiceImpl<Database, Auth, UserRepo, Heart, Coin>;
+pub type HeartFeature =
+    HeartFeatureServiceImpl<Database, Auth, UserRepo, Heart, Coin, WithdrawalConsent>;
 pub type Heart = HeartServiceImpl<Time, HeartRepo>;
 
 pub type PremiumFeature = PremiumFeatureServiceImpl<
@@ -247,9 +254,13 @@ pub type PremiumFeature = PremiumFeatureServiceImpl<
     PremiumPurchase,
     UserRepo,
     PremiumRepo,
+    WithdrawalConsent,
 >;
 pub type PremiumPlan = PremiumPlanServiceImpl;
 pub type Premium = PremiumServiceImpl<Time, PremiumPurchase, PremiumRepo>;
 pub type PremiumPurchase = PremiumPurchaseServiceImpl<Id, Time, Coin, PremiumPlan, PremiumRepo>;
+
+pub type WithdrawalFeature = WithdrawalFeatureServiceImpl<Database, Auth, WithdrawalConsent>;
+pub type WithdrawalConsent = WithdrawalConsentServiceImpl<Id, Time, WithdrawalRepo>;
 
 pub type Internal = InternalServiceImpl<Database, AuthInternal, UserRepo, Coin, Heart, Premium>;

@@ -2,6 +2,7 @@ use academy_auth_contracts::MockAuthService;
 use academy_core_premium_contracts::{
     PremiumFeatureService, PremiumPurchaseError, purchase::MockPremiumPurchaseService,
 };
+use academy_core_withdrawal_contracts::consent::MockWithdrawalConsentService;
 use academy_demo::{
     UUID1,
     session::{BAR_1, FOO_1},
@@ -10,12 +11,32 @@ use academy_demo::{
 use academy_models::{
     auth::{AuthError, AuthenticateError, AuthorizeError},
     premium::{Premium, PremiumPlan, PremiumStatus},
+    withdrawal::{WithdrawalConsent, WithdrawalConsentDeclaration, WithdrawalSubject},
 };
 use academy_persistence_contracts::{MockDatabase, premium::MockPremiumRepository};
 use academy_utils::assert_matches;
 use chrono::{TimeZone, Utc};
 
 use crate::{PremiumFeatureServiceImpl, tests::Sut};
+
+fn declaration() -> WithdrawalConsentDeclaration {
+    WithdrawalConsentDeclaration {
+        given: true,
+        text_version: Some("2026-09".try_into().unwrap()),
+    }
+}
+
+fn withdrawal_consent()
+-> MockWithdrawalConsentService<academy_persistence_contracts::MockTransaction> {
+    MockWithdrawalConsentService::new().with_record(WithdrawalConsent {
+        id: UUID1.into(),
+        user_id: FOO.user.id,
+        subject: WithdrawalSubject::Premium,
+        reference: None,
+        text_version: "2026-09".try_into().unwrap(),
+        consented_at: FOO.user.created_at,
+    })
+}
 
 #[tokio::test]
 async fn unauthenticated() {
@@ -29,7 +50,7 @@ async fn unauthenticated() {
 
     // Act
     let result = sut
-        .purchase(&"token".into(), PremiumPlan::Monthly, false)
+        .purchase(&"token".into(), PremiumPlan::Monthly, false, declaration())
         .await;
 
     // Assert
@@ -53,7 +74,7 @@ async fn email_not_verified() {
 
     // Act
     let result = sut
-        .purchase(&"token".into(), PremiumPlan::Monthly, false)
+        .purchase(&"token".into(), PremiumPlan::Monthly, false, declaration())
         .await;
 
     // Assert
@@ -87,7 +108,7 @@ async fn not_enough_coins() {
 
     // Act
     let result = sut
-        .purchase(&"token".into(), PremiumPlan::Monthly, false)
+        .purchase(&"token".into(), PremiumPlan::Monthly, false, declaration())
         .await;
 
     // Assert
@@ -125,12 +146,13 @@ async fn no_subscribe() {
         db,
         premium_purchase,
         premium_repo,
+        withdrawal_consent: withdrawal_consent(),
         ..Sut::default()
     };
 
     // Act
     let result = sut
-        .purchase(&"token".into(), PremiumPlan::Monthly, false)
+        .purchase(&"token".into(), PremiumPlan::Monthly, false, declaration())
         .await;
 
     // Assert
@@ -169,14 +191,37 @@ async fn subscribe() {
         db,
         premium_purchase,
         premium_repo,
+        withdrawal_consent: withdrawal_consent(),
         ..Sut::default()
     };
 
     // Act
     let result = sut
-        .purchase(&"token".into(), PremiumPlan::Monthly, true)
+        .purchase(&"token".into(), PremiumPlan::Monthly, true, declaration())
         .await;
 
     // Assert
     assert_eq!(result.unwrap(), expected);
+}
+
+#[tokio::test]
+async fn withdrawal_consent_missing() {
+    // Arrange
+    let sut = Sut::default();
+
+    // Act
+    let result = sut
+        .purchase(
+            &"token".into(),
+            PremiumPlan::Monthly,
+            false,
+            WithdrawalConsentDeclaration {
+                given: false,
+                ..declaration()
+            },
+        )
+        .await;
+
+    // Assert
+    assert_matches!(result, Err(PremiumPurchaseError::WithdrawalConsentMissing));
 }

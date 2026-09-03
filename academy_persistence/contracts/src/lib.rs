@@ -9,6 +9,7 @@ pub mod paypal;
 pub mod premium;
 pub mod session;
 pub mod user;
+pub mod withdrawal;
 
 #[cfg_attr(feature = "mock", mockall::automock(type Transaction = MockTransaction;))]
 pub trait Database: Send + Sync + 'static {

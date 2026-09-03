@@ -1,8 +1,8 @@
---: CoinOrder(captured_at?)
+--: CoinOrder(captured_at?, withdrawal_consent_at?, withdrawal_text_version?)
 
---! create_coin_order (captured_at?)
-insert into paypal_coin_orders (id, user_id, created_at, captured_at, coins, invoice_number)
-  values (:id, :user_id, :created_at, :captured_at, :coins, :invoice_number);
+--! create_coin_order (captured_at?, withdrawal_consent_at?, withdrawal_text_version?)
+insert into paypal_coin_orders (id, user_id, created_at, captured_at, coins, invoice_number, withdrawal_consent_at, withdrawal_text_version)
+  values (:id, :user_id, :created_at, :captured_at, :coins, :invoice_number, :withdrawal_consent_at, :withdrawal_text_version);
 
 --! count_coin_orders
 select count(*) from paypal_coin_orders;

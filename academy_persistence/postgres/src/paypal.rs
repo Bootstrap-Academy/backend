@@ -29,6 +29,8 @@ impl PaypalRepository<PostgresTransaction> for PostgresPaypalRepository {
             captured_at: order.captured_at.map(Into::into),
             coins: order.coins.try_into()?,
             invoice_number: order.invoice_number.try_into()?,
+            withdrawal_consent_at: order.withdrawal_consent_at.map(Into::into),
+            withdrawal_text_version: order.withdrawal_text_version.as_deref(),
         };
 
         queries::paypal::create_coin_order()
@@ -124,5 +126,10 @@ fn decode_paypal_coin_order(value: queries::paypal::CoinOrder) -> anyhow::Result
         captured_at: value.captured_at.map(Into::into),
         coins: value.coins.try_into()?,
         invoice_number: value.invoice_number.try_into()?,
+        withdrawal_consent_at: value.withdrawal_consent_at.map(Into::into),
+        withdrawal_text_version: value
+            .withdrawal_text_version
+            .map(TryInto::try_into)
+            .transpose()?,
     })
 }

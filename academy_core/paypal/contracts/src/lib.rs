@@ -4,6 +4,7 @@ use academy_models::{
     auth::{AccessToken, AuthError},
     coin::Balance,
     paypal::PaypalOrderId,
+    withdrawal::WithdrawalConsentDeclaration,
 };
 use thiserror::Error;
 
@@ -16,11 +17,13 @@ pub trait PaypalFeatureService: Send + Sync + 'static {
     /// Create a new PayPal order to purchase the specified number of
     /// Morphcoins.
     ///
-    /// Requires a verified email address.
+    /// Requires a verified email address and the declarations under
+    /// § 356 Abs. 6 Nr. 2 BGB.
     fn create_coin_order(
         &self,
         token: &AccessToken,
         coins: u64,
+        declaration: WithdrawalConsentDeclaration,
     ) -> impl Future<Output = Result<PaypalOrderId, PaypalCreateCoinOrderError>> + Send;
 
     /// Complete Morphcoin purchase.
@@ -37,6 +40,8 @@ pub trait PaypalFeatureService: Send + Sync + 'static {
 pub enum PaypalCreateCoinOrderError {
     #[error("The specified number of Morphcoins is outside of the allowed range.")]
     InvalidAmount(RangeInclusive<u64>),
+    #[error("The user did not give the withdrawal declarations.")]
+    WithdrawalConsentMissing,
     #[error(transparent)]
     Auth(#[from] AuthError),
     #[error("The user's invoice info is incomplete.")]

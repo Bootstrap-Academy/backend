@@ -1,6 +1,7 @@
 use academy_auth_contracts::MockAuthService;
 use academy_core_coin_contracts::coin::MockCoinService;
 use academy_core_heart_contracts::heart::MockHeartService;
+use academy_core_withdrawal_contracts::consent::MockWithdrawalConsentService;
 use academy_persistence_contracts::{MockDatabase, MockTransaction, user::MockUserRepository};
 use chrono::NaiveTime;
 
@@ -16,6 +17,7 @@ type Sut = HeartFeatureServiceImpl<
     MockUserRepository<MockTransaction>,
     MockHeartService<MockTransaction>,
     MockCoinService<MockTransaction>,
+    MockWithdrawalConsentService<MockTransaction>,
 >;
 
 impl Default for HeartFeatureConfig {

@@ -23,8 +23,15 @@ assert resp.status_code == 200
 assert resp.json() is False
 
 # purchase
-## not enough coins
+## withdrawal declarations missing
 resp = c.post("/shop/premium", json={"plan": "MONTHLY"})
+assert resp.status_code == 412
+assert resp.json() == {"detail": "Withdrawal consent missing"}
+
+## not enough coins
+resp = c.post(
+    "/shop/premium", json={"plan": "MONTHLY", "withdrawal_consent": True, "withdrawal_text_version": "2026-09"}
+)
 assert resp.status_code == 412
 assert resp.json() == {"detail": "Not enough coins"}
 assert c.get("/shop/premium/me").json()["premium"] is False
@@ -32,7 +39,9 @@ assert c.get("/shop/premium/me").json()["premium"] is False
 ## ok
 assert subprocess.getstatusoutput(f"academy admin coin add {login['user']['id']} 15000")[0] == 0
 start = time.time() - 1
-resp = c.post("/shop/premium", json={"plan": "MONTHLY"})
+resp = c.post(
+    "/shop/premium", json={"plan": "MONTHLY", "withdrawal_consent": True, "withdrawal_text_version": "2026-09"}
+)
 end = time.time() + 1
 assert resp.status_code == 200
 status = resp.json()
@@ -56,7 +65,10 @@ assert c.get("/shop/premium/me").json() == {"premium": False, "since": None, "un
 
 # purchase with subscription
 start = time.time() - 1
-resp = c.post("/shop/premium", json={"plan": "MONTHLY", "autopay": True})
+resp = c.post(
+    "/shop/premium",
+    json={"plan": "MONTHLY", "autopay": True, "withdrawal_consent": True, "withdrawal_text_version": "2026-09"},
+)
 end = time.time() + 1
 assert resp.status_code == 200
 status = resp.json()

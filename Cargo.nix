@@ -3297,6 +3297,12 @@ rec {
             features = [ "std" ];
           }
           {
+            name = "futures";
+            packageId = "futures";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
             name = "oauth2";
             packageId = "oauth2";
             usesDefaultFeatures = false;
@@ -3346,6 +3352,12 @@ rec {
             packageId = "tokio";
             usesDefaultFeatures = false;
             features = [ "rt-multi-thread" "macros" "sync" "fs" "process" ];
+          }
+          {
+            name = "uuid";
+            packageId = "uuid";
+            usesDefaultFeatures = false;
+            features = [ "v4" "v7" "serde" ];
           }
         ];
 

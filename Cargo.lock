@@ -634,6 +634,7 @@ dependencies = [
  "academy_shared_contracts",
  "academy_utils",
  "anyhow",
+ "futures",
  "oauth2",
  "regex",
  "reqwest 0.13.4",
@@ -641,6 +642,7 @@ dependencies = [
  "serde_json",
  "tokio",
  "tracing",
+ "uuid",
 ]
 
 [[package]]

@@ -4,6 +4,7 @@ use academy_demo::{
     session::{ADMIN_1, BAR_1, FOO_1},
     user::{ADMIN, BAR, FOO},
 };
+use academy_extern_contracts::microservices::MockMicroservicesApiService;
 use academy_models::{
     auth::{AuthError, AuthenticateError, AuthorizeError},
     user::UserIdOrSelf,
@@ -24,10 +25,13 @@ async fn ok_self() {
 
     let user_repo = MockUserRepository::new().with_delete(FOO.user.id, true);
 
+    let microservices_api = MockMicroservicesApiService::new().with_delete_user(FOO.user.id);
+
     let sut = UserFeatureServiceImpl {
         auth,
         db,
         user_repo,
+        microservices_api,
         ..Sut::default()
     };
 
@@ -49,10 +53,13 @@ async fn ok_admin() {
 
     let user_repo = MockUserRepository::new().with_delete(FOO.user.id, true);
 
+    let microservices_api = MockMicroservicesApiService::new().with_delete_user(FOO.user.id);
+
     let sut = UserFeatureServiceImpl {
         auth,
         db,
         user_repo,
+        microservices_api,
         ..Sut::default()
     };
 

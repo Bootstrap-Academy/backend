@@ -14,8 +14,8 @@ use academy_core_session_impl::SessionFeatureConfig;
 use academy_core_user_impl::UserFeatureConfig;
 use academy_di::provider;
 use academy_extern_impl::{
-    paypal::PaypalApiServiceConfig, recaptcha::RecaptchaApiServiceConfig,
-    render::RenderApiServiceConfig, vat::VatApiServiceConfig,
+    microservices::MicroservicesApiServiceConfig, paypal::PaypalApiServiceConfig,
+    recaptcha::RecaptchaApiServiceConfig, render::RenderApiServiceConfig, vat::VatApiServiceConfig,
 };
 use academy_models::oauth2::OAuth2Provider;
 use academy_shared_impl::{
@@ -43,6 +43,7 @@ provider! {
             VatApiServiceConfig,
             PaypalApiServiceConfig,
             RenderApiServiceConfig,
+            MicroservicesApiServiceConfig,
 
             // Shared
             CaptchaServiceConfig,
@@ -105,6 +106,7 @@ provider! {
         vat_api_service_config: VatApiServiceConfig,
         paypal_api_service_config: PaypalApiServiceConfig,
         render_api_service_config: RenderApiServiceConfig,
+        microservices_api_service_config: MicroservicesApiServiceConfig,
 
         // Shared
         captcha_service_config: CaptchaServiceConfig,
@@ -160,6 +162,13 @@ impl ConfigProvider {
 
         let render_api_service_config =
             RenderApiServiceConfig::new(config.render.daemon_url.clone());
+
+        let microservices_api_service_config = MicroservicesApiServiceConfig::new(
+            config.microservices.skills_url.clone(),
+            config.microservices.challenges_url.clone(),
+            config.microservices.events_url.clone(),
+            config.microservices.timeout.into(),
+        );
 
         // Shared
         let captcha_service_config = match config.recaptcha.as_ref() {
@@ -277,6 +286,7 @@ impl ConfigProvider {
             vat_api_service_config,
             paypal_api_service_config,
             render_api_service_config,
+            microservices_api_service_config,
 
             // Shared
             jwt_service_config,

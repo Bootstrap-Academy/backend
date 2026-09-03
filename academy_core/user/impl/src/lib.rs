@@ -18,7 +18,7 @@ use academy_core_user_contracts::{
     user::{UserCreateCommand, UserListQuery, UserListResult, UserService},
 };
 use academy_di::Build;
-use academy_extern_contracts::vat::VatApiService;
+use academy_extern_contracts::{microservices::MicroservicesApiService, vat::VatApiService};
 use academy_models::{
     RecaptchaResponse, VerificationCode,
     auth::{AccessToken, Login},
@@ -49,6 +49,7 @@ pub struct UserFeatureServiceImpl<
     Auth,
     Captcha,
     VatApi,
+    MicroservicesApi,
     User,
     UserEmailConfirmation,
     UserUpdate,
@@ -61,6 +62,7 @@ pub struct UserFeatureServiceImpl<
     auth: Auth,
     captcha: Captcha,
     vat_api: VatApi,
+    microservices_api: MicroservicesApi,
     user: User,
     user_email_confirmation: UserEmailConfirmation,
     user_update: UserUpdate,
@@ -86,6 +88,7 @@ impl<
     Auth,
     Captcha,
     VatApi,
+    MicroservicesApi,
     UserS,
     UserEmailConfirmation,
     UserUpdate,
@@ -99,6 +102,7 @@ impl<
         Auth,
         Captcha,
         VatApi,
+        MicroservicesApi,
         UserS,
         UserEmailConfirmation,
         UserUpdate,
@@ -112,6 +116,7 @@ where
     Auth: AuthService<Db::Transaction>,
     Captcha: CaptchaService,
     VatApi: VatApiService,
+    MicroservicesApi: MicroservicesApiService,
     UserS: UserService<Db::Transaction>,
     UserEmailConfirmation: UserEmailConfirmationService<Db::Transaction>,
     UserUpdate: UserUpdateService<Db::Transaction>,
@@ -494,6 +499,10 @@ where
         }
 
         txn.commit().await?;
+
+        // The microservices are notified only after the user has actually been
+        // deleted from the database.
+        self.microservices_api.delete_user(user_id).await;
 
         Ok(())
     }

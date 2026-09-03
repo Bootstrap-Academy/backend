@@ -7,7 +7,9 @@ use academy_core_user_contracts::{
     email_confirmation::MockUserEmailConfirmationService, update::MockUserUpdateService,
     user::MockUserService,
 };
-use academy_extern_contracts::vat::MockVatApiService;
+use academy_extern_contracts::{
+    microservices::MockMicroservicesApiService, vat::MockVatApiService,
+};
 use academy_persistence_contracts::{
     MockDatabase, MockTransaction, coin::MockCoinRepository, user::MockUserRepository,
 };
@@ -31,6 +33,7 @@ type Sut = UserFeatureServiceImpl<
     MockAuthService<MockTransaction>,
     MockCaptchaService,
     MockVatApiService,
+    MockMicroservicesApiService,
     MockUserService<MockTransaction>,
     MockUserEmailConfirmationService<MockTransaction>,
     MockUserUpdateService<MockTransaction>,

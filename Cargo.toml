@@ -57,6 +57,8 @@ academy_core_config_contracts.path = "academy_core/config/contracts"
 academy_core_config_impl.path = "academy_core/config/impl"
 academy_core_contact_contracts.path = "academy_core/contact/contracts"
 academy_core_contact_impl.path = "academy_core/contact/impl"
+academy_core_contract_contracts.path = "academy_core/contract/contracts"
+academy_core_contract_impl.path = "academy_core/contract/impl"
 academy_core_finance_contracts.path = "academy_core/finance/contracts"
 academy_core_finance_impl.path = "academy_core/finance/impl"
 academy_core_health_contracts.path = "academy_core/health/contracts"
@@ -110,6 +112,7 @@ axum-extra = { version = "0.12.6", default-features = false, features = ["typed-
 base32 = { version = "0.5.1", default-features = false }
 base64 = { version = "0.22.1", default-features = false }
 chrono = { version = "0.4.45", default-features = false, features = ["serde", "clock"] }
+chrono-tz = { version = "0.9.0", default-features = false, features = ["std"] }
 clap = { version = "4.6.6", features = ["derive", "env"] }
 clap_complete = { version = "4.6.9", default-features = false, features = ["unstable-dynamic"] }
 darling = { version = "0.23.0", default-features = false, features = ["suggestions"] }

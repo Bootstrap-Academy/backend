@@ -1,0 +1,28 @@
+{% extends "base" %}
+{% block title %}Widerrufsbestätigung{% endblock title %}
+{% block content %}
+	<p>
+    Wir bestätigen den Eingang Ihrer Widerrufserklärung.
+	</p>
+
+	<p>
+    Eingegangen am {{ received_at }} (Uhrzeit in der Zeitzone Europe/Berlin).
+	</p>
+
+  <h2>Inhalt Ihrer Erklärung</h2>
+
+  <ul>
+    <li>Name: {{ name | escape }}</li>
+    <li>E-Mail-Adresse: {{ email | escape }}</li>
+    <li>Vertrag/Bestellung: {{ contract | escape }}</li>
+    {% if details %}<li>Angaben: {{ details | escape }}</li>{% endif %}
+  </ul>
+
+	<p>
+    Wir erstatten den gezahlten Betrag innerhalb von 14 Tagen über das ursprüngliche Zahlungsmittel.
+	</p>
+
+	<p>
+    Diese Bestätigung erfolgt nach § 356a BGB.
+	</p>
+{% endblock content %}

@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 pub mod auth;
 pub mod coin;
 pub mod contact;
+pub mod contract;
 pub mod email_address;
 pub mod heart;
 mod macros;

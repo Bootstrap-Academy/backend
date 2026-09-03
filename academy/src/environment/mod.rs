@@ -1,9 +1,10 @@
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, sync::Arc, time::Duration};
 
 use academy_api_rest::{RestServerConfig, RestServerRealIpConfig};
 use academy_auth_impl::AuthServiceConfig;
 use academy_config::Config;
 use academy_core_contact_impl::ContactFeatureConfig;
+use academy_core_contract_impl::ContractFeatureConfig;
 use academy_core_finance_impl::FinanceFeatureConfig;
 use academy_core_health_impl::HealthFeatureConfig;
 use academy_core_heart_impl::HeartFeatureConfig;
@@ -56,6 +57,7 @@ provider! {
 
             // Core
             ContactFeatureConfig,
+            ContractFeatureConfig,
             HealthFeatureConfig,
             SessionFeatureConfig,
             UserFeatureConfig,
@@ -119,6 +121,7 @@ provider! {
 
         // Core
         contact_feature_config: ContactFeatureConfig,
+        contract_feature_config: ContractFeatureConfig,
         health_feature_config: HealthFeatureConfig,
         session_feature_config: SessionFeatureConfig,
         user_feature_config: UserFeatureConfig,
@@ -229,6 +232,14 @@ impl ConfigProvider {
             email: config.contact.email.clone().into(),
         };
 
+        // Contract declarations are handled entirely by the backend, so the
+        // rate limits are not configurable.
+        let contract_feature_config = ContractFeatureConfig {
+            internal_email: config.contact.email.clone().into(),
+            rate_limit_window: Duration::from_secs(3600),
+            rate_limit_count: 5,
+        };
+
         let health_feature_config = HealthFeatureConfig {
             database_cache_ttl: config.health.database_cache_ttl.into(),
             cache_cache_ttl: config.health.cache_cache_ttl.into(),
@@ -299,6 +310,7 @@ impl ConfigProvider {
 
             // Core
             contact_feature_config,
+            contract_feature_config,
             health_feature_config,
             session_feature_config,
             user_feature_config,

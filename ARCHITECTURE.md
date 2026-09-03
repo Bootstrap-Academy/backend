@@ -10,7 +10,7 @@ The backend currently consists of the following components:
 - A [Valkey](https://valkey.io/)/[Redis](https://redis.io/) server for caching
 - External services/APIs:
     - An SMTP server for sending emails
-    - [Google reCAPTCHA](https://developers.google.com/recaptcha/intro)
+    - [Google reCAPTCHA](https://developers.google.com/recaptcha/intro) (optional, switched off with `recaptcha.enable = false`)
     - Various OAuth2 providers like GitHub, Discord, Google, ...
     - [Vies on-the-Web](https://ec.europa.eu/taxation_customs/vies/#/technical-information) for VAT validation
     - [PayPal](https://developer.paypal.com/docs/api/orders/v2/)
@@ -53,9 +53,52 @@ Clients are mostly authenticated using JWTs:
 Each incoming request is assigned a unique request id (Base64 encoded UUIDv7).
 This id is automatically attached to any logs associated with the corresponding request and is also returned to the client in the `X-Request-Id` response header.
 
+### Terms and Conditions
+The version of the terms and conditions a user accepted is stored on the user (`terms_version`, `terms_accepted_at`), together with the time at which the user confirmed to meet the minimum age (`age_confirmed_at`).
+`POST /auth/users` requires both `terms_version` and `age_confirmed` when an account is created.
+
+Existing users are asked again when a new version is published:
+
+- `POST /auth/users/{user_id}/terms` records the acceptance of the version passed in the request. `user_id` has to be `me` or `self`.
+- `POST /auth/users/{user_id}/terms/decline` records that the user does not accept the version the platform currently asks for (`terms_declined_at`). The previously accepted version stays in place. Accepting later clears the refusal.
+
+`terms_version`, `terms_accepted_at` and `terms_declined_at` are read-only fields on the user object; `age_confirmed_at` is stored but not returned by the API.
+
+### Contract Declarations
+Consumers can declare the cancellation of or the withdrawal from a contract without logging in:
+
+- `POST /contracts/cancellations`
+- `POST /contracts/withdrawals`
+
+Both endpoints are public, rate limited per client ip and per email address (5 declarations per hour each), and store the declaration in the `contract_declarations` table with the time it was received.
+The declaration is committed before any email is sent, so a failing mail server cannot lose it; the response reports in `confirmation_email_sent` whether the confirmation reached the declarant.
+Two emails are sent per declaration: a confirmation to the declarant (`contract_cancellation_confirmation.html` / `contract_withdrawal_confirmation.html`) and a plain-text notification to `contact.email`.
+
+A cancellation that names a premium membership and an email address belonging to an account also switches the automatic renewal off and returns the end of the paid period in `effective_end`.
+`GET /contracts/declarations` lists the recorded declarations and requires admin privileges.
+
+### Withdrawal Declarations at Checkout
+Before a paid order is placed, the consumer gives the declarations that are shown next to the order button.
+Endpoints that complete a purchase themselves (`POST /shop/coins/paypal/orders`, `POST /shop/premium`, `PUT /shop/hearts`) take them as part of the request body (`withdrawal_consent`, `withdrawal_text_version`) and reject the order without them.
+For purchases that are completed by one of the microservices (unlocking a course, booking a webinar or a coaching) the frontend records the declarations first through `POST /shop/consents`.
+The wording per subject lives in `academy_models::withdrawal` and is repeated in the purchase confirmation email.
+
+### Account Deletion
+Deleting a user (`DELETE /auth/users/{user_id}`) removes the account from the backend database and then notifies the microservices so they can delete the rows that belong to that user.
+The fan-out is implemented in `academy_extern` (`MicroservicesApiService`): for every microservice that has a base url in the `[microservices]` config section, the backend issues a short-lived internal JWT for that service and sends `DELETE <base_url>_internal/users/<user_id>`.
+The requests run concurrently, each with the configured `microservices.timeout`, and any failure is logged and swallowed — a microservice that is unavailable must not prevent an account from being deleted.
+Each microservice additionally runs a periodic sweep that removes data of users the backend no longer knows, which catches the deletions that were lost this way.
+
 ### Scheduled Tasks
 There are some tasks that need to run on a regular basis (e.g. removing expired sessions from the database).
 Instead of implementing a scheduler directly in the backend daemon, we rely on external schedulers (e.g. systemd timers or cron jobs) that invoke subcommands of `academy task` to start the corresponding tasks (e.g. `academy task prune-database`).
+
+The following tasks exist:
+
+- `academy task prune-database`: Deletes sessions that have not been refreshed within `session.refresh_token_ttl`.
+- `academy task refresh-premium`: Renews the premium memberships of all users who have automatic renewal switched on and whose current period has ended. A renewal always buys a *monthly* period at `premium.monthly_price`, no matter which plan the membership was booked with; a subscription that was booked yearly is rewritten to the monthly plan on its first renewal. If the user does not have enough Morphcoins, the automatic renewal is switched off instead.
+
+The NixOS module in `nix/module.nix` defines a systemd timer per task (`prune-database` hourly, `refresh-premium` daily by default).
 
 ### CLI
 The `academy` executable also provides some other useful commands e.g. for administration, debugging and testing purposes.
@@ -66,6 +109,9 @@ This environment variable contains a `:`-separated list of paths to config files
 The default configuration found in `config.toml` is always loaded implicitly with minimum priority.
 Usually defaults should be set for all properties except for those that depend on the deployment environment (e.g. database url) or that contain secrets or other sensitive information.
 Inside the development environment the `ACADEMY_CONFIG` environment variable is automatically set to point to the `config.dev.toml` config file.
+`academy check-config` loads the configuration and reports errors without starting the server.
+
+All properties, their defaults and the ones that have to be set by the deployment are listed in [`docs/config.md`](docs/config.md).
 
 ## Hexagonal Architecture
 The Bootstrap Academy backend follows the [Hexagonal Architecture](https://en.wikipedia.org/wiki/Hexagonal_architecture_(software)) approach.

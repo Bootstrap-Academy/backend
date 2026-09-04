@@ -104,6 +104,11 @@ timeout = "10s"
 
 [finance]
 vat_percent = 19
+# Invoices and credit notes are kept for eight years, counted from the end of
+# the calendar year in which they were issued (§ 147 Abs. 3 Satz 1 und Abs. 4
+# AO, § 257 Abs. 4 HGB, § 14b Abs. 1 UStG). Enforced by `academy task
+# prune-documents`.
+retention_years = 8
 # invoices_archive = ""
 # credit_notes_archive = ""
 

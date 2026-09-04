@@ -24,11 +24,13 @@ use academy_models::{
     RecaptchaResponse, VerificationCode,
     auth::{AccessToken, Login},
     email_address::EmailAddress,
+    finance::RETENTION_MARKER,
     session::DeviceName,
     user::{UserComposite, UserIdOrSelf, UserInvoiceInfoPatch, UserPassword},
 };
 use academy_persistence_contracts::{
-    Database, Transaction, coin::CoinRepository, user::UserRepository,
+    Database, Transaction, coin::CoinRepository, finance::FinancialDocumentRepository,
+    user::UserRepository,
 };
 use academy_shared_contracts::captcha::{CaptchaCheckError, CaptchaService};
 use academy_utils::{
@@ -58,6 +60,7 @@ pub struct UserFeatureServiceImpl<
     OAuth2Registration,
     UserRepo,
     CoinRepo,
+    DocumentRepo,
 > {
     db: Db,
     auth: Auth,
@@ -71,6 +74,7 @@ pub struct UserFeatureServiceImpl<
     oauth2_registration: OAuth2Registration,
     user_repo: UserRepo,
     coin_repo: CoinRepo,
+    document_repo: DocumentRepo,
 }
 
 #[derive(Debug, Clone)]
@@ -95,6 +99,7 @@ impl<
     OAuth2RegistrationS,
     UserRepo,
     CoinRepo,
+    DocumentRepo,
 > UserFeatureService
     for UserFeatureServiceImpl<
         Db,
@@ -109,6 +114,7 @@ impl<
         OAuth2RegistrationS,
         UserRepo,
         CoinRepo,
+        DocumentRepo,
     >
 where
     Db: Database,
@@ -123,6 +129,7 @@ where
     OAuth2RegistrationS: OAuth2RegistrationService,
     UserRepo: UserRepository<Db::Transaction>,
     CoinRepo: CoinRepository<Db::Transaction>,
+    DocumentRepo: FinancialDocumentRepository<Db::Transaction>,
 {
     #[trace_instrument(skip(self))]
     async fn list_users(
@@ -521,6 +528,15 @@ where
             .invalidate_access_tokens(&mut txn, user_id)
             .await
             .context("Failed to invalidate access tokens")?;
+
+        // Invoices and credit notes have to be kept even after the account has
+        // been deleted, so their records are pseudonymized instead: the
+        // customer details are replaced by a retention marker and the account
+        // reference is dropped when the account row is deleted.
+        self.document_repo
+            .pseudonymize(&mut txn, user_id, &[RETENTION_MARKER.into()])
+            .await
+            .context("Failed to pseudonymize financial documents")?;
 
         if !self
             .user_repo

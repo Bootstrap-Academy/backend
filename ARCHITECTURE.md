@@ -89,6 +89,16 @@ The fan-out is implemented in `academy_extern` (`MicroservicesApiService`): for 
 The requests run concurrently, each with the configured `microservices.timeout`, and any failure is logged and swallowed — a microservice that is unavailable must not prevent an account from being deleted.
 Each microservice additionally runs a periodic sweep that removes data of users the backend no longer knows, which catches the deletions that were lost this way.
 
+Invoices and credit notes are the exception: they have to be kept for `finance.retention_years` years and are therefore not deleted with the account.
+Instead, `delete_user` first replaces the customer details of their records in `financial_documents` by `academy_models::finance::RETENTION_MARKER`, and deleting the account row drops the account reference (`on delete set null`).
+Document number, issue date and amounts stay on the record and the archived pdf stays in place, until `academy task prune-documents` deletes both.
+
+### Financial Documents
+Every invoice and credit note that is issued is recorded in `financial_documents`, keyed by its number (`R0000042`, `G202402-7`), which is also the name of its pdf file in `finance.invoices_archive` / `finance.credit_notes_archive`.
+The record keeps the address block that was printed on the document, so re-rendering it does not pick up later changes to the user's invoice information, and it keeps the totals in cents as they were printed.
+Records that were created by the migration for coin orders that predate this table carry only number, date, user and Morphcoin amount; the remaining values are filled in the next time the document is rendered.
+Once the retention period has expired, `get_invoice_pdf` and `get_credit_note` stop recreating the document.
+
 ### Scheduled Tasks
 There are some tasks that need to run on a regular basis (e.g. removing expired sessions from the database).
 Instead of implementing a scheduler directly in the backend daemon, we rely on external schedulers (e.g. systemd timers or cron jobs) that invoke subcommands of `academy task` to start the corresponding tasks (e.g. `academy task prune-database`).
@@ -96,9 +106,10 @@ Instead of implementing a scheduler directly in the backend daemon, we rely on e
 The following tasks exist:
 
 - `academy task prune-database`: Deletes sessions that have not been refreshed within `session.refresh_token_ttl`.
+- `academy task prune-documents`: Deletes the invoices and credit notes whose retention period has expired, both the records in `financial_documents` and the archived pdf files. The period is `finance.retention_years` years, counted from the end of the calendar year in which the document was issued (§ 147 Abs. 3 Satz 1 und Abs. 4 AO). Credit notes that were archived before they were recorded in the database are recognised by the month in their file name.
 - `academy task refresh-premium`: Renews the premium memberships of all users who have automatic renewal switched on and whose current period has ended. A renewal always buys a *monthly* period at `premium.monthly_price`, no matter which plan the membership was booked with; a subscription that was booked yearly is rewritten to the monthly plan on its first renewal. If the user does not have enough Morphcoins, the automatic renewal is switched off instead.
 
-The NixOS module in `nix/module.nix` defines a systemd timer per task (`prune-database` hourly, `refresh-premium` daily by default).
+The NixOS module in `nix/module.nix` defines a systemd timer per task (`prune-database` hourly, `prune-documents` monthly, `refresh-premium` daily by default).
 
 ### CLI
 The `academy` executable also provides some other useful commands e.g. for administration, debugging and testing purposes.

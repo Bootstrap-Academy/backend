@@ -4,14 +4,21 @@ use academy_core_finance_contracts::{
 };
 use academy_di::Build;
 use academy_extern_contracts::render::RenderApiService;
-use academy_models::user::UserId;
+use academy_models::{
+    finance::{
+        FinancialDocument, FinancialDocumentKind, FinancialDocumentNumber, retention_cutoff,
+    },
+    user::UserId,
+};
 use academy_persistence_contracts::{
-    coin::CoinRepository, paypal::PaypalRepository, user::UserRepository,
+    coin::CoinRepository, finance::FinancialDocumentRepository, paypal::PaypalRepository,
+    user::UserRepository,
 };
 use academy_shared_contracts::{fs::FsService, time::TimeService};
 use academy_templates_contracts::{InvoiceItem, InvoiceTemplate, TemplateService};
 use anyhow::Context;
 use chrono::{NaiveDate, NaiveTime, TimeZone, Utc};
+use rust_decimal::{Decimal, prelude::ToPrimitive};
 use tracing::instrument;
 
 use crate::FinanceFeatureConfig;
@@ -26,6 +33,7 @@ pub struct FinanceInvoiceServiceImpl<
     PaypalRepo,
     UserRepo,
     CoinRepo,
+    DocumentRepo,
     FinanceCoin,
 > {
     time: Time,
@@ -35,11 +43,12 @@ pub struct FinanceInvoiceServiceImpl<
     paypal_repo: PaypalRepo,
     user_repo: UserRepo,
     coin_repo: CoinRepo,
+    document_repo: DocumentRepo,
     finance_coin: FinanceCoin,
     config: FinanceFeatureConfig,
 }
 
-impl<Txn, Time, Fs, Template, RenderApi, PaypalRepo, UserRepo, CoinRepo, FinanceCoin>
+impl<Txn, Time, Fs, Template, RenderApi, PaypalRepo, UserRepo, CoinRepo, DocumentRepo, FinanceCoin>
     FinanceInvoiceService<Txn>
     for FinanceInvoiceServiceImpl<
         Time,
@@ -49,6 +58,7 @@ impl<Txn, Time, Fs, Template, RenderApi, PaypalRepo, UserRepo, CoinRepo, Finance
         PaypalRepo,
         UserRepo,
         CoinRepo,
+        DocumentRepo,
         FinanceCoin,
     >
 where
@@ -60,6 +70,7 @@ where
     PaypalRepo: PaypalRepository<Txn>,
     UserRepo: UserRepository<Txn>,
     CoinRepo: CoinRepository<Txn>,
+    DocumentRepo: FinancialDocumentRepository<Txn>,
     FinanceCoin: FinanceCoinService,
 {
     #[instrument(skip(self, txn))]
@@ -98,12 +109,38 @@ where
         let coins = coin_order.coins;
         let timestamp = coin_order.created_at;
 
-        let Some(user_composite) = self
-            .user_repo
-            .get_composite(txn, coin_order.user_id)
-            .await?
-        else {
+        // Documents whose retention period has expired have been removed by
+        // `academy task prune-documents` and are not created again.
+        let cutoff = retention_cutoff(self.time.now(), self.config.retention_years)
+            .context("Failed to determine the document retention cutoff")?;
+        if timestamp < cutoff {
             return Ok(None);
+        }
+
+        let number = FinancialDocumentNumber::try_new(formatted_invoice_number.clone())?;
+
+        let customer_details = match self
+            .document_repo
+            .get(txn, &number)
+            .await?
+            .and_then(|document| document.customer_details)
+        {
+            // An invoice keeps the address block it was issued with.
+            Some(customer_details) => customer_details,
+            None => {
+                let Some(user_composite) = self
+                    .user_repo
+                    .get_composite(txn, coin_order.user_id)
+                    .await?
+                else {
+                    return Ok(None);
+                };
+
+                user_composite.invoice_info.into_details(
+                    Some(user_composite.profile.display_name.clone().into_inner()),
+                    user_composite.user.email.as_ref().map(ToString::to_string),
+                )
+            }
         };
 
         let CoinPrices {
@@ -117,10 +154,7 @@ where
             .template
             .render(&InvoiceTemplate {
                 title: "Rechnung",
-                customer_details: user_composite.invoice_info.into_details(
-                    Some(user_composite.profile.display_name.clone().into_inner()),
-                    user_composite.user.email.as_ref().map(ToString::to_string),
-                ),
+                customer_details: customer_details.clone(),
                 timestamp,
                 invoice_number: formatted_invoice_number,
                 items: vec![InvoiceItem {
@@ -144,6 +178,24 @@ where
 
         self.fs.store_file(&archive_path, &invoice_pdf).await?;
 
+        self.document_repo
+            .record(
+                txn,
+                &FinancialDocument {
+                    number,
+                    kind: FinancialDocumentKind::Invoice,
+                    user_id: Some(coin_order.user_id),
+                    issued_at: timestamp,
+                    customer_details: Some(customer_details),
+                    coins: Some(coins),
+                    net_total_cents: to_cents(net_total),
+                    vat_total_cents: to_cents(vat_total),
+                    gross_total_cents: to_cents(gross_total),
+                },
+            )
+            .await
+            .context("Failed to record the invoice")?;
+
         Ok(Some(invoice_pdf))
     }
 
@@ -165,7 +217,8 @@ where
             .and_time(NaiveTime::from_hms_opt(0, 0, 0).unwrap())
             .and_utc();
 
-        if self.time.now() < timestamp {
+        let now = self.time.now();
+        if now < timestamp {
             return Ok(None);
         }
 
@@ -181,8 +234,34 @@ where
             return Ok(Some(credit_note));
         }
 
-        let Some(user_composite) = self.user_repo.get_composite(txn, user_id).await? else {
+        // Documents whose retention period has expired have been removed by
+        // `academy task prune-documents` and are not created again.
+        let cutoff = retention_cutoff(now, self.config.retention_years)
+            .context("Failed to determine the document retention cutoff")?;
+        if timestamp < cutoff {
             return Ok(None);
+        }
+
+        let number = FinancialDocumentNumber::try_new(credit_note_number.clone())?;
+
+        let customer_details = match self
+            .document_repo
+            .get(txn, &number)
+            .await?
+            .and_then(|document| document.customer_details)
+        {
+            // A credit note keeps the address block it was issued with.
+            Some(customer_details) => customer_details,
+            None => {
+                let Some(user_composite) = self.user_repo.get_composite(txn, user_id).await? else {
+                    return Ok(None);
+                };
+
+                user_composite.invoice_info.into_details(
+                    Some(user_composite.profile.display_name.clone().into_inner()),
+                    user_composite.user.email.as_ref().map(ToString::to_string),
+                )
+            }
         };
 
         let transactions = self
@@ -212,10 +291,7 @@ where
             .template
             .render(&InvoiceTemplate {
                 title: "Gutschrift",
-                customer_details: user_composite.invoice_info.into_details(
-                    Some(user_composite.profile.display_name.clone().into_inner()),
-                    user_composite.user.email.as_ref().map(ToString::to_string),
-                ),
+                customer_details: customer_details.clone(),
                 timestamp,
                 invoice_number: credit_note_number,
                 items,
@@ -234,8 +310,32 @@ where
 
         self.fs.store_file(&archive_path, &credit_note_pdf).await?;
 
+        self.document_repo
+            .record(
+                txn,
+                &FinancialDocument {
+                    number,
+                    kind: FinancialDocumentKind::CreditNote,
+                    user_id: Some(user_id),
+                    issued_at: timestamp,
+                    customer_details: Some(customer_details),
+                    coins: Some(coins_total),
+                    net_total_cents: to_cents(price_total.net_total),
+                    vat_total_cents: to_cents(price_total.vat_total),
+                    gross_total_cents: to_cents(price_total.gross_total),
+                },
+            )
+            .await
+            .context("Failed to record the credit note")?;
+
         Ok(Some(credit_note_pdf))
     }
+}
+
+/// Convert a euro amount into cents, rounded exactly as it is printed on the
+/// document.
+fn to_cents(amount: Decimal) -> Option<i64> {
+    (amount.round_dp(2) * Decimal::ONE_HUNDRED).to_i64()
 }
 
 fn first_day_of_next_month(year: i32, month: u32) -> Option<NaiveDate> {
@@ -259,13 +359,16 @@ mod tests {
     use academy_extern_contracts::render::MockRenderApiService;
     use academy_models::{
         coin::Transaction,
+        finance::RETENTION_MARKER,
         paypal::{PaypalCoinOrder, PaypalOrderId},
     };
     use academy_persistence_contracts::{
-        coin::MockCoinRepository, paypal::MockPaypalRepository, user::MockUserRepository,
+        coin::MockCoinRepository, finance::MockFinancialDocumentRepository,
+        paypal::MockPaypalRepository, user::MockUserRepository,
     };
     use academy_shared_contracts::{fs::MockFsService, time::MockTimeService};
     use academy_templates_contracts::MockTemplateService;
+    use chrono::DateTime;
     use rust_decimal_macros::dec;
 
     use super::*;
@@ -278,8 +381,19 @@ mod tests {
         MockPaypalRepository<()>,
         MockUserRepository<()>,
         MockCoinRepository<()>,
+        MockFinancialDocumentRepository<()>,
         MockFinanceCoinService,
     >;
+
+    /// A moment at which a document issued in 2024 still has to be kept.
+    fn within_retention() -> DateTime<Utc> {
+        Utc.with_ymd_and_hms(2032, 12, 31, 23, 59, 59).unwrap()
+    }
+
+    /// The first moment at which a document issued in 2024 may be deleted.
+    fn after_retention() -> DateTime<Utc> {
+        Utc.with_ymd_and_hms(2033, 1, 1, 0, 0, 0).unwrap()
+    }
 
     #[tokio::test]
     async fn get_invoice_ok() {
@@ -302,11 +416,32 @@ mod tests {
             .with_read_file(path.clone(), None)
             .with_store_file(path, pdf.clone());
 
+        let time = MockTimeService::new().with_now(within_retention());
+
         let paypal_repo = MockPaypalRepository::new()
             .with_get_coin_order_by_invoice_number(42, Some(order.clone()));
 
         let user_repo =
             MockUserRepository::new().with_get_composite(FOO.user.id, Some(FOO.clone()));
+
+        let customer_details = FOO.invoice_info.clone().into_details(
+            Some(FOO.profile.display_name.clone().into_inner()),
+            FOO.user.email.as_ref().map(ToString::to_string),
+        );
+
+        let document_repo = MockFinancialDocumentRepository::new()
+            .with_get("R0000042".try_into().unwrap(), None)
+            .with_record(FinancialDocument {
+                number: "R0000042".try_into().unwrap(),
+                kind: FinancialDocumentKind::Invoice,
+                user_id: Some(FOO.user.id),
+                issued_at: order.created_at,
+                customer_details: Some(customer_details.clone()),
+                coins: Some(1337),
+                net_total_cents: Some(200),
+                vat_total_cents: Some(300),
+                gross_total_cents: Some(400),
+            });
 
         let prices = CoinPrices {
             net_unit: 1.into(),
@@ -319,10 +454,7 @@ mod tests {
         let template = MockTemplateService::new().with_render(
             InvoiceTemplate {
                 title: "Rechnung",
-                customer_details: FOO.invoice_info.clone().into_details(
-                    Some(FOO.profile.display_name.clone().into_inner()),
-                    FOO.user.email.as_ref().map(ToString::to_string),
-                ),
+                customer_details,
                 timestamp: order.created_at,
                 invoice_number: "R0000042".into(),
                 items: vec![InvoiceItem {
@@ -343,9 +475,11 @@ mod tests {
             .with_render_html_to_pdf("invoice-template-html".into(), pdf.clone());
 
         let sut = FinanceInvoiceServiceImpl {
+            time,
             fs,
             paypal_repo,
             user_repo,
+            document_repo,
             render_api,
             finance_coin,
             template,
@@ -360,6 +494,149 @@ mod tests {
 
         // Assert
         assert_eq!(result, Some(pdf));
+    }
+
+    /// An invoice keeps the address block it was issued with, so a pseudonymized
+    /// record renders the retention marker instead of the user's details.
+    #[tokio::test]
+    async fn get_invoice_uses_the_recorded_customer_details() {
+        // Arrange
+        let order = PaypalCoinOrder {
+            id: PaypalOrderId::try_new("asdf1234").unwrap(),
+            user_id: FOO.user.id,
+            created_at: FOO.user.created_at,
+            captured_at: None,
+            coins: 1337,
+            invoice_number: 42,
+            withdrawal_consent_at: None,
+            withdrawal_text_version: None,
+        };
+
+        let pdf = vec![1, 2, 3, 4];
+
+        let path = PathBuf::from("/invoices/R0000042.pdf");
+        let fs = MockFsService::new()
+            .with_read_file(path.clone(), None)
+            .with_store_file(path, pdf.clone());
+
+        let time = MockTimeService::new().with_now(within_retention());
+
+        let paypal_repo = MockPaypalRepository::new()
+            .with_get_coin_order_by_invoice_number(42, Some(order.clone()));
+
+        let customer_details = vec![RETENTION_MARKER.to_owned()];
+
+        let recorded = FinancialDocument {
+            number: "R0000042".try_into().unwrap(),
+            kind: FinancialDocumentKind::Invoice,
+            user_id: None,
+            issued_at: order.created_at,
+            customer_details: Some(customer_details.clone()),
+            coins: Some(1337),
+            net_total_cents: Some(200),
+            vat_total_cents: Some(300),
+            gross_total_cents: Some(400),
+        };
+
+        let document_repo = MockFinancialDocumentRepository::new()
+            .with_get("R0000042".try_into().unwrap(), Some(recorded.clone()))
+            .with_record(FinancialDocument {
+                user_id: Some(FOO.user.id),
+                ..recorded
+            });
+
+        let prices = CoinPrices {
+            net_unit: 1.into(),
+            net_total: 2.into(),
+            vat_total: 3.into(),
+            gross_total: 4.into(),
+        };
+        let finance_coin = MockFinanceCoinService::new().with_get_price(1337, prices);
+
+        let template = MockTemplateService::new().with_render(
+            InvoiceTemplate {
+                title: "Rechnung",
+                customer_details,
+                timestamp: order.created_at,
+                invoice_number: "R0000042".into(),
+                items: vec![InvoiceItem {
+                    description: "MorphCoins".into(),
+                    net_unit: prices.net_unit,
+                    count: order.coins,
+                    net_total: prices.net_total,
+                }],
+                vat_percent: dec!(19),
+                net_total: prices.net_total,
+                vat_total: prices.vat_total,
+                gross_total: prices.gross_total,
+            },
+            "invoice-template-html".into(),
+        );
+
+        let render_api = MockRenderApiService::new()
+            .with_render_html_to_pdf("invoice-template-html".into(), pdf.clone());
+
+        // The user repository is never asked, so a deleted account is not needed
+        // to render the document.
+        let sut = FinanceInvoiceServiceImpl {
+            time,
+            fs,
+            paypal_repo,
+            document_repo,
+            render_api,
+            finance_coin,
+            template,
+            ..Sut::default()
+        };
+
+        // Act
+        let result = sut
+            .get_invoice_pdf(&mut (), Some(FOO.user.id), 42)
+            .await
+            .unwrap();
+
+        // Assert
+        assert_eq!(result, Some(pdf));
+    }
+
+    /// Once the retention period has expired the archived pdf has been deleted
+    /// and the document must not be created again.
+    #[tokio::test]
+    async fn get_invoice_retention_expired() {
+        // Arrange
+        let order = PaypalCoinOrder {
+            id: PaypalOrderId::try_new("asdf1234").unwrap(),
+            user_id: FOO.user.id,
+            created_at: FOO.user.created_at,
+            captured_at: None,
+            coins: 1337,
+            invoice_number: 42,
+            withdrawal_consent_at: None,
+            withdrawal_text_version: None,
+        };
+
+        let fs = MockFsService::new().with_read_file("/invoices/R0000042.pdf".into(), None);
+
+        let time = MockTimeService::new().with_now(after_retention());
+
+        let paypal_repo = MockPaypalRepository::new()
+            .with_get_coin_order_by_invoice_number(42, Some(order.clone()));
+
+        let sut = FinanceInvoiceServiceImpl {
+            time,
+            fs,
+            paypal_repo,
+            ..Sut::default()
+        };
+
+        // Act
+        let result = sut
+            .get_invoice_pdf(&mut (), Some(FOO.user.id), 42)
+            .await
+            .unwrap();
+
+        // Assert
+        assert_eq!(result, None);
     }
 
     #[tokio::test]
@@ -558,13 +835,29 @@ mod tests {
             .with_get_price(1337, prices)
             .with_get_price(1337, prices);
 
+        let customer_details = FOO.invoice_info.clone().into_details(
+            Some(FOO.profile.display_name.clone().into_inner()),
+            FOO.user.email.as_ref().map(ToString::to_string),
+        );
+
+        let document_repo = MockFinancialDocumentRepository::new()
+            .with_get("G202402-7".try_into().unwrap(), None)
+            .with_record(FinancialDocument {
+                number: "G202402-7".try_into().unwrap(),
+                kind: FinancialDocumentKind::CreditNote,
+                user_id: Some(FOO.user.id),
+                issued_at: timestamp,
+                customer_details: Some(customer_details.clone()),
+                coins: Some(1337),
+                net_total_cents: Some(200),
+                vat_total_cents: Some(300),
+                gross_total_cents: Some(400),
+            });
+
         let template = MockTemplateService::new().with_render(
             InvoiceTemplate {
                 title: "Gutschrift",
-                customer_details: FOO.invoice_info.clone().into_details(
-                    Some(FOO.profile.display_name.clone().into_inner()),
-                    FOO.user.email.as_ref().map(ToString::to_string),
-                ),
+                customer_details,
                 timestamp,
                 invoice_number: "G202402-7".into(),
                 items: vec![InvoiceItem {
@@ -589,6 +882,7 @@ mod tests {
             user_repo,
             fs,
             coin_repo,
+            document_repo,
             finance_coin,
             template,
             render_api,
@@ -603,6 +897,34 @@ mod tests {
 
         // Assert
         assert_eq!(result, Some(pdf));
+    }
+
+    /// Once the retention period has expired the archived pdf has been deleted
+    /// and the document must not be created again.
+    #[tokio::test]
+    async fn get_credit_note_retention_expired() {
+        // Arrange
+        let time = MockTimeService::new().with_now(after_retention());
+
+        let user_repo = MockUserRepository::new().with_get_number(FOO.user.id, 7);
+
+        let fs = MockFsService::new().with_read_file("/credit_notes/G202402-7.pdf".into(), None);
+
+        let sut = FinanceInvoiceServiceImpl {
+            time,
+            user_repo,
+            fs,
+            ..Sut::default()
+        };
+
+        // Act
+        let result = sut
+            .get_credit_note(&mut (), FOO.user.id, 2024, 2)
+            .await
+            .unwrap();
+
+        // Assert
+        assert_eq!(result, None);
     }
 
     #[tokio::test]

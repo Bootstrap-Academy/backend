@@ -14,6 +14,7 @@ use tracing::trace;
 
 pub mod coin;
 pub mod contract;
+pub mod finance;
 pub mod heart;
 pub mod mfa;
 pub mod oauth2;

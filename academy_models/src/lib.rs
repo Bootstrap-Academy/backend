@@ -10,6 +10,7 @@ pub mod coin;
 pub mod contact;
 pub mod contract;
 pub mod email_address;
+pub mod finance;
 pub mod heart;
 mod macros;
 pub mod mfa;

@@ -48,10 +48,10 @@ use academy_extern_impl::{
 };
 use academy_persistence_postgres::{
     PostgresDatabase, coin::PostgresCoinRepository, contract::PostgresContractRepository,
-    heart::PostgresHeartRepository, mfa::PostgresMfaRepository, oauth2::PostgresOAuth2Repository,
-    paypal::PostgresPaypalRepository, premium::PostgresPremiumRepository,
-    session::PostgresSessionRepository, user::PostgresUserRepository,
-    withdrawal::PostgresWithdrawalRepository,
+    finance::PostgresFinancialDocumentRepository, heart::PostgresHeartRepository,
+    mfa::PostgresMfaRepository, oauth2::PostgresOAuth2Repository, paypal::PostgresPaypalRepository,
+    premium::PostgresPremiumRepository, session::PostgresSessionRepository,
+    user::PostgresUserRepository, withdrawal::PostgresWithdrawalRepository,
 };
 use academy_shared_impl::{
     captcha::CaptchaServiceImpl, fs::FsServiceImpl, hash::HashServiceImpl, id::IdServiceImpl,
@@ -122,6 +122,7 @@ pub type HeartRepo = PostgresHeartRepository;
 pub type PremiumRepo = PostgresPremiumRepository;
 pub type ContractRepo = PostgresContractRepository;
 pub type WithdrawalRepo = PostgresWithdrawalRepository;
+pub type DocumentRepo = PostgresFinancialDocumentRepository;
 
 // Auth
 pub type Auth =
@@ -148,6 +149,7 @@ pub type UserFeature = UserFeatureServiceImpl<
     OAuth2Registration,
     UserRepo,
     CoinRepo,
+    DocumentRepo,
 >;
 pub type User = UserServiceImpl<Id, Time, Password, UserRepo, OAuth2Link>;
 pub type UserEmailConfirmation =
@@ -238,6 +240,7 @@ pub type FinanceInvoice = FinanceInvoiceServiceImpl<
     PaypalRepo,
     UserRepo,
     CoinRepo,
+    DocumentRepo,
     FinanceCoin,
 >;
 pub type FinanceCoin = FinanceCoinServiceImpl;

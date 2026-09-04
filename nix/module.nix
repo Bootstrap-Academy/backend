@@ -42,7 +42,7 @@ in
       default = { };
     };
 
-    tasks = lib.genAttrs [ "prune-database" "refresh-premium" ] (task: {
+    tasks = lib.genAttrs [ "prune-database" "prune-documents" "refresh-premium" ] (task: {
       schedule = lib.mkOption {
         type = lib.types.either lib.types.str (lib.types.listOf lib.types.str);
         default = [ ];
@@ -271,6 +271,7 @@ in
 
         tasks = {
           prune-database.schedule = lib.mkDefault "hourly";
+          prune-documents.schedule = lib.mkDefault "monthly";
           refresh-premium.schedule = lib.mkDefault "daily";
         };
       };

@@ -267,6 +267,7 @@ impl ConfigProvider {
             vat_percent: config.finance.vat_percent,
             invoices_archive: config.finance.invoices_archive.clone().into(),
             credit_notes_archive: config.finance.credit_notes_archive.clone().into(),
+            retention_years: config.finance.retention_years,
             download_token_ttl: config.jwt.download_token_ttl.into(),
         };
 

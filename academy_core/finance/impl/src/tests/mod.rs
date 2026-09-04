@@ -25,6 +25,7 @@ impl Default for FinanceFeatureConfig {
             vat_percent: dec!(19),
             invoices_archive: Path::new("/invoices").into(),
             credit_notes_archive: Path::new("/credit_notes").into(),
+            retention_years: 8,
             download_token_ttl: Duration::from_secs(600),
         }
     }

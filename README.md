@@ -36,6 +36,7 @@ For development in [VSCode](https://code.visualstudio.com/)/[VSCodium](https://v
 - `cargo run -- --help`: List all commands provided by the backend CLI
 - `cargo run -- check-config -v`: Validate the configuration and print it
 - `cargo run -- task prune-database`: Delete sessions that have not been refreshed within `session.refresh_token_ttl`
+- `cargo run -- task prune-documents`: Delete invoices and credit notes whose retention period has expired (see [`ARCHITECTURE.md`](ARCHITECTURE.md#scheduled-tasks))
 - `cargo run -- task refresh-premium`: Renew the premium memberships whose period has ended (always as a monthly period, see [`ARCHITECTURE.md`](ARCHITECTURE.md#scheduled-tasks))
 - `just`: List all recipes provided by the `justfile`
 - `generate`: Regenerate `Cargo.nix`. Run this command after changing any `Cargo.toml` or `Cargo.lock` file.

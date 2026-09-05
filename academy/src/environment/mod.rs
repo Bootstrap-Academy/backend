@@ -171,6 +171,8 @@ impl ConfigProvider {
             config.microservices.challenges_url.clone(),
             config.microservices.events_url.clone(),
             config.microservices.timeout.into(),
+            config.microservices.export_timeout.into(),
+            config.microservices.max_export_size,
         );
 
         // Shared
@@ -253,6 +255,7 @@ impl ConfigProvider {
 
         let user_feature_config = UserFeatureConfig {
             name_change_rate_limit: config.user.name_change_rate_limit.into(),
+            export_rate_limit: config.user.export_rate_limit.into(),
             verification_redirect_url: config.user.verification_redirect_url.clone().into(),
             verification_verification_code_ttl: config.user.verification_code_ttl.into(),
             password_reset_redirect_url: config.user.password_reset_redirect_url.clone().into(),

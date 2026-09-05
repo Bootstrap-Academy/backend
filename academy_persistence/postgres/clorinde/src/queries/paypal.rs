@@ -332,6 +332,48 @@ impl ListCoinOrdersStmt {
         }
     }
 }
+pub struct ListCoinOrdersByUserIdStmt(&'static str, Option<tokio_postgres::Statement>);
+pub fn list_coin_orders_by_user_id() -> ListCoinOrdersByUserIdStmt {
+    ListCoinOrdersByUserIdStmt(
+        "select * from paypal_coin_orders where user_id=$1 order by created_at",
+        None,
+    )
+}
+impl ListCoinOrdersByUserIdStmt {
+    pub async fn prepare<'a, C: GenericClient>(
+        mut self,
+        client: &'a C,
+    ) -> Result<Self, tokio_postgres::Error> {
+        self.1 = Some(client.prepare(self.0).await?);
+        Ok(self)
+    }
+    pub fn bind<'c, 'a, 's, C: GenericClient>(
+        &'s self,
+        client: &'c C,
+        user_id: &'a uuid::Uuid,
+    ) -> CoinOrderQuery<'c, 'a, 's, C, CoinOrder, 1> {
+        CoinOrderQuery {
+            client,
+            params: [user_id],
+            query: self.0,
+            cached: self.1.as_ref(),
+            extractor:
+                |row: &tokio_postgres::Row| -> Result<CoinOrderBorrowed, tokio_postgres::Error> {
+                    Ok(CoinOrderBorrowed {
+                        id: row.try_get(0)?,
+                        user_id: row.try_get(1)?,
+                        created_at: row.try_get(2)?,
+                        captured_at: row.try_get(3)?,
+                        coins: row.try_get(4)?,
+                        invoice_number: row.try_get(5)?,
+                        withdrawal_consent_at: row.try_get(6)?,
+                        withdrawal_text_version: row.try_get(7)?,
+                    })
+                },
+            mapper: |it| CoinOrder::from(it),
+        }
+    }
+}
 pub struct GetCoinOrderStmt(&'static str, Option<tokio_postgres::Statement>);
 pub fn get_coin_order() -> GetCoinOrderStmt {
     GetCoinOrderStmt("select * from paypal_coin_orders where id=$1", None)

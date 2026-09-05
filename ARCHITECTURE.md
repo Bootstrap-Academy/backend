@@ -89,6 +89,13 @@ The fan-out is implemented in `academy_extern` (`MicroservicesApiService`): for 
 The requests run concurrently, each with the configured `microservices.timeout`, and any failure is logged and swallowed — a microservice that is unavailable must not prevent an account from being deleted.
 Each microservice additionally runs a periodic sweep that removes data of users the backend no longer knows, which catches the deletions that were lost this way.
 
+### Data Export
+`GET /auth/users/{user_id}/export` returns everything the platform stores about one user as a single JSON document (Art. 15 and 20 GDPR); a user can export themselves, an administrator can export anybody.
+The `account` object is assembled by `UserExportService` from the backend database — the account, the sessions, the linked OAuth2 accounts, the Morphcoin balance and transactions, the premium membership, the invoices, the contract declarations and the withdrawal declarations.
+The `services` object is assembled by the same `MicroservicesApiService` that the account deletion uses: for every configured microservice the backend issues a short-lived internal JWT and reads `GET <base_url>_internal/users/<user_id>/export`.
+Unlike the deletion fan-out, a failing microservice fails the whole request, so that an incomplete export is never handed out as if it were complete; each response is limited to `microservices.max_export_size` bytes.
+The database transaction is dropped before the fan-out, exports are limited to one per user per `user.export_rate_limit` (administrators are exempt), and neither the logs nor the error messages contain any of the exported data.
+
 ### Scheduled Tasks
 There are some tasks that need to run on a regular basis (e.g. removing expired sessions from the database).
 Instead of implementing a scheduler directly in the backend daemon, we rely on external schedulers (e.g. systemd timers or cron jobs) that invoke subcommands of `academy task` to start the corresponding tasks (e.g. `academy task prune-database`).

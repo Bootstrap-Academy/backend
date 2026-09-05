@@ -1,18 +1,20 @@
 use std::{sync::Arc, time::Duration};
 
 use academy_auth_contracts::{AuthResultExt, AuthService};
+use academy_cache_contracts::CacheService;
 use academy_core_oauth2_contracts::registration::OAuth2RegistrationService;
 use academy_core_session_contracts::session::SessionService;
 use academy_core_user_contracts::{
     PasswordUpdate, UserAcceptTermsError, UserAcceptTermsRequest, UserCreateError,
-    UserCreateRequest, UserDeclineTermsError, UserDeleteError, UserFeatureService, UserGetError,
-    UserListError, UserRequestPasswordResetError, UserRequestVerificationEmailError,
+    UserCreateRequest, UserDeclineTermsError, UserDeleteError, UserExportError, UserFeatureService,
+    UserGetError, UserListError, UserRequestPasswordResetError, UserRequestVerificationEmailError,
     UserResetPasswordError, UserUpdateError, UserUpdateRequest, UserUpdateUserRequest,
     UserVerifyEmailError,
     email_confirmation::{
         UserEmailConfirmationResetPasswordError, UserEmailConfirmationService,
         UserEmailConfirmationVerifyEmailError,
     },
+    export::{UserDataExport, UserExportService},
     update::{
         UserUpdateEmailError, UserUpdateNameError, UserUpdateNameRateLimitPolicy, UserUpdateService,
     },
@@ -25,7 +27,7 @@ use academy_models::{
     auth::{AccessToken, Login},
     email_address::EmailAddress,
     session::DeviceName,
-    user::{UserComposite, UserIdOrSelf, UserInvoiceInfoPatch, UserPassword},
+    user::{UserComposite, UserId, UserIdOrSelf, UserInvoiceInfoPatch, UserPassword},
 };
 use academy_persistence_contracts::{
     Database, Transaction, coin::CoinRepository, user::UserRepository,
@@ -36,23 +38,28 @@ use academy_utils::{
     trace_instrument,
 };
 use anyhow::{Context, anyhow};
+use tracing::{info, trace};
 
 pub mod email_confirmation;
+pub mod export;
 pub mod update;
 pub mod user;
 
 #[cfg(test)]
 mod tests;
 
-#[derive(Debug, Clone, Default, Build)]
+#[derive(Debug, Clone, Build)]
+#[cfg_attr(test, derive(Default))]
 pub struct UserFeatureServiceImpl<
     Db,
     Auth,
+    Cache,
     Captcha,
     VatApi,
     MicroservicesApi,
     User,
     UserEmailConfirmation,
+    UserExport,
     UserUpdate,
     Session,
     OAuth2Registration,
@@ -61,21 +68,26 @@ pub struct UserFeatureServiceImpl<
 > {
     db: Db,
     auth: Auth,
+    cache: Cache,
     captcha: Captcha,
     vat_api: VatApi,
     microservices_api: MicroservicesApi,
     user: User,
     user_email_confirmation: UserEmailConfirmation,
+    user_export: UserExport,
     user_update: UserUpdate,
     session: Session,
     oauth2_registration: OAuth2Registration,
     user_repo: UserRepo,
     coin_repo: CoinRepo,
+    config: UserFeatureConfig,
 }
 
 #[derive(Debug, Clone)]
 pub struct UserFeatureConfig {
     pub name_change_rate_limit: Duration,
+    /// Minimum time between two data exports of the same user.
+    pub export_rate_limit: Duration,
     pub verification_redirect_url: Arc<String>,
     pub verification_verification_code_ttl: Duration,
     pub password_reset_redirect_url: Arc<String>,
@@ -85,11 +97,13 @@ pub struct UserFeatureConfig {
 impl<
     Db,
     Auth,
+    Cache,
     Captcha,
     VatApi,
     MicroservicesApi,
     UserS,
     UserEmailConfirmation,
+    UserExport,
     UserUpdate,
     Session,
     OAuth2RegistrationS,
@@ -99,11 +113,13 @@ impl<
     for UserFeatureServiceImpl<
         Db,
         Auth,
+        Cache,
         Captcha,
         VatApi,
         MicroservicesApi,
         UserS,
         UserEmailConfirmation,
+        UserExport,
         UserUpdate,
         Session,
         OAuth2RegistrationS,
@@ -113,11 +129,13 @@ impl<
 where
     Db: Database,
     Auth: AuthService<Db::Transaction>,
+    Cache: CacheService,
     Captcha: CaptchaService,
     VatApi: VatApiService,
     MicroservicesApi: MicroservicesApiService,
     UserS: UserService<Db::Transaction>,
     UserEmailConfirmation: UserEmailConfirmationService<Db::Transaction>,
+    UserExport: UserExportService<Db::Transaction>,
     UserUpdate: UserUpdateService<Db::Transaction>,
     Session: SessionService<Db::Transaction>,
     OAuth2RegistrationS: OAuth2RegistrationService,
@@ -541,6 +559,47 @@ where
     }
 
     #[trace_instrument(skip(self))]
+    async fn export_user_data(
+        &self,
+        token: &AccessToken,
+        user_id: UserIdOrSelf,
+    ) -> Result<UserDataExport, UserExportError> {
+        let auth = self.auth.authenticate(token).await.map_auth_err()?;
+        let user_id = user_id.unwrap_or(auth.user_id);
+        auth.ensure_self_or_admin(user_id).map_auth_err()?;
+
+        // Administrators are exempt so that a request for information can be
+        // answered without waiting for the rate limit of the account.
+        if !auth.admin {
+            self.check_export_rate_limit(user_id).await?;
+        }
+
+        // The transaction is dropped before the microservices are asked, so
+        // that no database connection is held during the fan-out.
+        let account = {
+            let mut txn = self.db.begin_transaction().await?;
+
+            self.user_export
+                .export(&mut txn, user_id)
+                .await
+                .context("Failed to export user data from database")?
+                .ok_or(UserExportError::NotFound)?
+        };
+
+        let services = self
+            .microservices_api
+            .export_user(user_id)
+            .await
+            .context("Failed to export user data from the microservices")?;
+
+        // Deliberately without the id of the user: the export is about their
+        // personal data and does not belong in the logs.
+        info!(services = services.len(), "Exported the data of a user");
+
+        Ok(UserDataExport { account, services })
+    }
+
+    #[trace_instrument(skip(self))]
     async fn request_verification_email(
         &self,
         token: &AccessToken,
@@ -672,4 +731,72 @@ where
 
         Ok(user_composite)
     }
+}
+
+impl<
+    Db,
+    Auth,
+    Cache,
+    Captcha,
+    VatApi,
+    MicroservicesApi,
+    UserS,
+    UserEmailConfirmation,
+    UserExport,
+    UserUpdate,
+    Session,
+    OAuth2RegistrationS,
+    UserRepo,
+    CoinRepo,
+>
+    UserFeatureServiceImpl<
+        Db,
+        Auth,
+        Cache,
+        Captcha,
+        VatApi,
+        MicroservicesApi,
+        UserS,
+        UserEmailConfirmation,
+        UserExport,
+        UserUpdate,
+        Session,
+        OAuth2RegistrationS,
+        UserRepo,
+        CoinRepo,
+    >
+where
+    Cache: CacheService,
+{
+    /// Return an error if the given user has exported their data too recently,
+    /// otherwise start a new rate limit window.
+    ///
+    /// The window starts on the attempt rather than on a successful export, so
+    /// that the fan-out to the microservices cannot be triggered repeatedly.
+    async fn check_export_rate_limit(&self, user_id: UserId) -> Result<(), UserExportError> {
+        let key = export_rate_limit_key(user_id);
+
+        let limited = self
+            .cache
+            .get::<bool>(&key)
+            .await
+            .context("Failed to get export rate limit from cache")?
+            .unwrap_or(false);
+
+        if limited {
+            trace!("export rate limit exceeded");
+            return Err(UserExportError::RateLimit);
+        }
+
+        self.cache
+            .set(&key, &true, Some(self.config.export_rate_limit))
+            .await
+            .context("Failed to save export rate limit in cache")?;
+
+        Ok(())
+    }
+}
+
+fn export_rate_limit_key(user_id: UserId) -> String {
+    format!("user_data_export_rate_limit_{}", *user_id)
 }

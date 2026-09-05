@@ -1,5 +1,8 @@
 use academy_di::Build;
-use academy_models::paypal::{PaypalCoinOrder, PaypalOrderId};
+use academy_models::{
+    paypal::{PaypalCoinOrder, PaypalOrderId},
+    user::UserId,
+};
 use academy_persistence_contracts::paypal::PaypalRepository;
 use chrono::{DateTime, Utc};
 use clorinde::{
@@ -9,7 +12,7 @@ use clorinde::{
         paypal::{CaptureCoinOrderParams, CreateCoinOrderParams},
     },
 };
-use futures::{Stream, StreamExt, TryFutureExt};
+use futures::{Stream, StreamExt, TryFutureExt, TryStreamExt};
 
 use crate::PostgresTransaction;
 
@@ -62,6 +65,20 @@ impl PaypalRepository<PostgresTransaction> for PostgresPaypalRepository {
                 .map(|s| s.map(|row| row.map_err(Into::into).and_then(decode_paypal_coin_order)))
         }
         .try_flatten_stream()
+    }
+
+    async fn list_coin_orders_by_user_id(
+        &self,
+        txn: &mut PostgresTransaction,
+        user_id: UserId,
+    ) -> anyhow::Result<Vec<PaypalCoinOrder>> {
+        queries::paypal::list_coin_orders_by_user_id()
+            .bind(txn.txn(), &user_id)
+            .iter()
+            .await?
+            .map(|row| row.map_err(Into::into).and_then(decode_paypal_coin_order))
+            .try_collect()
+            .await
     }
 
     async fn get_coin_order(

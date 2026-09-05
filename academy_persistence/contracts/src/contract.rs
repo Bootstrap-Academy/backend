@@ -3,6 +3,7 @@ use std::future::Future;
 use academy_models::{
     contract::{ContractDeclaration, ContractDeclarationKind},
     pagination::PaginationSlice,
+    user::UserId,
 };
 
 #[cfg_attr(feature = "mock", mockall::automock)]
@@ -20,6 +21,13 @@ pub trait ContractRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static 
         txn: &mut Txn,
         kind: Option<ContractDeclarationKind>,
         pagination: PaginationSlice,
+    ) -> impl Future<Output = anyhow::Result<Vec<ContractDeclaration>>> + Send;
+
+    /// Return all contract declarations of the given user, oldest first.
+    fn list_by_user_id(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
     ) -> impl Future<Output = anyhow::Result<Vec<ContractDeclaration>>> + Send;
 
     /// Return the total number of contract declarations.
@@ -57,6 +65,21 @@ impl<Txn: Send + Sync + 'static> MockContractRepository<Txn> {
                 mockall::predicate::eq(pagination),
             )
             .return_once(|_, _, _| Box::pin(std::future::ready(Ok(result))));
+        self
+    }
+
+    pub fn with_list_by_user_id(
+        mut self,
+        user_id: UserId,
+        result: Vec<ContractDeclaration>,
+    ) -> Self {
+        self.expect_list_by_user_id()
+            .once()
+            .with(
+                mockall::predicate::always(),
+                mockall::predicate::eq(user_id),
+            )
+            .return_once(|_, _| Box::pin(std::future::ready(Ok(result))));
         self
     }
 

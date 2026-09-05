@@ -242,5 +242,5 @@ fn list_declarations_docs(op: TransformOperation) -> TransformOperation {
 
 error_code! {
     /// Too many requests.
-    TooManyRequestsError(TOO_MANY_REQUESTS, "Too many requests");
+    pub TooManyRequestsError(TOO_MANY_REQUESTS, "Too many requests");
 }

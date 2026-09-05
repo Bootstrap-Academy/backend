@@ -123,6 +123,26 @@ rec {
       # File a bug if you depend on any for non-debug work!
       debug = internal.debugCrate { inherit packageId; };
     };
+    "academy_core_admin_audit_contracts" = rec {
+      packageId = "academy_core_admin_audit_contracts";
+      build = internal.buildRustCrateWithFeatures {
+        packageId = "academy_core_admin_audit_contracts";
+      };
+
+      # Debug support which might change between releases.
+      # File a bug if you depend on any for non-debug work!
+      debug = internal.debugCrate { inherit packageId; };
+    };
+    "academy_core_admin_audit_impl" = rec {
+      packageId = "academy_core_admin_audit_impl";
+      build = internal.buildRustCrateWithFeatures {
+        packageId = "academy_core_admin_audit_impl";
+      };
+
+      # Debug support which might change between releases.
+      # File a bug if you depend on any for non-debug work!
+      debug = internal.debugCrate { inherit packageId; };
+    };
     "academy_core_coin_contracts" = rec {
       packageId = "academy_core_coin_contracts";
       build = internal.buildRustCrateWithFeatures {
@@ -675,6 +695,10 @@ rec {
             packageId = "academy_config";
           }
           {
+            name = "academy_core_admin_audit_impl";
+            packageId = "academy_core_admin_audit_impl";
+          }
+          {
             name = "academy_core_coin_contracts";
             packageId = "academy_core_coin_contracts";
           }
@@ -926,6 +950,10 @@ rec {
           {
             name = "academy_auth_contracts";
             packageId = "academy_auth_contracts";
+          }
+          {
+            name = "academy_core_admin_audit_contracts";
+            packageId = "academy_core_admin_audit_contracts";
           }
           {
             name = "academy_core_coin_contracts";
@@ -1405,6 +1433,118 @@ rec {
             packageId = "serde_json";
             usesDefaultFeatures = false;
             features = [ "std" ];
+          }
+        ];
+
+      };
+      "academy_core_admin_audit_contracts" = rec {
+        crateName = "academy_core_admin_audit_contracts";
+        version = "0.0.0";
+        edition = "2024";
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/admin_audit/contracts; };
+        dependencies = [
+          {
+            name = "academy_models";
+            packageId = "academy_models";
+          }
+          {
+            name = "anyhow";
+            packageId = "anyhow";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "thiserror";
+            packageId = "thiserror 2.0.18";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "uuid";
+            packageId = "uuid";
+            usesDefaultFeatures = false;
+            features = [ "v4" "v7" "serde" ];
+          }
+        ];
+
+      };
+      "academy_core_admin_audit_impl" = rec {
+        crateName = "academy_core_admin_audit_impl";
+        version = "0.0.0";
+        edition = "2024";
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/admin_audit/impl; };
+        dependencies = [
+          {
+            name = "academy_auth_contracts";
+            packageId = "academy_auth_contracts";
+          }
+          {
+            name = "academy_core_admin_audit_contracts";
+            packageId = "academy_core_admin_audit_contracts";
+          }
+          {
+            name = "academy_di";
+            packageId = "academy_di";
+          }
+          {
+            name = "academy_models";
+            packageId = "academy_models";
+          }
+          {
+            name = "academy_persistence_contracts";
+            packageId = "academy_persistence_contracts";
+          }
+          {
+            name = "academy_shared_contracts";
+            packageId = "academy_shared_contracts";
+          }
+          {
+            name = "academy_utils";
+            packageId = "academy_utils";
+          }
+          {
+            name = "anyhow";
+            packageId = "anyhow";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "tracing";
+            packageId = "tracing";
+            usesDefaultFeatures = false;
+            features = [ "attributes" ];
+          }
+        ];
+        devDependencies = [
+          {
+            name = "academy_auth_contracts";
+            packageId = "academy_auth_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_demo";
+            packageId = "academy_demo";
+          }
+          {
+            name = "academy_persistence_contracts";
+            packageId = "academy_persistence_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_shared_contracts";
+            packageId = "academy_shared_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "chrono";
+            packageId = "chrono";
+            usesDefaultFeatures = false;
+            features = [ "serde" "clock" ];
+          }
+          {
+            name = "tokio";
+            packageId = "tokio";
+            usesDefaultFeatures = false;
+            features = [ "rt-multi-thread" "macros" "sync" "fs" "process" ];
           }
         ];
 

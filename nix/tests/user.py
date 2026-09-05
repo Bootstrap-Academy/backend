@@ -6,6 +6,7 @@ import time
 from utils import (
     assert_access_token_invalid,
     c,
+    create_admin_account,
     decode_mail_header,
     decode_mail_payload,
     discard_auth,
@@ -475,17 +476,8 @@ resp = c.post("/auth/sessions", json={"name_or_email": user["name"], "password":
 assert resp.status_code == 401
 assert resp.json() == {"detail": "Invalid credentials"}
 
-# admin: create via cli
-status, _ = subprocess.getstatusoutput(
-    "academy admin user create --admin --verified admin admin@example.com supersecureadminpassword"
-)
-assert status == 0
-
-resp = c.post("/auth/sessions", json={"name_or_email": "admin", "password": "supersecureadminpassword"})
-assert resp.status_code == 200
-login = resp.json()
-save_auth(login)
-assert login["user"]["admin"] is True
+# admin: create via cli and log in with a second factor
+login = create_admin_account("admin", "admin@example.com", "supersecureadminpassword")
 
 assert subprocess.getstatusoutput("academy admin user create a a@a a")[0] == 0
 assert subprocess.getstatusoutput("academy admin user create b b@b b")[0] == 0

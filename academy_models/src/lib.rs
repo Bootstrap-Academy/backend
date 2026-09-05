@@ -5,6 +5,7 @@ use regex::Regex;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+pub mod admin_audit;
 pub mod auth;
 pub mod coin;
 pub mod contact;

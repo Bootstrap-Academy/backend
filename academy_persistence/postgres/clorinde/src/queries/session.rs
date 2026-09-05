@@ -7,6 +7,7 @@ pub struct CreateParams<T1: crate::StringSql> {
     pub device_name: Option<T1>,
     pub created_at: chrono::DateTime<chrono::FixedOffset>,
     pub updated_at: chrono::DateTime<chrono::FixedOffset>,
+    pub mfa_verified: bool,
 }
 #[derive(Debug)]
 pub struct UpdateParams<T1: crate::StringSql> {
@@ -27,6 +28,7 @@ pub struct Session {
     pub device_name: Option<String>,
     pub created_at: chrono::DateTime<chrono::FixedOffset>,
     pub updated_at: chrono::DateTime<chrono::FixedOffset>,
+    pub mfa_verified: bool,
 }
 pub struct SessionBorrowed<'a> {
     pub id: uuid::Uuid,
@@ -34,6 +36,7 @@ pub struct SessionBorrowed<'a> {
     pub device_name: Option<&'a str>,
     pub created_at: chrono::DateTime<chrono::FixedOffset>,
     pub updated_at: chrono::DateTime<chrono::FixedOffset>,
+    pub mfa_verified: bool,
 }
 impl<'a> From<SessionBorrowed<'a>> for Session {
     fn from(
@@ -43,6 +46,7 @@ impl<'a> From<SessionBorrowed<'a>> for Session {
             device_name,
             created_at,
             updated_at,
+            mfa_verified,
         }: SessionBorrowed<'a>,
     ) -> Self {
         Self {
@@ -51,6 +55,7 @@ impl<'a> From<SessionBorrowed<'a>> for Session {
             device_name: device_name.map(|v| v.into()),
             created_at,
             updated_at,
+            mfa_verified,
         }
     }
 }
@@ -214,6 +219,7 @@ impl GetStmt {
                         device_name: row.try_get(2)?,
                         created_at: row.try_get(3)?,
                         updated_at: row.try_get(4)?,
+                        mfa_verified: row.try_get(5)?,
                     })
                 },
             mapper: |it| Session::from(it),
@@ -253,6 +259,7 @@ impl GetByRefreshTokenHashStmt {
                         device_name: row.try_get(2)?,
                         created_at: row.try_get(3)?,
                         updated_at: row.try_get(4)?,
+                        mfa_verified: row.try_get(5)?,
                     })
                 },
             mapper: |it| Session::from(it),
@@ -289,6 +296,7 @@ impl ListByUserStmt {
                         device_name: row.try_get(2)?,
                         created_at: row.try_get(3)?,
                         updated_at: row.try_get(4)?,
+                        mfa_verified: row.try_get(5)?,
                     })
                 },
             mapper: |it| Session::from(it),
@@ -298,7 +306,7 @@ impl ListByUserStmt {
 pub struct CreateStmt(&'static str, Option<tokio_postgres::Statement>);
 pub fn create() -> CreateStmt {
     CreateStmt(
-        "insert into sessions (id, user_id, device_name, created_at, updated_at) values ($1, $2, $3, $4, $5)",
+        "insert into sessions (id, user_id, device_name, created_at, updated_at, mfa_verified) values ($1, $2, $3, $4, $5, $6)",
         None,
     )
 }
@@ -318,9 +326,20 @@ impl CreateStmt {
         device_name: &'a Option<T1>,
         created_at: &'a chrono::DateTime<chrono::FixedOffset>,
         updated_at: &'a chrono::DateTime<chrono::FixedOffset>,
+        mfa_verified: &'a bool,
     ) -> Result<u64, tokio_postgres::Error> {
         client
-            .execute(self.0, &[id, user_id, device_name, created_at, updated_at])
+            .execute(
+                self.0,
+                &[
+                    id,
+                    user_id,
+                    device_name,
+                    created_at,
+                    updated_at,
+                    mfa_verified,
+                ],
+            )
             .await
     }
 }
@@ -350,6 +369,7 @@ impl<'a, C: GenericClient + Send + Sync, T1: crate::StringSql>
             &params.device_name,
             &params.created_at,
             &params.updated_at,
+            &params.mfa_verified,
         ))
     }
 }

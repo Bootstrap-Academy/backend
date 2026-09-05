@@ -49,9 +49,28 @@ Clients are mostly authenticated using JWTs:
 - Normal users logging in with their account credentials receive an access token (JWT) and a refresh token (random opaque secret) and use the access token to authenticate all subsequent requests. When the access token expires (or is invalidated) the client uses the refresh token to request a new access/refresh token pair which replaces the current one.
 - Services (esp. the old Python/Rust microservices) authenticate each request by issuing a very short-lived JWT which includes the target audience (the recipient of the request).
 
+#### Two Factor Authentication for Administrators
+MFA is optional for ordinary accounts, but administrative privileges are only granted to sessions that were established with a verified TOTP code.
+Sessions carry an `mfa_verified` flag (column on `sessions`, `mfa` claim in the access token, `mfa_verified` in the API session object) that is set only when the second factor was checked during login.
+A recovery code disables MFA instead of proving possession of the second factor, and neither an OAuth2 login nor impersonation involves it, so none of them set the flag.
+
+`Authentication::ensure_admin` answers `403 Admin MFA required` for an administrator whose session does not have the flag.
+Endpoints that only need the account itself (including the MFA setup endpoints under `/auth/users/{user_id}/mfa`) are unaffected, so an administrator without an authenticator can still log in, set one up and then log in again with a code.
+
 #### Tracing
 Each incoming request is assigned a unique request id (Base64 encoded UUIDv7).
 This id is automatically attached to any logs associated with the corresponding request and is also returned to the client in the `X-Request-Id` response header.
+
+### Administrative Audit Log
+Every `POST`, `PUT`, `PATCH` and `DELETE` request that is authenticated with an administrator's access token is recorded in the `admin_audit_log` table, including requests that were rejected.
+The middleware in `academy_api/rest/src/middlewares/admin_audit.rs` runs after routing and hands the request to the `AdminAuditFeatureService`, which authenticates the token and writes the entry.
+
+An entry holds the time, the acting administrator, the method, the path without its query string, the affected user, the status code and the request id.
+The affected user is taken from the `{user_id}` parameter of the matched route (`me` and `self` resolve to the acting administrator), so routes with a different first path parameter do not produce a false attribution.
+**Request bodies are never stored.**
+Neither user id references the `users` table: the log has to stay complete and attributable after the acting or the affected account has been deleted.
+
+`GET /admin/audit-log` returns the entries, most recent first, paginated and filterable by `admin_user_id` and `target_user_id`. It requires admin privileges.
 
 ### Terms and Conditions
 The version of the terms and conditions a user accepted is stored on the user (`terms_version`, `terms_accepted_at`), together with the time at which the user confirmed to meet the minimum age (`age_confirmed_at`).
@@ -95,7 +114,7 @@ Instead of implementing a scheduler directly in the backend daemon, we rely on e
 
 The following tasks exist:
 
-- `academy task prune-database`: Deletes sessions that have not been refreshed within `session.refresh_token_ttl`.
+- `academy task prune-database`: Deletes sessions that have not been refreshed within `session.refresh_token_ttl` and administrative audit log entries older than twelve months (`academy_models::admin_audit::ADMIN_AUDIT_LOG_RETENTION_MONTHS`).
 - `academy task refresh-premium`: Renews the premium memberships of all users who have automatic renewal switched on and whose current period has ended. A renewal always buys a *monthly* period at `premium.monthly_price`, no matter which plan the membership was booked with; a subscription that was booked yearly is rewritten to the monthly plan on its first renewal. If the user does not have enough Morphcoins, the automatic renewal is switched off instead.
 
 The NixOS module in `nix/module.nix` defines a systemd timer per task (`prune-database` hourly, `refresh-premium` daily by default).

@@ -3,6 +3,7 @@ use std::{
     sync::Arc,
 };
 
+use academy_core_admin_audit_contracts::AdminAuditFeatureService;
 use academy_core_coin_contracts::CoinFeatureService;
 use academy_core_config_contracts::ConfigFeatureService;
 use academy_core_contact_contracts::ContactFeatureService;
@@ -62,6 +63,7 @@ pub struct RestServer<
     Premium,
     Withdrawal,
     Internal,
+    AdminAudit,
 > {
     _config: RestServerConfig,
     health: Health,
@@ -79,6 +81,7 @@ pub struct RestServer<
     premium: Premium,
     withdrawal: Withdrawal,
     internal: Internal,
+    admin_audit: AdminAudit,
 }
 
 #[derive(Debug, Clone)]
@@ -110,6 +113,7 @@ impl<
     Premium,
     Withdrawal,
     Internal,
+    AdminAudit,
 >
     RestServer<
         Health,
@@ -127,6 +131,7 @@ impl<
         Premium,
         Withdrawal,
         Internal,
+        AdminAudit,
     >
 where
     Health: HealthFeatureService,
@@ -144,6 +149,9 @@ where
     Premium: PremiumFeatureService,
     Withdrawal: WithdrawalFeatureService,
     Internal: InternalService,
+    // `Clone` so that the audit log middleware and the audit log route can
+    // share the same service.
+    AdminAudit: AdminAuditFeatureService + Clone,
 {
     pub async fn serve(self) -> anyhow::Result<()> {
         let RestServerConfig {
@@ -177,6 +185,7 @@ where
                 routes::premium::TAG,
                 routes::withdrawal::TAG,
                 routes::internal::TAG,
+                routes::admin_audit::TAG,
             ]
             .into_iter()
             .map(|tag| Tag {
@@ -211,10 +220,13 @@ where
             ))
             .allow_headers(Any);
 
+        let admin_audit = Arc::new(self.admin_audit.clone());
+
         let router = self
             .router()
             .route("/openapi.json", axum::routing::get(serve_api))
             .merge(docs::router())
+            .apply(middlewares::admin_audit::add(admin_audit))
             .apply(middlewares::panic_handler::add)
             .apply(middlewares::trace::add)
             .apply(middlewares::request_id::add)
@@ -256,6 +268,7 @@ where
             .merge(routes::premium::router(self.premium.into()))
             .merge(routes::withdrawal::router(self.withdrawal.into()))
             .merge(routes::internal::router(self.internal.into()))
+            .merge(routes::admin_audit::router(self.admin_audit.into()))
     }
 }
 

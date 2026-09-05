@@ -13,8 +13,8 @@ select s.* from sessions s
 select * from sessions where user_id=:user_id;
 
 --! create (device_name?)
-insert into sessions (id, user_id, device_name, created_at, updated_at)
-  values (:id, :user_id, :device_name, :created_at, :updated_at);
+insert into sessions (id, user_id, device_name, created_at, updated_at, mfa_verified)
+  values (:id, :user_id, :device_name, :created_at, :updated_at, :mfa_verified);
 
 --! update (device_name?, updated_at?)
 update sessions

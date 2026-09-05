@@ -294,9 +294,11 @@ where
             return Err(OAuth2CreateSessionError::UserDisabled);
         }
 
+        // OAuth2 logins do not involve the user's second factor, so the new
+        // session does not grant administrative privileges.
         let login = self
             .session
-            .create(&mut txn, user_composite, device_name, true)
+            .create(&mut txn, user_composite, device_name, true, false)
             .await
             .context("Failed to create session")?;
 

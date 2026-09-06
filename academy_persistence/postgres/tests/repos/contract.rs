@@ -150,6 +150,51 @@ async fn pagination() {
     }
 }
 
+/// Two declarations that arrived in the same moment need a stable order, or a
+/// page boundary between them would return one of them twice and skip the
+/// other.
+#[tokio::test]
+async fn pagination_with_equal_timestamps() {
+    let db = setup().await;
+
+    let same_moment = Utc.with_ymd_and_hms(2026, 9, 3, 12, 0, 0).unwrap();
+    let declarations = [
+        cancellation(),
+        ContractDeclaration {
+            id: uuid!("3f5d59fa-8f3b-4e46-9d51-4f3c6b0d0a7e").into(),
+            received_at: same_moment,
+            ..withdrawal()
+        },
+        ContractDeclaration {
+            id: uuid!("b3a2eb0e-7a35-4c2e-9ee6-6cf4a7a3f5b1").into(),
+            received_at: same_moment,
+            ..other_cancellation()
+        },
+    ];
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    for declaration in &declarations {
+        REPO.create(&mut txn, declaration.clone()).await.unwrap();
+    }
+    txn.commit().await.unwrap();
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    let whole = REPO.list(&mut txn, None, make_slice(100, 0)).await.unwrap();
+    assert_eq!(whole.len(), declarations.len());
+
+    // Reading the same list one entry at a time returns exactly the same
+    // entries in the same order.
+    let mut paged = Vec::new();
+    for offset in 0..declarations.len() as u64 {
+        paged.extend(
+            REPO.list(&mut txn, None, make_slice(1, offset))
+                .await
+                .unwrap(),
+        );
+    }
+    assert_eq!(paged, whole);
+}
+
 /// The export of a user contains the declarations of that user, oldest first.
 #[tokio::test]
 async fn list_by_user_id() {

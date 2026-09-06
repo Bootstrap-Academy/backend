@@ -75,7 +75,25 @@ fn load_paths(paths: &[impl AsRef<Path>], overrides: &[&str]) -> anyhow::Result<
         .oauth2
         .take_if(|oauth2| oauth2.enable == Some(false) || oauth2.providers.is_empty());
 
+    validate(&config)?;
+
     Ok(config)
+}
+
+/// Reject values that no deployment can be run with.
+///
+/// Everything that is checked here would otherwise only be noticed on the
+/// document that was produced with it, or not at all.
+fn validate(config: &Config) -> anyhow::Result<()> {
+    let vat_percent = config.finance.vat_percent;
+    anyhow::ensure!(
+        vat_percent >= Decimal::ZERO && vat_percent < Decimal::ONE_HUNDRED,
+        "finance.vat_percent has to be at least 0 and less than 100, but it is {vat_percent}. \
+         The net amounts of an invoice are derived from the gross amount that was paid, so a \
+         rate of 100 percent or more has no net amount and a negative rate has no meaning."
+    );
+
+    Ok(())
 }
 
 #[derive(Debug, Deserialize)]
@@ -385,6 +403,40 @@ mod tests {
                 "override \"{}\" is not needed",
                 overrides[i]
             );
+        }
+    }
+
+    #[test]
+    fn vat_percent_out_of_range_is_rejected() {
+        for vat_percent in ["-1", "-0.5", "100", "100.1", "1000"] {
+            let vat = format!("finance.vat_percent = {vat_percent}");
+            let overrides = MINIMAL_OVERRIDES
+                .into_iter()
+                .chain([vat.as_str()])
+                .collect::<Vec<_>>();
+
+            let err = super::load_paths(&[] as &[&str], &overrides)
+                .unwrap_err()
+                .to_string();
+
+            assert!(
+                err.contains("finance.vat_percent"),
+                "{vat_percent} was accepted: {err}"
+            );
+        }
+    }
+
+    #[test]
+    fn vat_percent_in_range_is_accepted() {
+        for vat_percent in ["0", "7", "19", "19.6", "99.99"] {
+            let vat = format!("finance.vat_percent = {vat_percent}");
+            let overrides = MINIMAL_OVERRIDES
+                .into_iter()
+                .chain([vat.as_str()])
+                .collect::<Vec<_>>();
+
+            super::load_paths(&[] as &[&str], &overrides)
+                .unwrap_or_else(|err| panic!("{vat_percent} was rejected: {err}"));
         }
     }
 

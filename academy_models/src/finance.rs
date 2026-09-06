@@ -12,8 +12,16 @@
 //! names (AGB Ziffer 6.7).
 
 use chrono::{DateTime, Datelike, TimeZone, Utc};
+use chrono_tz::Europe::Berlin;
 
 use crate::{macros::nutype_string, user::UserId};
+
+/// Time zone the calendar year of a document is determined in.
+///
+/// The retention period is a German one and the documents are issued by a
+/// German company, so the calendar year of a document is the year it carries
+/// in `Europe/Berlin`, which is also the date printed on it.
+pub const DOCUMENT_TIME_ZONE: chrono_tz::Tz = Berlin;
 
 nutype_string!(FinancialDocumentNumber(validate(
     len_char_min = 1,
@@ -97,6 +105,15 @@ pub struct FinancialDocument {
     pub net_total_cents: Option<i64>,
     pub vat_total_cents: Option<i64>,
     pub gross_total_cents: Option<i64>,
+    /// When the claim the document records was closed out, or `None` while it
+    /// is still open.
+    ///
+    /// Only a final statement records a claim: the unused share of the
+    /// purchased Morphcoins, which is refunded by hand on request. The
+    /// timestamp is therefore set by hand as well, with
+    /// `academy admin finance settle <number>`, so that the same statement
+    /// cannot be paid out twice.
+    pub settled_at: Option<DateTime<Utc>>,
 }
 
 /// Number of the final statement that is issued for the account with the given
@@ -125,10 +142,22 @@ pub fn unused_purchased_coins(balance: u64, purchased: u64) -> u64 {
 /// year in which the document was issued (§ 147 Abs. 3 Satz 1 und Abs. 4 AO),
 /// so a document issued in 2024 may be deleted from the beginning of 2033.
 ///
+/// Both the current year and the beginning of the year are taken in
+/// [`DOCUMENT_TIME_ZONE`]. In UTC, a document issued between 23:00 and
+/// midnight on 31 December would be filed under the previous year and pruned
+/// a year before the German period ends.
+///
 /// Returns `None` if the resulting year is outside the representable range.
 pub fn retention_cutoff(now: DateTime<Utc>, years: u32) -> Option<DateTime<Utc>> {
-    let year = now.year().checked_sub(i32::try_from(years).ok()?)?;
-    Utc.with_ymd_and_hms(year, 1, 1, 0, 0, 0).single()
+    let year = now
+        .with_timezone(&DOCUMENT_TIME_ZONE)
+        .year()
+        .checked_sub(i32::try_from(years).ok()?)?;
+
+    DOCUMENT_TIME_ZONE
+        .with_ymd_and_hms(year, 1, 1, 0, 0, 0)
+        .single()
+        .map(|start_of_year| start_of_year.with_timezone(&Utc))
 }
 
 /// Return the time at which the credit note with the given number was issued.
@@ -198,6 +227,37 @@ mod tests {
         assert!(date(2024, 1, 1) < cutoff);
         assert!(date(2024, 12, 31) < cutoff);
         assert!(date(2025, 1, 1) >= cutoff);
+    }
+
+    /// A document issued between 23:00 UTC and midnight on 31 December already
+    /// carries the next year in Berlin, so it belongs to the next calendar
+    /// year and has to be kept a year longer.
+    #[test]
+    fn cutoff_uses_the_calendar_year_in_berlin() {
+        let new_years_eve = Utc.with_ymd_and_hms(2024, 12, 31, 23, 30, 0).unwrap();
+        let earlier_that_day = Utc.with_ymd_and_hms(2024, 12, 31, 22, 30, 0).unwrap();
+
+        // 2033 in Berlin, still 2032 in UTC.
+        let cutoff =
+            retention_cutoff(Utc.with_ymd_and_hms(2032, 12, 31, 23, 30, 0).unwrap(), 8).unwrap();
+        // The document is dated 1 January 2025 in Berlin and is kept.
+        assert!(new_years_eve >= cutoff);
+        // An hour earlier it is still 2024 and may be deleted.
+        assert!(earlier_that_day < cutoff);
+
+        // A year later the 2025 document may be deleted as well.
+        let cutoff =
+            retention_cutoff(Utc.with_ymd_and_hms(2033, 12, 31, 23, 30, 0).unwrap(), 8).unwrap();
+        assert!(new_years_eve < cutoff);
+    }
+
+    /// The cutoff is the beginning of the year in Berlin, not in UTC.
+    #[test]
+    fn cutoff_is_the_start_of_the_berlin_year() {
+        assert_eq!(
+            retention_cutoff(date(2033, 6, 1), 8).unwrap(),
+            Utc.with_ymd_and_hms(2024, 12, 31, 23, 0, 0).unwrap()
+        );
     }
 
     #[test]

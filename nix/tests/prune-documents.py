@@ -87,17 +87,64 @@ assert [d["number"] for d in resp.json()["documents"]] == [statement_number]
 resp = adm.get("/finance/documents", params={"kind": "FINAL_STATEMENT"})
 assert resp.status_code == 200
 assert [d["number"] for d in resp.json()["documents"]] == [statement_number]
+assert resp.json()["documents"][0]["settled_at"] is None
+
+
+def statement():
+    resp = adm.get("/finance/documents", params={"kind": "FINAL_STATEMENT"})
+    assert resp.status_code == 200
+    return resp.json()["documents"][0]
+
+
+# The refund itself is made by hand, so the claim is closed out by hand as
+# well; the listing then shows that the statement has been paid out and it
+# cannot be settled a second time.
+assert os.system(f"academy admin finance settle {statement_number}") == 0
+assert statement()["settled_at"] is not None
+assert os.system(f"academy admin finance settle {statement_number}") != 0
+
+# Only a final statement records a claim, and an unknown number is rejected.
+assert os.system("academy admin finance settle R0000001") != 0
+assert os.system("academy admin finance settle S999") != 0
 
 # The listing requires admin privileges.
 resp = c.get("/finance/documents")
 assert resp.status_code == 401
+
+# An account that spent everything it bought gets no final statement: there is
+# nothing left to refund, so there is no reason to keep a document that names
+# it.
+b = make_client()
+b_login = create_verified_account("b", "b@b", "b", b)
+resp = b.patch("/auth/users/me", json={"business": False, "country": "Germany"})
+assert resp.status_code == 200
+
+order_id = b.post(
+    "/shop/coins/paypal/orders", json={"coins": 500, "withdrawal_consent": True, "withdrawal_text_version": "2026-09"}
+).json()
+b.post(f"http://127.0.0.1:8103/v2/checkout/orders/{order_id}/confirm-payment-source")
+resp = b.post(f"/shop/coins/paypal/orders/{order_id}/capture")
+assert resp.status_code == 200
+
+b_id = b_login["user"]["id"]
+resp = adm.post(f"/shop/coins/{b_id}", json={"coins": -500, "description": "spent", "credit_note": False})
+assert resp.status_code == 200
+
+resp = b.delete("/auth/users/me")
+assert resp.status_code == 200
+
+# The invoice of the purchase is kept, pseudonymized like every other invoice,
+# and no second final statement was issued.
+assert query("select count(*) from financial_documents where kind='final_statement'") == "1"
+assert query("select count(*) from financial_documents where kind='invoice'") == "2"
+assert "b@b" not in query("select array_to_string(customer_details, ' ') from financial_documents")
 
 # The retention period of a document issued in 2024 ends with 2032.
 os.system("date -s '2032-12-31 12:00:00'")
 prune()
 assert os.path.exists(INVOICE)
 assert os.path.exists(final_statement)
-assert query("select count(*) from financial_documents") == "2"
+assert query("select count(*) from financial_documents") == "3"
 
 os.system("date -s '2033-01-01 12:00:00'")
 prune()

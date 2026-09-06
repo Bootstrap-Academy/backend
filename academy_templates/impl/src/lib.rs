@@ -54,6 +54,7 @@ mod tests {
         FinalStatementTemplate, InvoiceItem, InvoiceTemplate, PurchaseConfirmationTemplate,
         ResetPasswordTemplate, VerifyEmailTemplate, WithdrawalConsentConfirmation,
     };
+    use chrono::{TimeZone, Utc};
     use rust_decimal_macros::dec;
 
     use super::*;
@@ -183,6 +184,47 @@ mod tests {
         assert!(rendered.contains("12,00 €"));
         assert!(rendered.contains("Ziffer 6.7"));
         assert!(!rendered.contains("EUR"));
+    }
+
+    /// The documents are issued by a German company and carry a German date,
+    /// so the printed date is the one in `Europe/Berlin`. Half an hour before
+    /// midnight UTC on New Year's Eve it is already the next year there.
+    #[test]
+    fn document_dates_are_printed_in_berlin_time() {
+        let new_years_eve = Utc.with_ymd_and_hms(2024, 12, 31, 23, 30, 0).unwrap();
+
+        let rendered = render_template(InvoiceTemplate {
+            title: "Rechnung",
+            customer_details: vec!["foo".into()],
+            timestamp: new_years_eve,
+            invoice_number: "R1234".into(),
+            items: vec![InvoiceItem {
+                description: "MorphCoins".into(),
+                net_unit: dec!(0.0084),
+                count: 100,
+                net_total: dec!(0.84),
+            }],
+            vat_percent: 19.into(),
+            net_total: dec!(0.84),
+            vat_total: dec!(0.16),
+            gross_total: dec!(1.00),
+        });
+        assert!(rendered.contains("01.01.2025"), "{rendered}");
+        assert!(!rendered.contains("31.12.2024"), "{rendered}");
+
+        let rendered = render_template(FinalStatementTemplate {
+            title: "Schlussabrechnung",
+            customer_details: vec!["Max Mustermann".into()],
+            timestamp: new_years_eve,
+            statement_number: "S1337".into(),
+            purchased_coins: 1500,
+            balance_coins: 1200,
+            unused_coins: 1200,
+            coins_per_euro: 100,
+            refund_amount: 12.into(),
+        });
+        assert!(rendered.contains("01.01.2025"), "{rendered}");
+        assert!(!rendered.contains("31.12.2024"), "{rendered}");
     }
 
     #[test]

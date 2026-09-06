@@ -13,7 +13,7 @@ use clorinde::{
         self,
         finance::{
             CountDocumentsParams, ListDocumentsParams, PseudonymizeDocumentsParams,
-            RecordDocumentParams,
+            RecordDocumentParams, SettleDocumentParams,
         },
     },
 };
@@ -68,6 +68,25 @@ impl FinancialDocumentRepository<PostgresTransaction> for PostgresFinancialDocum
     }
 
     #[trace_instrument(skip(self, txn))]
+    async fn settle(
+        &self,
+        txn: &mut PostgresTransaction,
+        number: &FinancialDocumentNumber,
+        settled_at: DateTime<Utc>,
+    ) -> anyhow::Result<bool> {
+        let params = SettleDocumentParams {
+            settled_at: settled_at.into(),
+            number: &**number,
+        };
+
+        queries::finance::settle_document()
+            .params(txn.txn(), &params)
+            .await
+            .map(|rows| rows > 0)
+            .map_err(Into::into)
+    }
+
+    #[trace_instrument(skip(self, txn))]
     async fn pseudonymize(
         &self,
         txn: &mut PostgresTransaction,
@@ -111,6 +130,7 @@ impl FinancialDocumentRepository<PostgresTransaction> for PostgresFinancialDocum
         search: Option<String>,
         pagination: PaginationSlice,
     ) -> anyhow::Result<Vec<FinancialDocument>> {
+        let search = search.as_deref().map(escape_like_pattern);
         let params = ListDocumentsParams {
             kind: kind.map(FinancialDocumentKind::as_str),
             search: search.as_deref(),
@@ -134,6 +154,7 @@ impl FinancialDocumentRepository<PostgresTransaction> for PostgresFinancialDocum
         kind: Option<FinancialDocumentKind>,
         search: Option<String>,
     ) -> anyhow::Result<u64> {
+        let search = search.as_deref().map(escape_like_pattern);
         let params = CountDocumentsParams {
             kind: kind.map(FinancialDocumentKind::as_str),
             search: search.as_deref(),
@@ -192,6 +213,25 @@ impl FinancialDocumentRepository<PostgresTransaction> for PostgresFinancialDocum
     }
 }
 
+/// Escape the characters `like` gives a special meaning to, so that a search
+/// term is matched literally.
+///
+/// The search term is put into the pattern of an `ilike`, where `%` matches
+/// any run of characters and `_` any single one. Without this, an
+/// administrator searching for `%` would get every document instead of the
+/// documents that contain a percent sign. `\` is the escape character `like`
+/// uses by default, so it has to be escaped first.
+fn escape_like_pattern(search: &str) -> String {
+    let mut pattern = String::with_capacity(search.len());
+    for character in search.chars() {
+        if matches!(character, '\\' | '%' | '_') {
+            pattern.push('\\');
+        }
+        pattern.push(character);
+    }
+    pattern
+}
+
 fn decode_document(value: queries::finance::Document) -> anyhow::Result<FinancialDocument> {
     Ok(FinancialDocument {
         number: value.number.try_into()?,
@@ -203,5 +243,6 @@ fn decode_document(value: queries::finance::Document) -> anyhow::Result<Financia
         net_total_cents: value.net_total_cents,
         vat_total_cents: value.vat_total_cents,
         gross_total_cents: value.gross_total_cents,
+        settled_at: value.settled_at.map(Into::into),
     })
 }

@@ -27,6 +27,19 @@ pub trait FinancialDocumentRepository<Txn: Send + Sync + 'static>: Send + Sync +
         number: &FinancialDocumentNumber,
     ) -> impl Future<Output = anyhow::Result<Option<FinancialDocument>>> + Send;
 
+    /// Record that the claim the document with the given number records has
+    /// been closed out, and return whether such a document exists.
+    ///
+    /// Only a final statement records a claim, and it is refunded by hand, so
+    /// the timestamp is set by hand as well
+    /// (`academy admin finance settle <number>`).
+    fn settle(
+        &self,
+        txn: &mut Txn,
+        number: &FinancialDocumentNumber,
+        settled_at: DateTime<Utc>,
+    ) -> impl Future<Output = anyhow::Result<bool>> + Send;
+
     /// Replace the customer details of the documents of the given user and
     /// return the number of documents that were changed.
     ///

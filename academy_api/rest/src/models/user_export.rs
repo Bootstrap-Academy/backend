@@ -159,6 +159,9 @@ pub struct ApiExportFinancialDocument {
     /// Gross total in euro cents, as printed. On a final statement this is the
     /// amount that can still be refunded.
     pub gross_total_cents: Option<i64>,
+    /// When the claim the document records was closed out, null while it is
+    /// still open. Only a final statement records a claim.
+    pub settled_at: Option<ApiTimestamp>,
 }
 
 impl From<FinancialDocument> for ApiExportFinancialDocument {
@@ -172,6 +175,7 @@ impl From<FinancialDocument> for ApiExportFinancialDocument {
             net_total_cents: value.net_total_cents,
             vat_total_cents: value.vat_total_cents,
             gross_total_cents: value.gross_total_cents,
+            settled_at: value.settled_at.map(Into::into),
         }
     }
 }

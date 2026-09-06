@@ -3901,6 +3901,12 @@ rec {
             features = [ "serde" "clock" ];
           }
           {
+            name = "chrono-tz";
+            packageId = "chrono-tz";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
             name = "hex";
             packageId = "hex";
             usesDefaultFeatures = false;
@@ -4483,6 +4489,12 @@ rec {
           }
         ];
         devDependencies = [
+          {
+            name = "chrono";
+            packageId = "chrono";
+            usesDefaultFeatures = false;
+            features = [ "serde" "clock" ];
+          }
           {
             name = "rust_decimal";
             packageId = "rust_decimal";

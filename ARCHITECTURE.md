@@ -116,7 +116,7 @@ Document number, issue date and amounts stay on the record and the archived pdf 
 
 Before that, `delete_user` asks `FinanceInvoiceService::create_final_statement` to issue the final statement of the account (AGB Ziffer 6.7).
 It records the unused share of the purchased Morphcoins — `min(balance, purchased)`, because reward coins count as consumed first — together with the name and the email address a later refund has to be offered to, so it is the one kind of document that is **not** pseudonymized.
-It is only issued for accounts that have actually bought Morphcoins; for every other account there is nothing to refund and therefore no reason to keep anything that names them.
+It is only issued when there is actually something left to refund, that is for an account that bought Morphcoins and has not spent all of them; in every other case there is nothing to refund and therefore no reason to keep anything that names the account.
 The record is written before its pdf, and a render daemon that is unavailable only costs the pdf, never the deletion.
 
 ### Data Export
@@ -131,9 +131,12 @@ An export an administrator runs on somebody else is written to the administrativ
 ### Financial Documents
 Every invoice, credit note and final statement that is issued is recorded in `financial_documents`, keyed by its number (`R0000042`, `G202402-7`, `S1337`), which is also the name of its pdf file in `finance.invoices_archive` / `finance.credit_notes_archive` / `finance.final_statements_archive`.
 The record keeps the address block that was printed on the document, so re-rendering it does not pick up later changes to the user's invoice information, and it keeps the totals in cents as they were printed.
+An invoice is dated with the time the coin order was captured, because that is when it was paid; a document that has already been recorded keeps the date it was recorded with, so neither the date printed on it nor its retention period ever moves.
+Dates are printed, and the calendar year of the retention period is determined, in `Europe/Berlin`.
 Records that were created by the migration for the captured coin orders that predate this table carry only number, date, user and Morphcoin amount; the remaining values are filled in the next time the document is rendered.
 Once the retention period has expired, `get_invoice_pdf` and `get_credit_note` stop recreating the document.
 `GET /finance/documents` lists the records for administrators, filtered by kind and searched by document number or customer details; documents of deleted accounts have no `user_id`, and a final statement is found by the email address it still carries.
+A final statement is the only document that records a claim, namely the unused share of the purchased Morphcoins, which is refunded on request. The refund is made by hand, and after the deletion there is no balance left that would show it, so the record is stamped by hand with `academy admin finance settle <number>` once the money has been sent; `settled_at` is then set and every listing shows that the claim is closed. Without it the same statement could be handed in twice.
 The documents of an account are also part of its data export.
 
 ### Scheduled Tasks
@@ -151,6 +154,7 @@ The NixOS module in `nix/module.nix` defines a systemd timer per task (`prune-da
 
 ### CLI
 The `academy` executable also provides some other useful commands e.g. for administration, debugging and testing purposes.
+`academy admin finance settle <number>` records that the claim of a final statement has been paid out; it refuses a number that does not exist, a document of another kind and a statement that has already been settled.
 
 ## Configuration
 The backend is configured using one or more TOML files specified in the `ACADEMY_CONFIG` environment variable.

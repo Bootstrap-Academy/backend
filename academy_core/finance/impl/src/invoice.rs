@@ -17,7 +17,7 @@ use academy_persistence_contracts::{
 };
 use academy_shared_contracts::{fs::FsService, time::TimeService};
 use academy_templates_contracts::{
-    FinalStatementTemplate, InvoiceItem, InvoiceTemplate, TemplateService,
+    FinalStatementTemplate, InvoiceItem, InvoiceTemplate, TemplateService, format::AMOUNT_DECIMALS,
 };
 use anyhow::Context;
 use chrono::{NaiveDate, NaiveTime, TimeZone, Utc};
@@ -149,9 +149,20 @@ where
         let CoinPrices {
             net_unit,
             net_total,
-            vat_total,
             gross_total,
+            ..
         } = self.finance_coin.get_price(coins);
+
+        let items = vec![InvoiceItem {
+            description: "MorphCoins".into(),
+            net_unit,
+            count: coins,
+            net_total,
+        }];
+        let PrintedTotals {
+            net_total,
+            vat_total,
+        } = PrintedTotals::of(&items, gross_total);
 
         let invoice_html = self
             .template
@@ -160,12 +171,7 @@ where
                 customer_details: customer_details.clone(),
                 timestamp,
                 invoice_number: formatted_invoice_number,
-                items: vec![InvoiceItem {
-                    description: "MorphCoins".into(),
-                    net_unit,
-                    count: coins,
-                    net_total,
-                }],
+                items,
                 vat_percent: self.config.vat_percent,
                 net_total,
                 vat_total,
@@ -287,8 +293,18 @@ where
             })
             .collect::<Vec<InvoiceItem>>();
 
+        // A month without a single credited transaction has nothing to
+        // certify, so no document is issued for it.
+        if items.is_empty() {
+            return Ok(None);
+        }
+
         let coins_total = items.iter().map(|item| item.count).sum();
-        let price_total = self.finance_coin.get_price(coins_total);
+        let gross_total = self.finance_coin.get_price(coins_total).gross_total;
+        let PrintedTotals {
+            net_total,
+            vat_total,
+        } = PrintedTotals::of(&items, gross_total);
 
         let credit_note_html = self
             .template
@@ -299,9 +315,9 @@ where
                 invoice_number: credit_note_number,
                 items,
                 vat_percent: self.config.vat_percent,
-                net_total: price_total.net_total,
-                vat_total: price_total.vat_total,
-                gross_total: price_total.gross_total,
+                net_total,
+                vat_total,
+                gross_total,
             })
             .context("Failed to render credit note template")?;
 
@@ -323,9 +339,9 @@ where
                     issued_at: timestamp,
                     customer_details: Some(customer_details),
                     coins: Some(coins_total),
-                    net_total_cents: to_cents(price_total.net_total),
-                    vat_total_cents: to_cents(price_total.vat_total),
-                    gross_total_cents: to_cents(price_total.gross_total),
+                    net_total_cents: to_cents(net_total),
+                    vat_total_cents: to_cents(vat_total),
+                    gross_total_cents: to_cents(gross_total),
                 },
             )
             .await
@@ -433,10 +449,40 @@ where
     }
 }
 
+/// The net and vat totals of a document as they are printed on it.
+///
+/// Every amount on a document is printed with two decimal places, so the
+/// totals have to be derived from the rounded values and not from the exact
+/// ones. Otherwise the line items do not add up to the net total, and the net
+/// total plus the vat do not add up to the gross total.
+///
+/// The gross total is the amount that was actually paid and is therefore the
+/// fixed point: the net total is the sum of the line totals as they are
+/// printed, and the vat is what is left of the gross total.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct PrintedTotals {
+    net_total: Decimal,
+    vat_total: Decimal,
+}
+
+impl PrintedTotals {
+    fn of(items: &[InvoiceItem], gross_total: Decimal) -> Self {
+        let net_total = items
+            .iter()
+            .map(|item| item.net_total.round_dp(AMOUNT_DECIMALS))
+            .sum::<Decimal>();
+
+        Self {
+            net_total,
+            vat_total: gross_total.round_dp(AMOUNT_DECIMALS) - net_total,
+        }
+    }
+}
+
 /// Convert a euro amount into cents, rounded exactly as it is printed on the
 /// document.
 fn to_cents(amount: Decimal) -> Option<i64> {
-    (amount.round_dp(2) * Decimal::ONE_HUNDRED).to_i64()
+    (amount.round_dp(AMOUNT_DECIMALS) * Decimal::ONE_HUNDRED).to_i64()
 }
 
 fn first_day_of_next_month(year: i32, month: u32) -> Option<NaiveDate> {
@@ -540,7 +586,9 @@ mod tests {
                 customer_details: Some(customer_details.clone()),
                 coins: Some(1337),
                 net_total_cents: Some(200),
-                vat_total_cents: Some(300),
+                // The document shows the gross total minus the net total as vat, so
+                // that the printed amounts add up (`PrintedTotals`).
+                vat_total_cents: Some(200),
                 gross_total_cents: Some(400),
             });
 
@@ -566,7 +614,7 @@ mod tests {
                 }],
                 vat_percent: dec!(19),
                 net_total: prices.net_total,
-                vat_total: prices.vat_total,
+                vat_total: prices.gross_total - prices.net_total,
                 gross_total: prices.gross_total,
             },
             "invoice-template-html".into(),
@@ -635,7 +683,9 @@ mod tests {
             customer_details: Some(customer_details.clone()),
             coins: Some(1337),
             net_total_cents: Some(200),
-            vat_total_cents: Some(300),
+            // The document shows the gross total minus the net total as vat, so
+            // that the printed amounts add up (`PrintedTotals`).
+            vat_total_cents: Some(200),
             gross_total_cents: Some(400),
         };
 
@@ -668,7 +718,7 @@ mod tests {
                 }],
                 vat_percent: dec!(19),
                 net_total: prices.net_total,
-                vat_total: prices.vat_total,
+                vat_total: prices.gross_total - prices.net_total,
                 gross_total: prices.gross_total,
             },
             "invoice-template-html".into(),
@@ -951,7 +1001,9 @@ mod tests {
                 customer_details: Some(customer_details.clone()),
                 coins: Some(1337),
                 net_total_cents: Some(200),
-                vat_total_cents: Some(300),
+                // The document shows the gross total minus the net total as vat, so
+                // that the printed amounts add up (`PrintedTotals`).
+                vat_total_cents: Some(200),
                 gross_total_cents: Some(400),
             });
 
@@ -969,7 +1021,7 @@ mod tests {
                 }],
                 vat_percent: dec!(19),
                 net_total: prices.net_total,
-                vat_total: prices.vat_total,
+                vat_total: prices.gross_total - prices.net_total,
                 gross_total: prices.gross_total,
             },
             "credit-note-template-html".into(),
@@ -998,6 +1050,95 @@ mod tests {
 
         // Assert
         assert_eq!(result, Some(pdf));
+    }
+
+    /// A month in which nothing was credited has nothing to certify, so no
+    /// numbered document is issued and nothing is rendered or recorded.
+    #[tokio::test]
+    async fn get_credit_note_without_transactions() {
+        // Arrange
+        let now = Utc.with_ymd_and_hms(2024, 3, 14, 0, 0, 0).unwrap();
+
+        let time = MockTimeService::new().with_now(now);
+
+        let user_repo = MockUserRepository::new()
+            .with_get_number(FOO.user.id, 7)
+            .with_get_composite(FOO.user.id, Some(FOO.clone()));
+
+        let fs = MockFsService::new().with_read_file("/credit_notes/G202402-7.pdf".into(), None);
+
+        let coin_repo = MockCoinRepository::new().with_get_transactions(
+            FOO.user.id,
+            Utc.with_ymd_and_hms(2024, 2, 1, 0, 0, 0).unwrap()
+                ..Utc.with_ymd_and_hms(2024, 3, 1, 0, 0, 0).unwrap(),
+            Vec::new(),
+        );
+
+        let document_repo =
+            MockFinancialDocumentRepository::new().with_get("G202402-7".try_into().unwrap(), None);
+
+        let sut = FinanceInvoiceServiceImpl {
+            time,
+            user_repo,
+            fs,
+            coin_repo,
+            document_repo,
+            ..Sut::default()
+        };
+
+        // Act
+        let result = sut.get_credit_note(&mut (), FOO.user.id, 2024, 2).await;
+
+        // Assert
+        assert_eq!(result.unwrap(), None);
+    }
+
+    /// One Morphcoin line of `coins` coins, priced the way
+    /// `FinanceCoinService` prices them at the shipped vat rate of 19 %.
+    fn line(coins: u64) -> InvoiceItem {
+        let net_unit = Decimal::ONE / dec!(100) / dec!(1.19);
+        InvoiceItem {
+            description: "MorphCoins".into(),
+            net_unit,
+            count: coins,
+            net_total: net_unit * Decimal::from(coins),
+        }
+    }
+
+    /// The line totals of a document add up to its net total and the net total
+    /// plus the vat to its gross total, with the two decimal places all three
+    /// are printed with.
+    #[test]
+    fn printed_totals_add_up() {
+        // Two lines of ten coins each: 0,08 € + 0,08 €. Rounding the exact net
+        // total of twenty coins instead would print 0,17 € under two lines
+        // that add up to 0,16 €.
+        let totals = PrintedTotals::of(&[line(10), line(10)], dec!(0.2));
+        assert_eq!(totals.net_total, dec!(0.16));
+        assert_eq!(totals.vat_total, dec!(0.04));
+
+        // A single line, the shape of every invoice.
+        let totals = PrintedTotals::of(&[line(1337)], dec!(13.37));
+        assert_eq!(totals.net_total, dec!(11.24));
+        assert_eq!(totals.vat_total, dec!(2.13));
+
+        for counts in [
+            vec![1, 1, 1, 1],
+            vec![7, 7, 7, 7, 7],
+            vec![3, 9, 27, 81],
+            vec![500],
+            vec![1],
+        ] {
+            let items = counts.iter().copied().map(line).collect::<Vec<_>>();
+            let gross_total = Decimal::from(counts.iter().sum::<u64>()) / dec!(100);
+            let totals = PrintedTotals::of(&items, gross_total);
+
+            assert_eq!(
+                totals.net_total + totals.vat_total,
+                gross_total.round_dp(AMOUNT_DECIMALS),
+                "{counts:?}"
+            );
+        }
     }
 
     /// Once the retention period has expired the archived pdf has been deleted

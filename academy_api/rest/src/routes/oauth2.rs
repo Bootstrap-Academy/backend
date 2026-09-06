@@ -94,6 +94,9 @@ async fn begin_authorization(
         Err(OAuth2BeginAuthorizationError::InvalidProvider) => {
             ProviderNotFoundError.into_response()
         }
+        Err(OAuth2BeginAuthorizationError::InvalidRedirectUri) => {
+            RedirectUriNotAllowedError.into_response()
+        }
         Err(OAuth2BeginAuthorizationError::Other(err)) => internal_server_error(err),
     }
 }
@@ -104,10 +107,13 @@ fn begin_authorization_docs(op: TransformOperation) -> TransformOperation {
             "Returns the authorize URL to open, including an unguessable single use `state` \
              nonce and, for providers supporting it, a PKCE code challenge. The `state` is \
              returned separately as well so the client can compare it against the one the \
-             provider hands back before submitting the callback.",
+             provider hands back before submitting the callback.\n\nThe `redirect_uri` has to \
+             be one of the uris the deployment allows (`oauth2.redirect_uris`), compared \
+             exactly.",
         )
         .add_response::<ApiOAuth2AuthorizationUrl>(StatusCode::OK, None)
         .add_error::<ProviderNotFoundError>()
+        .add_error::<RedirectUriNotAllowedError>()
         .with(internal_server_error_docs)
 }
 
@@ -271,6 +277,8 @@ error_code! {
     InvalidStateError(UNAUTHORIZED, "Invalid state");
     /// The OAuth2 provider does not exist.
     ProviderNotFoundError(NOT_FOUND, "Provider not found");
+    /// The redirect uri is not one this deployment allows.
+    RedirectUriNotAllowedError(BAD_REQUEST, "Redirect uri not allowed");
     /// The authorization code is invalid.
     InvalidCodeError(UNAUTHORIZED, "Invalid code");
     /// The remote user has already been linked to another account.

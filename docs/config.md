@@ -198,6 +198,7 @@ Optional section for error reporting to GlitchTip/Sentry. It is not present in `
 | `enable` | `true` | Set to `false` to disable OAuth2 entirely. OAuth2 is also disabled if no provider remains enabled. |
 | `registration_token_ttl` | `"10m"` | Lifetime of the token issued after an OAuth2 login without a linked account. |
 | `authorization_ttl` | `"10m"` | How long a started authorization flow (`POST /auth/oauth/authorize`) can be completed. It only has to cover the round trip through the provider's consent screen. |
+| `redirect_uris` | `["https://bootstrap.academy/oauth/callback"]` | The redirect uris `POST /auth/oauth/authorize` accepts, compared exactly; anything else is rejected with `400 Redirect uri not allowed`. The uri ends up in the authorize url the backend hands out and is used again for the token exchange, so a deployment reached under another domain has to list its own callback here or OAuth2 stops working for it. |
 
 ### `[oauth2.providers.<id>]`
 `config.toml` predefines `github`, `discord` and `google` with everything except the credentials; further providers can be added under any id.

@@ -48,6 +48,7 @@ Clients are mostly authenticated using JWTs:
 
 - Normal users logging in with their account credentials receive an access token (JWT) and a refresh token (random opaque secret) and use the access token to authenticate all subsequent requests. When the access token expires (or is invalidated) the client uses the refresh token to request a new access/refresh token pair which replaces the current one.
 - Services (esp. the old Python/Rust microservices) authenticate each request by issuing a very short-lived JWT which includes the target audience (the recipient of the request).
+- An account can also be signed in through an OAuth2 provider. `POST /auth/oauth/authorize` starts the flow: it accepts only a `redirect_uri` from `oauth2.redirect_uris` (exact match), stores the provider, the redirect uri and the PKCE code verifier under an unguessable single use `state`, and returns the authorize url together with that `state`. The callback is redeemed exactly once, and the provider and the redirect uri of the exchange are taken from the stored entry and never from the callback body.
 
 #### Two Factor Authentication for Administrators
 MFA is optional for ordinary accounts, but administrative privileges are only granted to sessions that were established with a verified TOTP code.

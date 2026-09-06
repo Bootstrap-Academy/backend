@@ -92,6 +92,7 @@ let
           };
           oauth2 = {
             enable = true;
+            redirect_uris = [ "http://localhost/oauth2/callback" ];
             providers =
               let
                 disabled = {

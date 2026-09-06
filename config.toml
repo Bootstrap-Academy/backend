@@ -150,6 +150,10 @@ registration_token_ttl = "10m"
 # how long a started authorization flow can be completed; only has to cover the
 # round trip through the provider's consent screen
 authorization_ttl = "10m"
+# The redirect uris `POST /auth/oauth/authorize` accepts, compared exactly. The
+# uri ends up in the authorize url the backend hands out, so a deployment that
+# is reached under another domain has to list its own callback here.
+redirect_uris = ["https://bootstrap.academy/oauth/callback"]
 
 [oauth2.providers.github]
 enable = true

@@ -1,15 +1,7 @@
 import os
 
 import pyotp
-from utils import (
-    assert_access_token_invalid,
-    c,
-    create_account,
-    discard_auth,
-    get_self,
-    refresh_session,
-    save_auth,
-)
+from utils import assert_access_token_invalid, c, create_account, discard_auth, get_self, refresh_session, save_auth
 
 login = create_account("a", "a@a", "a")
 assert login["user"]["mfa_enabled"] is False

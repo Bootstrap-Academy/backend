@@ -335,6 +335,14 @@ pub struct OAuth2Config {
     pub enable: Option<bool>,
     pub registration_token_ttl: Duration,
     pub authorization_ttl: Duration,
+    /// The redirect uris a caller may start an authorization flow with,
+    /// compared exactly.
+    ///
+    /// The uri ends up in the authorize url the backend hands out and is used
+    /// again for the token exchange, so without a list of its own anybody
+    /// could have the backend produce an authorize url pointing at their own
+    /// site.
+    pub redirect_uris: Vec<Url>,
     pub providers: HashMap<String, OAuth2ProviderConfig>,
 }
 

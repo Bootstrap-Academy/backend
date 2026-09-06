@@ -70,6 +70,8 @@ pub trait OAuth2FeatureService: Send + Sync + 'static {
 pub enum OAuth2BeginAuthorizationError {
     #[error("The provider does not exist.")]
     InvalidProvider,
+    #[error("The redirect uri is not allowed.")]
+    InvalidRedirectUri,
     #[error(transparent)]
     Other(#[from] anyhow::Error),
 }

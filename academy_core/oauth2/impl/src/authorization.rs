@@ -45,6 +45,16 @@ where
             .get(&provider_id)
             .ok_or(OAuth2AuthorizationServiceError::InvalidProvider)?;
 
+        // The redirect uri ends up in the authorize url that is handed out and
+        // is used again for the token exchange, so an unlisted one would let
+        // any caller have the backend produce an authorize url pointing at
+        // their own site. The provider's own registered redirect check is not
+        // enough: it fails open for a provider configured with a path prefix,
+        // a wildcard or a leftover staging uri.
+        if !self.config.redirect_uris.contains(&redirect_uri) {
+            return Err(OAuth2AuthorizationServiceError::InvalidRedirectUri);
+        }
+
         let state = OAuth2State::try_new(self.secret.generate(OAuth2State::LEN).0).unwrap();
         let code_verifier = provider.pkce.then(|| {
             OAuth2CodeVerifier::try_new(self.secret.generate(OAuth2CodeVerifier::LEN).0).unwrap()
@@ -242,6 +252,59 @@ mod tests {
             result,
             Err(OAuth2AuthorizationServiceError::InvalidProvider)
         );
+    }
+
+    /// The redirect uri decides where the provider sends the authorization
+    /// code, so only the ones the deployment lists may be used.
+    #[tokio::test]
+    async fn begin_invalid_redirect_uri() {
+        // Arrange
+        let sut = Sut::default();
+
+        // Act
+        let result = sut
+            .begin(
+                TEST_OAUTH2_PROVIDER_ID.clone(),
+                "https://attacker.example/oauth/callback".parse().unwrap(),
+            )
+            .await;
+
+        // Assert
+        assert_matches!(
+            result,
+            Err(OAuth2AuthorizationServiceError::InvalidRedirectUri)
+        );
+    }
+
+    /// A uri that only differs in its path or its query is a different uri.
+    #[tokio::test]
+    async fn begin_redirect_uri_is_compared_exactly() {
+        for redirect_uri in [
+            "http://test/oauth/callback/",
+            "http://test/oauth/callback?next=/",
+            "http://test/oauth",
+            "https://test/oauth/callback",
+        ] {
+            // Arrange
+            let sut = Sut::default();
+
+            // Act
+            let result = sut
+                .begin(
+                    TEST_OAUTH2_PROVIDER_ID.clone(),
+                    redirect_uri.parse().unwrap(),
+                )
+                .await;
+
+            // Assert
+            assert!(
+                matches!(
+                    result,
+                    Err(OAuth2AuthorizationServiceError::InvalidRedirectUri)
+                ),
+                "{redirect_uri} was accepted"
+            );
+        }
     }
 
     #[tokio::test]

@@ -46,6 +46,17 @@ resp = c.post("/auth/oauth/authorize", json={"provider_id": "does-not-exist", "r
 assert resp.status_code == 404
 assert resp.json() == {"detail": "Provider not found"}
 
+# ... and only with a redirect uri the deployment allows, compared exactly
+for redirect_uri in [
+    "https://attacker.example/oauth2/callback",
+    "http://localhost/oauth2/callback/",
+    "http://localhost/oauth2/callback?next=/",
+    "http://localhost/",
+]:
+    resp = c.post("/auth/oauth/authorize", json={"provider_id": "test", "redirect_uri": redirect_uri})
+    assert resp.status_code == 400, redirect_uri
+    assert resp.json() == {"detail": "Redirect uri not allowed"}
+
 # two flows get two different states
 _, state_a = begin_authorization()
 _, state_b = begin_authorization()

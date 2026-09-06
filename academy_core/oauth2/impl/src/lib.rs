@@ -68,6 +68,9 @@ pub struct OAuth2FeatureConfig {
     /// How long a started authorization flow stays redeemable. Only has to
     /// cover the round trip through the provider's consent screen.
     pub authorization_ttl: Duration,
+    /// The redirect uris an authorization flow may be started with, compared
+    /// exactly.
+    pub redirect_uris: Arc<[Url]>,
 }
 
 impl<
@@ -127,6 +130,9 @@ where
             .map_err(|err| match err {
                 OAuth2AuthorizationServiceError::InvalidProvider => {
                     OAuth2BeginAuthorizationError::InvalidProvider
+                }
+                OAuth2AuthorizationServiceError::InvalidRedirectUri => {
+                    OAuth2BeginAuthorizationError::InvalidRedirectUri
                 }
                 OAuth2AuthorizationServiceError::Other(err) => {
                     err.context("Failed to begin OAuth2 authorization").into()

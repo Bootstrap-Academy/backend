@@ -74,6 +74,11 @@ impl Default for OAuth2FeatureConfig {
                 TEST_OAUTH2_PROVIDER.clone(),
             )])
             .into(),
+            redirect_uris: [
+                "http://test/oauth/callback".parse().unwrap(),
+                "http://test/redirect".parse().unwrap(),
+            ]
+            .into(),
         }
     }
 }

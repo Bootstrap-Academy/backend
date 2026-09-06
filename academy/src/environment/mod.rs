@@ -201,6 +201,12 @@ impl ConfigProvider {
                 .as_ref()
                 .map(|oauth2| oauth2.authorization_ttl.0)
                 .unwrap_or_default(),
+            redirect_uris: config
+                .oauth2
+                .iter()
+                .flat_map(|oauth2| oauth2.redirect_uris.iter())
+                .cloned()
+                .collect(),
             providers: config
                 .oauth2
                 .iter()

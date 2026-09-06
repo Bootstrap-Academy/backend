@@ -25,7 +25,7 @@ use crate::PostgresTransaction;
 pub struct PostgresFinancialDocumentRepository;
 
 impl FinancialDocumentRepository<PostgresTransaction> for PostgresFinancialDocumentRepository {
-    #[trace_instrument(skip(self, txn))]
+    #[trace_instrument(skip(self, txn, document), fields(document = %*document.number))]
     async fn record(
         &self,
         txn: &mut PostgresTransaction,
@@ -122,7 +122,7 @@ impl FinancialDocumentRepository<PostgresTransaction> for PostgresFinancialDocum
             .await
     }
 
-    #[trace_instrument(skip(self, txn))]
+    #[trace_instrument(skip(self, txn, search))]
     async fn list(
         &self,
         txn: &mut PostgresTransaction,
@@ -147,7 +147,7 @@ impl FinancialDocumentRepository<PostgresTransaction> for PostgresFinancialDocum
             .await
     }
 
-    #[trace_instrument(skip(self, txn))]
+    #[trace_instrument(skip(self, txn, search))]
     async fn count(
         &self,
         txn: &mut PostgresTransaction,

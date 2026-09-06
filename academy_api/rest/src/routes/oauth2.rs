@@ -84,15 +84,22 @@ fn list_providers_docs(op: TransformOperation) -> TransformOperation {
 
 async fn begin_authorization(
     service: State<Arc<impl OAuth2FeatureService>>,
+    token: ApiToken,
     Json(ApiOAuth2AuthorizationRequest {
         provider_id,
         redirect_uri,
     }): Json<ApiOAuth2AuthorizationRequest>,
 ) -> Response {
-    match service.begin_authorization(provider_id, redirect_uri).await {
+    match service
+        .begin_authorization(&token.0, provider_id, redirect_uri)
+        .await
+    {
         Ok(url) => Json(ApiOAuth2AuthorizationUrl::from(url)).into_response(),
         Err(OAuth2BeginAuthorizationError::InvalidProvider) => {
             ProviderNotFoundError.into_response()
+        }
+        Err(OAuth2BeginAuthorizationError::InvalidRedirectUri) => {
+            RedirectUriNotAllowedError.into_response()
         }
         Err(OAuth2BeginAuthorizationError::Other(err)) => internal_server_error(err),
     }
@@ -104,10 +111,17 @@ fn begin_authorization_docs(op: TransformOperation) -> TransformOperation {
             "Returns the authorize URL to open, including an unguessable single use `state` \
              nonce and, for providers supporting it, a PKCE code challenge. The `state` is \
              returned separately as well so the client can compare it against the one the \
-             provider hands back before submitting the callback.",
+             provider hands back before submitting the callback.\n\nThe `redirect_uri` has to \
+             be one of the uris the deployment allows (`oauth2.redirect_uris`), compared \
+             exactly.\n\nThe access token is optional and binds the flow to the operation it \
+             was started for: a flow started with one can only be completed through `POST \
+             /auth/oauth/links/{user_id}` for that very account, a flow started without one \
+             only through `POST /auth/sessions/oauth`. A token that cannot be authenticated \
+             counts as none.",
         )
         .add_response::<ApiOAuth2AuthorizationUrl>(StatusCode::OK, None)
         .add_error::<ProviderNotFoundError>()
+        .add_error::<RedirectUriNotAllowedError>()
         .with(internal_server_error_docs)
 }
 
@@ -271,6 +285,8 @@ error_code! {
     InvalidStateError(UNAUTHORIZED, "Invalid state");
     /// The OAuth2 provider does not exist.
     ProviderNotFoundError(NOT_FOUND, "Provider not found");
+    /// The redirect uri is not one this deployment allows.
+    RedirectUriNotAllowedError(BAD_REQUEST, "Redirect uri not allowed");
     /// The authorization code is invalid.
     InvalidCodeError(UNAUTHORIZED, "Invalid code");
     /// The remote user has already been linked to another account.

@@ -23,6 +23,9 @@ update sessions
     updated_at=coalesce(:updated_at, updated_at)
   where id=:id;
 
+--! clear_mfa_verified_by_user
+update sessions set mfa_verified=false where user_id=:user_id;
+
 --! delete
 delete from sessions where id=:id;
 

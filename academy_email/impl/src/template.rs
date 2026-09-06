@@ -23,7 +23,7 @@ where
     EmailS: EmailService,
     Template: TemplateService,
 {
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, recipient, data))]
     async fn send_reset_password_email(
         &self,
         recipient: EmailAddressWithName,
@@ -38,7 +38,7 @@ where
         .await
     }
 
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, recipient, data))]
     async fn send_verification_email(
         &self,
         recipient: EmailAddressWithName,
@@ -53,7 +53,7 @@ where
         .await
     }
 
-    #[trace_instrument(skip(self, invoice))]
+    #[trace_instrument(skip(self, recipient, data, invoice))]
     async fn send_purchase_confirmation_email(
         &self,
         recipient: EmailAddressWithName,
@@ -90,7 +90,7 @@ where
         .await
     }
 
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, recipient, data))]
     async fn send_contract_cancellation_confirmation_email(
         &self,
         recipient: EmailAddressWithName,
@@ -105,7 +105,7 @@ where
         .await
     }
 
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, recipient, data))]
     async fn send_contract_withdrawal_confirmation_email(
         &self,
         recipient: EmailAddressWithName,

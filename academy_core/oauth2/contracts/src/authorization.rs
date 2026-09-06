@@ -3,6 +3,7 @@ use std::future::Future;
 use academy_models::{
     oauth2::{OAuth2AuthorizationUrl, OAuth2PendingAuthorization, OAuth2ProviderId, OAuth2State},
     url::Url,
+    user::UserId,
 };
 use thiserror::Error;
 
@@ -14,10 +15,15 @@ pub trait OAuth2AuthorizationService: Send + Sync + 'static {
     /// providers supporting it, a PKCE code verifier (RFC 7636), remembers
     /// both for a short time and returns the authorize URL the user agent has
     /// to be sent to.
+    /// `user_id` is the account the flow is started for, if the caller was
+    /// authenticated. It decides what the resulting callback may be redeemed
+    /// as: a flow of an account can only add a login method to that account,
+    /// a flow without one can only create a session.
     fn begin(
         &self,
         provider_id: OAuth2ProviderId,
         redirect_uri: Url,
+        user_id: Option<UserId>,
     ) -> impl Future<Output = Result<OAuth2AuthorizationUrl, OAuth2AuthorizationServiceError>> + Send;
 
     /// Invalidate the given `state` and return the authorization it was issued
@@ -35,6 +41,8 @@ pub trait OAuth2AuthorizationService: Send + Sync + 'static {
 pub enum OAuth2AuthorizationServiceError {
     #[error("The provider does not exist.")]
     InvalidProvider,
+    #[error("The redirect uri is not allowed.")]
+    InvalidRedirectUri,
     #[error(transparent)]
     Other(#[from] anyhow::Error),
 }
@@ -45,6 +53,7 @@ impl MockOAuth2AuthorizationService {
         mut self,
         provider_id: OAuth2ProviderId,
         redirect_uri: Url,
+        user_id: Option<UserId>,
         result: Result<OAuth2AuthorizationUrl, OAuth2AuthorizationServiceError>,
     ) -> Self {
         self.expect_begin()
@@ -52,8 +61,9 @@ impl MockOAuth2AuthorizationService {
             .with(
                 mockall::predicate::eq(provider_id),
                 mockall::predicate::eq(redirect_uri),
+                mockall::predicate::eq(user_id),
             )
-            .return_once(|_, _| Box::pin(std::future::ready(result)));
+            .return_once(|_, _, _| Box::pin(std::future::ready(result)));
         self
     }
 

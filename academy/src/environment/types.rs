@@ -216,7 +216,7 @@ pub type MfaFeature = MfaFeatureServiceImpl<
 >;
 pub type MfaRecovery = MfaRecoveryServiceImpl<Secret, Hash, MfaRepo>;
 pub type MfaAuthenticate = MfaAuthenticateServiceImpl<Hash, Totp, MfaDisable, MfaRepo>;
-pub type MfaDisable = MfaDisableServiceImpl<MfaRepo>;
+pub type MfaDisable = MfaDisableServiceImpl<Auth, MfaRepo, SessionRepo>;
 pub type MfaTotpDevice = MfaTotpDeviceServiceImpl<Id, Time, Totp, MfaRepo>;
 
 pub type OAuth2Feature = OAuth2FeatureServiceImpl<

@@ -1,4 +1,6 @@
+import os
 import subprocess
+import time
 from datetime import datetime, timezone
 
 from utils import (
@@ -205,3 +207,33 @@ assert resp.status_code == 200, resp.text
 resp = ca.get("/contracts/declarations")
 assert resp.status_code == 200
 assert resp.json()["total"] == 6
+
+# The declaration a person sends is not written into the log. The mail server
+# is taken down so that the failure to send the confirmation is reported from
+# inside the span of the request, which is where the fields of the enclosing
+# spans are printed.
+assert os.system("systemctl stop postfix.service") == 0
+since = subprocess.check_output(["date", "+%Y-%m-%d %H:%M:%S"], text=True).strip()
+
+resp = c.post(
+    "/contracts/withdrawals",
+    json={
+        "name": "Kanarienvogel Nachname",
+        "email": "kanarienvogel@example.invalid",
+        "contract": "OTHER",
+        "details": "Kanarienstrasse 42",
+    },
+)
+assert resp.status_code == 200, resp.text
+
+log = ""
+for _ in range(20):
+    log = subprocess.check_output(["journalctl", "-u", "academy-backend", "--since", since], text=True)
+    if "Failed to send contract withdrawal confirmation email" in log:
+        break
+    time.sleep(0.5)
+assert "Failed to send contract withdrawal confirmation email" in log, log
+for secret in ["Kanarienvogel", "kanarienvogel@example.invalid", "Kanarienstrasse"]:
+    assert secret not in log, f"{secret} reached the log:\n{log}"
+
+assert os.system("systemctl start postfix.service") == 0

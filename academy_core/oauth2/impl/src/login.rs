@@ -17,7 +17,7 @@ impl<OAuth2Api> OAuth2LoginService for OAuth2LoginServiceImpl<OAuth2Api>
 where
     OAuth2Api: OAuth2ApiService,
 {
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, login))]
     async fn login(&self, login: OAuth2Login) -> Result<OAuth2UserInfo, OAuth2LoginServiceError> {
         let provider = self
             .config

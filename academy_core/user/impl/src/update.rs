@@ -42,7 +42,7 @@ where
     Session: SessionService<Txn>,
     UserRepo: UserRepository<Txn>,
 {
-    #[trace_instrument(skip(self, txn))]
+    #[trace_instrument(skip(self, txn, user, name), fields(user_id = %*user.id))]
     async fn update_name(
         &self,
         txn: &mut Txn,
@@ -84,7 +84,7 @@ where
             })
     }
 
-    #[trace_instrument(skip(self, txn))]
+    #[trace_instrument(skip(self, txn, email))]
     async fn update_email(
         &self,
         txn: &mut Txn,
@@ -121,7 +121,7 @@ where
         Ok(result)
     }
 
-    #[trace_instrument(skip(self, txn))]
+    #[trace_instrument(skip(self, txn, password))]
     async fn update_password(
         &self,
         txn: &mut Txn,
@@ -182,7 +182,7 @@ where
             .context("Failed to update user in database")
     }
 
-    #[trace_instrument(skip(self, txn))]
+    #[trace_instrument(skip(self, txn, user), fields(user_id = %*user.id))]
     async fn accept_terms(
         &self,
         txn: &mut Txn,
@@ -206,7 +206,7 @@ where
         Ok(user)
     }
 
-    #[trace_instrument(skip(self, txn))]
+    #[trace_instrument(skip(self, txn, user), fields(user_id = %*user.id))]
     async fn decline_terms(&self, txn: &mut Txn, mut user: User) -> anyhow::Result<User> {
         let now = self.time.now();
 
@@ -220,7 +220,7 @@ where
         Ok(user)
     }
 
-    #[trace_instrument(skip(self, txn))]
+    #[trace_instrument(skip(self, txn, invoice_info, patch))]
     async fn update_invoice_info(
         &self,
         txn: &mut Txn,

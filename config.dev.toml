@@ -48,6 +48,10 @@ invoices_archive = ".invoices"
 credit_notes_archive = ".credit_notes"
 final_statements_archive = ".final_statements"
 
+[oauth2]
+# The callback of the frontend dev server.
+redirect_uris = ["http://localhost:3000/oauth/callback", "http://127.0.0.1:3000/oauth/callback"]
+
 [oauth2.providers.test]
 enable = true
 pkce = true

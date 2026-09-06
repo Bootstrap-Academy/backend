@@ -1,7 +1,7 @@
 import os
 
 import pyotp
-from utils import c, create_account, discard_auth, get_self, save_auth
+from utils import assert_access_token_invalid, c, create_account, discard_auth, get_self, refresh_session, save_auth
 
 login = create_account("a", "a@a", "a")
 assert login["user"]["mfa_enabled"] is False
@@ -22,6 +22,14 @@ assert get_self()["mfa_enabled"] is True
 resp = c.delete("/auth/users/me/mfa")
 assert resp.status_code == 200
 assert resp.json() is True
+
+# Removing the second factor ends the authority it granted: `mfa_verified` is
+# cleared on every session of the account and the access tokens that carry it
+# are invalidated, so the session has to be refreshed before it can be used
+# again.
+assert_access_token_invalid()
+login = refresh_session()
+assert login["session"]["mfa_verified"] is False
 
 assert get_self()["mfa_enabled"] is False
 
@@ -63,6 +71,8 @@ assert resp.json() == {"detail": "MFA already enabled"}
 resp = c.delete("/auth/users/me/mfa")
 assert resp.status_code == 200
 assert resp.json() is True
+refresh_session()
+
 resp = c.post("/auth/users/me/mfa")
 assert resp.status_code == 200
 totp = pyotp.TOTP(resp.json())

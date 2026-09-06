@@ -46,6 +46,17 @@ resp = c.post("/auth/oauth/authorize", json={"provider_id": "does-not-exist", "r
 assert resp.status_code == 404
 assert resp.json() == {"detail": "Provider not found"}
 
+# ... and only with a redirect uri the deployment allows, compared exactly
+for redirect_uri in [
+    "https://attacker.example/oauth2/callback",
+    "http://localhost/oauth2/callback/",
+    "http://localhost/oauth2/callback?next=/",
+    "http://localhost/",
+]:
+    resp = c.post("/auth/oauth/authorize", json={"provider_id": "test", "redirect_uri": redirect_uri})
+    assert resp.status_code == 400, redirect_uri
+    assert resp.json() == {"detail": "Redirect uri not allowed"}
+
 # two flows get two different states
 _, state_a = begin_authorization()
 _, state_b = begin_authorization()
@@ -69,6 +80,24 @@ assert link == {"id": link["id"], "provider_id": "test", "display_name": "foo"}
 resp = c.post("/auth/oauth/links/me", json=callback)
 assert resp.status_code == 401
 assert resp.json() == {"detail": "Invalid state"}
+
+# a flow is bound to what it was started for: one started without a token can
+# only create a session, one started while signed in can only add a login
+# method to that very account
+discard_auth()
+anonymous_callback = authenticate(42, "foo")
+save_auth(login)
+
+resp = c.post("/auth/oauth/links/me", json=anonymous_callback)
+assert resp.status_code == 401
+assert resp.json() == {"detail": "Invalid state"}
+
+linked_callback = authenticate(42, "foo")
+discard_auth()
+resp = c.post("/auth/sessions/oauth", json=linked_callback)
+assert resp.status_code == 401
+assert resp.json() == {"detail": "Invalid state"}
+save_auth(login)
 
 # list links
 resp = c.get("/auth/oauth/links/me")

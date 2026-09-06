@@ -23,7 +23,7 @@ where
     Time: TimeService,
     OAuth2Repo: OAuth2Repository<Txn>,
 {
-    #[trace_instrument(skip(self, txn))]
+    #[trace_instrument(skip(self, txn, remote_user))]
     async fn create(
         &self,
         txn: &mut Txn,

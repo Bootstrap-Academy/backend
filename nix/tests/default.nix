@@ -92,6 +92,7 @@ let
           };
           oauth2 = {
             enable = true;
+            redirect_uris = [ "http://localhost/oauth2/callback" ];
             providers =
               let
                 disabled = {
@@ -174,6 +175,10 @@ let
         mode = "0400";
         argument = builtins.toFile "secrets.toml" ''
           jwt.secret = "changeme"
+          # The internal endpoints verify a token against the secret of its
+          # audience, so `academy jwt sign` has to use the same one.
+          internal.secrets.auth = "the auth secret"
+          internal.secrets.shop = "the shop secret"
         '';
       };
 

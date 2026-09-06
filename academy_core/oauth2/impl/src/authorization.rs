@@ -10,6 +10,7 @@ use academy_models::{
         OAuth2PendingAuthorization, OAuth2ProviderId, OAuth2State,
     },
     url::Url,
+    user::UserId,
 };
 use academy_shared_contracts::secret::SecretService;
 use academy_utils::trace_instrument;
@@ -38,12 +39,23 @@ where
         &self,
         provider_id: OAuth2ProviderId,
         redirect_uri: Url,
+        user_id: Option<UserId>,
     ) -> Result<OAuth2AuthorizationUrl, OAuth2AuthorizationServiceError> {
         let provider = self
             .config
             .providers
             .get(&provider_id)
             .ok_or(OAuth2AuthorizationServiceError::InvalidProvider)?;
+
+        // The redirect uri ends up in the authorize url that is handed out and
+        // is used again for the token exchange, so an unlisted one would let
+        // any caller have the backend produce an authorize url pointing at
+        // their own site. The provider's own registered redirect check is not
+        // enough: it fails open for a provider configured with a path prefix,
+        // a wildcard or a leftover staging uri.
+        if !self.config.redirect_uris.contains(&redirect_uri) {
+            return Err(OAuth2AuthorizationServiceError::InvalidRedirectUri);
+        }
 
         let state = OAuth2State::try_new(self.secret.generate(OAuth2State::LEN).0).unwrap();
         let code_verifier = provider.pkce.then(|| {
@@ -70,6 +82,7 @@ where
                     provider_id,
                     redirect_uri,
                     code_verifier,
+                    user_id,
                 },
                 Some(self.config.authorization_ttl),
             )
@@ -101,7 +114,10 @@ fn oauth2_authorization_cache_key(state: &OAuth2State) -> String {
 #[cfg(test)]
 mod tests {
     use academy_cache_contracts::MockCacheService;
-    use academy_demo::oauth2::{TEST_OAUTH2_PROVIDER, TEST_OAUTH2_PROVIDER_ID};
+    use academy_demo::{
+        oauth2::{TEST_OAUTH2_PROVIDER, TEST_OAUTH2_PROVIDER_ID},
+        user::FOO,
+    };
     use academy_extern_contracts::oauth2::MockOAuth2ApiService;
     use academy_shared_contracts::secret::MockSecretService;
     use academy_utils::{Apply, assert_matches};
@@ -140,6 +156,7 @@ mod tests {
                 provider_id: TEST_OAUTH2_PROVIDER_ID.clone(),
                 redirect_uri: redirect_uri.clone(),
                 code_verifier: Some(CODE_VERIFIER.try_into().unwrap()),
+                user_id: Some(FOO.user.id),
             },
             Some(config.authorization_ttl),
         );
@@ -153,7 +170,11 @@ mod tests {
 
         // Act
         let result = sut
-            .begin(TEST_OAUTH2_PROVIDER_ID.clone(), redirect_uri)
+            .begin(
+                TEST_OAUTH2_PROVIDER_ID.clone(),
+                redirect_uri,
+                Some(FOO.user.id),
+            )
             .await;
 
         // Assert
@@ -191,6 +212,7 @@ mod tests {
                 provider_id: TEST_OAUTH2_PROVIDER_ID.clone(),
                 redirect_uri: redirect_uri.clone(),
                 code_verifier: None,
+                user_id: Some(FOO.user.id),
             },
             Some(config.authorization_ttl),
         );
@@ -211,7 +233,11 @@ mod tests {
 
         // Act
         let result = sut
-            .begin(TEST_OAUTH2_PROVIDER_ID.clone(), redirect_uri)
+            .begin(
+                TEST_OAUTH2_PROVIDER_ID.clone(),
+                redirect_uri,
+                Some(FOO.user.id),
+            )
             .await;
 
         // Assert
@@ -234,6 +260,7 @@ mod tests {
             .begin(
                 "invalid-provider".into(),
                 "http://test/oauth/callback".parse().unwrap(),
+                None,
             )
             .await;
 
@@ -244,6 +271,61 @@ mod tests {
         );
     }
 
+    /// The redirect uri decides where the provider sends the authorization
+    /// code, so only the ones the deployment lists may be used.
+    #[tokio::test]
+    async fn begin_invalid_redirect_uri() {
+        // Arrange
+        let sut = Sut::default();
+
+        // Act
+        let result = sut
+            .begin(
+                TEST_OAUTH2_PROVIDER_ID.clone(),
+                "https://attacker.example/oauth/callback".parse().unwrap(),
+                None,
+            )
+            .await;
+
+        // Assert
+        assert_matches!(
+            result,
+            Err(OAuth2AuthorizationServiceError::InvalidRedirectUri)
+        );
+    }
+
+    /// A uri that only differs in its path or its query is a different uri.
+    #[tokio::test]
+    async fn begin_redirect_uri_is_compared_exactly() {
+        for redirect_uri in [
+            "http://test/oauth/callback/",
+            "http://test/oauth/callback?next=/",
+            "http://test/oauth",
+            "https://test/oauth/callback",
+        ] {
+            // Arrange
+            let sut = Sut::default();
+
+            // Act
+            let result = sut
+                .begin(
+                    TEST_OAUTH2_PROVIDER_ID.clone(),
+                    redirect_uri.parse().unwrap(),
+                    None,
+                )
+                .await;
+
+            // Assert
+            assert!(
+                matches!(
+                    result,
+                    Err(OAuth2AuthorizationServiceError::InvalidRedirectUri)
+                ),
+                "{redirect_uri} was accepted"
+            );
+        }
+    }
+
     #[tokio::test]
     async fn consume_some() {
         // Arrange
@@ -251,6 +333,7 @@ mod tests {
             provider_id: TEST_OAUTH2_PROVIDER_ID.clone(),
             redirect_uri: "http://test/oauth/callback".parse().unwrap(),
             code_verifier: Some(CODE_VERIFIER.try_into().unwrap()),
+            user_id: None,
         };
 
         let cache = MockCacheService::new().with_pop(

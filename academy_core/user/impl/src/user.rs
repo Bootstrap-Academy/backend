@@ -28,7 +28,7 @@ where
     UserRepo: UserRepository<Txn>,
     OAuth2Link: OAuth2LinkService<Txn>,
 {
-    #[trace_instrument(skip(self, txn))]
+    #[trace_instrument(skip(self, txn, query))]
     async fn list(&self, txn: &mut Txn, query: UserListQuery) -> anyhow::Result<UserListResult> {
         let total = self
             .user_repo
@@ -48,7 +48,8 @@ where
         })
     }
 
-    #[trace_instrument(skip(self, txn))]
+    // The command carries the name, the email address and the password.
+    #[trace_instrument(skip_all)]
     async fn create(
         &self,
         txn: &mut Txn,

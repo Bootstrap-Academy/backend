@@ -26,7 +26,9 @@ pub struct OAuth2ApiServiceImpl {
 }
 
 impl OAuth2ApiService for OAuth2ApiServiceImpl {
-    #[trace_instrument(skip(self))]
+    // The request carries the state and the PKCE code verifier, the provider
+    // its client secret.
+    #[trace_instrument(skip_all, fields(provider = %*provider.name))]
     fn generate_auth_url(
         &self,
         provider: &OAuth2Provider,

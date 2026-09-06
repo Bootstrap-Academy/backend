@@ -142,6 +142,43 @@ async fn delete() {
     assert!(!result);
 }
 
+/// Administrative authority is granted to a session that was authenticated
+/// with the second factor, so removing that factor has to take it away from
+/// every session of the account and from nobody else's.
+#[tokio::test]
+async fn clear_mfa_verified_by_user() {
+    let db = setup().await;
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    assert!(
+        REPO.get(&mut txn, ADMIN_1.id)
+            .await
+            .unwrap()
+            .unwrap()
+            .mfa_verified
+    );
+
+    REPO.clear_mfa_verified_by_user(&mut txn, FOO.user.id)
+        .await
+        .unwrap();
+    REPO.clear_mfa_verified_by_user(&mut txn, ADMIN.user.id)
+        .await
+        .unwrap();
+    txn.commit().await.unwrap();
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    for session in [&*ADMIN_1, &*FOO_1, &*FOO_2] {
+        let result = REPO.get(&mut txn, session.id).await.unwrap().unwrap();
+        assert_eq!(
+            result,
+            Session {
+                mfa_verified: false,
+                ..session.clone()
+            }
+        );
+    }
+}
+
 #[tokio::test]
 async fn delete_by_user() {
     let db = setup().await;

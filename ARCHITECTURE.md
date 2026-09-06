@@ -48,6 +48,8 @@ Clients are mostly authenticated using JWTs:
 
 - Normal users logging in with their account credentials receive an access token (JWT) and a refresh token (random opaque secret) and use the access token to authenticate all subsequent requests. When the access token expires (or is invalidated) the client uses the refresh token to request a new access/refresh token pair which replaces the current one.
 - Services (esp. the old Python/Rust microservices) authenticate each request by issuing a very short-lived JWT which includes the target audience (the recipient of the request).
+- An account can also be signed in through an OAuth2 provider. `POST /auth/oauth/authorize` starts the flow: it accepts only a `redirect_uri` from `oauth2.redirect_uris` (exact match), stores the provider, the redirect uri and the PKCE code verifier under an unguessable single use `state`, and returns the authorize url together with that `state`. The callback is redeemed exactly once, and the provider and the redirect uri of the exchange are taken from the stored entry and never from the callback body.
+  The endpoint takes an optional access token, and the stored entry remembers which account started the flow. A flow started while signed in can only be completed as a link for that account (`POST /auth/oauth/links/{user_id}`); a flow started without a usable token only as a login (`POST /auth/sessions/oauth`). That is what stops a callback of somebody else's flow from being submitted to a victim's client to make the attacker's provider account a login method for the victim.
 
 #### Two Factor Authentication for Administrators
 MFA is optional for ordinary accounts, but administrative privileges are only granted to sessions that were established with a verified TOTP code.
@@ -56,10 +58,15 @@ A recovery code disables MFA instead of proving possession of the second factor,
 
 `Authentication::ensure_admin` answers `403 Admin MFA required` for an administrator whose session does not have the flag.
 Endpoints that only need the account itself (including the MFA setup endpoints under `/auth/users/{user_id}/mfa`) are unaffected, so an administrator without an authenticator can still log in, set one up and then log in again with a code.
+The authority ends with the second factor: removing it (`DELETE /auth/users/{user_id}/mfa`, and a login with a recovery code, which does the same) clears `mfa_verified` on every session of that account and invalidates its access tokens, so the next refresh issues a token without the flag.
 
 #### Tracing
 Each incoming request is assigned a unique request id (Base64 encoded UUIDv7).
 This id is automatically attached to any logs associated with the corresponding request and is also returned to the client in the `X-Request-Id` response header.
+
+`#[trace_instrument]` opens a span at `INFO` and records the arguments of the function in it, and the default formatter prints the fields of the enclosing spans with every event inside them.
+Arguments that carry personal data — a `User`, a request body, an email address, a name, an invoice address, a password, a search term an administrator typed — are therefore `skip`ped, with `fields(user_id = …)` or another identifier added where a correlation id is useful.
+Return values are only recorded at `TRACE`, which no deployment runs at.
 
 ### Administrative Audit Log
 Every `POST`, `PUT`, `PATCH` and `DELETE` request that is authenticated with an administrator's access token is recorded in the `admin_audit_log` table, including requests that were rejected.

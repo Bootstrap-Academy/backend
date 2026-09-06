@@ -78,7 +78,7 @@ where
         Ok(auth)
     }
 
-    #[trace_instrument(skip(self, txn))]
+    #[trace_instrument(skip(self, txn, password))]
     async fn authenticate_by_password(
         &self,
         txn: &mut Txn,
@@ -132,7 +132,7 @@ where
         Ok(session.id)
     }
 
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, user), fields(user_id = %*user.id))]
     fn issue_tokens(
         &self,
         user: &User,

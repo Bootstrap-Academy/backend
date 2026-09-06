@@ -120,6 +120,19 @@ impl SessionRepository<PostgresTransaction> for PostgresSessionRepository {
     }
 
     #[trace_instrument(skip(self, txn))]
+    async fn clear_mfa_verified_by_user(
+        &self,
+        txn: &mut PostgresTransaction,
+        user_id: UserId,
+    ) -> anyhow::Result<()> {
+        queries::session::clear_mfa_verified_by_user()
+            .bind(txn.txn(), &user_id)
+            .await
+            .map(|_| ())
+            .map_err(Into::into)
+    }
+
+    #[trace_instrument(skip(self, txn))]
     async fn delete_by_user(
         &self,
         txn: &mut PostgresTransaction,

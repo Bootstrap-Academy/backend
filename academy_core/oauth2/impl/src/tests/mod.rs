@@ -44,12 +44,23 @@ fn callback() -> OAuth2Callback {
     }
 }
 
-/// The authorization the [`callback`] redeems.
+/// The authorization the [`callback`] redeems, started without a token and
+/// therefore redeemable as a login.
 fn pending_authorization() -> OAuth2PendingAuthorization {
     OAuth2PendingAuthorization {
         provider_id: TEST_OAUTH2_PROVIDER_ID.clone(),
         redirect_uri: "http://test/redirect".parse().unwrap(),
         code_verifier: Some(CODE_VERIFIER.try_into().unwrap()),
+        user_id: None,
+    }
+}
+
+/// The authorization the [`callback`] redeems when it was started by the given
+/// account, and which is therefore redeemable as a link for that account.
+fn pending_authorization_of(user_id: academy_models::user::UserId) -> OAuth2PendingAuthorization {
+    OAuth2PendingAuthorization {
+        user_id: Some(user_id),
+        ..pending_authorization()
     }
 }
 
@@ -73,6 +84,11 @@ impl Default for OAuth2FeatureConfig {
                 TEST_OAUTH2_PROVIDER_ID.clone(),
                 TEST_OAUTH2_PROVIDER.clone(),
             )])
+            .into(),
+            redirect_uris: [
+                "http://test/oauth/callback".parse().unwrap(),
+                "http://test/redirect".parse().unwrap(),
+            ]
             .into(),
         }
     }

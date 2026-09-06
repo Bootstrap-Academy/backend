@@ -21,7 +21,7 @@ where
     Secret: SecretService,
     Cache: CacheService,
 {
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, registration))]
     async fn save(
         &self,
         registration: &OAuth2Registration,

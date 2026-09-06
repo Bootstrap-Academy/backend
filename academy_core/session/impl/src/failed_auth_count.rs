@@ -26,7 +26,7 @@ where
             .context("Failed to get failed auth count from cache")
     }
 
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, name_or_email))]
     async fn increment(&self, name_or_email: &UserNameOrEmailAddress) -> anyhow::Result<()> {
         let cache_key = self.cache_key(name_or_email);
 
@@ -43,7 +43,7 @@ where
             .context("Failed to save failed auth count in cache")
     }
 
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, name_or_email))]
     async fn reset(&self, name_or_email: &UserNameOrEmailAddress) -> anyhow::Result<()> {
         self.cache
             .remove(&self.cache_key(name_or_email))

@@ -161,7 +161,9 @@ where
     CoinRepo: CoinRepository<Db::Transaction>,
     DocumentRepo: FinancialDocumentRepository<Db::Transaction>,
 {
-    #[trace_instrument(skip(self))]
+    // The query carries the name and email address filters an administrator
+    // typed.
+    #[trace_instrument(skip(self, token, query))]
     async fn list_users(
         &self,
         token: &AccessToken,
@@ -198,7 +200,7 @@ where
             .ok_or(UserGetError::NotFound)
     }
 
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, request, device_name))]
     async fn create_user(
         &self,
         request: UserCreateRequest,
@@ -288,7 +290,8 @@ where
         Ok(result)
     }
 
-    #[trace_instrument(skip(self))]
+    // The request carries the new name, email address and invoice address.
+    #[trace_instrument(skip_all, fields(user_id = ?user_id))]
     async fn update_user(
         &self,
         token: &AccessToken,
@@ -751,7 +754,7 @@ where
         }
     }
 
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, email))]
     async fn request_password_reset(
         &self,
         email: EmailAddress,
@@ -792,7 +795,7 @@ where
         Ok(())
     }
 
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, email, code, new_password))]
     async fn reset_password(
         &self,
         email: EmailAddress,

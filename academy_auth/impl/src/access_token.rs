@@ -26,7 +26,7 @@ where
     Jwt: JwtService,
     Cache: CacheService,
 {
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, user), fields(user_id = %*user.id))]
     fn issue(
         &self,
         user: &User,

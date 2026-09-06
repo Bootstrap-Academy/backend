@@ -58,7 +58,7 @@ where
             .ok_or(InternalGetUserError::NotFound)
     }
 
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, email))]
     async fn get_user_by_email(
         &self,
         token: &InternalToken,

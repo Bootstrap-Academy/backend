@@ -112,7 +112,7 @@ where
     PremiumRepo: PremiumRepository<Db::Transaction>,
     ContractRepo: ContractRepository<Db::Transaction>,
 {
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, request))]
     async fn declare_cancellation(
         &self,
         client_ip: IpAddr,
@@ -220,7 +220,7 @@ where
         })
     }
 
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, request))]
     async fn declare_withdrawal(
         &self,
         client_ip: IpAddr,

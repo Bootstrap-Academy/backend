@@ -64,6 +64,10 @@ The authority ends with the second factor: removing it (`DELETE /auth/users/{use
 Each incoming request is assigned a unique request id (Base64 encoded UUIDv7).
 This id is automatically attached to any logs associated with the corresponding request and is also returned to the client in the `X-Request-Id` response header.
 
+`#[trace_instrument]` opens a span at `INFO` and records the arguments of the function in it, and the default formatter prints the fields of the enclosing spans with every event inside them.
+Arguments that carry personal data — a `User`, a request body, an email address, a name, an invoice address, a password, a search term an administrator typed — are therefore `skip`ped, with `fields(user_id = …)` or another identifier added where a correlation id is useful.
+Return values are only recorded at `TRACE`, which no deployment runs at.
+
 ### Administrative Audit Log
 Every `POST`, `PUT`, `PATCH` and `DELETE` request that is authenticated with an administrator's access token is recorded in the `admin_audit_log` table, including requests that were rejected.
 Reads are not recorded, with the exceptions listed in `AUDITED_READ_ROUTES`: the data export (see [Data Export](#data-export)), because it hands out everything the platform stores about a user, and the financial document listing (see [Financial Documents](#financial-documents)), because it is searchable by name and email address and still names accounts that have been deleted.

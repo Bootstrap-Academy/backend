@@ -31,7 +31,8 @@ impl EmailServiceImpl {
 }
 
 impl EmailService for EmailServiceImpl {
-    #[trace_instrument(skip(self))]
+    // The message carries the recipient and the body.
+    #[trace_instrument(skip(self, email))]
     async fn send(&self, email: Email) -> anyhow::Result<bool> {
         let body = SinglePart::builder()
             .header(match email.content_type {

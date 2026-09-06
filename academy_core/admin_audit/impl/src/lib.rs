@@ -32,7 +32,8 @@ where
     Time: TimeService,
     AdminAuditRepo: AdminAuditRepository<Db::Transaction>,
 {
-    #[trace_instrument(skip(self))]
+    // The request carries the access token it was made with.
+    #[trace_instrument(skip(self, request), fields(path = %*request.path))]
     async fn record(&self, request: AdminAuditRequest) -> anyhow::Result<bool> {
         // An expired or invalidated token identifies nobody, so there is
         // nothing to attribute the request to.

@@ -43,7 +43,7 @@ where
     Password: PasswordService,
     UserRepo: UserRepository<Txn>,
 {
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, email))]
     async fn request_verification(&self, email: EmailAddressWithName) -> anyhow::Result<()> {
         let code = self.secret.generate_verification_code();
 
@@ -124,7 +124,7 @@ where
         Ok(user_composite)
     }
 
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, email))]
     async fn request_password_reset(
         &self,
         user_id: UserId,
@@ -155,7 +155,7 @@ where
         Ok(())
     }
 
-    #[trace_instrument(skip(self, txn))]
+    #[trace_instrument(skip(self, txn, code, new_password))]
     async fn reset_password(
         &self,
         txn: &mut Txn,

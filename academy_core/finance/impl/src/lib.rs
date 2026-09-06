@@ -126,7 +126,9 @@ where
         Ok(credit_note)
     }
 
-    #[trace_instrument(skip(self))]
+    // `search` is what an administrator typed and can be the name or the email
+    // address of a customer.
+    #[trace_instrument(skip(self, token, search))]
     async fn list_documents(
         &self,
         token: &AccessToken,

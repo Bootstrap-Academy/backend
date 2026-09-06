@@ -25,7 +25,7 @@ use crate::PostgresTransaction;
 pub struct PostgresContractRepository;
 
 impl ContractRepository<PostgresTransaction> for PostgresContractRepository {
-    #[trace_instrument(skip(self, txn))]
+    #[trace_instrument(skip(self, txn, declaration), fields(declaration_id = %*declaration.id))]
     async fn create(
         &self,
         txn: &mut PostgresTransaction,

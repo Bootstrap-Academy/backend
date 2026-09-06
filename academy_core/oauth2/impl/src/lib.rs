@@ -286,7 +286,7 @@ where
         Ok(())
     }
 
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, device_name))]
     async fn create_session(
         &self,
         callback: OAuth2Callback,

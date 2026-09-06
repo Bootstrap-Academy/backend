@@ -32,7 +32,10 @@ where
     SessionRepo: SessionRepository<Txn>,
     UserRepo: UserRepository<Txn>,
 {
-    #[trace_instrument(skip(self, txn))]
+    #[trace_instrument(
+        skip(self, txn, user_composite, device_name),
+        fields(user_id = %*user_composite.user.id),
+    )]
     async fn create(
         &self,
         txn: &mut Txn,

@@ -34,7 +34,8 @@ use crate::PostgresTransaction;
 pub struct PostgresUserRepository;
 
 impl UserRepository<PostgresTransaction> for PostgresUserRepository {
-    #[trace_instrument(skip(self, txn))]
+    // The filter carries the name and email address search terms.
+    #[trace_instrument(skip(self, txn, filter))]
     async fn count(
         &self,
         txn: &mut PostgresTransaction,
@@ -57,7 +58,7 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
             .and_then(|row| row.try_into().map_err(Into::into))
     }
 
-    #[trace_instrument(skip(self, txn))]
+    #[trace_instrument(skip(self, txn, filter))]
     async fn list_composites(
         &self,
         txn: &mut PostgresTransaction,
@@ -107,7 +108,7 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
             .and_then(|row| row.map(decode_composite).transpose())
     }
 
-    #[trace_instrument(skip(self, txn))]
+    #[trace_instrument(skip(self, txn, name))]
     async fn get_composite_by_name(
         &self,
         txn: &mut PostgresTransaction,
@@ -121,7 +122,7 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
             .and_then(|row| row.map(decode_composite).transpose())
     }
 
-    #[trace_instrument(skip(self, txn))]
+    #[trace_instrument(skip(self, txn, email))]
     async fn get_composite_by_email(
         &self,
         txn: &mut PostgresTransaction,
@@ -135,7 +136,7 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
             .and_then(|row| row.map(decode_composite).transpose())
     }
 
-    #[trace_instrument(skip(self, txn))]
+    #[trace_instrument(skip(self, txn, remote_user_id))]
     async fn get_composite_by_oauth2_provider_id_and_remote_user_id(
         &self,
         txn: &mut PostgresTransaction,
@@ -155,7 +156,10 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
             .and_then(|row| row.map(decode_composite).transpose())
     }
 
-    #[trace_instrument(skip(self, txn))]
+    #[trace_instrument(
+        skip(self, txn, user, profile, invoice_info),
+        fields(user_id = %*user.id),
+    )]
     async fn create(
         &self,
         txn: &mut PostgresTransaction,
@@ -216,7 +220,8 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
         Ok(())
     }
 
-    #[trace_instrument(skip(self, txn))]
+    // The patch carries the new name and email address.
+    #[trace_instrument(skip_all, fields(user_id = %*user_id))]
     async fn update<'a>(
         &self,
         txn: &mut PostgresTransaction,
@@ -252,7 +257,7 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
             .map_err(map_user_repo_error)
     }
 
-    #[trace_instrument(skip(self, txn))]
+    #[trace_instrument(skip_all, fields(user_id = %*user_id))]
     async fn update_profile<'a>(
         &self,
         txn: &mut PostgresTransaction,
@@ -281,7 +286,8 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
             .map_err(Into::into)
     }
 
-    #[trace_instrument(skip(self, txn))]
+    // The patch carries the invoice address.
+    #[trace_instrument(skip_all, fields(user_id = %*user_id))]
     async fn update_invoice_info<'a>(
         &self,
         txn: &mut PostgresTransaction,

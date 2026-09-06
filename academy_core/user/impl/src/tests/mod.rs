@@ -1,11 +1,12 @@
 use std::time::Duration;
 
 use academy_auth_contracts::MockAuthService;
+use academy_cache_contracts::MockCacheService;
 use academy_core_oauth2_contracts::registration::MockOAuth2RegistrationService;
 use academy_core_session_contracts::session::MockSessionService;
 use academy_core_user_contracts::{
-    email_confirmation::MockUserEmailConfirmationService, update::MockUserUpdateService,
-    user::MockUserService,
+    email_confirmation::MockUserEmailConfirmationService, export::MockUserExportService,
+    update::MockUserUpdateService, user::MockUserService,
 };
 use academy_extern_contracts::{
     microservices::MockMicroservicesApiService, vat::MockVatApiService,
@@ -21,6 +22,7 @@ mod accept_terms;
 mod create_user;
 mod decline_terms;
 mod delete_user;
+mod export_user_data;
 mod get_user;
 mod list_users;
 mod request_password_reset;
@@ -32,11 +34,13 @@ mod verify_email;
 type Sut = UserFeatureServiceImpl<
     MockDatabase,
     MockAuthService<MockTransaction>,
+    MockCacheService,
     MockCaptchaService,
     MockVatApiService,
     MockMicroservicesApiService,
     MockUserService<MockTransaction>,
     MockUserEmailConfirmationService<MockTransaction>,
+    MockUserExportService<MockTransaction>,
     MockUserUpdateService<MockTransaction>,
     MockSessionService<MockTransaction>,
     MockOAuth2RegistrationService,
@@ -48,6 +52,7 @@ impl Default for UserFeatureConfig {
     fn default() -> Self {
         Self {
             name_change_rate_limit: Duration::from_secs(30 * 24 * 3600),
+            export_rate_limit: Duration::from_secs(600),
             verification_redirect_url: "https://bootstrap.academy/auth/verify-account"
                 .to_owned()
                 .into(),

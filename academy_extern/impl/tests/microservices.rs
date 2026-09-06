@@ -3,16 +3,21 @@ use std::time::Duration;
 use academy_auth_contracts::internal::{AuthInternalAuthenticateError, AuthInternalService};
 use academy_config::MicroservicesConfig;
 use academy_di::{Provide, provider};
-use academy_extern_contracts::microservices::MicroservicesApiService;
+use academy_extern_contracts::microservices::{MicroserviceExports, MicroservicesApiService};
 use academy_extern_impl::microservices::{
     MicroservicesApiServiceConfig, MicroservicesApiServiceImpl,
 };
 use academy_models::{auth::InternalToken, url::Url, user::UserId};
 use serde::Deserialize;
+use serde_json::json;
 use uuid::Uuid;
 
+/// Size limit that is large enough for the regular export of the testing
+/// server and too small for its oversized export.
+const MAX_EXPORT_SIZE: usize = 4096;
+
 #[tokio::test]
-async fn ok() {
+async fn delete_ok() {
     let config = config();
     let base_url = config.skills_url.clone().unwrap();
     let sut = make_sut(MicroservicesApiServiceConfig::new(
@@ -20,6 +25,8 @@ async fn ok() {
         config.challenges_url,
         config.events_url,
         config.timeout.into(),
+        config.export_timeout.into(),
+        MAX_EXPORT_SIZE,
     ));
 
     let user_id = UserId::from(Uuid::new_v4());
@@ -37,7 +44,7 @@ async fn ok() {
 }
 
 #[tokio::test]
-async fn error_response() {
+async fn delete_error_response() {
     let config = config();
     let base_url = config.skills_url.clone().unwrap();
     let sut = make_sut(MicroservicesApiServiceConfig::new(
@@ -45,6 +52,8 @@ async fn error_response() {
         None,
         None,
         config.timeout.into(),
+        config.export_timeout.into(),
+        MAX_EXPORT_SIZE,
     ));
 
     // deleting this user always fails in the testing server
@@ -60,12 +69,14 @@ async fn error_response() {
 }
 
 #[tokio::test]
-async fn connection_error() {
+async fn delete_connection_error() {
     let sut = make_sut(MicroservicesApiServiceConfig::new(
         Some("http://127.0.0.1:1/".parse().unwrap()),
         None,
         None,
         Duration::from_secs(10),
+        Duration::from_secs(10),
+        MAX_EXPORT_SIZE,
     ));
 
     // the error is logged, but not returned
@@ -73,7 +84,7 @@ async fn connection_error() {
 }
 
 #[tokio::test]
-async fn disabled() {
+async fn delete_disabled() {
     let config = config();
     let base_url = config.skills_url.clone().unwrap();
     let sut = make_sut(MicroservicesApiServiceConfig::new(
@@ -81,6 +92,8 @@ async fn disabled() {
         None,
         None,
         config.timeout.into(),
+        config.export_timeout.into(),
+        MAX_EXPORT_SIZE,
     ));
 
     let user_id = UserId::from(Uuid::new_v4());
@@ -88,6 +101,121 @@ async fn disabled() {
     sut.delete_user(user_id).await;
 
     assert!(deleted_users(&base_url, user_id).await.is_empty());
+}
+
+#[tokio::test]
+async fn export_ok() {
+    let config = config();
+    let sut = make_sut(MicroservicesApiServiceConfig::new(
+        config.skills_url,
+        config.challenges_url,
+        config.events_url,
+        config.timeout.into(),
+        config.export_timeout.into(),
+        MAX_EXPORT_SIZE,
+    ));
+
+    let user_id = UserId::from(Uuid::new_v4());
+
+    let result = sut.export_user(user_id).await;
+
+    // the testing server echoes the service, the token and the user id, so the
+    // result proves that every service has been asked with its own token
+    assert_eq!(
+        result,
+        ["challenges", "events", "skills"]
+            .into_iter()
+            .map(|service| (
+                service.to_owned(),
+                Some(json!({
+                    "service": service,
+                    "token": format!("internal token for {service}"),
+                    "user_id": *user_id,
+                }))
+            ))
+            .collect::<MicroserviceExports>()
+    );
+}
+
+#[tokio::test]
+async fn export_error_response() {
+    let config = config();
+    let sut = make_sut(MicroservicesApiServiceConfig::new(
+        config.skills_url,
+        config.challenges_url,
+        config.events_url,
+        config.timeout.into(),
+        config.export_timeout.into(),
+        MAX_EXPORT_SIZE,
+    ));
+
+    // exporting this user always fails in the testing server
+    let user_id = UserId::from(Uuid::nil());
+
+    // a failing service does not fail the export, it is reported as
+    // unavailable so that the missing part is named
+    let result = sut.export_user(user_id).await;
+
+    assert_eq!(
+        result,
+        ["challenges", "events", "skills"]
+            .into_iter()
+            .map(|service| (service.to_owned(), None))
+            .collect::<MicroserviceExports>()
+    );
+}
+
+#[tokio::test]
+async fn export_too_large() {
+    let config = config();
+    let sut = make_sut(MicroservicesApiServiceConfig::new(
+        config.skills_url,
+        None,
+        None,
+        config.timeout.into(),
+        config.export_timeout.into(),
+        MAX_EXPORT_SIZE,
+    ));
+
+    // the export of this user is larger than MAX_EXPORT_SIZE
+    let user_id = UserId::from(Uuid::max());
+
+    let result = sut.export_user(user_id).await;
+
+    assert_eq!(result, [("skills".to_owned(), None)].into());
+}
+
+#[tokio::test]
+async fn export_connection_error() {
+    let sut = make_sut(MicroservicesApiServiceConfig::new(
+        Some("http://127.0.0.1:1/".parse().unwrap()),
+        None,
+        None,
+        Duration::from_secs(10),
+        Duration::from_secs(10),
+        MAX_EXPORT_SIZE,
+    ));
+
+    let result = sut.export_user(UserId::from(Uuid::new_v4())).await;
+
+    assert_eq!(result, [("skills".to_owned(), None)].into());
+}
+
+#[tokio::test]
+async fn export_disabled() {
+    let config = config();
+    let sut = make_sut(MicroservicesApiServiceConfig::new(
+        None,
+        None,
+        None,
+        config.timeout.into(),
+        config.export_timeout.into(),
+        MAX_EXPORT_SIZE,
+    ));
+
+    let result = sut.export_user(UserId::from(Uuid::new_v4())).await;
+
+    assert!(result.is_empty());
 }
 
 fn config() -> MicroservicesConfig {

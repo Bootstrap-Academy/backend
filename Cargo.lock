@@ -594,6 +594,7 @@ dependencies = [
  "anyhow",
  "chrono",
  "mockall",
+ "serde_json",
  "thiserror 2.0.18",
 ]
 
@@ -619,6 +620,7 @@ dependencies = [
  "anyhow",
  "chrono",
  "pretty_assertions",
+ "serde_json",
  "tokio",
  "tracing",
 ]
@@ -717,6 +719,7 @@ dependencies = [
  "academy_models",
  "anyhow",
  "mockall",
+ "serde_json",
  "thiserror 2.0.18",
 ]
 

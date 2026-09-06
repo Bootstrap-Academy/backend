@@ -36,7 +36,7 @@ use academy_core_session_impl::{
 };
 use academy_core_user_impl::{
     UserFeatureServiceImpl, email_confirmation::UserEmailConfirmationServiceImpl,
-    update::UserUpdateServiceImpl, user::UserServiceImpl,
+    export::UserExportServiceImpl, update::UserUpdateServiceImpl, user::UserServiceImpl,
 };
 use academy_core_withdrawal_impl::{
     WithdrawalFeatureServiceImpl, consent::WithdrawalConsentServiceImpl,
@@ -141,11 +141,13 @@ pub type ConfigFeature = ConfigFeatureServiceImpl<Captcha>;
 pub type UserFeature = UserFeatureServiceImpl<
     Database,
     Auth,
+    Cache,
     Captcha,
     VatApi,
     MicroservicesApi,
     User,
     UserEmailConfirmation,
+    UserExport,
     UserUpdate,
     Session,
     OAuth2Registration,
@@ -155,6 +157,17 @@ pub type UserFeature = UserFeatureServiceImpl<
 pub type User = UserServiceImpl<Id, Time, Password, UserRepo, OAuth2Link>;
 pub type UserEmailConfirmation =
     UserEmailConfirmationServiceImpl<Auth, Secret, TemplateEmail, Cache, Password, UserRepo>;
+pub type UserExport = UserExportServiceImpl<
+    UserRepo,
+    SessionRepo,
+    OAuth2Repo,
+    CoinRepo,
+    HeartRepo,
+    PremiumRepo,
+    PaypalRepo,
+    ContractRepo,
+    WithdrawalRepo,
+>;
 pub type UserUpdate = UserUpdateServiceImpl<Auth, Time, Password, Session, UserRepo>;
 
 pub type SessionFeature = SessionFeatureServiceImpl<

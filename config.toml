@@ -48,6 +48,7 @@ email_cache_ttl = "10s"
 
 [user]
 name_change_rate_limit = "30d"
+export_rate_limit = "10m"
 verification_code_ttl = "4h"
 verification_redirect_url = "https://bootstrap.academy/auth/verify-account"
 password_reset_code_ttl = "4h"
@@ -101,6 +102,8 @@ yearly_price = 10000
 # challenges_url = ""
 # events_url = ""
 timeout = "10s"
+export_timeout = "30s"
+max_export_size = 33554432 # 32 MiB per service
 
 [finance]
 vat_percent = 19

@@ -102,6 +102,38 @@ log = audit_log(admin_user_id=admin["id"])
 assert log["entries"][0]["path"] == f"/auth/sessions/{user['id']}"
 assert log["entries"][0]["target_user_id"] == user["id"]
 
+# the data export is the one read that is recorded, because it hands an
+# administrator everything the platform stores about somebody else
+before = audit_log()["total"]
+resp = c.get(f"/auth/users/{user['id']}/export")
+assert resp.status_code == 200
+export = resp.json()
+assert export["complete"] is True
+assert export["services"] == {}
+assert export["account"]["user"]["id"] == user["id"]
+
+log = audit_log()
+assert log["total"] == before + 1
+entry = log["entries"][0]
+assert entry["method"] == "GET"
+assert entry["path"] == f"/auth/users/{user['id']}/export"
+assert entry["admin_user_id"] == admin["id"]
+assert entry["target_user_id"] == user["id"]
+assert entry["status"] == 200
+assert entry["request_id"] == resp.headers["X-Request-Id"]
+
+# an export a user runs on themselves is not
+before = audit_log()["total"]
+resp = u.get("/auth/users/me/export")
+assert resp.status_code == 200
+assert resp.json()["account"]["user"]["id"] == user["id"]
+assert audit_log()["total"] == before
+
+# ... and only once per rate limit window
+resp = u.get("/auth/users/me/export")
+assert resp.status_code == 429
+assert resp.json() == {"detail": "Too many requests"}
+
 # requests of ordinary users are not recorded
 before = audit_log()["total"]
 resp = u.patch("/auth/users/me", json={"display_name": "Selfnamed"})

@@ -386,6 +386,53 @@ impl<'c, 'a, 's, C: GenericClient>
         self.bind(client, &params.kind, &params.limit, &params.offset)
     }
 }
+pub struct ListByUserIdStmt(&'static str, Option<tokio_postgres::Statement>);
+pub fn list_by_user_id() -> ListByUserIdStmt {
+    ListByUserIdStmt(
+        "select * from contract_declarations where user_id=$1 order by received_at",
+        None,
+    )
+}
+impl ListByUserIdStmt {
+    pub async fn prepare<'a, C: GenericClient>(
+        mut self,
+        client: &'a C,
+    ) -> Result<Self, tokio_postgres::Error> {
+        self.1 = Some(client.prepare(self.0).await?);
+        Ok(self)
+    }
+    pub fn bind<'c, 'a, 's, C: GenericClient>(
+        &'s self,
+        client: &'c C,
+        user_id: &'a uuid::Uuid,
+    ) -> ContractDeclarationQuery<'c, 'a, 's, C, ContractDeclaration, 1> {
+        ContractDeclarationQuery {
+            client,
+            params: [user_id],
+            query: self.0,
+            cached: self.1.as_ref(),
+            extractor: |
+                row: &tokio_postgres::Row,
+            | -> Result<ContractDeclarationBorrowed, tokio_postgres::Error> {
+                Ok(ContractDeclarationBorrowed {
+                    id: row.try_get(0)?,
+                    kind: row.try_get(1)?,
+                    received_at: row.try_get(2)?,
+                    name: row.try_get(3)?,
+                    email: row.try_get(4)?,
+                    user_id: row.try_get(5)?,
+                    contract: row.try_get(6)?,
+                    cancellation_type: row.try_get(7)?,
+                    details: row.try_get(8)?,
+                    requested_end: row.try_get(9)?,
+                    effective_end: row.try_get(10)?,
+                    processed_at: row.try_get(11)?,
+                })
+            },
+            mapper: |it| ContractDeclaration::from(it),
+        }
+    }
+}
 pub struct CountStmt(&'static str, Option<tokio_postgres::Statement>);
 pub fn count() -> CountStmt {
     CountStmt(

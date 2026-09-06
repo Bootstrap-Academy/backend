@@ -3233,6 +3233,12 @@ rec {
             usesDefaultFeatures = false;
           }
           {
+            name = "serde_json";
+            packageId = "serde_json";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
             name = "thiserror";
             packageId = "thiserror 2.0.18";
             usesDefaultFeatures = false;
@@ -3382,6 +3388,12 @@ rec {
           {
             name = "pretty_assertions";
             packageId = "pretty_assertions";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "serde_json";
+            packageId = "serde_json";
             usesDefaultFeatures = false;
             features = [ "std" ];
           }
@@ -3737,6 +3749,12 @@ rec {
             packageId = "mockall";
             optional = true;
             usesDefaultFeatures = false;
+          }
+          {
+            name = "serde_json";
+            packageId = "serde_json";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
           }
           {
             name = "thiserror";

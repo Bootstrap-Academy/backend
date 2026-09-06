@@ -176,6 +176,7 @@ pub struct HealthConfig {
 #[derive(Debug, Deserialize)]
 pub struct UserConfig {
     pub name_change_rate_limit: Duration,
+    pub export_rate_limit: Duration,
     pub verification_code_ttl: Duration,
     pub verification_redirect_url: String,
     pub password_reset_code_ttl: Duration,
@@ -254,6 +255,9 @@ pub struct MicroservicesConfig {
     #[serde(default, deserialize_with = "deserialize_optional_url")]
     pub events_url: Option<Url>,
     pub timeout: Duration,
+    pub export_timeout: Duration,
+    /// Maximum size in bytes of the export response of a single microservice.
+    pub max_export_size: usize,
 }
 
 /// Deserialize an optional [`Url`], treating an empty string like a missing

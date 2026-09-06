@@ -21,7 +21,7 @@ async fn ok() {
         }),
     );
 
-    let db = MockDatabase::build(false);
+    let db = MockDatabase::build(true);
 
     let finance_invoice = MockFinanceInvoiceService::new().with_get_invoice_pdf(
         Some(FOO.user.id),

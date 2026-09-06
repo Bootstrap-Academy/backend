@@ -131,6 +131,8 @@ An export an administrator runs on somebody else is written to the administrativ
 ### Financial Documents
 Every invoice, credit note and final statement that is issued is recorded in `financial_documents`, keyed by its number (`R0000042`, `G202402-7`, `S1337`), which is also the name of its pdf file in `finance.invoices_archive` / `finance.credit_notes_archive` / `finance.final_statements_archive`.
 The record keeps the address block that was printed on the document, so re-rendering it does not pick up later changes to the user's invoice information, and it keeps the totals in cents as they were printed.
+An invoice is dated with the time the coin order was captured, because that is when it was paid; a document that has already been recorded keeps the date it was recorded with, so neither the date printed on it nor its retention period ever moves.
+Dates are printed, and the calendar year of the retention period is determined, in `Europe/Berlin`.
 Records that were created by the migration for the captured coin orders that predate this table carry only number, date, user and Morphcoin amount; the remaining values are filled in the next time the document is rendered.
 Once the retention period has expired, `get_invoice_pdf` and `get_credit_note` stop recreating the document.
 `GET /finance/documents` lists the records for administrators, filtered by kind and searched by document number or customer details; documents of deleted accounts have no `user_id`, and a final statement is found by the email address it still carries.

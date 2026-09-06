@@ -110,7 +110,19 @@ where
         }
 
         let coins = coin_order.coins;
-        let timestamp = coin_order.created_at;
+        let number = FinancialDocumentNumber::try_new(formatted_invoice_number.clone())?;
+        let recorded = self.document_repo.get(txn, &number).await?;
+
+        // An invoice is issued for the payment, so it is dated with the time
+        // the order was captured and not with the time it was created: an
+        // order created on 31 December and paid on 2 January belongs to the
+        // new year's vat period. A document that has already been issued keeps
+        // the date it was recorded with, so neither the printed date nor the
+        // retention clock of an existing document ever moves.
+        let timestamp = match &recorded {
+            Some(recorded) => recorded.issued_at,
+            None => coin_order.captured_at.unwrap_or(coin_order.created_at),
+        };
 
         // Documents whose retention period has expired have been removed by
         // `academy task prune-documents` and are not created again.
@@ -120,14 +132,7 @@ where
             return Ok(None);
         }
 
-        let number = FinancialDocumentNumber::try_new(formatted_invoice_number.clone())?;
-
-        let customer_details = match self
-            .document_repo
-            .get(txn, &number)
-            .await?
-            .and_then(|document| document.customer_details)
-        {
+        let customer_details = match recorded.and_then(|document| document.customer_details) {
             // An invoice keeps the address block it was issued with.
             Some(customer_details) => customer_details,
             None => {
@@ -552,12 +557,15 @@ mod tests {
             id: PaypalOrderId::try_new("asdf1234").unwrap(),
             user_id: FOO.user.id,
             created_at: FOO.user.created_at,
-            captured_at: None,
+            // The invoice is issued for the payment, so it is dated with the
+            // capture time and not with the time the order was created.
+            captured_at: Some(FOO.user.created_at + chrono::Duration::days(3)),
             coins: 1337,
             invoice_number: 42,
             withdrawal_consent_at: None,
             withdrawal_text_version: None,
         };
+        let captured_at = order.captured_at.unwrap();
 
         let pdf = vec![1, 2, 3, 4];
 
@@ -585,7 +593,7 @@ mod tests {
                 number: "R0000042".try_into().unwrap(),
                 kind: FinancialDocumentKind::Invoice,
                 user_id: Some(FOO.user.id),
-                issued_at: order.created_at,
+                issued_at: captured_at,
                 customer_details: Some(customer_details.clone()),
                 coins: Some(1337),
                 net_total_cents: Some(200),
@@ -607,7 +615,7 @@ mod tests {
             InvoiceTemplate {
                 title: "Rechnung",
                 customer_details,
-                timestamp: order.created_at,
+                timestamp: captured_at,
                 invoice_number: "R0000042".into(),
                 items: vec![InvoiceItem {
                     description: "MorphCoins".into(),
@@ -648,8 +656,10 @@ mod tests {
         assert_eq!(result, Some(pdf));
     }
 
-    /// An invoice keeps the address block it was issued with, so a pseudonymized
-    /// record renders the retention marker instead of the user's details.
+    /// An invoice keeps the address block and the date it was issued with, so
+    /// a pseudonymized record renders the retention marker instead of the
+    /// user's details, and a document that has already been issued is never
+    /// re-dated.
     #[tokio::test]
     async fn get_invoice_uses_the_recorded_customer_details() {
         // Arrange
@@ -657,7 +667,9 @@ mod tests {
             id: PaypalOrderId::try_new("asdf1234").unwrap(),
             user_id: FOO.user.id,
             created_at: FOO.user.created_at,
-            captured_at: None,
+            // Later than the date on the record, which is what the document
+            // has to keep.
+            captured_at: Some(FOO.user.created_at + chrono::Duration::days(3)),
             coins: 1337,
             invoice_number: 42,
             withdrawal_consent_at: None,
@@ -776,10 +788,14 @@ mod tests {
         let paypal_repo = MockPaypalRepository::new()
             .with_get_coin_order_by_invoice_number(42, Some(order.clone()));
 
+        let document_repo =
+            MockFinancialDocumentRepository::new().with_get("R0000042".try_into().unwrap(), None);
+
         let sut = FinanceInvoiceServiceImpl {
             time,
             fs,
             paypal_repo,
+            document_repo,
             ..Sut::default()
         };
 

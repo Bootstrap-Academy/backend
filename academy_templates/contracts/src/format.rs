@@ -15,7 +15,10 @@ use serde::Serializer;
 /// Currency symbol every amount is printed with.
 const CURRENCY: &str = "€";
 /// Decimal places used for an amount of money.
-const AMOUNT_DECIMALS: u32 = 2;
+///
+/// Public so that the totals of a document can be derived from the values as
+/// they are printed, and not from the exact ones.
+pub const AMOUNT_DECIMALS: u32 = 2;
 /// Decimal places used for the price of a single unit.
 ///
 /// One Morphcoin costs a hundredth of a Euro gross, so its net price needs

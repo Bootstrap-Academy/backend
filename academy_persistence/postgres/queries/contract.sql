@@ -7,7 +7,7 @@ insert into contract_declarations (id, kind, received_at, name, email, user_id, 
 --! list (kind?) : ContractDeclaration
 select * from contract_declarations
   where (:kind::contract_declaration_kind is null or kind = :kind)
-  order by received_at desc
+  order by received_at desc, id desc
   limit :limit offset :offset;
 
 --! list_by_user_id : ContractDeclaration

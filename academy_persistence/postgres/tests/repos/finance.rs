@@ -286,6 +286,103 @@ async fn pseudonymize_keeps_the_final_statement() {
     );
 }
 
+/// The rows the migration backfilled carry no address block at all. They must
+/// not make the search fail, and once the pdf has been rendered again the
+/// address block it was printed with is searchable like any other.
+#[tokio::test]
+async fn search_tolerates_a_document_without_customer_details() {
+    let db = setup().await;
+
+    let backfilled = |number: &str, issued_at| FinancialDocument {
+        customer_details: None,
+        net_total_cents: None,
+        vat_total_cents: None,
+        ..invoice(number, issued_at)
+    };
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    REPO.record(&mut txn, &backfilled("R0000042", date(2024, 3, 14)))
+        .await
+        .unwrap();
+    REPO.record(&mut txn, &backfilled("R0000043", date(2024, 4, 1)))
+        .await
+        .unwrap();
+
+    // Nothing carries an address block yet, and the query still answers.
+    assert_eq!(
+        REPO.count(&mut txn, None, Some("foo@example.com".into()))
+            .await
+            .unwrap(),
+        0
+    );
+    // Both are still found by their number.
+    assert_eq!(
+        REPO.count(&mut txn, None, Some("R00000".into()))
+            .await
+            .unwrap(),
+        2
+    );
+
+    // Rendering the pdf again records the address block it is printed with,
+    // and from then on the document is found by the email address on it.
+    let rendered = invoice("R0000042", date(2024, 3, 14));
+    REPO.record(&mut txn, &rendered).await.unwrap();
+    assert_eq!(
+        REPO.list(
+            &mut txn,
+            None,
+            Some("FOO@example.COM".into()),
+            make_slice(10, 0)
+        )
+        .await
+        .unwrap(),
+        vec![rendered]
+    );
+}
+
+/// The search term is what an administrator typed, so the characters `like`
+/// gives a special meaning to have to be matched literally.
+#[tokio::test]
+async fn search_matches_wildcards_literally() {
+    let db = setup().await;
+
+    let plain = invoice("R0000042", date(2024, 3, 14));
+    let percent = FinancialDocument {
+        customer_details: Some(vec!["100% Rabatt GmbH".into(), "bar@example.com".into()]),
+        user_id: Some(BAR.user.id),
+        ..invoice("R0000043", date(2024, 4, 1))
+    };
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    REPO.record(&mut txn, &plain).await.unwrap();
+    REPO.record(&mut txn, &percent).await.unwrap();
+
+    // A wildcard matches nothing instead of everything.
+    for search in ["_", "R_000042", "\\", "%Rabatt%", "%%"] {
+        assert_eq!(
+            REPO.count(&mut txn, None, Some(search.into()))
+                .await
+                .unwrap(),
+            0,
+            "{search:?} was treated as a pattern"
+        );
+    }
+
+    // A percent sign matches the one document that really contains one.
+    assert_eq!(
+        REPO.list(&mut txn, None, Some("%".into()), make_slice(10, 0))
+            .await
+            .unwrap(),
+        vec![percent.clone()]
+    );
+    assert_eq!(
+        REPO.list(&mut txn, None, Some("100%".into()), make_slice(10, 0))
+            .await
+            .unwrap(),
+        vec![percent]
+    );
+}
+
 /// The admin listing has to tolerate the documents of deleted accounts, which
 /// have no `user_id`.
 #[tokio::test]

@@ -130,6 +130,7 @@ impl FinancialDocumentRepository<PostgresTransaction> for PostgresFinancialDocum
         search: Option<String>,
         pagination: PaginationSlice,
     ) -> anyhow::Result<Vec<FinancialDocument>> {
+        let search = search.as_deref().map(escape_like_pattern);
         let params = ListDocumentsParams {
             kind: kind.map(FinancialDocumentKind::as_str),
             search: search.as_deref(),
@@ -153,6 +154,7 @@ impl FinancialDocumentRepository<PostgresTransaction> for PostgresFinancialDocum
         kind: Option<FinancialDocumentKind>,
         search: Option<String>,
     ) -> anyhow::Result<u64> {
+        let search = search.as_deref().map(escape_like_pattern);
         let params = CountDocumentsParams {
             kind: kind.map(FinancialDocumentKind::as_str),
             search: search.as_deref(),
@@ -209,6 +211,25 @@ impl FinancialDocumentRepository<PostgresTransaction> for PostgresFinancialDocum
             .await
             .map_err(Into::into)
     }
+}
+
+/// Escape the characters `like` gives a special meaning to, so that a search
+/// term is matched literally.
+///
+/// The search term is put into the pattern of an `ilike`, where `%` matches
+/// any run of characters and `_` any single one. Without this, an
+/// administrator searching for `%` would get every document instead of the
+/// documents that contain a percent sign. `\` is the escape character `like`
+/// uses by default, so it has to be escaped first.
+fn escape_like_pattern(search: &str) -> String {
+    let mut pattern = String::with_capacity(search.len());
+    for character in search.chars() {
+        if matches!(character, '\\' | '%' | '_') {
+            pattern.push('\\');
+        }
+        pattern.push(character);
+    }
+    pattern
 }
 
 fn decode_document(value: queries::finance::Document) -> anyhow::Result<FinancialDocument> {

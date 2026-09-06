@@ -322,7 +322,7 @@ impl<
 pub struct ListStmt(&'static str, Option<tokio_postgres::Statement>);
 pub fn list() -> ListStmt {
     ListStmt(
-        "select * from contract_declarations where ($1::contract_declaration_kind is null or kind = $1) order by received_at desc limit $2 offset $3",
+        "select * from contract_declarations where ($1::contract_declaration_kind is null or kind = $1) order by received_at desc, id desc limit $2 offset $3",
         None,
     )
 }

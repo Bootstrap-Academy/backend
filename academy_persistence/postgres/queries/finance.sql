@@ -29,7 +29,7 @@ select * from financial_documents
   where (:kind::text is null or kind=:kind)
     and (:search::text is null
          or number ilike '%' || :search || '%'
-         or array_to_string(customer_details, ' ') ilike '%' || :search || '%')
+         or coalesce(array_to_string(customer_details, ' '), '') ilike '%' || :search || '%')
   order by issued_at desc, number desc
   limit :limit offset :offset;
 
@@ -38,7 +38,7 @@ select count(*) from financial_documents
   where (:kind::text is null or kind=:kind)
     and (:search::text is null
          or number ilike '%' || :search || '%'
-         or array_to_string(customer_details, ' ') ilike '%' || :search || '%');
+         or coalesce(array_to_string(customer_details, ' '), '') ilike '%' || :search || '%');
 
 --! list_document_numbers
 select number from financial_documents order by number asc;

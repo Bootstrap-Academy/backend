@@ -569,7 +569,7 @@ impl ListDocumentsByUserIdStmt {
 pub struct ListDocumentsStmt(&'static str, Option<tokio_postgres::Statement>);
 pub fn list_documents() -> ListDocumentsStmt {
     ListDocumentsStmt(
-        "select * from financial_documents where ($1::text is null or kind=$1) and ($2::text is null or number ilike '%' || $2 || '%' or array_to_string(customer_details, ' ') ilike '%' || $2 || '%') order by issued_at desc, number desc limit $3 offset $4",
+        "select * from financial_documents where ($1::text is null or kind=$1) and ($2::text is null or number ilike '%' || $2 || '%' or coalesce(array_to_string(customer_details, ' '), '') ilike '%' || $2 || '%') order by issued_at desc, number desc limit $3 offset $4",
         None,
     )
 }
@@ -640,7 +640,7 @@ impl<'c, 'a, 's, C: GenericClient, T1: crate::StringSql, T2: crate::StringSql>
 pub struct CountDocumentsStmt(&'static str, Option<tokio_postgres::Statement>);
 pub fn count_documents() -> CountDocumentsStmt {
     CountDocumentsStmt(
-        "select count(*) from financial_documents where ($1::text is null or kind=$1) and ($2::text is null or number ilike '%' || $2 || '%' or array_to_string(customer_details, ' ') ilike '%' || $2 || '%')",
+        "select count(*) from financial_documents where ($1::text is null or kind=$1) and ($2::text is null or number ilike '%' || $2 || '%' or coalesce(array_to_string(customer_details, ' '), '') ilike '%' || $2 || '%')",
         None,
     )
 }

@@ -1,5 +1,5 @@
 use academy_cache_contracts::CacheService;
-use academy_config::Config;
+use academy_config::{Config, MicroservicesConfig};
 use academy_di::Provide;
 use academy_email_contracts::EmailService;
 use academy_persistence_contracts::Database;
@@ -46,6 +46,8 @@ pub async fn serve(config: Config) -> anyhow::Result<()> {
         }
     }
 
+    log_configured_microservices(&config.microservices);
+
     info!("Connecting to valkey cache");
     let cache = cache::connect(&config.cache).await?;
     cache.ping().await?;
@@ -59,4 +61,49 @@ pub async fn serve(config: Config) -> anyhow::Result<()> {
 
     let server: RestServer = provider.provide();
     server.serve().await
+}
+
+/// Report which microservices this deployment talks to.
+///
+/// A microservice without a base url is not part of the deployment: account
+/// deletions are not propagated to it, and its share of a data export is left
+/// out without the export reporting anything as missing. That is intentional,
+/// but it is invisible from the outside, so it is said once at startup.
+fn log_configured_microservices(config: &MicroservicesConfig) {
+    let services = [
+        ("skills", config.skills_url.is_some()),
+        ("challenges", config.challenges_url.is_some()),
+        ("events", config.events_url.is_some()),
+    ];
+
+    let configured = names(&services, true);
+    let missing = names(&services, false);
+
+    if configured.is_empty() {
+        warn!(
+            "No microservice is configured. Account deletions are not propagated anywhere and a \
+             data export only contains the data of the backend itself."
+        );
+    } else {
+        info!(
+            "Microservices configured for account deletion and data export: {}",
+            configured.join(", ")
+        );
+    }
+
+    if !missing.is_empty() {
+        warn!(
+            "No url configured for {}. Account deletions are not propagated to them and their \
+             data is left out of every export without being reported as missing.",
+            missing.join(", ")
+        );
+    }
+}
+
+fn names(services: &[(&'static str, bool)], configured: bool) -> Vec<&'static str> {
+    services
+        .iter()
+        .filter(|(_, is_configured)| *is_configured == configured)
+        .map(|(name, _)| *name)
+        .collect()
 }

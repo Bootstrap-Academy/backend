@@ -385,6 +385,14 @@ where
         let balance_coins = self.coin_repo.get_balance(txn, user_id).await?.coins;
         let unused_coins = unused_purchased_coins(balance_coins, purchased_coins);
 
+        // The same applies to an account that spent everything it bought. The
+        // statement keeps the name and the email address only so that the
+        // amount it records can still be refunded; with nothing left to refund
+        // there is no reason to keep them.
+        if unused_coins == 0 {
+            return Ok(None);
+        }
+
         let user_number = self.user_repo.get_number(txn, user_id).await?;
         let number = FinancialDocumentNumber::try_new(final_statement_number(user_number))?;
         let archive_path = self
@@ -1467,6 +1475,40 @@ mod tests {
         let sut = FinanceInvoiceServiceImpl {
             user_repo,
             paypal_repo,
+            ..Sut::default()
+        };
+
+        // Act
+        let result = sut.create_final_statement(&mut (), FOO.user.id).await;
+
+        // Assert
+        assert_eq!(result.unwrap(), None);
+    }
+
+    /// An account that spent everything it bought has nothing left that could
+    /// be refunded, so it gets no statement either and its name and email
+    /// address are not kept.
+    #[tokio::test]
+    async fn create_final_statement_without_anything_to_refund() {
+        // Arrange
+        let user_repo =
+            MockUserRepository::new().with_get_composite(FOO.user.id, Some(FOO.clone()));
+
+        let paypal_repo = MockPaypalRepository::new()
+            .with_list_coin_orders_by_user_id(FOO.user.id, vec![captured_order(1000, 1)]);
+
+        let coin_repo = MockCoinRepository::new().with_get_balance(
+            FOO.user.id,
+            Balance {
+                coins: 0,
+                withheld_coins: 0,
+            },
+        );
+
+        let sut = FinanceInvoiceServiceImpl {
+            user_repo,
+            paypal_repo,
+            coin_repo,
             ..Sut::default()
         };
 

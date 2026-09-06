@@ -1,5 +1,6 @@
 //! Record every state changing request made with an administrator's access
-//! token in the administrative audit log.
+//! token in the administrative audit log, plus the reads listed in
+//! [`AUDITED_READ_ROUTES`].
 
 use std::sync::Arc;
 
@@ -30,13 +31,19 @@ pub fn add<S: Clone + Send + Sync + 'static>(
     }
 }
 
+/// Routes whose `GET` is recorded even though it changes nothing.
+///
+/// The data export hands an administrator everything the platform stores about
+/// another user, which is the most far reaching read the API offers, so it has
+/// to leave a trace like a change would.
+const AUDITED_READ_ROUTES: &[&str] = &[crate::routes::user::EXPORT_ROUTE];
+
 async fn middleware(
     service: Arc<impl AdminAuditFeatureService>,
     request: Request,
     next: Next,
 ) -> Response {
-    // Reading data is not recorded, only requests that may change it.
-    if !is_state_changing(request.method()) {
+    if !is_recorded(&request) {
         return next.run(request).await;
     }
 
@@ -82,11 +89,27 @@ async fn middleware(
     response
 }
 
+/// Whether the given request has to be recorded if it is authenticated with an
+/// administrator's access token.
+fn is_recorded(request: &Request) -> bool {
+    is_state_changing(request.method()) || is_audited_read(request)
+}
+
 fn is_state_changing(method: &Method) -> bool {
     matches!(
         *method,
         Method::POST | Method::PUT | Method::PATCH | Method::DELETE
     )
+}
+
+/// Reading data is not recorded, unless the route is one of the few that hand
+/// out more than the endpoints an ordinary user can reach.
+fn is_audited_read(request: &Request) -> bool {
+    request.method() == Method::GET
+        && request
+            .extensions()
+            .get::<MatchedPath>()
+            .is_some_and(|matched_path| AUDITED_READ_ROUTES.contains(&matched_path.as_str()))
 }
 
 fn access_token(request: &Request) -> Option<AccessToken> {

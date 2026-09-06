@@ -1,6 +1,9 @@
 use std::future::Future;
 
-use academy_models::paypal::{PaypalCoinOrder, PaypalOrderId};
+use academy_models::{
+    paypal::{PaypalCoinOrder, PaypalOrderId},
+    user::UserId,
+};
 use chrono::{DateTime, Utc};
 use futures::Stream;
 
@@ -21,6 +24,13 @@ pub trait PaypalRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
         &self,
         txn: &mut Txn,
     ) -> impl Stream<Item = anyhow::Result<PaypalCoinOrder>>;
+
+    /// Return all coin orders of the given user, oldest first.
+    fn list_coin_orders_by_user_id(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
+    ) -> impl Future<Output = anyhow::Result<Vec<PaypalCoinOrder>>> + Send;
 
     /// Return the coin order with the given id.
     fn get_coin_order(
@@ -58,6 +68,21 @@ impl<Txn: Send + Sync + 'static> MockPaypalRepository<Txn> {
             .once()
             .with(mockall::predicate::always(), mockall::predicate::eq(order))
             .return_once(|_, _| Box::pin(std::future::ready(Ok(()))));
+        self
+    }
+
+    pub fn with_list_coin_orders_by_user_id(
+        mut self,
+        user_id: UserId,
+        result: Vec<PaypalCoinOrder>,
+    ) -> Self {
+        self.expect_list_coin_orders_by_user_id()
+            .once()
+            .with(
+                mockall::predicate::always(),
+                mockall::predicate::eq(user_id),
+            )
+            .return_once(|_, _| Box::pin(std::future::ready(Ok(result))));
         self
     }
 

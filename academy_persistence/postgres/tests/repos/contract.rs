@@ -1,4 +1,7 @@
-use academy_demo::{UUID1, UUID2, user::FOO};
+use academy_demo::{
+    UUID1, UUID2,
+    user::{BAR, FOO},
+};
 use academy_models::contract::{
     ContractCancellationType, ContractDeclaration, ContractDeclarationKind, ContractKind,
 };
@@ -145,6 +148,53 @@ async fn pagination() {
         let result = REPO.list(&mut txn, None, slice).await.unwrap();
         assert_eq!(result, sliced(expected, slice));
     }
+}
+
+/// The export of a user contains the declarations of that user, oldest first.
+#[tokio::test]
+async fn list_by_user_id() {
+    let db = setup().await;
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    assert_eq!(
+        REPO.list_by_user_id(&mut txn, FOO.user.id).await.unwrap(),
+        []
+    );
+
+    let second = ContractDeclaration {
+        id: uuid!("3f5d59fa-8f3b-4e46-9d51-4f3c6b0d0a7e").into(),
+        received_at: Utc.with_ymd_and_hms(2026, 9, 5, 12, 0, 0).unwrap(),
+        ..cancellation()
+    };
+
+    REPO.create(&mut txn, second.clone()).await.unwrap();
+    REPO.create(&mut txn, cancellation()).await.unwrap();
+    // belongs to no account
+    REPO.create(&mut txn, withdrawal()).await.unwrap();
+    // belongs to another account
+    REPO.create(
+        &mut txn,
+        ContractDeclaration {
+            user_id: Some(BAR.user.id),
+            ..other_cancellation()
+        },
+    )
+    .await
+    .unwrap();
+    txn.commit().await.unwrap();
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    assert_eq!(
+        REPO.list_by_user_id(&mut txn, FOO.user.id).await.unwrap(),
+        [cancellation(), second]
+    );
+    assert_eq!(
+        REPO.list_by_user_id(&mut txn, BAR.user.id).await.unwrap(),
+        [ContractDeclaration {
+            user_id: Some(BAR.user.id),
+            ..other_cancellation()
+        }]
+    );
 }
 
 /// The declaration is evidence of a legal declaration and must survive the

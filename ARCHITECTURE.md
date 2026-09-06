@@ -63,6 +63,7 @@ This id is automatically attached to any logs associated with the corresponding 
 
 ### Administrative Audit Log
 Every `POST`, `PUT`, `PATCH` and `DELETE` request that is authenticated with an administrator's access token is recorded in the `admin_audit_log` table, including requests that were rejected.
+Reads are not recorded, with one exception listed in `AUDITED_READ_ROUTES`: the data export (see [Data Export](#data-export)), because it hands out everything the platform stores about a user.
 The middleware in `academy_api/rest/src/middlewares/admin_audit.rs` runs after routing and hands the request to the `AdminAuditFeatureService`, which authenticates the token and writes the entry.
 
 An entry holds the time, the acting administrator, the method, the path without its query string, the affected user, the status code and the request id.
@@ -107,6 +108,15 @@ Deleting a user (`DELETE /auth/users/{user_id}`) removes the account from the ba
 The fan-out is implemented in `academy_extern` (`MicroservicesApiService`): for every microservice that has a base url in the `[microservices]` config section, the backend issues a short-lived internal JWT for that service and sends `DELETE <base_url>_internal/users/<user_id>`.
 The requests run concurrently, each with the configured `microservices.timeout`, and any failure is logged and swallowed — a microservice that is unavailable must not prevent an account from being deleted.
 Each microservice additionally runs a periodic sweep that removes data of users the backend no longer knows, which catches the deletions that were lost this way.
+
+### Data Export
+`GET /auth/users/{user_id}/export` returns everything the platform stores about one user as a single JSON document (Art. 15 and 20 GDPR); a user can export themselves, an administrator can export anybody.
+The `account` object is assembled by `UserExportService` from the backend database — the account, the sessions, the linked OAuth2 accounts, the Morphcoin balance and transactions, the hearts, the premium membership, the invoices, the contract declarations and the withdrawal declarations.
+The `services` object is assembled by the same `MicroservicesApiService` that the account deletion uses: for every configured microservice the backend issues a short-lived internal JWT and reads `GET <base_url>_internal/users/<user_id>/export`.
+Like the deletion fan-out, a microservice that cannot be read does not fail the request; it is listed in `services` with `available: false` and no data, and the top level `complete` is then `false`, so that an incomplete export is never handed out as if it were complete while the rest of the data still reaches the user.
+Each response is limited to `microservices.max_export_size` bytes.
+The database transaction is dropped before the fan-out, exports are limited to one per user per `user.export_rate_limit` (administrators are exempt), and neither the logs, the error messages nor the export itself contain any of the exported data or the internal urls.
+An export an administrator runs on somebody else is written to the administrative audit log — it is the one read the log records, because it hands out more than any endpoint an ordinary user can reach.
 
 ### Scheduled Tasks
 There are some tasks that need to run on a regular basis (e.g. removing expired sessions from the database).

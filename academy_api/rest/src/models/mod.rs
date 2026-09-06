@@ -15,6 +15,7 @@ pub mod oauth2;
 pub mod premium;
 pub mod session;
 pub mod user;
+pub mod user_export;
 pub mod withdrawal;
 
 const_schema! {

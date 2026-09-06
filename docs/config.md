@@ -58,6 +58,7 @@ Durations are strings built from `d`, `h`, `m` and `s` parts, e.g. `"30d"`, `"10
 One secret per audience of the internal service tokens, so that a token issued for one service cannot be used against another.
 An audience that is not listed here falls back to `jwt.secret`, on signing and on verification alike, which keeps the shared secret in use until a dedicated one has been deployed to every sender and to the receiver.
 The audiences are `auth` and `shop` (incoming, verified by the `_internal` endpoints of this backend) and `skills`, `challenges` and `events` (outgoing, expected by the microservices).
+`academy jwt sign` signs with the secret of the audience named in the payload's `aud`, so a break-glass token minted on the command line is accepted by the endpoints of that audience.
 
 | Property | Default | Description |
 | --- | --- | --- |

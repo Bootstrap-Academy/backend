@@ -34,7 +34,21 @@ fn sign(config: &Config, data: &str, ttl: Duration) -> anyhow::Result<()> {
 
     let data = serde_json::from_str::<serde_json::Value>(data)
         .context("Failed to parse the payload as json")?;
-    let jwt = jwt_service.sign(data, ttl)?;
+
+    // The internal endpoints verify a token against the secret configured for
+    // its audience (`internal.secrets.<audience>`), so a token for an audience
+    // has to be signed with the same one. Signing everything with the default
+    // secret produced tokens that the API rejected without a diagnostic as
+    // soon as a single audience had its own secret.
+    let audience = data
+        .get("aud")
+        .and_then(serde_json::Value::as_str)
+        .map(ToOwned::to_owned);
+
+    let jwt = match audience {
+        Some(audience) => jwt_service.sign_with_key(&audience, data, ttl)?,
+        None => jwt_service.sign(data, ttl)?,
+    };
     println!("{jwt}");
 
     Ok(())

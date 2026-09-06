@@ -83,6 +83,7 @@ struct AddCoinsRequest {
     /// Number of Morphcoins to add to the user's balance. Can be negative to
     /// remove coins.
     coins: i64,
+    #[serde(default)]
     /// Description of the transaction.
     description: StringOption<TransactionDescription>,
     /// Whether to include this transaction in a credit note.

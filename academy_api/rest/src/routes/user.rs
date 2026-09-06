@@ -165,7 +165,9 @@ struct CreateRequest {
     name: UserName,
     display_name: UserDisplayName,
     email: EmailAddress,
+    #[serde(default)]
     password: StringOption<UserPassword>,
+    #[serde(default)]
     oauth_register_token: StringOption<OAuth2RegistrationToken>,
     /// Version of the terms and conditions the user accepts.
     terms_version: TermsVersion,
@@ -242,24 +244,35 @@ fn create_docs(op: TransformOperation) -> TransformOperation {
 
 #[derive(Deserialize, JsonSchema)]
 struct UpdateRequest {
+    #[serde(default)]
     name: StringOption<UserName>,
+    #[serde(default)]
     display_name: StringOption<UserDisplayName>,
+    #[serde(default)]
     email: StringOption<EmailAddress>,
     email_verified: Option<bool>,
     password: Option<ApiUserPasswordOrEmpty>,
     enabled: Option<bool>,
     admin: Option<bool>,
+    #[serde(default)]
     description: StringOption<UserBio>,
     tags: Option<UserTags>,
     /// Whether the user asks not to be listed on the leaderboards
     leaderboard_opt_out: Option<bool>,
     business: Option<bool>,
+    #[serde(default)]
     first_name: StringOption<UserFirstName>,
+    #[serde(default)]
     last_name: StringOption<UserLastName>,
+    #[serde(default)]
     street: StringOption<UserStreet>,
+    #[serde(default)]
     zip_code: StringOption<UserZipCode>,
+    #[serde(default)]
     city: StringOption<UserCity>,
+    #[serde(default)]
     country: StringOption<UserCountry>,
+    #[serde(default)]
     vat_id: StringOption<UserVatId>,
 }
 
@@ -699,6 +712,45 @@ mod tests {
         ] {
             let required = schema["required"].as_array().unwrap();
             assert!(!required.iter().any(|field| field == "recaptcha_response"));
+        }
+    }
+
+    /// A field a client may omit must not be advertised as required. Serde
+    /// accepts a missing `StringOption` as `None`, but schemars only leaves a
+    /// field out of `required` when it carries `#[serde(default)]`.
+    #[test]
+    fn optional_fields_are_optional() {
+        for (schema, fields) in [
+            (
+                serde_json::to_value(schemars::schema_for!(CreateRequest)).unwrap(),
+                &["password", "oauth_register_token"][..],
+            ),
+            (
+                serde_json::to_value(schemars::schema_for!(UpdateRequest)).unwrap(),
+                &[
+                    "name",
+                    "display_name",
+                    "email",
+                    "description",
+                    "first_name",
+                    "last_name",
+                    "street",
+                    "zip_code",
+                    "city",
+                    "country",
+                    "vat_id",
+                ][..],
+            ),
+        ] {
+            // A struct in which every field is optional has no `required` at
+            // all.
+            let required = schema["required"].as_array().cloned().unwrap_or_default();
+            for field in fields {
+                assert!(
+                    !required.iter().any(|x| x == field),
+                    "{field} is advertised as required"
+                );
+            }
         }
     }
 

@@ -42,7 +42,7 @@ in
       default = { };
     };
 
-    tasks = lib.genAttrs [ "prune-database" "refresh-premium" ] (task: {
+    tasks = lib.genAttrs [ "prune-database" "prune-documents" "refresh-premium" ] (task: {
       schedule = lib.mkOption {
         type = lib.types.either lib.types.str (lib.types.listOf lib.types.str);
         default = [ ];
@@ -263,6 +263,7 @@ in
           render.daemon_url = lib.mkIf cfg.renderDaemon.enable "http://127.0.0.1:${toString cfg.renderDaemon.port}/";
           finance.invoices_archive = lib.mkDefault "/var/lib/academy/invoices";
           finance.credit_notes_archive = lib.mkDefault "/var/lib/academy/credit_notes";
+          finance.final_statements_archive = lib.mkDefault "/var/lib/academy/final_statements";
         };
 
         renderDaemon = {
@@ -271,6 +272,7 @@ in
 
         tasks = {
           prune-database.schedule = lib.mkDefault "hourly";
+          prune-documents.schedule = lib.mkDefault "monthly";
           refresh-premium.schedule = lib.mkDefault "daily";
         };
       };

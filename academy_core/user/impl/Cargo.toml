@@ -13,6 +13,7 @@ workspace = true
 academy_auth_contracts.workspace = true
 academy_cache_contracts.workspace = true
 academy_core_coin_contracts.workspace = true
+academy_core_finance_contracts.workspace = true
 academy_core_oauth2_contracts.workspace = true
 academy_core_session_contracts.workspace = true
 academy_core_user_contracts.workspace = true
@@ -32,6 +33,7 @@ tracing.workspace = true
 academy_auth_contracts = { workspace = true, features = ["mock"] }
 academy_cache_contracts = { workspace = true, features = ["mock"] }
 academy_core_coin_contracts = { workspace = true, features = ["mock"] }
+academy_core_finance_contracts = { workspace = true, features = ["mock"] }
 academy_core_oauth2_contracts = { workspace = true, features = ["mock"] }
 academy_core_session_contracts = { workspace = true, features = ["mock"] }
 academy_core_user_contracts = { workspace = true, features = ["mock"] }

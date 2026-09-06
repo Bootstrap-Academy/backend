@@ -4,14 +4,24 @@ use academy_core_finance_contracts::{
 };
 use academy_di::Build;
 use academy_extern_contracts::render::RenderApiService;
-use academy_models::user::UserId;
+use academy_models::{
+    finance::{
+        FinancialDocument, FinancialDocumentKind, FinancialDocumentNumber, final_statement_number,
+        retention_cutoff, unused_purchased_coins,
+    },
+    user::UserId,
+};
 use academy_persistence_contracts::{
-    coin::CoinRepository, paypal::PaypalRepository, user::UserRepository,
+    coin::CoinRepository, finance::FinancialDocumentRepository, paypal::PaypalRepository,
+    user::UserRepository,
 };
 use academy_shared_contracts::{fs::FsService, time::TimeService};
-use academy_templates_contracts::{InvoiceItem, InvoiceTemplate, TemplateService};
+use academy_templates_contracts::{
+    FinalStatementTemplate, InvoiceItem, InvoiceTemplate, TemplateService,
+};
 use anyhow::Context;
 use chrono::{NaiveDate, NaiveTime, TimeZone, Utc};
+use rust_decimal::{Decimal, prelude::ToPrimitive};
 use tracing::instrument;
 
 use crate::FinanceFeatureConfig;
@@ -26,6 +36,7 @@ pub struct FinanceInvoiceServiceImpl<
     PaypalRepo,
     UserRepo,
     CoinRepo,
+    DocumentRepo,
     FinanceCoin,
 > {
     time: Time,
@@ -35,11 +46,12 @@ pub struct FinanceInvoiceServiceImpl<
     paypal_repo: PaypalRepo,
     user_repo: UserRepo,
     coin_repo: CoinRepo,
+    document_repo: DocumentRepo,
     finance_coin: FinanceCoin,
     config: FinanceFeatureConfig,
 }
 
-impl<Txn, Time, Fs, Template, RenderApi, PaypalRepo, UserRepo, CoinRepo, FinanceCoin>
+impl<Txn, Time, Fs, Template, RenderApi, PaypalRepo, UserRepo, CoinRepo, DocumentRepo, FinanceCoin>
     FinanceInvoiceService<Txn>
     for FinanceInvoiceServiceImpl<
         Time,
@@ -49,6 +61,7 @@ impl<Txn, Time, Fs, Template, RenderApi, PaypalRepo, UserRepo, CoinRepo, Finance
         PaypalRepo,
         UserRepo,
         CoinRepo,
+        DocumentRepo,
         FinanceCoin,
     >
 where
@@ -60,6 +73,7 @@ where
     PaypalRepo: PaypalRepository<Txn>,
     UserRepo: UserRepository<Txn>,
     CoinRepo: CoinRepository<Txn>,
+    DocumentRepo: FinancialDocumentRepository<Txn>,
     FinanceCoin: FinanceCoinService,
 {
     #[instrument(skip(self, txn))]
@@ -98,12 +112,38 @@ where
         let coins = coin_order.coins;
         let timestamp = coin_order.created_at;
 
-        let Some(user_composite) = self
-            .user_repo
-            .get_composite(txn, coin_order.user_id)
-            .await?
-        else {
+        // Documents whose retention period has expired have been removed by
+        // `academy task prune-documents` and are not created again.
+        let cutoff = retention_cutoff(self.time.now(), self.config.retention_years)
+            .context("Failed to determine the document retention cutoff")?;
+        if timestamp < cutoff {
             return Ok(None);
+        }
+
+        let number = FinancialDocumentNumber::try_new(formatted_invoice_number.clone())?;
+
+        let customer_details = match self
+            .document_repo
+            .get(txn, &number)
+            .await?
+            .and_then(|document| document.customer_details)
+        {
+            // An invoice keeps the address block it was issued with.
+            Some(customer_details) => customer_details,
+            None => {
+                let Some(user_composite) = self
+                    .user_repo
+                    .get_composite(txn, coin_order.user_id)
+                    .await?
+                else {
+                    return Ok(None);
+                };
+
+                user_composite.invoice_info.into_details(
+                    Some(user_composite.profile.display_name.clone().into_inner()),
+                    user_composite.user.email.as_ref().map(ToString::to_string),
+                )
+            }
         };
 
         let CoinPrices {
@@ -117,10 +157,7 @@ where
             .template
             .render(&InvoiceTemplate {
                 title: "Rechnung",
-                customer_details: user_composite.invoice_info.into_details(
-                    Some(user_composite.profile.display_name.clone().into_inner()),
-                    user_composite.user.email.as_ref().map(ToString::to_string),
-                ),
+                customer_details: customer_details.clone(),
                 timestamp,
                 invoice_number: formatted_invoice_number,
                 items: vec![InvoiceItem {
@@ -144,6 +181,24 @@ where
 
         self.fs.store_file(&archive_path, &invoice_pdf).await?;
 
+        self.document_repo
+            .record(
+                txn,
+                &FinancialDocument {
+                    number,
+                    kind: FinancialDocumentKind::Invoice,
+                    user_id: Some(coin_order.user_id),
+                    issued_at: timestamp,
+                    customer_details: Some(customer_details),
+                    coins: Some(coins),
+                    net_total_cents: to_cents(net_total),
+                    vat_total_cents: to_cents(vat_total),
+                    gross_total_cents: to_cents(gross_total),
+                },
+            )
+            .await
+            .context("Failed to record the invoice")?;
+
         Ok(Some(invoice_pdf))
     }
 
@@ -165,7 +220,8 @@ where
             .and_time(NaiveTime::from_hms_opt(0, 0, 0).unwrap())
             .and_utc();
 
-        if self.time.now() < timestamp {
+        let now = self.time.now();
+        if now < timestamp {
             return Ok(None);
         }
 
@@ -181,8 +237,34 @@ where
             return Ok(Some(credit_note));
         }
 
-        let Some(user_composite) = self.user_repo.get_composite(txn, user_id).await? else {
+        // Documents whose retention period has expired have been removed by
+        // `academy task prune-documents` and are not created again.
+        let cutoff = retention_cutoff(now, self.config.retention_years)
+            .context("Failed to determine the document retention cutoff")?;
+        if timestamp < cutoff {
             return Ok(None);
+        }
+
+        let number = FinancialDocumentNumber::try_new(credit_note_number.clone())?;
+
+        let customer_details = match self
+            .document_repo
+            .get(txn, &number)
+            .await?
+            .and_then(|document| document.customer_details)
+        {
+            // A credit note keeps the address block it was issued with.
+            Some(customer_details) => customer_details,
+            None => {
+                let Some(user_composite) = self.user_repo.get_composite(txn, user_id).await? else {
+                    return Ok(None);
+                };
+
+                user_composite.invoice_info.into_details(
+                    Some(user_composite.profile.display_name.clone().into_inner()),
+                    user_composite.user.email.as_ref().map(ToString::to_string),
+                )
+            }
         };
 
         let transactions = self
@@ -212,10 +294,7 @@ where
             .template
             .render(&InvoiceTemplate {
                 title: "Gutschrift",
-                customer_details: user_composite.invoice_info.into_details(
-                    Some(user_composite.profile.display_name.clone().into_inner()),
-                    user_composite.user.email.as_ref().map(ToString::to_string),
-                ),
+                customer_details: customer_details.clone(),
                 timestamp,
                 invoice_number: credit_note_number,
                 items,
@@ -234,8 +313,130 @@ where
 
         self.fs.store_file(&archive_path, &credit_note_pdf).await?;
 
+        self.document_repo
+            .record(
+                txn,
+                &FinancialDocument {
+                    number,
+                    kind: FinancialDocumentKind::CreditNote,
+                    user_id: Some(user_id),
+                    issued_at: timestamp,
+                    customer_details: Some(customer_details),
+                    coins: Some(coins_total),
+                    net_total_cents: to_cents(price_total.net_total),
+                    vat_total_cents: to_cents(price_total.vat_total),
+                    gross_total_cents: to_cents(price_total.gross_total),
+                },
+            )
+            .await
+            .context("Failed to record the credit note")?;
+
         Ok(Some(credit_note_pdf))
     }
+
+    #[instrument(skip(self, txn))]
+    async fn create_final_statement(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
+    ) -> anyhow::Result<Option<FinancialDocumentNumber>> {
+        let Some(user_composite) = self.user_repo.get_composite(txn, user_id).await? else {
+            return Ok(None);
+        };
+
+        // Only the captured orders were paid and invoiced.
+        let purchased_coins = self
+            .paypal_repo
+            .list_coin_orders_by_user_id(txn, user_id)
+            .await?
+            .into_iter()
+            .filter(|order| order.captured_at.is_some())
+            .map(|order| order.coins)
+            .sum::<u64>();
+
+        // An account that never bought Morphcoins has nothing that could be
+        // refunded later, so no statement is issued and nothing about it is
+        // kept beyond the deletion.
+        if purchased_coins == 0 {
+            return Ok(None);
+        }
+
+        let balance_coins = self.coin_repo.get_balance(txn, user_id).await?.coins;
+        let unused_coins = unused_purchased_coins(balance_coins, purchased_coins);
+
+        let user_number = self.user_repo.get_number(txn, user_id).await?;
+        let number = FinancialDocumentNumber::try_new(final_statement_number(user_number))?;
+        let archive_path = self
+            .config
+            .final_statements_archive
+            .join(format!("{}.pdf", *number));
+
+        let timestamp = self.time.now();
+
+        let customer_details = user_composite.invoice_info.into_details(
+            Some(user_composite.profile.display_name.clone().into_inner()),
+            user_composite.user.email.as_ref().map(ToString::to_string),
+        );
+
+        let refund_amount = self.finance_coin.get_price(unused_coins).gross_total;
+
+        // The record is written before the pdf, because it carries everything
+        // a later refund needs. A render daemon that is unavailable must not
+        // stop an account from being deleted.
+        self.document_repo
+            .record(
+                txn,
+                &FinancialDocument {
+                    number: number.clone(),
+                    kind: FinancialDocumentKind::FinalStatement,
+                    user_id: Some(user_id),
+                    issued_at: timestamp,
+                    customer_details: Some(customer_details.clone()),
+                    coins: Some(unused_coins),
+                    // A final statement is not an invoice and shows no vat;
+                    // the gross total is the amount that can still be
+                    // refunded.
+                    net_total_cents: None,
+                    vat_total_cents: None,
+                    gross_total_cents: to_cents(refund_amount),
+                },
+            )
+            .await
+            .context("Failed to record the final statement")?;
+
+        let statement_html = self
+            .template
+            .render(&FinalStatementTemplate {
+                title: "Schlussabrechnung",
+                customer_details,
+                timestamp,
+                statement_number: number.clone().into_inner(),
+                purchased_coins,
+                balance_coins,
+                unused_coins,
+                coins_per_euro: self.finance_coin.coins_per_euro(),
+                refund_amount,
+            })
+            .context("Failed to render final statement template")?;
+
+        match self.render_api.render_html_to_pdf(statement_html).await {
+            Ok(statement_pdf) => self.fs.store_file(&archive_path, &statement_pdf).await?,
+            // `academy task list-orphan-documents` reports the records whose
+            // pdf is missing, so the file can be produced later.
+            Err(err) => tracing::warn!(
+                "Failed to render the pdf of final statement {}: {err:#}",
+                *number
+            ),
+        }
+
+        Ok(Some(number))
+    }
+}
+
+/// Convert a euro amount into cents, rounded exactly as it is printed on the
+/// document.
+fn to_cents(amount: Decimal) -> Option<i64> {
+    (amount.round_dp(2) * Decimal::ONE_HUNDRED).to_i64()
 }
 
 fn first_day_of_next_month(year: i32, month: u32) -> Option<NaiveDate> {
@@ -258,14 +459,17 @@ mod tests {
     };
     use academy_extern_contracts::render::MockRenderApiService;
     use academy_models::{
-        coin::Transaction,
+        coin::{Balance, Transaction},
+        finance::RETENTION_MARKER,
         paypal::{PaypalCoinOrder, PaypalOrderId},
     };
     use academy_persistence_contracts::{
-        coin::MockCoinRepository, paypal::MockPaypalRepository, user::MockUserRepository,
+        coin::MockCoinRepository, finance::MockFinancialDocumentRepository,
+        paypal::MockPaypalRepository, user::MockUserRepository,
     };
     use academy_shared_contracts::{fs::MockFsService, time::MockTimeService};
     use academy_templates_contracts::MockTemplateService;
+    use chrono::DateTime;
     use rust_decimal_macros::dec;
 
     use super::*;
@@ -278,8 +482,19 @@ mod tests {
         MockPaypalRepository<()>,
         MockUserRepository<()>,
         MockCoinRepository<()>,
+        MockFinancialDocumentRepository<()>,
         MockFinanceCoinService,
     >;
+
+    /// A moment at which a document issued in 2024 still has to be kept.
+    fn within_retention() -> DateTime<Utc> {
+        Utc.with_ymd_and_hms(2032, 12, 31, 23, 59, 59).unwrap()
+    }
+
+    /// The first moment at which a document issued in 2024 may be deleted.
+    fn after_retention() -> DateTime<Utc> {
+        Utc.with_ymd_and_hms(2033, 1, 1, 0, 0, 0).unwrap()
+    }
 
     #[tokio::test]
     async fn get_invoice_ok() {
@@ -302,11 +517,32 @@ mod tests {
             .with_read_file(path.clone(), None)
             .with_store_file(path, pdf.clone());
 
+        let time = MockTimeService::new().with_now(within_retention());
+
         let paypal_repo = MockPaypalRepository::new()
             .with_get_coin_order_by_invoice_number(42, Some(order.clone()));
 
         let user_repo =
             MockUserRepository::new().with_get_composite(FOO.user.id, Some(FOO.clone()));
+
+        let customer_details = FOO.invoice_info.clone().into_details(
+            Some(FOO.profile.display_name.clone().into_inner()),
+            FOO.user.email.as_ref().map(ToString::to_string),
+        );
+
+        let document_repo = MockFinancialDocumentRepository::new()
+            .with_get("R0000042".try_into().unwrap(), None)
+            .with_record(FinancialDocument {
+                number: "R0000042".try_into().unwrap(),
+                kind: FinancialDocumentKind::Invoice,
+                user_id: Some(FOO.user.id),
+                issued_at: order.created_at,
+                customer_details: Some(customer_details.clone()),
+                coins: Some(1337),
+                net_total_cents: Some(200),
+                vat_total_cents: Some(300),
+                gross_total_cents: Some(400),
+            });
 
         let prices = CoinPrices {
             net_unit: 1.into(),
@@ -319,10 +555,7 @@ mod tests {
         let template = MockTemplateService::new().with_render(
             InvoiceTemplate {
                 title: "Rechnung",
-                customer_details: FOO.invoice_info.clone().into_details(
-                    Some(FOO.profile.display_name.clone().into_inner()),
-                    FOO.user.email.as_ref().map(ToString::to_string),
-                ),
+                customer_details,
                 timestamp: order.created_at,
                 invoice_number: "R0000042".into(),
                 items: vec![InvoiceItem {
@@ -343,9 +576,11 @@ mod tests {
             .with_render_html_to_pdf("invoice-template-html".into(), pdf.clone());
 
         let sut = FinanceInvoiceServiceImpl {
+            time,
             fs,
             paypal_repo,
             user_repo,
+            document_repo,
             render_api,
             finance_coin,
             template,
@@ -360,6 +595,149 @@ mod tests {
 
         // Assert
         assert_eq!(result, Some(pdf));
+    }
+
+    /// An invoice keeps the address block it was issued with, so a pseudonymized
+    /// record renders the retention marker instead of the user's details.
+    #[tokio::test]
+    async fn get_invoice_uses_the_recorded_customer_details() {
+        // Arrange
+        let order = PaypalCoinOrder {
+            id: PaypalOrderId::try_new("asdf1234").unwrap(),
+            user_id: FOO.user.id,
+            created_at: FOO.user.created_at,
+            captured_at: None,
+            coins: 1337,
+            invoice_number: 42,
+            withdrawal_consent_at: None,
+            withdrawal_text_version: None,
+        };
+
+        let pdf = vec![1, 2, 3, 4];
+
+        let path = PathBuf::from("/invoices/R0000042.pdf");
+        let fs = MockFsService::new()
+            .with_read_file(path.clone(), None)
+            .with_store_file(path, pdf.clone());
+
+        let time = MockTimeService::new().with_now(within_retention());
+
+        let paypal_repo = MockPaypalRepository::new()
+            .with_get_coin_order_by_invoice_number(42, Some(order.clone()));
+
+        let customer_details = vec![RETENTION_MARKER.to_owned()];
+
+        let recorded = FinancialDocument {
+            number: "R0000042".try_into().unwrap(),
+            kind: FinancialDocumentKind::Invoice,
+            user_id: None,
+            issued_at: order.created_at,
+            customer_details: Some(customer_details.clone()),
+            coins: Some(1337),
+            net_total_cents: Some(200),
+            vat_total_cents: Some(300),
+            gross_total_cents: Some(400),
+        };
+
+        let document_repo = MockFinancialDocumentRepository::new()
+            .with_get("R0000042".try_into().unwrap(), Some(recorded.clone()))
+            .with_record(FinancialDocument {
+                user_id: Some(FOO.user.id),
+                ..recorded
+            });
+
+        let prices = CoinPrices {
+            net_unit: 1.into(),
+            net_total: 2.into(),
+            vat_total: 3.into(),
+            gross_total: 4.into(),
+        };
+        let finance_coin = MockFinanceCoinService::new().with_get_price(1337, prices);
+
+        let template = MockTemplateService::new().with_render(
+            InvoiceTemplate {
+                title: "Rechnung",
+                customer_details,
+                timestamp: order.created_at,
+                invoice_number: "R0000042".into(),
+                items: vec![InvoiceItem {
+                    description: "MorphCoins".into(),
+                    net_unit: prices.net_unit,
+                    count: order.coins,
+                    net_total: prices.net_total,
+                }],
+                vat_percent: dec!(19),
+                net_total: prices.net_total,
+                vat_total: prices.vat_total,
+                gross_total: prices.gross_total,
+            },
+            "invoice-template-html".into(),
+        );
+
+        let render_api = MockRenderApiService::new()
+            .with_render_html_to_pdf("invoice-template-html".into(), pdf.clone());
+
+        // The user repository is never asked, so a deleted account is not needed
+        // to render the document.
+        let sut = FinanceInvoiceServiceImpl {
+            time,
+            fs,
+            paypal_repo,
+            document_repo,
+            render_api,
+            finance_coin,
+            template,
+            ..Sut::default()
+        };
+
+        // Act
+        let result = sut
+            .get_invoice_pdf(&mut (), Some(FOO.user.id), 42)
+            .await
+            .unwrap();
+
+        // Assert
+        assert_eq!(result, Some(pdf));
+    }
+
+    /// Once the retention period has expired the archived pdf has been deleted
+    /// and the document must not be created again.
+    #[tokio::test]
+    async fn get_invoice_retention_expired() {
+        // Arrange
+        let order = PaypalCoinOrder {
+            id: PaypalOrderId::try_new("asdf1234").unwrap(),
+            user_id: FOO.user.id,
+            created_at: FOO.user.created_at,
+            captured_at: None,
+            coins: 1337,
+            invoice_number: 42,
+            withdrawal_consent_at: None,
+            withdrawal_text_version: None,
+        };
+
+        let fs = MockFsService::new().with_read_file("/invoices/R0000042.pdf".into(), None);
+
+        let time = MockTimeService::new().with_now(after_retention());
+
+        let paypal_repo = MockPaypalRepository::new()
+            .with_get_coin_order_by_invoice_number(42, Some(order.clone()));
+
+        let sut = FinanceInvoiceServiceImpl {
+            time,
+            fs,
+            paypal_repo,
+            ..Sut::default()
+        };
+
+        // Act
+        let result = sut
+            .get_invoice_pdf(&mut (), Some(FOO.user.id), 42)
+            .await
+            .unwrap();
+
+        // Assert
+        assert_eq!(result, None);
     }
 
     #[tokio::test]
@@ -558,13 +936,29 @@ mod tests {
             .with_get_price(1337, prices)
             .with_get_price(1337, prices);
 
+        let customer_details = FOO.invoice_info.clone().into_details(
+            Some(FOO.profile.display_name.clone().into_inner()),
+            FOO.user.email.as_ref().map(ToString::to_string),
+        );
+
+        let document_repo = MockFinancialDocumentRepository::new()
+            .with_get("G202402-7".try_into().unwrap(), None)
+            .with_record(FinancialDocument {
+                number: "G202402-7".try_into().unwrap(),
+                kind: FinancialDocumentKind::CreditNote,
+                user_id: Some(FOO.user.id),
+                issued_at: timestamp,
+                customer_details: Some(customer_details.clone()),
+                coins: Some(1337),
+                net_total_cents: Some(200),
+                vat_total_cents: Some(300),
+                gross_total_cents: Some(400),
+            });
+
         let template = MockTemplateService::new().with_render(
             InvoiceTemplate {
                 title: "Gutschrift",
-                customer_details: FOO.invoice_info.clone().into_details(
-                    Some(FOO.profile.display_name.clone().into_inner()),
-                    FOO.user.email.as_ref().map(ToString::to_string),
-                ),
+                customer_details,
                 timestamp,
                 invoice_number: "G202402-7".into(),
                 items: vec![InvoiceItem {
@@ -589,6 +983,7 @@ mod tests {
             user_repo,
             fs,
             coin_repo,
+            document_repo,
             finance_coin,
             template,
             render_api,
@@ -603,6 +998,34 @@ mod tests {
 
         // Assert
         assert_eq!(result, Some(pdf));
+    }
+
+    /// Once the retention period has expired the archived pdf has been deleted
+    /// and the document must not be created again.
+    #[tokio::test]
+    async fn get_credit_note_retention_expired() {
+        // Arrange
+        let time = MockTimeService::new().with_now(after_retention());
+
+        let user_repo = MockUserRepository::new().with_get_number(FOO.user.id, 7);
+
+        let fs = MockFsService::new().with_read_file("/credit_notes/G202402-7.pdf".into(), None);
+
+        let sut = FinanceInvoiceServiceImpl {
+            time,
+            user_repo,
+            fs,
+            ..Sut::default()
+        };
+
+        // Act
+        let result = sut
+            .get_credit_note(&mut (), FOO.user.id, 2024, 2)
+            .await
+            .unwrap();
+
+        // Assert
+        assert_eq!(result, None);
     }
 
     #[tokio::test]
@@ -656,5 +1079,350 @@ mod tests {
 
         // Assert
         assert_eq!(result, Some(pdf));
+    }
+
+    fn captured_order(coins: u64, invoice_number: u64) -> PaypalCoinOrder {
+        PaypalCoinOrder {
+            id: PaypalOrderId::try_new(format!("order{invoice_number}")).unwrap(),
+            user_id: FOO.user.id,
+            created_at: FOO.user.created_at,
+            captured_at: Some(FOO.user.created_at),
+            coins,
+            invoice_number,
+            withdrawal_consent_at: None,
+            withdrawal_text_version: None,
+        }
+    }
+
+    fn open_order(coins: u64, invoice_number: u64) -> PaypalCoinOrder {
+        PaypalCoinOrder {
+            captured_at: None,
+            ..captured_order(coins, invoice_number)
+        }
+    }
+
+    fn final_statement_customer_details() -> Vec<String> {
+        FOO.invoice_info.clone().into_details(
+            Some(FOO.profile.display_name.clone().into_inner()),
+            FOO.user.email.as_ref().map(ToString::to_string),
+        )
+    }
+
+    /// The statement records the unused share of the purchased Morphcoins and
+    /// keeps the name and email address a later refund has to be offered to.
+    #[tokio::test]
+    async fn create_final_statement_ok() {
+        // Arrange
+        let now = within_retention();
+        let pdf = vec![1, 2, 3, 4];
+
+        let time = MockTimeService::new().with_now(now);
+
+        let user_repo = MockUserRepository::new()
+            .with_get_composite(FOO.user.id, Some(FOO.clone()))
+            .with_get_number(FOO.user.id, 7);
+
+        // Only the captured orders were paid and invoiced.
+        let paypal_repo = MockPaypalRepository::new().with_list_coin_orders_by_user_id(
+            FOO.user.id,
+            vec![
+                captured_order(1000, 1),
+                open_order(9999, 2),
+                captured_order(500, 3),
+            ],
+        );
+
+        // 1200 coins left of 1500 bought, so 1200 are refundable.
+        let coin_repo = MockCoinRepository::new().with_get_balance(
+            FOO.user.id,
+            Balance {
+                coins: 1200,
+                withheld_coins: 0,
+            },
+        );
+
+        let prices = CoinPrices {
+            net_unit: dec!(0.0084),
+            net_total: dec!(10.08),
+            vat_total: dec!(1.92),
+            gross_total: dec!(12),
+        };
+        let finance_coin = MockFinanceCoinService::new()
+            .with_get_price(1200, prices)
+            .with_coins_per_euro(100);
+
+        let customer_details = final_statement_customer_details();
+
+        let document_repo = MockFinancialDocumentRepository::new().with_record(FinancialDocument {
+            number: "S7".try_into().unwrap(),
+            kind: FinancialDocumentKind::FinalStatement,
+            user_id: Some(FOO.user.id),
+            issued_at: now,
+            customer_details: Some(customer_details.clone()),
+            coins: Some(1200),
+            net_total_cents: None,
+            vat_total_cents: None,
+            gross_total_cents: Some(1200),
+        });
+
+        let template = MockTemplateService::new().with_render(
+            FinalStatementTemplate {
+                title: "Schlussabrechnung",
+                customer_details,
+                timestamp: now,
+                statement_number: "S7".into(),
+                purchased_coins: 1500,
+                balance_coins: 1200,
+                unused_coins: 1200,
+                coins_per_euro: 100,
+                refund_amount: dec!(12),
+            },
+            "final-statement-html".into(),
+        );
+
+        let render_api = MockRenderApiService::new()
+            .with_render_html_to_pdf("final-statement-html".into(), pdf.clone());
+
+        let fs =
+            MockFsService::new().with_store_file("/final_statements/S7.pdf".into(), pdf.clone());
+
+        let sut = FinanceInvoiceServiceImpl {
+            time,
+            fs,
+            user_repo,
+            paypal_repo,
+            coin_repo,
+            document_repo,
+            finance_coin,
+            template,
+            render_api,
+            ..Sut::default()
+        };
+
+        // Act
+        let result = sut.create_final_statement(&mut (), FOO.user.id).await;
+
+        // Assert
+        assert_eq!(result.unwrap(), Some("S7".try_into().unwrap()));
+    }
+
+    /// Reward coins count as consumed first, so the unused share never exceeds
+    /// what was bought.
+    #[tokio::test]
+    async fn create_final_statement_caps_at_the_purchased_coins() {
+        // Arrange
+        let now = within_retention();
+
+        let time = MockTimeService::new().with_now(now);
+
+        let user_repo = MockUserRepository::new()
+            .with_get_composite(FOO.user.id, Some(FOO.clone()))
+            .with_get_number(FOO.user.id, 7);
+
+        let paypal_repo = MockPaypalRepository::new()
+            .with_list_coin_orders_by_user_id(FOO.user.id, vec![captured_order(500, 1)]);
+
+        // Far more coins than were bought, the rest are reward coins.
+        let coin_repo = MockCoinRepository::new().with_get_balance(
+            FOO.user.id,
+            Balance {
+                coins: 100_000,
+                withheld_coins: 42,
+            },
+        );
+
+        let prices = CoinPrices {
+            net_unit: dec!(0.0084),
+            net_total: dec!(4.2),
+            vat_total: dec!(0.8),
+            gross_total: dec!(5),
+        };
+        let finance_coin = MockFinanceCoinService::new()
+            .with_get_price(500, prices)
+            .with_coins_per_euro(100);
+
+        let document_repo = MockFinancialDocumentRepository::new().with_record(FinancialDocument {
+            number: "S7".try_into().unwrap(),
+            kind: FinancialDocumentKind::FinalStatement,
+            user_id: Some(FOO.user.id),
+            issued_at: now,
+            customer_details: Some(final_statement_customer_details()),
+            coins: Some(500),
+            net_total_cents: None,
+            vat_total_cents: None,
+            gross_total_cents: Some(500),
+        });
+
+        let template = MockTemplateService::new().with_render(
+            FinalStatementTemplate {
+                title: "Schlussabrechnung",
+                customer_details: final_statement_customer_details(),
+                timestamp: now,
+                statement_number: "S7".into(),
+                purchased_coins: 500,
+                balance_coins: 100_000,
+                unused_coins: 500,
+                coins_per_euro: 100,
+                refund_amount: dec!(5),
+            },
+            "final-statement-html".into(),
+        );
+
+        let render_api = MockRenderApiService::new()
+            .with_render_html_to_pdf("final-statement-html".into(), vec![1]);
+
+        let fs = MockFsService::new().with_store_file("/final_statements/S7.pdf".into(), vec![1]);
+
+        let sut = FinanceInvoiceServiceImpl {
+            time,
+            fs,
+            user_repo,
+            paypal_repo,
+            coin_repo,
+            document_repo,
+            finance_coin,
+            template,
+            render_api,
+            ..Sut::default()
+        };
+
+        // Act
+        let result = sut.create_final_statement(&mut (), FOO.user.id).await;
+
+        // Assert
+        assert_eq!(result.unwrap(), Some("S7".try_into().unwrap()));
+    }
+
+    /// An account that never bought Morphcoins gets no statement, so nothing
+    /// about it is kept beyond the deletion.
+    #[tokio::test]
+    async fn create_final_statement_without_purchases() {
+        // Arrange
+        let user_repo =
+            MockUserRepository::new().with_get_composite(FOO.user.id, Some(FOO.clone()));
+
+        let paypal_repo = MockPaypalRepository::new()
+            .with_list_coin_orders_by_user_id(FOO.user.id, vec![open_order(1000, 1)]);
+
+        let sut = FinanceInvoiceServiceImpl {
+            user_repo,
+            paypal_repo,
+            ..Sut::default()
+        };
+
+        // Act
+        let result = sut.create_final_statement(&mut (), FOO.user.id).await;
+
+        // Assert
+        assert_eq!(result.unwrap(), None);
+    }
+
+    #[tokio::test]
+    async fn create_final_statement_user_not_found() {
+        // Arrange
+        let user_repo = MockUserRepository::new().with_get_composite(FOO.user.id, None);
+
+        let sut = FinanceInvoiceServiceImpl {
+            user_repo,
+            ..Sut::default()
+        };
+
+        // Act
+        let result = sut.create_final_statement(&mut (), FOO.user.id).await;
+
+        // Assert
+        assert_eq!(result.unwrap(), None);
+    }
+
+    /// A render daemon that is unavailable must not stop an account from being
+    /// deleted, so the record is kept even without its pdf.
+    #[tokio::test]
+    async fn create_final_statement_without_pdf() {
+        // Arrange
+        let now = within_retention();
+
+        let time = MockTimeService::new().with_now(now);
+
+        let user_repo = MockUserRepository::new()
+            .with_get_composite(FOO.user.id, Some(FOO.clone()))
+            .with_get_number(FOO.user.id, 7);
+
+        let paypal_repo = MockPaypalRepository::new()
+            .with_list_coin_orders_by_user_id(FOO.user.id, vec![captured_order(500, 1)]);
+
+        let coin_repo = MockCoinRepository::new().with_get_balance(
+            FOO.user.id,
+            Balance {
+                coins: 500,
+                withheld_coins: 0,
+            },
+        );
+
+        let finance_coin = MockFinanceCoinService::new()
+            .with_get_price(
+                500,
+                CoinPrices {
+                    net_unit: dec!(0.0084),
+                    net_total: dec!(4.2),
+                    vat_total: dec!(0.8),
+                    gross_total: dec!(5),
+                },
+            )
+            .with_coins_per_euro(100);
+
+        let document_repo = MockFinancialDocumentRepository::new().with_record(FinancialDocument {
+            number: "S7".try_into().unwrap(),
+            kind: FinancialDocumentKind::FinalStatement,
+            user_id: Some(FOO.user.id),
+            issued_at: now,
+            customer_details: Some(final_statement_customer_details()),
+            coins: Some(500),
+            net_total_cents: None,
+            vat_total_cents: None,
+            gross_total_cents: Some(500),
+        });
+
+        let template = MockTemplateService::new().with_render(
+            FinalStatementTemplate {
+                title: "Schlussabrechnung",
+                customer_details: final_statement_customer_details(),
+                timestamp: now,
+                statement_number: "S7".into(),
+                purchased_coins: 500,
+                balance_coins: 500,
+                unused_coins: 500,
+                coins_per_euro: 100,
+                refund_amount: dec!(5),
+            },
+            "final-statement-html".into(),
+        );
+
+        let mut render_api = MockRenderApiService::new();
+        render_api
+            .expect_render_html_to_pdf()
+            .once()
+            .return_once(|_| Box::pin(std::future::ready(Err(anyhow::anyhow!("no daemon")))));
+
+        // Nothing is written to the archive.
+        let fs = MockFsService::new();
+
+        let sut = FinanceInvoiceServiceImpl {
+            time,
+            fs,
+            user_repo,
+            paypal_repo,
+            coin_repo,
+            document_repo,
+            finance_coin,
+            template,
+            render_api,
+            ..Sut::default()
+        };
+
+        // Act
+        let result = sut.create_final_statement(&mut (), FOO.user.id).await;
+
+        // Assert
+        assert_eq!(result.unwrap(), Some("S7".try_into().unwrap()));
     }
 }

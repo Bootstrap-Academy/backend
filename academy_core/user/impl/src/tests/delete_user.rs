@@ -1,4 +1,5 @@
 use academy_auth_contracts::MockAuthService;
+use academy_core_finance_contracts::invoice::MockFinanceInvoiceService;
 use academy_core_user_contracts::{UserDeleteError, UserFeatureService};
 use academy_demo::{
     session::{ADMIN_1, BAR_1, FOO_1},
@@ -7,9 +8,12 @@ use academy_demo::{
 use academy_extern_contracts::microservices::MockMicroservicesApiService;
 use academy_models::{
     auth::{AuthError, AuthenticateError, AuthorizeError},
+    finance::RETENTION_MARKER,
     user::UserIdOrSelf,
 };
-use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
+use academy_persistence_contracts::{
+    MockDatabase, finance::MockFinancialDocumentRepository, user::MockUserRepository,
+};
 use academy_utils::assert_matches;
 
 use crate::{UserFeatureServiceImpl, tests::Sut};
@@ -25,12 +29,26 @@ async fn ok_self() {
 
     let user_repo = MockUserRepository::new().with_delete(FOO.user.id, true);
 
+    // The unused share of the purchased Morphcoins is recorded before the
+    // account is gone.
+    let finance_invoice = MockFinanceInvoiceService::new()
+        .with_create_final_statement(FOO.user.id, Some("S7".try_into().unwrap()));
+
+    // Invoices and credit notes are kept, but no longer name the account.
+    let document_repo = MockFinancialDocumentRepository::new().with_pseudonymize(
+        FOO.user.id,
+        vec![RETENTION_MARKER.into()],
+        1,
+    );
+
     let microservices_api = MockMicroservicesApiService::new().with_delete_user(FOO.user.id);
 
     let sut = UserFeatureServiceImpl {
         auth,
         db,
         user_repo,
+        finance_invoice,
+        document_repo,
         microservices_api,
         ..Sut::default()
     };
@@ -53,12 +71,26 @@ async fn ok_admin() {
 
     let user_repo = MockUserRepository::new().with_delete(FOO.user.id, true);
 
+    // The unused share of the purchased Morphcoins is recorded before the
+    // account is gone.
+    let finance_invoice = MockFinanceInvoiceService::new()
+        .with_create_final_statement(FOO.user.id, Some("S7".try_into().unwrap()));
+
+    // Invoices and credit notes are kept, but no longer name the account.
+    let document_repo = MockFinancialDocumentRepository::new().with_pseudonymize(
+        FOO.user.id,
+        vec![RETENTION_MARKER.into()],
+        1,
+    );
+
     let microservices_api = MockMicroservicesApiService::new().with_delete_user(FOO.user.id);
 
     let sut = UserFeatureServiceImpl {
         auth,
         db,
         user_repo,
+        finance_invoice,
+        document_repo,
         microservices_api,
         ..Sut::default()
     };
@@ -125,10 +157,22 @@ async fn not_found() {
 
     let user_repo = MockUserRepository::new().with_delete(FOO.user.id, false);
 
+    // No account, so no final statement.
+    let finance_invoice =
+        MockFinanceInvoiceService::new().with_create_final_statement(FOO.user.id, None);
+
+    let document_repo = MockFinancialDocumentRepository::new().with_pseudonymize(
+        FOO.user.id,
+        vec![RETENTION_MARKER.into()],
+        0,
+    );
+
     let sut = UserFeatureServiceImpl {
         auth,
         db,
         user_repo,
+        finance_invoice,
+        document_repo,
         ..Sut::default()
     };
 

@@ -10,6 +10,7 @@ pub mod admin_audit;
 pub mod coin;
 pub mod contact;
 pub mod contract;
+pub mod finance;
 pub mod heart;
 pub mod oauth2;
 pub mod premium;

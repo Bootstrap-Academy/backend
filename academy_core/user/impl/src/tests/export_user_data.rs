@@ -32,6 +32,7 @@ fn account() -> AccountDataExport {
         premium: None,
         premium_subscription: None,
         invoices: Vec::new(),
+        financial_documents: Vec::new(),
         contract_declarations: Vec::new(),
         withdrawal_consents: Vec::new(),
     }

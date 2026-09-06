@@ -46,6 +46,7 @@ events_url = "http://127.0.0.1:8104/events/"
 [finance]
 invoices_archive = ".invoices"
 credit_notes_archive = ".credit_notes"
+final_statements_archive = ".final_statements"
 
 [oauth2.providers.test]
 enable = true

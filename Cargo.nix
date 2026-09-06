@@ -3268,6 +3268,10 @@ rec {
             packageId = "academy_core_coin_contracts";
           }
           {
+            name = "academy_core_finance_contracts";
+            packageId = "academy_core_finance_contracts";
+          }
+          {
             name = "academy_core_oauth2_contracts";
             packageId = "academy_core_oauth2_contracts";
           }
@@ -3344,6 +3348,11 @@ rec {
           {
             name = "academy_core_coin_contracts";
             packageId = "academy_core_coin_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_core_finance_contracts";
+            packageId = "academy_core_finance_contracts";
             features = [ "mock" ];
           }
           {
@@ -4355,6 +4364,11 @@ rec {
             packageId = "hex";
             usesDefaultFeatures = false;
             features = [ "std" ];
+          }
+          {
+            name = "tempfile";
+            packageId = "tempfile";
+            usesDefaultFeatures = false;
           }
         ];
 

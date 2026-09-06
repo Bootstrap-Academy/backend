@@ -35,8 +35,13 @@ pub fn add<S: Clone + Send + Sync + 'static>(
 ///
 /// The data export hands an administrator everything the platform stores about
 /// another user, which is the most far reaching read the API offers, so it has
-/// to leave a trace like a change would.
-const AUDITED_READ_ROUTES: &[&str] = &[crate::routes::user::EXPORT_ROUTE];
+/// to leave a trace like a change would. The document listing is recorded for
+/// the same reason: it is searchable by name and email address, and the final
+/// statements in it still name people whose account has been deleted.
+const AUDITED_READ_ROUTES: &[&str] = &[
+    crate::routes::user::EXPORT_ROUTE,
+    crate::routes::finance::DOCUMENTS_ROUTE,
+];
 
 async fn middleware(
     service: Arc<impl AdminAuditFeatureService>,

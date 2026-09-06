@@ -63,7 +63,7 @@ This id is automatically attached to any logs associated with the corresponding 
 
 ### Administrative Audit Log
 Every `POST`, `PUT`, `PATCH` and `DELETE` request that is authenticated with an administrator's access token is recorded in the `admin_audit_log` table, including requests that were rejected.
-Reads are not recorded, with one exception listed in `AUDITED_READ_ROUTES`: the data export (see [Data Export](#data-export)), because it hands out everything the platform stores about a user.
+Reads are not recorded, with the exceptions listed in `AUDITED_READ_ROUTES`: the data export (see [Data Export](#data-export)), because it hands out everything the platform stores about a user, and the financial document listing (see [Financial Documents](#financial-documents)), because it is searchable by name and email address and still names accounts that have been deleted.
 The middleware in `academy_api/rest/src/middlewares/admin_audit.rs` runs after routing and hands the request to the `AdminAuditFeatureService`, which authenticates the token and writes the entry.
 
 An entry holds the time, the acting administrator, the method, the path without its query string, the affected user, the status code and the request id.
@@ -109,14 +109,31 @@ The fan-out is implemented in `academy_extern` (`MicroservicesApiService`): for 
 The requests run concurrently, each with the configured `microservices.timeout`, and any failure is logged and swallowed — a microservice that is unavailable must not prevent an account from being deleted.
 Each microservice additionally runs a periodic sweep that removes data of users the backend no longer knows, which catches the deletions that were lost this way.
 
+Invoices and credit notes are the exception: they have to be kept for `finance.retention_years` years and are therefore not deleted with the account.
+Instead, `delete_user` first replaces the customer details of their records in `financial_documents` by `academy_models::finance::RETENTION_MARKER`, and deleting the account row drops the account reference (`on delete set null`).
+Document number, issue date and amounts stay on the record and the archived pdf stays in place, until `academy task prune-documents` deletes both.
+
+Before that, `delete_user` asks `FinanceInvoiceService::create_final_statement` to issue the final statement of the account (AGB Ziffer 6.7).
+It records the unused share of the purchased Morphcoins — `min(balance, purchased)`, because reward coins count as consumed first — together with the name and the email address a later refund has to be offered to, so it is the one kind of document that is **not** pseudonymized.
+It is only issued for accounts that have actually bought Morphcoins; for every other account there is nothing to refund and therefore no reason to keep anything that names them.
+The record is written before its pdf, and a render daemon that is unavailable only costs the pdf, never the deletion.
+
 ### Data Export
 `GET /auth/users/{user_id}/export` returns everything the platform stores about one user as a single JSON document (Art. 15 and 20 GDPR); a user can export themselves, an administrator can export anybody.
-The `account` object is assembled by `UserExportService` from the backend database — the account, the sessions, the linked OAuth2 accounts, the Morphcoin balance and transactions, the hearts, the premium membership, the invoices, the contract declarations and the withdrawal declarations.
+The `account` object is assembled by `UserExportService` from the backend database — the account, the sessions, the linked OAuth2 accounts, the Morphcoin balance and transactions, the hearts, the premium membership, the coin orders, the issued financial documents, the contract declarations and the withdrawal declarations.
 The `services` object is assembled by the same `MicroservicesApiService` that the account deletion uses: for every configured microservice the backend issues a short-lived internal JWT and reads `GET <base_url>_internal/users/<user_id>/export`.
 Like the deletion fan-out, a microservice that cannot be read does not fail the request; it is listed in `services` with `available: false` and no data, and the top level `complete` is then `false`, so that an incomplete export is never handed out as if it were complete while the rest of the data still reaches the user.
 Each response is limited to `microservices.max_export_size` bytes.
 The database transaction is dropped before the fan-out, exports are limited to one per user per `user.export_rate_limit` (administrators are exempt), and neither the logs, the error messages nor the export itself contain any of the exported data or the internal urls.
-An export an administrator runs on somebody else is written to the administrative audit log — it is the one read the log records, because it hands out more than any endpoint an ordinary user can reach.
+An export an administrator runs on somebody else is written to the administrative audit log, because it hands out more than any endpoint an ordinary user can reach; the document listing is the only other read the log records.
+
+### Financial Documents
+Every invoice, credit note and final statement that is issued is recorded in `financial_documents`, keyed by its number (`R0000042`, `G202402-7`, `S1337`), which is also the name of its pdf file in `finance.invoices_archive` / `finance.credit_notes_archive` / `finance.final_statements_archive`.
+The record keeps the address block that was printed on the document, so re-rendering it does not pick up later changes to the user's invoice information, and it keeps the totals in cents as they were printed.
+Records that were created by the migration for the captured coin orders that predate this table carry only number, date, user and Morphcoin amount; the remaining values are filled in the next time the document is rendered.
+Once the retention period has expired, `get_invoice_pdf` and `get_credit_note` stop recreating the document.
+`GET /finance/documents` lists the records for administrators, filtered by kind and searched by document number or customer details; documents of deleted accounts have no `user_id`, and a final statement is found by the email address it still carries.
+The documents of an account are also part of its data export.
 
 ### Scheduled Tasks
 There are some tasks that need to run on a regular basis (e.g. removing expired sessions from the database).
@@ -125,9 +142,11 @@ Instead of implementing a scheduler directly in the backend daemon, we rely on e
 The following tasks exist:
 
 - `academy task prune-database`: Deletes sessions that have not been refreshed within `session.refresh_token_ttl` and administrative audit log entries older than twelve months (`academy_models::admin_audit::ADMIN_AUDIT_LOG_RETENTION_MONTHS`).
+- `academy task prune-documents`: Deletes the invoices, credit notes and final statements whose retention period has expired, both the records in `financial_documents` and the archived pdf files. The period is `finance.retention_years` years, counted from the end of the calendar year in which the document was issued (§ 147 Abs. 3 Satz 1 und Abs. 4 AO). Credit notes that were archived before they were recorded in the database are recognised by the month in their file name.
+- `academy task list-orphan-documents`: Reports the archived pdf files that no record refers to — documents of accounts that were deleted before `financial_documents` existed are not picked up by `prune-documents` — and the records whose pdf is missing. It only prints them; nothing is deleted.
 - `academy task refresh-premium`: Renews the premium memberships of all users who have automatic renewal switched on and whose current period has ended. A renewal always buys a *monthly* period at `premium.monthly_price`, no matter which plan the membership was booked with; a subscription that was booked yearly is rewritten to the monthly plan on its first renewal. If the user does not have enough Morphcoins, the automatic renewal is switched off instead.
 
-The NixOS module in `nix/module.nix` defines a systemd timer per task (`prune-database` hourly, `refresh-premium` daily by default).
+The NixOS module in `nix/module.nix` defines a systemd timer per task (`prune-database` hourly, `prune-documents` monthly, `refresh-premium` daily by default).
 
 ### CLI
 The `academy` executable also provides some other useful commands e.g. for administration, debugging and testing purposes.

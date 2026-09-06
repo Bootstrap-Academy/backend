@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use academy_auth_contracts::MockAuthService;
 use academy_cache_contracts::MockCacheService;
+use academy_core_finance_contracts::invoice::MockFinanceInvoiceService;
 use academy_core_oauth2_contracts::registration::MockOAuth2RegistrationService;
 use academy_core_session_contracts::session::MockSessionService;
 use academy_core_user_contracts::{
@@ -12,7 +13,8 @@ use academy_extern_contracts::{
     microservices::MockMicroservicesApiService, vat::MockVatApiService,
 };
 use academy_persistence_contracts::{
-    MockDatabase, MockTransaction, coin::MockCoinRepository, user::MockUserRepository,
+    MockDatabase, MockTransaction, coin::MockCoinRepository,
+    finance::MockFinancialDocumentRepository, user::MockUserRepository,
 };
 use academy_shared_contracts::captcha::MockCaptchaService;
 
@@ -44,8 +46,10 @@ type Sut = UserFeatureServiceImpl<
     MockUserUpdateService<MockTransaction>,
     MockSessionService<MockTransaction>,
     MockOAuth2RegistrationService,
+    MockFinanceInvoiceService<MockTransaction>,
     MockUserRepository<MockTransaction>,
     MockCoinRepository<MockTransaction>,
+    MockFinancialDocumentRepository<MockTransaction>,
 >;
 
 impl Default for UserFeatureConfig {

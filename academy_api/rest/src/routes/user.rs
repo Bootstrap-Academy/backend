@@ -487,8 +487,9 @@ fn export_data_docs(op: TransformOperation) -> TransformOperation {
     op.summary("Return all data the platform has stored about the given user.")
         .description(
             "Returns the account, the sessions, the linked OAuth2 accounts, the Morphcoin \
-             balance and transactions, the hearts, the premium membership, the invoices, the \
-             contract declarations and the withdrawal declarations of this service, plus the \
+             balance and transactions, the hearts, the premium membership, the coin orders, the \
+             issued invoices, credit notes and final statements, the contract declarations and \
+             the withdrawal declarations of this service, plus the \
              learning progress, the submissions and the event bookings of each microservice \
              under \
              `services`. A microservice that could not be read is listed there with \

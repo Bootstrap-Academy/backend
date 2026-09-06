@@ -7,7 +7,7 @@ use academy_auth_contracts::{
 use academy_di::Build;
 use academy_models::{
     auth::{AccessToken, AuthenticateError, RefreshToken},
-    session::SessionId,
+    session::{SessionId, SessionRefreshTokenHash},
     user::{User, UserId, UserPassword},
 };
 use academy_persistence_contracts::{session::SessionRepository, user::UserRepository};
@@ -155,12 +155,28 @@ where
 
     #[trace_instrument(skip(self, txn))]
     async fn invalidate_access_tokens(&self, txn: &mut Txn, user_id: UserId) -> anyhow::Result<()> {
-        for refresh_token_hash in self
-            .session_repo
+        let refresh_token_hashes = self.list_refresh_token_hashes(txn, user_id).await?;
+        self.invalidate_access_tokens_of(refresh_token_hashes).await
+    }
+
+    #[trace_instrument(skip(self, txn))]
+    async fn list_refresh_token_hashes(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
+    ) -> anyhow::Result<Vec<SessionRefreshTokenHash>> {
+        self.session_repo
             .list_refresh_token_hashes_by_user(txn, user_id)
             .await
-            .context("Failed to get session refresh token hashes from database")?
-        {
+            .context("Failed to get session refresh token hashes from database")
+    }
+
+    #[trace_instrument(skip(self))]
+    async fn invalidate_access_tokens_of(
+        &self,
+        refresh_token_hashes: Vec<SessionRefreshTokenHash>,
+    ) -> anyhow::Result<()> {
+        for refresh_token_hash in refresh_token_hashes {
             self.auth_access_token
                 .invalidate(refresh_token_hash)
                 .await

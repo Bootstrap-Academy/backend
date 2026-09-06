@@ -9,6 +9,7 @@ use academy_extern_contracts::microservices::MockMicroservicesApiService;
 use academy_models::{
     auth::{AuthError, AuthenticateError, AuthorizeError},
     finance::RETENTION_MARKER,
+    session::SessionRefreshTokenHash,
     user::UserIdOrSelf,
 };
 use academy_persistence_contracts::{
@@ -17,6 +18,13 @@ use academy_persistence_contracts::{
 use academy_utils::assert_matches;
 
 use crate::{UserFeatureServiceImpl, tests::Sut};
+
+fn refresh_token_hashes() -> Vec<SessionRefreshTokenHash> {
+    vec![
+        academy_models::Sha256Hash([1; 32]).into(),
+        academy_models::Sha256Hash([2; 32]).into(),
+    ]
+}
 
 fn pending_final_statement() -> PendingFinalStatement {
     PendingFinalStatement {
@@ -30,7 +38,10 @@ async fn ok_self() {
     // Arrange
     let auth = MockAuthService::new()
         .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
-        .with_invalidate_access_tokens(FOO.user.id);
+        // The access tokens are invalidated only after the deletion has been
+        // committed, so the hashes are read while the sessions still exist.
+        .with_list_refresh_token_hashes(FOO.user.id, refresh_token_hashes())
+        .with_invalidate_access_tokens_of(refresh_token_hashes());
 
     let db = MockDatabase::build(true);
 
@@ -74,7 +85,8 @@ async fn ok_admin() {
     // Arrange
     let auth = MockAuthService::new()
         .with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())))
-        .with_invalidate_access_tokens(FOO.user.id);
+        .with_list_refresh_token_hashes(FOO.user.id, refresh_token_hashes())
+        .with_invalidate_access_tokens_of(refresh_token_hashes());
 
     let db = MockDatabase::build(true);
 
@@ -162,7 +174,8 @@ async fn not_found() {
     // Arrange
     let auth = MockAuthService::new()
         .with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())))
-        .with_invalidate_access_tokens(FOO.user.id);
+        // The deletion rolls back, so nothing is invalidated.
+        .with_list_refresh_token_hashes(FOO.user.id, refresh_token_hashes());
 
     let db = MockDatabase::build(false);
 

@@ -18,6 +18,11 @@ pub struct RecordDocumentParams<
     pub gross_total_cents: Option<i64>,
 }
 #[derive(Debug)]
+pub struct SettleDocumentParams<T1: crate::StringSql> {
+    pub settled_at: chrono::DateTime<chrono::FixedOffset>,
+    pub number: T1,
+}
+#[derive(Debug)]
 pub struct PseudonymizeDocumentsParams<T1: crate::StringSql, T2: crate::ArraySql<Item = T1>> {
     pub customer_details: T2,
     pub user_id: uuid::Uuid,
@@ -45,6 +50,7 @@ pub struct Document {
     pub net_total_cents: Option<i64>,
     pub vat_total_cents: Option<i64>,
     pub gross_total_cents: Option<i64>,
+    pub settled_at: Option<chrono::DateTime<chrono::FixedOffset>>,
 }
 pub struct DocumentBorrowed<'a> {
     pub number: &'a str,
@@ -56,6 +62,7 @@ pub struct DocumentBorrowed<'a> {
     pub net_total_cents: Option<i64>,
     pub vat_total_cents: Option<i64>,
     pub gross_total_cents: Option<i64>,
+    pub settled_at: Option<chrono::DateTime<chrono::FixedOffset>>,
 }
 impl<'a> From<DocumentBorrowed<'a>> for Document {
     fn from(
@@ -69,6 +76,7 @@ impl<'a> From<DocumentBorrowed<'a>> for Document {
             net_total_cents,
             vat_total_cents,
             gross_total_cents,
+            settled_at,
         }: DocumentBorrowed<'a>,
     ) -> Self {
         Self {
@@ -81,6 +89,7 @@ impl<'a> From<DocumentBorrowed<'a>> for Document {
             net_total_cents,
             vat_total_cents,
             gross_total_cents,
+            settled_at,
         }
     }
 }
@@ -312,6 +321,7 @@ impl GetDocumentStmt {
                         net_total_cents: row.try_get(6)?,
                         vat_total_cents: row.try_get(7)?,
                         gross_total_cents: row.try_get(8)?,
+                        settled_at: row.try_get(9)?,
                     })
                 },
             mapper: |it| Document::from(it),
@@ -413,6 +423,52 @@ impl<
         ))
     }
 }
+pub struct SettleDocumentStmt(&'static str, Option<tokio_postgres::Statement>);
+pub fn settle_document() -> SettleDocumentStmt {
+    SettleDocumentStmt(
+        "update financial_documents set settled_at=$1 where number=$2",
+        None,
+    )
+}
+impl SettleDocumentStmt {
+    pub async fn prepare<'a, C: GenericClient>(
+        mut self,
+        client: &'a C,
+    ) -> Result<Self, tokio_postgres::Error> {
+        self.1 = Some(client.prepare(self.0).await?);
+        Ok(self)
+    }
+    pub async fn bind<'c, 'a, 's, C: GenericClient, T1: crate::StringSql>(
+        &'s self,
+        client: &'c C,
+        settled_at: &'a chrono::DateTime<chrono::FixedOffset>,
+        number: &'a T1,
+    ) -> Result<u64, tokio_postgres::Error> {
+        client.execute(self.0, &[settled_at, number]).await
+    }
+}
+impl<'a, C: GenericClient + Send + Sync, T1: crate::StringSql>
+    crate::client::async_::Params<
+        'a,
+        'a,
+        'a,
+        SettleDocumentParams<T1>,
+        std::pin::Pin<
+            Box<dyn futures::Future<Output = Result<u64, tokio_postgres::Error>> + Send + 'a>,
+        >,
+        C,
+    > for SettleDocumentStmt
+{
+    fn params(
+        &'a self,
+        client: &'a C,
+        params: &'a SettleDocumentParams<T1>,
+    ) -> std::pin::Pin<
+        Box<dyn futures::Future<Output = Result<u64, tokio_postgres::Error>> + Send + 'a>,
+    > {
+        Box::pin(self.bind(client, &params.settled_at, &params.number))
+    }
+}
 pub struct PseudonymizeDocumentsStmt(&'static str, Option<tokio_postgres::Statement>);
 pub fn pseudonymize_documents() -> PseudonymizeDocumentsStmt {
     PseudonymizeDocumentsStmt(
@@ -503,6 +559,7 @@ impl ListDocumentsByUserIdStmt {
                         net_total_cents: row.try_get(6)?,
                         vat_total_cents: row.try_get(7)?,
                         gross_total_cents: row.try_get(8)?,
+                        settled_at: row.try_get(9)?,
                     })
                 },
             mapper: |it| Document::from(it),
@@ -549,6 +606,7 @@ impl ListDocumentsStmt {
                         net_total_cents: row.try_get(6)?,
                         vat_total_cents: row.try_get(7)?,
                         gross_total_cents: row.try_get(8)?,
+                        settled_at: row.try_get(9)?,
                     })
                 },
             mapper: |it| Document::from(it),
@@ -694,6 +752,7 @@ impl ListDocumentsIssuedBeforeStmt {
                         net_total_cents: row.try_get(6)?,
                         vat_total_cents: row.try_get(7)?,
                         gross_total_cents: row.try_get(8)?,
+                        settled_at: row.try_get(9)?,
                     })
                 },
             mapper: |it| Document::from(it),

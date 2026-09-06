@@ -136,6 +136,7 @@ Dates are printed, and the calendar year of the retention period is determined, 
 Records that were created by the migration for the captured coin orders that predate this table carry only number, date, user and Morphcoin amount; the remaining values are filled in the next time the document is rendered.
 Once the retention period has expired, `get_invoice_pdf` and `get_credit_note` stop recreating the document.
 `GET /finance/documents` lists the records for administrators, filtered by kind and searched by document number or customer details; documents of deleted accounts have no `user_id`, and a final statement is found by the email address it still carries.
+A final statement is the only document that records a claim, namely the unused share of the purchased Morphcoins, which is refunded on request. The refund is made by hand, and after the deletion there is no balance left that would show it, so the record is stamped by hand with `academy admin finance settle <number>` once the money has been sent; `settled_at` is then set and every listing shows that the claim is closed. Without it the same statement could be handed in twice.
 The documents of an account are also part of its data export.
 
 ### Scheduled Tasks
@@ -153,6 +154,7 @@ The NixOS module in `nix/module.nix` defines a systemd timer per task (`prune-da
 
 ### CLI
 The `academy` executable also provides some other useful commands e.g. for administration, debugging and testing purposes.
+`academy admin finance settle <number>` records that the claim of a final statement has been paid out; it refuses a number that does not exist, a document of another kind and a statement that has already been settled.
 
 ## Configuration
 The backend is configured using one or more TOML files specified in the `ACADEMY_CONFIG` environment variable.

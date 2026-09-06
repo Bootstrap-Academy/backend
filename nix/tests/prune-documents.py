@@ -87,6 +87,25 @@ assert [d["number"] for d in resp.json()["documents"]] == [statement_number]
 resp = adm.get("/finance/documents", params={"kind": "FINAL_STATEMENT"})
 assert resp.status_code == 200
 assert [d["number"] for d in resp.json()["documents"]] == [statement_number]
+assert resp.json()["documents"][0]["settled_at"] is None
+
+
+def statement():
+    resp = adm.get("/finance/documents", params={"kind": "FINAL_STATEMENT"})
+    assert resp.status_code == 200
+    return resp.json()["documents"][0]
+
+
+# The refund itself is made by hand, so the claim is closed out by hand as
+# well; the listing then shows that the statement has been paid out and it
+# cannot be settled a second time.
+assert os.system(f"academy admin finance settle {statement_number}") == 0
+assert statement()["settled_at"] is not None
+assert os.system(f"academy admin finance settle {statement_number}") != 0
+
+# Only a final statement records a claim, and an unknown number is rejected.
+assert os.system("academy admin finance settle R0000001") != 0
+assert os.system("academy admin finance settle S999") != 0
 
 # The listing requires admin privileges.
 resp = c.get("/finance/documents")

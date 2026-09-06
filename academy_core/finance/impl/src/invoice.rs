@@ -205,6 +205,8 @@ where
                     net_total_cents: to_cents(net_total),
                     vat_total_cents: to_cents(vat_total),
                     gross_total_cents: to_cents(gross_total),
+                    // An invoice records no claim that could be settled.
+                    settled_at: None,
                 },
             )
             .await
@@ -347,6 +349,8 @@ where
                     net_total_cents: to_cents(net_total),
                     vat_total_cents: to_cents(vat_total),
                     gross_total_cents: to_cents(gross_total),
+                    // A credit note records no claim that could be settled.
+                    settled_at: None,
                 },
             )
             .await
@@ -428,6 +432,9 @@ where
                     net_total_cents: None,
                     vat_total_cents: None,
                     gross_total_cents: to_cents(refund_amount),
+                    // The refund is made by hand, so the claim is closed by
+                    // hand as well (`academy admin finance settle`).
+                    settled_at: None,
                 },
             )
             .await
@@ -609,6 +616,7 @@ mod tests {
                 // that the printed amounts add up (`PrintedTotals`).
                 vat_total_cents: Some(200),
                 gross_total_cents: Some(400),
+                settled_at: None,
             });
 
         let prices = CoinPrices {
@@ -710,6 +718,7 @@ mod tests {
             // that the printed amounts add up (`PrintedTotals`).
             vat_total_cents: Some(200),
             gross_total_cents: Some(400),
+            settled_at: None,
         };
 
         let document_repo = MockFinancialDocumentRepository::new()
@@ -1032,6 +1041,7 @@ mod tests {
                 // that the printed amounts add up (`PrintedTotals`).
                 vat_total_cents: Some(200),
                 gross_total_cents: Some(400),
+                settled_at: None,
             });
 
         let template = MockTemplateService::new().with_render(
@@ -1331,6 +1341,7 @@ mod tests {
             net_total_cents: None,
             vat_total_cents: None,
             gross_total_cents: Some(1200),
+            settled_at: None,
         });
 
         let template = MockTemplateService::new().with_render(
@@ -1419,6 +1430,7 @@ mod tests {
             net_total_cents: None,
             vat_total_cents: None,
             gross_total_cents: Some(500),
+            settled_at: None,
         });
 
         let template = MockTemplateService::new().with_render(
@@ -1582,6 +1594,7 @@ mod tests {
             net_total_cents: None,
             vat_total_cents: None,
             gross_total_cents: Some(500),
+            settled_at: None,
         });
 
         let template = MockTemplateService::new().with_render(

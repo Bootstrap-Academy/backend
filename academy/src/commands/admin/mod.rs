@@ -1,12 +1,14 @@
 use academy_config::Config;
 use clap::Subcommand;
 use coin::AdminCoinCommand;
+use finance::AdminFinanceCommand;
 use invoice::AdminInvoiceCommand;
 use user::AdminUserCommand;
 
 use crate::commands::admin::session::AdminSessionCommand;
 
 mod coin;
+mod finance;
 mod invoice;
 mod session;
 mod user;
@@ -37,6 +39,12 @@ pub enum AdminCommand {
         #[command(subcommand)]
         command: AdminCoinCommand,
     },
+    /// Manage the issued financial documents
+    #[command(aliases(["f"]))]
+    Finance {
+        #[command(subcommand)]
+        command: AdminFinanceCommand,
+    },
 }
 
 impl AdminCommand {
@@ -46,6 +54,7 @@ impl AdminCommand {
             AdminCommand::Session { command } => command.invoke(config).await,
             AdminCommand::Invoice { command } => command.invoke(config).await,
             AdminCommand::Coin { command } => command.invoke(config).await,
+            AdminCommand::Finance { command } => command.invoke(config).await,
         }
     }
 }

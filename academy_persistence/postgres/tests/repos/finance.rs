@@ -28,6 +28,7 @@ fn invoice(number: &str, issued_at: DateTime<Utc>) -> FinancialDocument {
         net_total_cents: Some(1124),
         vat_total_cents: Some(213),
         gross_total_cents: Some(1337),
+        settled_at: None,
     }
 }
 
@@ -42,6 +43,7 @@ fn final_statement(number: &str, issued_at: DateTime<Utc>) -> FinancialDocument 
         net_total_cents: None,
         vat_total_cents: None,
         gross_total_cents: Some(500),
+        settled_at: None,
     }
 }
 
@@ -71,6 +73,63 @@ async fn record_and_get() {
     );
 }
 
+/// The claim a final statement records is refunded by hand, so it is closed
+/// out by hand: `settle` stamps the record and a repeated `record` does not
+/// clear the stamp.
+#[tokio::test]
+async fn settle() {
+    let db = setup().await;
+    let document = final_statement("S42", date(2024, 3, 14));
+    let settled_at = date(2026, 9, 6);
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    assert!(
+        !REPO
+            .settle(&mut txn, &document.number, settled_at)
+            .await
+            .unwrap(),
+        "a document that does not exist cannot be settled"
+    );
+
+    REPO.record(&mut txn, &document).await.unwrap();
+    assert!(
+        REPO.get(&mut txn, &document.number)
+            .await
+            .unwrap()
+            .unwrap()
+            .settled_at
+            .is_none()
+    );
+
+    assert!(
+        REPO.settle(&mut txn, &document.number, settled_at)
+            .await
+            .unwrap()
+    );
+    txn.commit().await.unwrap();
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    assert_eq!(
+        REPO.get(&mut txn, &document.number).await.unwrap().unwrap(),
+        FinancialDocument {
+            settled_at: Some(settled_at),
+            ..document.clone()
+        }
+    );
+
+    // Re-rendering the pdf records the document again, which must not reopen
+    // a claim that has been paid out.
+    REPO.record(&mut txn, &document).await.unwrap();
+    assert_eq!(
+        REPO.get(&mut txn, &document.number)
+            .await
+            .unwrap()
+            .unwrap()
+            .settled_at,
+        Some(settled_at)
+    );
+}
+
 /// An issued document must not change, so recording it again keeps the values
 /// it was issued with.
 #[tokio::test]
@@ -90,6 +149,7 @@ async fn record_keeps_the_values_a_document_was_issued_with() {
             net_total_cents: Some(1),
             vat_total_cents: Some(1),
             gross_total_cents: Some(1),
+            settled_at: None,
             ..document.clone()
         },
     )
@@ -121,6 +181,7 @@ async fn record_fills_in_missing_values() {
             net_total_cents: None,
             vat_total_cents: None,
             gross_total_cents: None,
+            settled_at: None,
             ..document.clone()
         },
     )
@@ -462,6 +523,7 @@ async fn migration_backfills_the_captured_coin_orders() {
             net_total_cents: None,
             vat_total_cents: None,
             gross_total_cents: Some(1337),
+            settled_at: None,
         }]
     );
 }

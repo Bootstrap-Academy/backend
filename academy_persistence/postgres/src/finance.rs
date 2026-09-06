@@ -13,7 +13,7 @@ use clorinde::{
         self,
         finance::{
             CountDocumentsParams, ListDocumentsParams, PseudonymizeDocumentsParams,
-            RecordDocumentParams,
+            RecordDocumentParams, SettleDocumentParams,
         },
     },
 };
@@ -65,6 +65,25 @@ impl FinancialDocumentRepository<PostgresTransaction> for PostgresFinancialDocum
             .await
             .map_err(Into::into)
             .and_then(|row| row.map(decode_document).transpose())
+    }
+
+    #[trace_instrument(skip(self, txn))]
+    async fn settle(
+        &self,
+        txn: &mut PostgresTransaction,
+        number: &FinancialDocumentNumber,
+        settled_at: DateTime<Utc>,
+    ) -> anyhow::Result<bool> {
+        let params = SettleDocumentParams {
+            settled_at: settled_at.into(),
+            number: &**number,
+        };
+
+        queries::finance::settle_document()
+            .params(txn.txn(), &params)
+            .await
+            .map(|rows| rows > 0)
+            .map_err(Into::into)
     }
 
     #[trace_instrument(skip(self, txn))]
@@ -203,5 +222,6 @@ fn decode_document(value: queries::finance::Document) -> anyhow::Result<Financia
         net_total_cents: value.net_total_cents,
         vat_total_cents: value.vat_total_cents,
         gross_total_cents: value.gross_total_cents,
+        settled_at: value.settled_at.map(Into::into),
     })
 }

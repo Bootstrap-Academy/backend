@@ -105,6 +105,15 @@ pub struct FinancialDocument {
     pub net_total_cents: Option<i64>,
     pub vat_total_cents: Option<i64>,
     pub gross_total_cents: Option<i64>,
+    /// When the claim the document records was closed out, or `None` while it
+    /// is still open.
+    ///
+    /// Only a final statement records a claim: the unused share of the
+    /// purchased Morphcoins, which is refunded by hand on request. The
+    /// timestamp is therefore set by hand as well, with
+    /// `academy admin finance settle <number>`, so that the same statement
+    /// cannot be paid out twice.
+    pub settled_at: Option<DateTime<Utc>>,
 }
 
 /// Number of the final statement that is issued for the account with the given

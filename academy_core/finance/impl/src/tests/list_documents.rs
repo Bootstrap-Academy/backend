@@ -41,6 +41,7 @@ fn make_document() -> FinancialDocument {
         net_total_cents: Some(1123),
         vat_total_cents: Some(214),
         gross_total_cents: Some(1337),
+        settled_at: None,
     }
 }
 

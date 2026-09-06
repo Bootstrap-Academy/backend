@@ -17,11 +17,15 @@ pub trait OAuth2RegistrationService: Send + Sync + 'static {
         registration_token: &OAuth2RegistrationToken,
     ) -> impl Future<Output = anyhow::Result<Option<OAuth2Registration>>> + Send;
 
-    /// Invalidate the given [`OAuth2RegistrationToken`].
-    fn remove(
+    /// Invalidate the given [`OAuth2RegistrationToken`] and report whether it
+    /// was still valid.
+    ///
+    /// Reading and invalidating happen atomically, so of two concurrent
+    /// requests redeeming the same token exactly one gets `true`.
+    fn consume(
         &self,
         registration_token: &OAuth2RegistrationToken,
-    ) -> impl Future<Output = anyhow::Result<()>> + Send;
+    ) -> impl Future<Output = anyhow::Result<bool>> + Send;
 }
 
 #[cfg(feature = "mock")]
@@ -50,11 +54,11 @@ impl MockOAuth2RegistrationService {
         self
     }
 
-    pub fn with_remove(mut self, token: OAuth2RegistrationToken) -> Self {
-        self.expect_remove()
+    pub fn with_consume(mut self, token: OAuth2RegistrationToken, result: bool) -> Self {
+        self.expect_consume()
             .once()
             .with(mockall::predicate::eq(token))
-            .return_once(|_| Box::pin(std::future::ready(Ok(()))));
+            .return_once(move |_| Box::pin(std::future::ready(Ok(result))));
         self
     }
 }

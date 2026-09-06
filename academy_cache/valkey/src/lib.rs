@@ -108,6 +108,28 @@ impl CacheService for ValkeyCache {
     }
 
     #[trace_instrument(skip(self))]
+    async fn pop<T: DeserializeOwned + Debug + 'static>(
+        &self,
+        key: &str,
+    ) -> anyhow::Result<Option<T>> {
+        let mut conn = self
+            .pool
+            .get()
+            .await
+            .context("Failed to acquire cache connection")?;
+
+        let result = conn
+            .get_del::<_, Option<Vec<u8>>>(key)
+            .await
+            .context("Failed to read and remove value from cache")?;
+
+        result
+            .map(|data| rmp_serde::from_slice(&data))
+            .transpose()
+            .context("Failed to deserialize cached value")
+    }
+
+    #[trace_instrument(skip(self))]
     async fn remove(&self, key: &str) -> anyhow::Result<()> {
         let mut conn = self
             .pool

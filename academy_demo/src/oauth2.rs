@@ -19,6 +19,7 @@ pub static TEST_OAUTH2_PROVIDER: LazyLock<OAuth2Provider> = LazyLock::new(|| OAu
     userinfo_id_key: "id".into(),
     userinfo_name_key: "name".into(),
     scopes: ["foo", "bar", "baz"].map(Into::into).into(),
+    pkce: true,
 });
 
 pub static ALL_OAUTH2_LINKS: LazyLock<Vec<&OAuth2Link>> =

@@ -79,7 +79,7 @@ The version of the terms and conditions a user accepted is stored on the user (`
 
 Existing users are asked again when a new version is published:
 
-- `POST /auth/users/{user_id}/terms` records the acceptance of the version passed in the request. `user_id` has to be `me` or `self`.
+- `POST /auth/users/{user_id}/terms` records the acceptance of the version that is currently in force (`user.terms_version`) and requires `age_confirmed` to be `true`. `terms_version` in the request has to be that version and is only checked; the value that is recorded is the server's. `user_id` has to be `me` or `self`.
 - `POST /auth/users/{user_id}/terms/decline` records that the user does not accept the version the platform currently asks for (`terms_declined_at`). The previously accepted version stays in place. Accepting later clears the refusal.
 
 `terms_version`, `terms_accepted_at` and `terms_declined_at` are read-only fields on the user object; `age_confirmed_at` is stored but not returned by the API.

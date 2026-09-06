@@ -116,7 +116,9 @@ fn list_by_user_docs(op: TransformOperation) -> TransformOperation {
 struct CreateRequest {
     name_or_email: UserNameOrEmailAddress,
     password: UserPassword,
+    #[serde(default)]
     mfa_code: StringOption<TotpCode>,
+    #[serde(default)]
     recovery_code: StringOption<MfaRecoveryCode>,
     /// reCAPTCHA response. Only evaluated if reCAPTCHA is enabled.
     #[serde(default)]
@@ -307,11 +309,18 @@ mod tests {
     use super::*;
 
     /// `recaptcha_response` must not be advertised as required, so that clients
-    /// can omit it when reCAPTCHA is disabled.
+    /// can omit it when reCAPTCHA is disabled, and neither may the two codes of
+    /// the second factor: a login without one omits both.
     #[test]
-    fn create_request_recaptcha_response_is_optional() {
+    fn create_request_optional_fields_are_optional() {
         let schema = serde_json::to_value(schemars::schema_for!(CreateRequest)).unwrap();
         let required = schema["required"].as_array().unwrap();
-        assert!(!required.iter().any(|field| field == "recaptcha_response"));
+
+        for field in ["recaptcha_response", "mfa_code", "recovery_code"] {
+            assert!(
+                !required.iter().any(|x| x == field),
+                "{field} is advertised as required"
+            );
+        }
     }
 }

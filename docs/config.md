@@ -54,6 +54,15 @@ Durations are strings built from `d`, `h`, `m` and `s` parts, e.g. `"30d"`, `"10
 | --- | --- | --- |
 | `jwt_ttl` | `"10s"` | Lifetime of the tokens the backend issues to authenticate itself against the microservices. |
 
+### `[internal.secrets]`
+One secret per audience of the internal service tokens, so that a token issued for one service cannot be used against another.
+An audience that is not listed here falls back to `jwt.secret`, on signing and on verification alike, which keeps the shared secret in use until a dedicated one has been deployed to every sender and to the receiver.
+The audiences are `auth` and `shop` (incoming, verified by the `_internal` endpoints of this backend) and `skills`, `challenges` and `events` (outgoing, expected by the microservices).
+
+| Property | Default | Description |
+| --- | --- | --- |
+| `<audience>` | *unset* | Secret used to sign and verify the internal service tokens of that audience. |
+
 ## `[health]`
 | Property | Default | Description |
 | --- | --- | --- |
@@ -98,7 +107,7 @@ The per-ip budget only stops a single machine from flooding the endpoint, so it 
 
 | Property | Default | Description |
 | --- | --- | --- |
-| `rate_limit_window` | `"1h"` | Window both counters are reset after. |
+| `rate_limit_window` | `"1h"` | Lifetime of a counter. It starts again with every counted request, so the window slides rather than being reset at a fixed point. |
 | `rate_limit_per_ip` | `60` | Maximum number of declarations per client ip address within the window. |
 | `rate_limit_per_email` | `5` | Maximum number of declarations per email address within the window. |
 
@@ -107,7 +116,7 @@ The section is always parsed, so `sitekey` and `secret` have to be set even when
 
 | Property | Default | Description |
 | --- | --- | --- |
-| `enable` | `true` | Set to `false` to drop the whole section: no reCAPTCHA response is verified and `GET /config` reports no site key, so the frontend does not load the reCAPTCHA script. |
+| `enable` | `true` | Set to `false` to drop the whole section: no reCAPTCHA response is verified and `GET /auth/recaptcha` reports no site key, so the frontend does not load the reCAPTCHA script. |
 | `siteverify_endpoint_override` | *unset* | Alternative siteverify endpoint, used by the test setup. |
 | `sitekey` | **required** | reCAPTCHA site key, published through `GET /auth/recaptcha`. |
 | `secret` | **required** | reCAPTCHA secret key. |
@@ -184,16 +193,20 @@ Optional section for error reporting to GlitchTip/Sentry. It is not present in `
 | --- | --- | --- |
 | `enable` | `true` | Set to `false` to disable OAuth2 entirely. OAuth2 is also disabled if no provider remains enabled. |
 | `registration_token_ttl` | `"10m"` | Lifetime of the token issued after an OAuth2 login without a linked account. |
+| `authorization_ttl` | `"10m"` | How long a started authorization flow (`POST /auth/oauth/authorize`) can be completed. It only has to cover the round trip through the provider's consent screen. |
 
 ### `[oauth2.providers.<id>]`
 `config.toml` predefines `github`, `discord` and `google` with everything except the credentials; further providers can be added under any id.
+
+Every provider is parsed before the disabled ones are dropped, so `client_id` and `client_secret` have to be set even for a provider with `enable = false` — an empty string is enough.
 
 | Property | Default | Description |
 | --- | --- | --- |
 | `enable` | `true` | Set to `false` to remove the provider. |
 | `name` | **required** | Display name of the provider. |
-| `client_id` | **required** | OAuth2 client id. |
-| `client_secret` | **required** | OAuth2 client secret. |
+| `client_id` | **required** | OAuth2 client id. Required even when the provider is disabled. |
+| `client_secret` | **required** | OAuth2 client secret. Required even when the provider is disabled. |
+| `pkce` | `true` | Whether the provider supports PKCE (RFC 7636). Set to `false` only for a provider that rejects `code_challenge`. |
 | `auth_url` | **required** | Authorization endpoint. |
 | `token_url` | **required** | Token endpoint. |
 | `userinfo_url` | **required** | Endpoint returning the profile of the authenticated user. |

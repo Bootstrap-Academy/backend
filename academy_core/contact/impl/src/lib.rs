@@ -29,7 +29,7 @@ where
     Captcha: CaptchaService,
     EmailS: EmailService,
 {
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, message, recaptcha_response))]
     async fn send_message(
         &self,
         message: ContactMessage,

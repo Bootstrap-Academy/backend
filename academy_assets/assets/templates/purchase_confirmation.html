@@ -10,7 +10,7 @@
 	<p>
     Deine Erklärungen zum Widerrufsrecht bei dieser Bestellung (§ 312f Abs. 3 BGB):
     „{{ withdrawal_consent.text }}“
-    Abgegeben am {{ withdrawal_consent.timestamp }}, Fassung der Widerrufsbelehrung {{ withdrawal_consent.version }}.
+    Abgegeben am {{ withdrawal_consent.timestamp }}, Fassung der Widerrufsbelehrung {{ withdrawal_consent.version | escape }}.
     Die vollständige Widerrufsbelehrung findest du unter
     <a href="https://bootstrap.academy/docs/right-of-withdrawal">https://bootstrap.academy/docs/right-of-withdrawal</a>.
 	</p>

@@ -101,7 +101,8 @@ A cancellation that names a premium membership and an email address belonging to
 Before a paid order is placed, the consumer gives the declarations that are shown next to the order button.
 Endpoints that complete a purchase themselves (`POST /shop/coins/paypal/orders`, `POST /shop/premium`, `PUT /shop/hearts`) take them as part of the request body (`withdrawal_consent`, `withdrawal_text_version`) and reject the order without them.
 For purchases that are completed by one of the microservices (unlocking a course, booking a webinar or a coaching) the frontend records the declarations first through `POST /shop/consents`.
-The wording per subject lives in `academy_models::withdrawal` and is repeated in the purchase confirmation email.
+The wording per subject lives in `academy_models::withdrawal` and is repeated in the purchase confirmation email, together with the version of the withdrawal instruction it was taken from (`academy_models::withdrawal::WITHDRAWAL_TEXT_VERSION`).
+`withdrawal_text_version` in the request has to be that version; an order that states another one is rejected like an order without the declarations, so a recorded consent can never name an instruction that was never published.
 
 ### Account Deletion
 Deleting a user (`DELETE /auth/users/{user_id}`) removes the account from the backend database and then notifies the microservices so they can delete the rows that belong to that user.

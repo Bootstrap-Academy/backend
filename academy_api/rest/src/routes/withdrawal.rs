@@ -76,7 +76,9 @@ fn record_consent_docs(op: TransformOperation) -> TransformOperation {
             "Purchases that are completed by this service record the declarations under \
              § 356 Abs. 5 Nr. 2 / Abs. 6 Nr. 2 BGB themselves. This endpoint records them for \
              purchases that are completed by another service, and has to be called before the \
-             order is placed there.",
+             order is placed there. `withdrawal_text_version` has to be the version of the \
+             withdrawal instruction that is currently in force; the version that is recorded is \
+             the server's.",
         )
         .add_response::<ApiWithdrawalConsent>(
             StatusCode::OK,
@@ -88,6 +90,8 @@ fn record_consent_docs(op: TransformOperation) -> TransformOperation {
 }
 
 error_code! {
-    /// The consumer did not give the declarations that are required before an order can be placed.
+    /// The consumer did not give the declarations that are required before an
+    /// order can be placed, or `withdrawal_text_version` is not the version of
+    /// the withdrawal instruction that is currently in force.
     pub WithdrawalConsentMissingError(PRECONDITION_FAILED, "Withdrawal consent missing");
 }

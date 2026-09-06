@@ -67,6 +67,25 @@ async fn set_ttl() {
 }
 
 #[tokio::test]
+async fn pop() {
+    let cache = setup().await;
+
+    assert_eq!(cache.pop::<String>("x").await.unwrap(), None);
+
+    cache
+        .set("x", &"hello world".to_owned(), None)
+        .await
+        .unwrap();
+
+    assert_eq!(
+        cache.pop::<String>("x").await.unwrap().unwrap(),
+        "hello world"
+    );
+    assert_eq!(cache.pop::<String>("x").await.unwrap(), None);
+    assert_eq!(cache.get::<String>("x").await.unwrap(), None);
+}
+
+#[tokio::test]
 async fn remove() {
     let cache = setup().await;
 

@@ -1,6 +1,7 @@
 use academy_auth_contracts::MockAuthService;
 use academy_core_oauth2_contracts::{
     OAuth2CreateLinkError, OAuth2FeatureService,
+    authorization::MockOAuth2AuthorizationService,
     link::{MockOAuth2LinkService, OAuth2LinkServiceError},
     login::{MockOAuth2LoginService, OAuth2LoginServiceError},
 };
@@ -11,31 +12,31 @@ use academy_demo::{
 };
 use academy_models::{
     auth::{AuthError, AuthenticateError, AuthorizeError},
-    oauth2::OAuth2Login,
+    oauth2::OAuth2PendingAuthorization,
     user::UserIdOrSelf,
 };
 use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
 use academy_utils::assert_matches;
 
-use crate::{OAuth2FeatureServiceImpl, tests::Sut};
+use crate::{
+    OAuth2FeatureServiceImpl,
+    tests::{STATE, Sut, callback, login, pending_authorization},
+};
 
 #[tokio::test]
 async fn ok() {
     // Arrange
-    let login = OAuth2Login {
-        provider_id: TEST_OAUTH2_PROVIDER_ID.clone(),
-        code: "code".try_into().unwrap(),
-        redirect_uri: "http://test/redirect".parse().unwrap(),
-    };
-
     let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
 
     let db = MockDatabase::build(true);
 
     let user_repo = MockUserRepository::new().with_exists(FOO.user.id, true);
 
+    let oauth2_authorization = MockOAuth2AuthorizationService::new()
+        .with_consume(STATE.try_into().unwrap(), Some(pending_authorization()));
+
     let oauth2_login = MockOAuth2LoginService::new()
-        .with_login(login.clone(), Ok(FOO_OAUTH2_LINK_1.remote_user.clone()));
+        .with_login(login(), Ok(FOO_OAUTH2_LINK_1.remote_user.clone()));
 
     let oauth2_create_link = MockOAuth2LinkService::new().with_create(
         FOO.user.id,
@@ -48,6 +49,7 @@ async fn ok() {
         db,
         auth,
         user_repo,
+        oauth2_authorization,
         oauth2_login,
         oauth2_create_link,
         ..Sut::default()
@@ -55,7 +57,7 @@ async fn ok() {
 
     // Act
     let result = sut
-        .create_link(&"token".into(), UserIdOrSelf::Slf, login)
+        .create_link(&"token".into(), UserIdOrSelf::Slf, callback())
         .await;
 
     // Assert
@@ -65,12 +67,6 @@ async fn ok() {
 #[tokio::test]
 async fn unauthenticated() {
     // Arrange
-    let login = OAuth2Login {
-        provider_id: TEST_OAUTH2_PROVIDER_ID.clone(),
-        code: "code".try_into().unwrap(),
-        redirect_uri: "http://test/redirect".parse().unwrap(),
-    };
-
     let auth = MockAuthService::new().with_authenticate(None);
 
     let sut = OAuth2FeatureServiceImpl {
@@ -80,7 +76,7 @@ async fn unauthenticated() {
 
     // Act
     let result = sut
-        .create_link(&"token".into(), FOO.user.id.into(), login)
+        .create_link(&"token".into(), FOO.user.id.into(), callback())
         .await;
 
     // Assert
@@ -95,12 +91,6 @@ async fn unauthenticated() {
 #[tokio::test]
 async fn unauthorized() {
     // Arrange
-    let login = OAuth2Login {
-        provider_id: TEST_OAUTH2_PROVIDER_ID.clone(),
-        code: "code".try_into().unwrap(),
-        redirect_uri: "http://test/redirect".parse().unwrap(),
-    };
-
     let auth = MockAuthService::new().with_authenticate(Some((BAR.user.clone(), BAR_1.clone())));
 
     let sut = OAuth2FeatureServiceImpl {
@@ -110,7 +100,7 @@ async fn unauthorized() {
 
     // Act
     let result = sut
-        .create_link(&"token".into(), FOO.user.id.into(), login)
+        .create_link(&"token".into(), FOO.user.id.into(), callback())
         .await;
 
     // Assert
@@ -125,12 +115,6 @@ async fn unauthorized() {
 #[tokio::test]
 async fn not_found() {
     // Arrange
-    let login = OAuth2Login {
-        provider_id: TEST_OAUTH2_PROVIDER_ID.clone(),
-        code: "code".try_into().unwrap(),
-        redirect_uri: "http://test/redirect".parse().unwrap(),
-    };
-
     let auth =
         MockAuthService::new().with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())));
 
@@ -147,20 +131,54 @@ async fn not_found() {
 
     // Act
     let result = sut
-        .create_link(&"token".into(), FOO.user.id.into(), login)
+        .create_link(&"token".into(), FOO.user.id.into(), callback())
         .await;
 
     // Assert
     assert_matches!(result, Err(OAuth2CreateLinkError::NotFound));
 }
 
+/// A `state` that was never issued, has expired or has already been redeemed
+/// is rejected before the authorization code is exchanged.
+#[tokio::test]
+async fn invalid_state() {
+    // Arrange
+    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+
+    let db = MockDatabase::build(false);
+
+    let user_repo = MockUserRepository::new().with_exists(FOO.user.id, true);
+
+    let oauth2_authorization =
+        MockOAuth2AuthorizationService::new().with_consume(STATE.try_into().unwrap(), None);
+
+    let sut = OAuth2FeatureServiceImpl {
+        db,
+        auth,
+        user_repo,
+        oauth2_authorization,
+        ..Sut::default()
+    };
+
+    // Act
+    let result = sut
+        .create_link(&"token".into(), UserIdOrSelf::Slf, callback())
+        .await;
+
+    // Assert
+    assert_matches!(result, Err(OAuth2CreateLinkError::InvalidState));
+}
+
 #[tokio::test]
 async fn invalid_provider() {
     // Arrange
-    let login = OAuth2Login {
+    let pending = OAuth2PendingAuthorization {
         provider_id: "invalid-provider".into(),
-        code: "code".try_into().unwrap(),
-        redirect_uri: "http://test/redirect".parse().unwrap(),
+        ..pending_authorization()
+    };
+    let login = crate::OAuth2Login {
+        provider_id: "invalid-provider".into(),
+        ..login()
     };
 
     let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
@@ -169,20 +187,24 @@ async fn invalid_provider() {
 
     let user_repo = MockUserRepository::new().with_exists(FOO.user.id, true);
 
+    let oauth2_authorization = MockOAuth2AuthorizationService::new()
+        .with_consume(STATE.try_into().unwrap(), Some(pending));
+
     let oauth2_login = MockOAuth2LoginService::new()
-        .with_login(login.clone(), Err(OAuth2LoginServiceError::InvalidProvider));
+        .with_login(login, Err(OAuth2LoginServiceError::InvalidProvider));
 
     let sut = OAuth2FeatureServiceImpl {
         db,
         auth,
         user_repo,
+        oauth2_authorization,
         oauth2_login,
         ..Sut::default()
     };
 
     // Act
     let result = sut
-        .create_link(&"token".into(), UserIdOrSelf::Slf, login)
+        .create_link(&"token".into(), UserIdOrSelf::Slf, callback())
         .await;
 
     // Assert
@@ -192,32 +214,30 @@ async fn invalid_provider() {
 #[tokio::test]
 async fn invalid_code() {
     // Arrange
-    let login = OAuth2Login {
-        provider_id: "invalid-provider".into(),
-        code: "code".try_into().unwrap(),
-        redirect_uri: "http://test/redirect".parse().unwrap(),
-    };
-
     let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
 
     let db = MockDatabase::build(false);
 
     let user_repo = MockUserRepository::new().with_exists(FOO.user.id, true);
 
+    let oauth2_authorization = MockOAuth2AuthorizationService::new()
+        .with_consume(STATE.try_into().unwrap(), Some(pending_authorization()));
+
     let oauth2_login = MockOAuth2LoginService::new()
-        .with_login(login.clone(), Err(OAuth2LoginServiceError::InvalidCode));
+        .with_login(login(), Err(OAuth2LoginServiceError::InvalidCode));
 
     let sut = OAuth2FeatureServiceImpl {
         db,
         auth,
         user_repo,
+        oauth2_authorization,
         oauth2_login,
         ..Sut::default()
     };
 
     // Act
     let result = sut
-        .create_link(&"token".into(), UserIdOrSelf::Slf, login)
+        .create_link(&"token".into(), UserIdOrSelf::Slf, callback())
         .await;
 
     // Assert
@@ -227,20 +247,17 @@ async fn invalid_code() {
 #[tokio::test]
 async fn remote_already_linked() {
     // Arrange
-    let login = OAuth2Login {
-        provider_id: TEST_OAUTH2_PROVIDER_ID.clone(),
-        code: "code".try_into().unwrap(),
-        redirect_uri: "http://test/redirect".parse().unwrap(),
-    };
-
     let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
 
     let db = MockDatabase::build(false);
 
     let user_repo = MockUserRepository::new().with_exists(FOO.user.id, true);
 
+    let oauth2_authorization = MockOAuth2AuthorizationService::new()
+        .with_consume(STATE.try_into().unwrap(), Some(pending_authorization()));
+
     let oauth2_login = MockOAuth2LoginService::new()
-        .with_login(login.clone(), Ok(FOO_OAUTH2_LINK_1.remote_user.clone()));
+        .with_login(login(), Ok(FOO_OAUTH2_LINK_1.remote_user.clone()));
 
     let oauth2_create_link = MockOAuth2LinkService::new().with_create(
         FOO.user.id,
@@ -253,6 +270,7 @@ async fn remote_already_linked() {
         db,
         auth,
         user_repo,
+        oauth2_authorization,
         oauth2_login,
         oauth2_create_link,
         ..Sut::default()
@@ -260,7 +278,7 @@ async fn remote_already_linked() {
 
     // Act
     let result = sut
-        .create_link(&"token".into(), UserIdOrSelf::Slf, login)
+        .create_link(&"token".into(), UserIdOrSelf::Slf, callback())
         .await;
 
     // Assert

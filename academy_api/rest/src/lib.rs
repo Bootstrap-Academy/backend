@@ -94,7 +94,8 @@ pub struct RestServerConfig {
 #[derive(Debug, Clone)]
 pub struct RestServerRealIpConfig {
     pub header: String,
-    pub set_from: Option<IpAddr>,
+    /// Address of the reverse proxy the header is accepted from.
+    pub set_from: IpAddr,
 }
 
 impl<

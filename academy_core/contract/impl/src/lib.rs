@@ -72,9 +72,16 @@ pub struct ContractFeatureConfig {
     pub internal_email: Arc<EmailAddressWithName>,
     /// Time window used for rate limiting declarations.
     pub rate_limit_window: Duration,
-    /// Maximum number of declarations per IP address / email address within
+    /// Maximum number of declarations per client IP address within
     /// [`ContractFeatureConfig::rate_limit_window`].
-    pub rate_limit_count: u64,
+    ///
+    /// An IP address is shared by everybody behind the same NAT, so this budget
+    /// is deliberately far larger than the per-address one: it only stops a
+    /// single machine from flooding the endpoint.
+    pub rate_limit_per_ip: u64,
+    /// Maximum number of declarations per email address within
+    /// [`ContractFeatureConfig::rate_limit_window`].
+    pub rate_limit_per_email: u64,
 }
 
 impl<Db, Auth, Id, Time, Cache, Hash, TemplateEmail, EmailS, UserRepo, PremiumRepo, ContractRepo>
@@ -366,7 +373,9 @@ where
             .context("Failed to get rate limit counter from cache")?
             .unwrap_or(0);
 
-        if ip_count >= self.config.rate_limit_count || email_count >= self.config.rate_limit_count {
+        if ip_count >= self.config.rate_limit_per_ip
+            || email_count >= self.config.rate_limit_per_email
+        {
             trace!("rate limit exceeded");
             return Err(ContractDeclareError::RateLimit);
         }

@@ -868,6 +868,7 @@ dependencies = [
  "chrono",
  "mockall",
  "rust_decimal",
+ "rust_decimal_macros",
  "serde",
 ]
 
@@ -880,6 +881,8 @@ dependencies = [
  "academy_templates_contracts",
  "academy_utils",
  "anyhow",
+ "rust_decimal",
+ "rust_decimal_macros",
  "serde",
  "tera",
  "tracing",

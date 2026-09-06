@@ -174,7 +174,8 @@ pub struct UserCreateRequest {
     pub email: EmailAddress,
     pub password: Option<UserPassword>,
     pub oauth2_registration_token: Option<OAuth2RegistrationToken>,
-    /// Version of the terms and conditions the user accepted.
+    /// Version of the terms and conditions the user accepted. Has to be the
+    /// version that is currently in force.
     pub terms_version: TermsVersion,
     /// Whether the user confirmed to meet the minimum age. Must be `true`.
     pub age_confirmed: bool,
@@ -192,6 +193,8 @@ pub enum UserCreateError {
     NoLoginMethod,
     #[error("The user did not confirm to meet the minimum age.")]
     AgeNotConfirmed,
+    #[error("The accepted version of the terms and conditions is not the current one.")]
+    TermsVersionMismatch,
     #[error("The oauth registration token is invalid or has expired.")]
     InvalidOAuthRegistrationToken,
     #[error("The remote user has already been linked.")]
@@ -252,7 +255,8 @@ pub enum UserUpdateError {
 
 #[derive(Debug)]
 pub struct UserAcceptTermsRequest {
-    /// Version of the terms and conditions the user accepts.
+    /// Version of the terms and conditions the user accepts. Has to be the
+    /// version that is currently in force.
     pub terms_version: TermsVersion,
     /// Whether the user confirmed to meet the minimum age. Must be `true`.
     pub age_confirmed: bool,
@@ -266,6 +270,8 @@ pub enum UserAcceptTermsError {
     NotFound,
     #[error("The user did not confirm to meet the minimum age.")]
     AgeNotConfirmed,
+    #[error("The accepted version of the terms and conditions is not the current one.")]
+    TermsVersionMismatch,
     #[error(transparent)]
     Other(#[from] anyhow::Error),
 }

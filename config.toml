@@ -1,5 +1,8 @@
 [http]
 # address = "0.0.0.0:80"
+# Read the client ip from a header set by the reverse proxy. `set_from` is
+# required: the header is only trusted when the request actually comes from
+# that address, so a client cannot choose its own ip.
 # real_ip = { header = "X-Real-Ip", set_from = "127.0.0.1" }
 allowed_origins = []
 
@@ -47,6 +50,9 @@ cache_cache_ttl = "10s"
 email_cache_ttl = "10s"
 
 [user]
+# Version of the terms and conditions that is currently in force. Only this
+# version can be accepted, and it is the value that is recorded.
+terms_version = "2026-09"
 name_change_rate_limit = "30d"
 export_rate_limit = "10m"
 verification_code_ttl = "4h"
@@ -65,6 +71,21 @@ secret_length = 32
 
 [contact]
 # email = ""
+
+[contract]
+# Rate limits of the declaration endpoints (`POST /contracts/cancellations` and
+# `POST /contracts/withdrawals`), counted per client ip address and per email
+# address over the same window.
+#
+# The per-ip budget only exists to stop one machine from flooding the endpoint.
+# It has to stay far above what a household, a school or a carrier-grade NAT
+# produces, because everybody behind such an address shares it and § 312k Abs. 2
+# BGB requires the cancellation form to be permanently available. The per-email
+# budget is the tighter one: nobody declares the same contract five times an
+# hour.
+rate_limit_window = "1h"
+rate_limit_per_ip = 60
+rate_limit_per_email = 5
 
 [recaptcha]
 enable = true

@@ -90,7 +90,7 @@ Consumers can declare the cancellation of or the withdrawal from a contract with
 - `POST /contracts/cancellations`
 - `POST /contracts/withdrawals`
 
-Both endpoints are public, rate limited per client ip and per email address (5 declarations per hour each), and store the declaration in the `contract_declarations` table with the time it was received.
+Both endpoints are public, rate limited per client ip and per email address (`[contract]` in [`docs/config.md`](docs/config.md); 60 and 5 declarations per hour by default, because an ip address is shared by everybody behind the same NAT), and store the declaration in the `contract_declarations` table with the time it was received.
 The declaration is committed before any email is sent, so a failing mail server cannot lose it; the response reports in `confirmation_email_sent` whether the confirmation reached the declarant.
 Two emails are sent per declaration: a confirmation to the declarant (`contract_cancellation_confirmation.html` / `contract_withdrawal_confirmation.html`) and a plain-text notification to `contact.email`.
 

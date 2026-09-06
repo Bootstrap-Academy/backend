@@ -14,10 +14,13 @@ use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
 use academy_utils::assert_matches;
 use chrono::{TimeZone, Utc};
 
-use crate::{UserFeatureServiceImpl, tests::Sut};
+use crate::{
+    UserFeatureServiceImpl,
+    tests::{Sut, TERMS_VERSION},
+};
 
 fn terms_version() -> academy_models::user::TermsVersion {
-    "2026-09".try_into().unwrap()
+    TERMS_VERSION.clone()
 }
 
 #[tokio::test]
@@ -203,4 +206,31 @@ async fn not_found() {
 
     // Assert
     assert_matches!(result, Err(UserAcceptTermsError::NotFound));
+}
+
+/// A version other than the one that is currently in force is refused, so a
+/// consent record can never claim a version that was never published.
+#[tokio::test]
+async fn outdated_terms_version() {
+    // Arrange
+    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+
+    let sut = UserFeatureServiceImpl {
+        auth,
+        ..Sut::default()
+    };
+
+    // Act
+    let result = sut
+        .accept_terms(
+            &"token".into(),
+            UserAcceptTermsRequest {
+                terms_version: "1999-01".try_into().unwrap(),
+                age_confirmed: true,
+            },
+        )
+        .await;
+
+    // Assert
+    assert_matches!(result, Err(UserAcceptTermsError::TermsVersionMismatch));
 }

@@ -177,22 +177,31 @@ resp = anonymous.get("/contracts/declarations")
 assert resp.status_code == 401
 assert resp.json() == {"detail": "Invalid token"}
 
-# the rate limit allows five declarations per hour and client ip address
-for i in range(3):
+# the rate limit allows five declarations per hour and email address;
+# dieter@example.com has used two of them above
+for _ in range(3):
     resp = c.post(
         "/contracts/withdrawals",
-        json={"name": "Somebody Else", "email": f"somebody{i}@example.com", "contract": "OTHER", "details": None},
+        json={"name": "Dieter Mustermann", "email": "dieter@example.com", "contract": "OTHER", "details": None},
     )
     assert resp.status_code == 200, resp.text
 
 resp = c.post(
     "/contracts/withdrawals",
-    json={"name": "Somebody Else", "email": "somebody3@example.com", "contract": "OTHER", "details": None},
+    json={"name": "Dieter Mustermann", "email": "dieter@example.com", "contract": "OTHER", "details": None},
 )
 assert resp.status_code == 429
 assert resp.json() == {"detail": "Too many requests"}
 
+# the ip budget is much larger, so the next person behind the same address
+# (a household, a school, a carrier-grade NAT) is not blocked by it
+resp = c.post(
+    "/contracts/withdrawals",
+    json={"name": "Somebody Else", "email": "somebody@example.com", "contract": "OTHER", "details": None},
+)
+assert resp.status_code == 200, resp.text
+
 # nothing has been stored for the rejected declaration
 resp = ca.get("/contracts/declarations")
 assert resp.status_code == 200
-assert resp.json()["total"] == 5
+assert resp.json()["total"] == 6

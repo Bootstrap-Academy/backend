@@ -23,8 +23,9 @@ use chrono::{DateTime, TimeZone, Utc};
 use crate::{
     ContractFeatureServiceImpl,
     tests::{
-        CLIENT_IP, RATE_LIMIT_COUNT, Sut, declarant_email, declarant_name, make_cache,
-        make_exhausted_cache, make_hash, make_internal_email, no_details, unknown_email,
+        CLIENT_IP, RATE_LIMIT_PER_EMAIL, RATE_LIMIT_PER_IP, Sut, declarant_email, declarant_name,
+        make_cache, make_exhausted_cache, make_hash, make_internal_email, no_details,
+        unknown_email,
     },
 };
 
@@ -355,12 +356,13 @@ async fn ok_confirmation_email_failed() {
     );
 }
 
-/// The rate limit has been exhausted: nothing is stored and no email is sent.
+/// The rate limit of the client ip has been exhausted: nothing is stored and
+/// no email is sent.
 #[tokio::test]
 async fn rate_limit() {
     // Arrange
     let hash = make_hash(&declarant_email());
-    let cache = make_exhausted_cache(RATE_LIMIT_COUNT, 0);
+    let cache = make_exhausted_cache(RATE_LIMIT_PER_IP, 0);
 
     let sut = ContractFeatureServiceImpl {
         hash,
@@ -380,7 +382,7 @@ async fn rate_limit() {
 async fn rate_limit_email() {
     // Arrange
     let hash = make_hash(&declarant_email());
-    let cache = make_exhausted_cache(0, RATE_LIMIT_COUNT);
+    let cache = make_exhausted_cache(0, RATE_LIMIT_PER_EMAIL);
 
     let sut = ContractFeatureServiceImpl {
         hash,

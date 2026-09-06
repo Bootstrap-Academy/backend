@@ -4,7 +4,9 @@ use academy_assets::templates;
 use base64::{Engine, prelude::BASE64_STANDARD};
 use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
-use serde::{Serialize, Serializer};
+use serde::Serialize;
+
+pub mod format;
 
 /// The logo as it is embedded into every template, so that no mail has to load
 /// an image from a remote host.
@@ -101,25 +103,19 @@ pub struct ContractWithdrawalConfirmationTemplate {
     pub details: Option<String>,
 }
 
-macro_rules! rounded {
-    ($($ident:ident($digits:literal)),* $(,)?) => { $(
-        fn $ident<S: Serializer>(num: &Decimal, serializer: S) -> Result<S::Ok, S::Error> {
-            Serialize::serialize(&num.round_dp($digits), serializer)
-        }
-    )* };
-}
-rounded! {
-    rounded_2(2),
-    rounded_4(4),
-}
-
+/// Confirmation of a Morphcoin purchase.
+///
+/// Every number is serialized as an already formatted German string (see
+/// [`format`]), so the mail reads the way the checkout does.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct PurchaseConfirmationTemplate {
+    #[serde(serialize_with = "format::serialize_count")]
     pub coins: u64,
+    #[serde(serialize_with = "format::serialize_percent")]
     pub vat_percent: Decimal,
-    #[serde(serialize_with = "rounded_2")]
+    #[serde(serialize_with = "format::serialize_amount")]
     pub vat_total: Decimal,
-    #[serde(serialize_with = "rounded_2")]
+    #[serde(serialize_with = "format::serialize_amount")]
     pub gross_total: Decimal,
     /// The declarations the consumer gave at checkout, repeated in the
     /// confirmation of the contract (§ 312f Abs. 3 BGB).
@@ -138,6 +134,10 @@ pub struct WithdrawalConsentConfirmation {
     pub timestamp: String,
 }
 
+/// An invoice or, with a different title, a credit note.
+///
+/// Every number is serialized as an already formatted German string (see
+/// [`format`]).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct InvoiceTemplate {
     pub title: &'static str,
@@ -145,12 +145,13 @@ pub struct InvoiceTemplate {
     pub timestamp: DateTime<Utc>,
     pub invoice_number: String,
     pub items: Vec<InvoiceItem>,
+    #[serde(serialize_with = "format::serialize_percent")]
     pub vat_percent: Decimal,
-    #[serde(serialize_with = "rounded_2")]
+    #[serde(serialize_with = "format::serialize_amount")]
     pub net_total: Decimal,
-    #[serde(serialize_with = "rounded_2")]
+    #[serde(serialize_with = "format::serialize_amount")]
     pub vat_total: Decimal,
-    #[serde(serialize_with = "rounded_2")]
+    #[serde(serialize_with = "format::serialize_amount")]
     pub gross_total: Decimal,
 }
 
@@ -166,15 +167,19 @@ pub struct FinalStatementTemplate {
     pub timestamp: DateTime<Utc>,
     pub statement_number: String,
     /// Morphcoins the account has bought, from its invoices.
+    #[serde(serialize_with = "format::serialize_count")]
     pub purchased_coins: u64,
     /// Morphcoin balance at the moment of the deletion.
+    #[serde(serialize_with = "format::serialize_count")]
     pub balance_coins: u64,
     /// Unused share of the purchased Morphcoins.
+    #[serde(serialize_with = "format::serialize_count")]
     pub unused_coins: u64,
     /// Number of Morphcoins that correspond to one Euro.
+    #[serde(serialize_with = "format::serialize_count")]
     pub coins_per_euro: u64,
     /// Euro value of `unused_coins`.
-    #[serde(serialize_with = "rounded_2")]
+    #[serde(serialize_with = "format::serialize_amount")]
     pub refund_amount: Decimal,
 }
 
@@ -187,9 +192,12 @@ pub struct InvoiceDetail {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct InvoiceItem {
     pub description: String,
-    #[serde(serialize_with = "rounded_4")]
+    /// Net price of a single unit. Kept at four decimal places, because it is
+    /// the value that has to multiply out to `net_total`.
+    #[serde(serialize_with = "format::serialize_unit_price")]
     pub net_unit: Decimal,
+    #[serde(serialize_with = "format::serialize_count")]
     pub count: u64,
-    #[serde(serialize_with = "rounded_2")]
+    #[serde(serialize_with = "format::serialize_amount")]
     pub net_total: Decimal,
 }

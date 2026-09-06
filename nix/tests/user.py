@@ -49,6 +49,12 @@ for missing in ["terms_version", "age_confirmed"]:
 resp = c.post("/auth/users", json={**req, "terms_version": "", "recaptcha_response": "success-1.0"})
 assert resp.status_code == 422
 
+## only the version that is currently in force can be accepted, so the recorded
+## consent can never claim a version that was never published
+resp = c.post("/auth/users", json={**req, "terms_version": "1999-01", "recaptcha_response": "success-1.0"})
+assert resp.status_code == 422
+assert resp.json() == {"detail": "Not the current version of the terms and conditions"}
+
 ## success
 start = time.time() - 1
 resp = c.post("/auth/users", json={**req, "recaptcha_response": "success-0.7"})
@@ -356,15 +362,15 @@ resp = c.patch(f"/auth/users/14b871aa-6324-4e41-85ab-1e7fdb0481cb", json={"displ
 assert resp.status_code == 403
 assert resp.json() == {"detail": "Permission denied"}
 
-# accept a new version of the terms and conditions
+# accept the version of the terms and conditions that is currently in force
 ## the age has to be confirmed again, exactly as on signup
-resp = c.post("/auth/users/me/terms", json={"terms_version": "2026-10", "age_confirmed": False})
+resp = c.post("/auth/users/me/terms", json={"terms_version": "2026-09", "age_confirmed": False})
 assert resp.status_code == 412
 assert resp.json() == {"detail": "Age not confirmed"}
 
 ## both fields are required
 for missing in ["terms_version", "age_confirmed"]:
-    body = {"terms_version": "2026-10", "age_confirmed": True}
+    body = {"terms_version": "2026-09", "age_confirmed": True}
     del body[missing]
     resp = c.post("/auth/users/me/terms", json=body)
     assert resp.status_code == 422, missing
@@ -373,19 +379,24 @@ for missing in ["terms_version", "age_confirmed"]:
 resp = c.post("/auth/users/me/terms", json={"terms_version": "", "age_confirmed": True})
 assert resp.status_code == 422
 
+## any version other than the current one is refused here as well
+resp = c.post("/auth/users/me/terms", json={"terms_version": "2026-10", "age_confirmed": True})
+assert resp.status_code == 422
+assert resp.json() == {"detail": "Not the current version of the terms and conditions"}
+
 ## only the authenticated user can accept
 resp = c.post(
-    "/auth/users/14b871aa-6324-4e41-85ab-1e7fdb0481cb/terms", json={"terms_version": "2026-10", "age_confirmed": True}
+    "/auth/users/14b871aa-6324-4e41-85ab-1e7fdb0481cb/terms", json={"terms_version": "2026-09", "age_confirmed": True}
 )
 assert resp.status_code == 400
 assert resp.json() == {"detail": "Can only accept terms for self"}
 
 ## success
 start = time.time() - 1
-resp = c.post("/auth/users/me/terms", json={"terms_version": "2026-10", "age_confirmed": True})
+resp = c.post("/auth/users/me/terms", json={"terms_version": "2026-09", "age_confirmed": True})
 end = time.time() + 1
 assert resp.status_code == 200
-user["terms_version"] = "2026-10"
+user["terms_version"] = "2026-09"
 user["terms_accepted_at"] = resp.json()["terms_accepted_at"]
 assert start <= user["terms_accepted_at"] <= end
 assert resp.json() == user
@@ -405,7 +416,7 @@ assert resp.status_code == 200
 user["terms_declined_at"] = resp.json()["terms_declined_at"]
 assert start <= user["terms_declined_at"] <= end
 assert resp.json() == user
-assert resp.json()["terms_version"] == "2026-10"
+assert resp.json()["terms_version"] == "2026-09"
 assert c.get("/auth/users/me").json() == user
 
 ## declining again is allowed and only moves the timestamp
@@ -418,9 +429,8 @@ assert start <= user["terms_declined_at"] <= end
 assert resp.json() == user
 
 ## accepting clears the recorded refusal
-resp = c.post("/auth/users/me/terms", json={"terms_version": "2026-11", "age_confirmed": True})
+resp = c.post("/auth/users/me/terms", json={"terms_version": "2026-09", "age_confirmed": True})
 assert resp.status_code == 200
-user["terms_version"] = "2026-11"
 user["terms_accepted_at"] = resp.json()["terms_accepted_at"]
 user["terms_declined_at"] = None
 assert resp.json() == user

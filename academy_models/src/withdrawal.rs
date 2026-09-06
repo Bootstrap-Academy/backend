@@ -25,6 +25,16 @@ nutype_string!(WithdrawalReference(validate(
     len_char_max = 256
 )));
 
+/// Version of the withdrawal instruction the declarations below are taken
+/// from.
+///
+/// The wording of a declaration and the version it belongs to are one unit, so
+/// this constant is changed together with the two texts below and with the
+/// published instruction. An order is only accepted if the client states this
+/// version, and it is the value that is recorded — a record may not name a
+/// version that was never published.
+pub const WITHDRAWAL_TEXT_VERSION: &str = "2026-09";
+
 /// Declaration for services, taken verbatim from part A of the withdrawal
 /// instruction.
 pub const WITHDRAWAL_CONSENT_SERVICE: &str = "Ich verlange ausdrücklich und stimme zu, dass Sie \
@@ -113,9 +123,16 @@ pub struct WithdrawalConsentDeclaration {
 
 impl WithdrawalConsentDeclaration {
     /// Return the accepted text version, or `None` if the declarations have
-    /// not been given.
+    /// not been given for the instruction that is currently in force.
+    ///
+    /// A client that states another version is showing a text that is not the
+    /// applicable one, so what it collected is not a declaration for this
+    /// order.
     pub fn text_version(&self) -> Option<&WithdrawalTextVersion> {
-        self.given.then_some(self.text_version.as_ref()).flatten()
+        self.given
+            .then_some(self.text_version.as_ref())
+            .flatten()
+            .filter(|version| version.as_str() == WITHDRAWAL_TEXT_VERSION)
     }
 }
 
@@ -154,7 +171,7 @@ mod tests {
 
     #[test]
     fn declaration_requires_both_the_tick_and_the_version() {
-        let version = WithdrawalTextVersion::try_new("2026-09").unwrap();
+        let version = WithdrawalTextVersion::try_new(WITHDRAWAL_TEXT_VERSION).unwrap();
 
         assert_eq!(
             WithdrawalConsentDeclaration {
@@ -180,5 +197,26 @@ mod tests {
             .text_version(),
             None
         );
+    }
+
+    /// A version that is not the one in force is refused like a missing tick,
+    /// so that no record can claim a text the consumer was never shown.
+    #[test]
+    fn declaration_requires_the_current_version() {
+        for version in ["2025-01", "2026-10", "", " 2026-09"] {
+            let Ok(text_version) = WithdrawalTextVersion::try_new(version) else {
+                continue;
+            };
+
+            assert_eq!(
+                WithdrawalConsentDeclaration {
+                    given: true,
+                    text_version: Some(text_version),
+                }
+                .text_version(),
+                None,
+                "{version:?}"
+            );
+        }
     }
 }

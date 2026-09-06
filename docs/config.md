@@ -174,7 +174,7 @@ A microservice without a url is skipped; an empty string counts as no url.
 ## `[finance]`
 | Property | Default | Description |
 | --- | --- | --- |
-| `vat_percent` | `19` | VAT rate in percent, published through `GET /shop/coins/config`. |
+| `vat_percent` | `19` | VAT rate in percent, published through `GET /shop/coins/config`. Has to be at least `0` and less than `100`; the backend refuses to start otherwise, because the net amounts of an invoice are derived from the gross amount that was paid. |
 | `invoices_archive` | **required** | Directory the generated invoices are written to. |
 | `credit_notes_archive` | **required** | Directory the generated credit notes are written to. |
 | `final_statements_archive` | **required** | Directory the final statements issued at account deletion are written to. |

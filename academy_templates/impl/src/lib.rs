@@ -51,9 +51,10 @@ impl TemplateService for TemplateServiceImpl {
 mod tests {
     use academy_templates_contracts::{
         ContractCancellationConfirmationTemplate, ContractWithdrawalConfirmationTemplate,
-        FinalStatementTemplate, InvoiceTemplate, PurchaseConfirmationTemplate,
+        FinalStatementTemplate, InvoiceItem, InvoiceTemplate, PurchaseConfirmationTemplate,
         ResetPasswordTemplate, VerifyEmailTemplate, WithdrawalConsentConfirmation,
     };
+    use rust_decimal_macros::dec;
 
     use super::*;
 
@@ -78,10 +79,16 @@ mod tests {
         let rendered = render_template(PurchaseConfirmationTemplate {
             coins: 4207,
             vat_percent: 19.into(),
-            vat_total: 7.into(),
+            vat_total: dec!(7.9832),
             gross_total: 49.into(),
             withdrawal_consent: None,
         });
+
+        // Every number is printed the way the checkout prints it.
+        assert!(rendered.contains(
+            "Du hast erfolgreich 4.207 MorphCoins gekauft! Das entspricht 49,00 € inklusive 19 % \
+             MwSt. von 7,98 €."
+        ));
 
         // The attached documents are the version in force at the time of the
         // order, so the mail also has to point at the current online version.
@@ -120,17 +127,33 @@ mod tests {
 
     #[test]
     fn invoice() {
-        test_template(InvoiceTemplate {
+        let rendered = render_template(InvoiceTemplate {
             title: "Rechnung",
             customer_details: ["foo", "bar", "baz"].into_iter().map(Into::into).collect(),
             timestamp: Default::default(),
             invoice_number: "R1234".into(),
-            items: vec![],
+            items: vec![InvoiceItem {
+                description: "MorphCoins".into(),
+                net_unit: dec!(0.0084033613445378151260504202),
+                count: 123456,
+                net_total: dec!(1037.478991596638655462184874),
+            }],
             vat_percent: 19.into(),
-            net_total: 42.into(),
-            vat_total: 7.into(),
-            gross_total: 49.into(),
+            net_total: dec!(1037.478991596638655462184874),
+            vat_total: dec!(197.1210084033613445378151261),
+            gross_total: dec!(1234.56),
         });
+
+        // Amounts, percentages and quantities are printed the way a German
+        // invoice prints them, and the net unit price keeps enough decimal
+        // places to multiply out to the net total of the line.
+        assert!(rendered.contains("0,0084 €"));
+        assert!(rendered.contains("123.456"));
+        assert!(rendered.contains("1.037,48 €"));
+        assert!(rendered.contains("zzgl. 19 % MwSt."));
+        assert!(rendered.contains("197,12 €"));
+        assert!(rendered.contains("1.234,56 €"));
+        assert!(!rendered.contains("EUR"));
     }
 
     #[test]
@@ -155,10 +178,11 @@ mod tests {
         assert!(rendered.contains("Max Mustermann"));
         assert!(rendered.contains("max@example.de"));
         assert!(rendered.contains("S1337"));
-        assert!(rendered.contains("1500"));
-        assert!(rendered.contains("1200"));
-        assert!(rendered.contains("12 EUR"));
+        assert!(rendered.contains("1.500"));
+        assert!(rendered.contains("1.200"));
+        assert!(rendered.contains("12,00 €"));
         assert!(rendered.contains("Ziffer 6.7"));
+        assert!(!rendered.contains("EUR"));
     }
 
     #[test]

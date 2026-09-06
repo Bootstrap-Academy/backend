@@ -4423,6 +4423,13 @@ rec {
             features = [ "derive" "std" ];
           }
         ];
+        devDependencies = [
+          {
+            name = "rust_decimal_macros";
+            packageId = "rust_decimal_macros";
+            usesDefaultFeatures = false;
+          }
+        ];
         features = {
           "mock" = [ "dep:mockall" ];
         };
@@ -4473,6 +4480,19 @@ rec {
             packageId = "tracing";
             usesDefaultFeatures = false;
             features = [ "attributes" ];
+          }
+        ];
+        devDependencies = [
+          {
+            name = "rust_decimal";
+            packageId = "rust_decimal";
+            usesDefaultFeatures = false;
+            features = [ "std" "serde-str" ];
+          }
+          {
+            name = "rust_decimal_macros";
+            packageId = "rust_decimal_macros";
+            usesDefaultFeatures = false;
           }
         ];
 

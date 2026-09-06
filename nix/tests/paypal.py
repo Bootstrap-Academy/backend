@@ -83,7 +83,9 @@ assert mail["X-Original-To"] == "foobar@example.com"
 assert decode_mail_header(mail["Subject"]) == "Kaufbestätigung - Bootstrap Academy"
 payload, invoice, terms, revocation_policy = get_mail_parts(mail)
 content = decode_mail_part(payload).decode()
-assert "Du hast erfolgreich 1337 MorphCoins gekauft! Das entspricht 13.37€ inklusive 19% MwSt. von 2.13€." in content
+assert (
+    "Du hast erfolgreich 1.337 MorphCoins gekauft! Das entspricht 13,37 € inklusive 19 % MwSt. von 2,13 €." in content
+)
 assert "Deine Erklärungen zum Widerrufsrecht bei dieser Bestellung" in content
 assert (
     "Ich stimme ausdrücklich zu, dass Sie vor Ablauf der Widerrufsfrist mit der Ausführung des "
@@ -101,9 +103,15 @@ pdf = PdfReader(BytesIO(invoice_pdf))
 assert pdf.metadata and pdf.metadata.title == "Rechnung"
 assert len(pdf.pages) == 1
 invoice_text = pdf.pages[0].extract_text()
-assert "Nettobetrag 11.24 EUR" in invoice_text
-assert "zzgl. 19% MwSt. 2.13 EUR" in invoice_text
-assert "Gesamtbetrag 13.37 EUR" in invoice_text
+# every number on the invoice is formatted the German way; the net unit price
+# keeps four decimal places, because it is the value that multiplies out to the
+# net total of the line
+assert "0,0084 €" in invoice_text
+assert "1.337" in invoice_text
+assert "Nettobetrag 11,24 €" in invoice_text
+assert "zzgl. 19 % MwSt. 2,13 €" in invoice_text
+assert "Gesamtbetrag 13,37 €" in invoice_text
+assert "EUR" not in invoice_text
 assert re.search(r"\bRechnungs-Nr\. *R0000001\b", invoice_text)
 assert "Foo Bar" in invoice_text
 assert "Germany" in invoice_text

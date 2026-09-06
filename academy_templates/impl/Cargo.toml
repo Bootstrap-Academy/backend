@@ -18,3 +18,7 @@ anyhow.workspace = true
 serde.workspace = true
 tera = { version = "1.20.1", default-features = false, features = ["builtins"] }
 tracing.workspace = true
+
+[dev-dependencies]
+rust_decimal.workspace = true
+rust_decimal_macros.workspace = true

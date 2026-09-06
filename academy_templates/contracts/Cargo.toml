@@ -21,3 +21,6 @@ chrono.workspace = true
 mockall = { workspace = true, optional = true }
 rust_decimal.workspace = true
 serde.workspace = true
+
+[dev-dependencies]
+rust_decimal_macros.workspace = true

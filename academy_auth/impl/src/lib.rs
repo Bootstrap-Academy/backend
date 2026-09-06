@@ -133,12 +133,17 @@ where
     }
 
     #[trace_instrument(skip(self))]
-    fn issue_tokens(&self, user: &User, session_id: SessionId) -> anyhow::Result<Tokens> {
+    fn issue_tokens(
+        &self,
+        user: &User,
+        session_id: SessionId,
+        mfa_verified: bool,
+    ) -> anyhow::Result<Tokens> {
         let refresh_token = self.auth_refresh_token.issue();
         let refresh_token_hash = self.auth_refresh_token.hash(&refresh_token);
         let access_token = self
             .auth_access_token
-            .issue(user, session_id, refresh_token_hash)
+            .issue(user, session_id, refresh_token_hash, mfa_verified)
             .context("Failed to issue access token")?;
 
         Ok(Tokens {

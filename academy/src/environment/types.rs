@@ -5,6 +5,7 @@ use academy_auth_impl::{
     refresh_token::AuthRefreshTokenServiceImpl,
 };
 use academy_cache_valkey::ValkeyCache;
+use academy_core_admin_audit_impl::AdminAuditFeatureServiceImpl;
 use academy_core_coin_impl::{CoinFeatureServiceImpl, coin::CoinServiceImpl};
 use academy_core_config_impl::ConfigFeatureServiceImpl;
 use academy_core_contact_impl::ContactFeatureServiceImpl;
@@ -47,11 +48,11 @@ use academy_extern_impl::{
     vat::VatApiServiceImpl,
 };
 use academy_persistence_postgres::{
-    PostgresDatabase, coin::PostgresCoinRepository, contract::PostgresContractRepository,
-    heart::PostgresHeartRepository, mfa::PostgresMfaRepository, oauth2::PostgresOAuth2Repository,
-    paypal::PostgresPaypalRepository, premium::PostgresPremiumRepository,
-    session::PostgresSessionRepository, user::PostgresUserRepository,
-    withdrawal::PostgresWithdrawalRepository,
+    PostgresDatabase, admin_audit::PostgresAdminAuditRepository, coin::PostgresCoinRepository,
+    contract::PostgresContractRepository, heart::PostgresHeartRepository,
+    mfa::PostgresMfaRepository, oauth2::PostgresOAuth2Repository, paypal::PostgresPaypalRepository,
+    premium::PostgresPremiumRepository, session::PostgresSessionRepository,
+    user::PostgresUserRepository, withdrawal::PostgresWithdrawalRepository,
 };
 use academy_shared_impl::{
     captcha::CaptchaServiceImpl, fs::FsServiceImpl, hash::HashServiceImpl, id::IdServiceImpl,
@@ -77,6 +78,7 @@ pub type RestServer = academy_api_rest::RestServer<
     PremiumFeature,
     WithdrawalFeature,
     Internal,
+    AdminAuditFeature,
 >;
 
 // Persistence
@@ -121,6 +123,7 @@ pub type PaypalRepo = PostgresPaypalRepository;
 pub type HeartRepo = PostgresHeartRepository;
 pub type PremiumRepo = PostgresPremiumRepository;
 pub type ContractRepo = PostgresContractRepository;
+pub type AdminAuditRepo = PostgresAdminAuditRepository;
 pub type WithdrawalRepo = PostgresWithdrawalRepository;
 
 // Auth
@@ -264,3 +267,5 @@ pub type WithdrawalFeature = WithdrawalFeatureServiceImpl<Database, Auth, Withdr
 pub type WithdrawalConsent = WithdrawalConsentServiceImpl<Id, Time, WithdrawalRepo>;
 
 pub type Internal = InternalServiceImpl<Database, AuthInternal, UserRepo, Coin, Heart, Premium>;
+
+pub type AdminAuditFeature = AdminAuditFeatureServiceImpl<Database, Auth, Id, Time, AdminAuditRepo>;

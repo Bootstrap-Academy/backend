@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import cast
 
 import httpx
+import pyotp
 
 
 def fetch_mail() -> Message:
@@ -114,14 +115,49 @@ def create_verified_account(name, email, password, client=None):
     return login
 
 
+def wait_for_new_totp_window():
+    """Wait until the current TOTP code changes.
+
+    A code that has just been used is rejected as a replay for the rest of its
+    window.
+    """
+    time.sleep(31 - time.time() % 30)
+
+
+def setup_mfa(client=None):
+    """Enable TOTP for the authenticated account and return the authenticator."""
+    client = client or c
+    resp = client.post("/auth/users/me/mfa")
+    assert resp.status_code == 200
+    totp = pyotp.TOTP(resp.json())
+
+    resp = client.put("/auth/users/me/mfa", json={"code": totp.now()})
+    assert resp.status_code == 200
+    return totp
+
+
 def create_admin_account(name, email, password, client=None):
+    """Create an administrator and log in with a second factor.
+
+    Administrative endpoints require a session that was authenticated with
+    TOTP, so the account gets an authenticator before the session is created.
+    """
     client = client or c
     os.system(f"academy admin user create --admin --verified {name} {email} {password}")
     resp = client.post("/auth/sessions", json={"name_or_email": name, "password": password})
     assert resp.status_code == 200
+    save_auth(resp.json(), client)
+
+    totp = setup_mfa(client)
+    wait_for_new_totp_window()
+
+    resp = client.post("/auth/sessions", json={"name_or_email": name, "password": password, "mfa_code": totp.now()})
+    assert resp.status_code == 200
     login = resp.json()
     assert login["user"]["email_verified"] is True
     assert login["user"]["admin"] is True
+    assert login["user"]["mfa_enabled"] is True
+    assert login["session"]["mfa_verified"] is True
     save_auth(login, client)
     return login
 

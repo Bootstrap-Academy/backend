@@ -187,13 +187,18 @@ where
             }
         };
 
+        // Only a successful TOTP check marks the session as authenticated with a
+        // second factor. A recovery code disables MFA instead of proving
+        // possession of the second factor, so it does not.
+        let mut mfa_verified = false;
         if user_composite.details.mfa_enabled {
             match self
                 .mfa_authenticate
                 .authenticate(&mut txn, user_composite.user.id, cmd.mfa)
                 .await
             {
-                Ok(MfaAuthenticateResult::Ok | MfaAuthenticateResult::Disabled) => (),
+                Ok(MfaAuthenticateResult::Ok) => mfa_verified = true,
+                Ok(MfaAuthenticateResult::Disabled) => (),
                 Ok(MfaAuthenticateResult::Reset) => user_composite.details.mfa_enabled = false,
                 Err(MfaAuthenticateError::Failed) => {
                     increment_failed_login_attempts().await?;
@@ -224,7 +229,13 @@ where
 
         let login = self
             .session
-            .create(&mut txn, user_composite, cmd.device_name, true)
+            .create(
+                &mut txn,
+                user_composite,
+                cmd.device_name,
+                true,
+                mfa_verified,
+            )
             .await
             .context("Failed to create session")?;
 
@@ -251,9 +262,11 @@ where
             .context("Failed to get user from database")?
             .ok_or(SessionImpersonateError::NotFound)?;
 
+        // Impersonation never involves the second factor of the impersonated
+        // user, so the new session does not grant administrative privileges.
         let login = self
             .session
-            .create(&mut txn, user_composite, None, false)
+            .create(&mut txn, user_composite, None, false, false)
             .await
             .context("Failed to create session")?;
 

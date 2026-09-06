@@ -45,7 +45,9 @@ async fn impersonate(config: Config, name: String) -> anyhow::Result<()> {
 
     let session_service: types::Session = provider.provide();
     let login = session_service
-        .create(&mut txn, user_composite, None, false)
+        // The CLI already requires access to the server, so the session is
+        // created as if the second factor had been verified.
+        .create(&mut txn, user_composite, None, false, true)
         .await
         .context("Failed to create session")?;
 

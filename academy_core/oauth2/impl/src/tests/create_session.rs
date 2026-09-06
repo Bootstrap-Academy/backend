@@ -45,7 +45,8 @@ async fn ok() {
             Some(FOO.clone()),
         );
 
-    let session = MockSessionService::new().with_create(FOO.clone(), None, true, expected.clone());
+    let session =
+        MockSessionService::new().with_create(FOO.clone(), None, true, false, expected.clone());
 
     let sut = OAuth2FeatureServiceImpl {
         db,

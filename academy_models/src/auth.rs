@@ -30,6 +30,8 @@ pub enum AuthenticateError {
 pub enum AuthorizeError {
     #[error("The user is not an administrator.")]
     Admin,
+    #[error("The session of the administrator was not authenticated with a second factor.")]
+    AdminMfa,
     #[error("The user's email address is not verified.")]
     EmailVerified,
 }

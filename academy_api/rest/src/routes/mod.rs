@@ -1,3 +1,4 @@
+pub mod admin_audit;
 pub mod coin;
 pub mod config;
 pub mod contact;

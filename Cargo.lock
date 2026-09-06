@@ -11,6 +11,7 @@ dependencies = [
  "academy_cache_contracts",
  "academy_cache_valkey",
  "academy_config",
+ "academy_core_admin_audit_impl",
  "academy_core_coin_contracts",
  "academy_core_coin_impl",
  "academy_core_config_impl",
@@ -67,6 +68,7 @@ version = "0.0.0"
 dependencies = [
  "academy_assets",
  "academy_auth_contracts",
+ "academy_core_admin_audit_contracts",
  "academy_core_coin_contracts",
  "academy_core_config_contracts",
  "academy_core_contact_contracts",
@@ -177,6 +179,34 @@ dependencies = [
  "rust_decimal",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "academy_core_admin_audit_contracts"
+version = "0.0.0"
+dependencies = [
+ "academy_models",
+ "anyhow",
+ "thiserror 2.0.18",
+ "uuid",
+]
+
+[[package]]
+name = "academy_core_admin_audit_impl"
+version = "0.0.0"
+dependencies = [
+ "academy_auth_contracts",
+ "academy_core_admin_audit_contracts",
+ "academy_demo",
+ "academy_di",
+ "academy_models",
+ "academy_persistence_contracts",
+ "academy_shared_contracts",
+ "academy_utils",
+ "anyhow",
+ "chrono",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]

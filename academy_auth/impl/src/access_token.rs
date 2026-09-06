@@ -32,6 +32,7 @@ where
         user: &User,
         session_id: SessionId,
         refresh_token_hash: SessionRefreshTokenHash,
+        mfa_verified: bool,
     ) -> anyhow::Result<AccessToken> {
         let auth = Authentication {
             user_id: user.id,
@@ -39,6 +40,7 @@ where
             refresh_token_hash,
             admin: user.admin,
             email_verified: user.email_verified,
+            mfa_verified,
         };
 
         self.jwt
@@ -98,6 +100,10 @@ struct Token {
 struct TokenData {
     admin: bool,
     email_verified: bool,
+    /// Missing in tokens issued before administrators were required to
+    /// authenticate with a second factor.
+    #[serde(default)]
+    mfa: bool,
 }
 
 impl From<Token> for Authentication {
@@ -108,6 +114,7 @@ impl From<Token> for Authentication {
             refresh_token_hash: value.rt,
             admin: value.data.admin,
             email_verified: value.data.email_verified,
+            mfa_verified: value.data.mfa,
         }
     }
 }
@@ -121,6 +128,7 @@ impl From<Authentication> for Token {
             data: TokenData {
                 admin: value.admin,
                 email_verified: value.email_verified,
+                mfa: value.mfa_verified,
             },
         }
     }
@@ -156,6 +164,7 @@ mod tests {
             refresh_token_hash: (*SHA256HASH1).into(),
             admin: FOO.user.admin,
             email_verified: FOO.user.email_verified,
+            mfa_verified: true,
         };
 
         let jwt = MockJwtService::new().with_sign(
@@ -170,7 +179,7 @@ mod tests {
         };
 
         // Act
-        let result = sut.issue(&FOO.user, UUID1.into(), (*SHA256HASH1).into());
+        let result = sut.issue(&FOO.user, UUID1.into(), (*SHA256HASH1).into(), true);
 
         // Assert
         assert_eq!(result.unwrap().into_inner(), expected);
@@ -187,6 +196,7 @@ mod tests {
             refresh_token_hash: (*SHA256HASH1).into(),
             admin: FOO.user.admin,
             email_verified: FOO.user.email_verified,
+            mfa_verified: true,
         };
 
         let jwt = MockJwtService::new().with_verify(token.into(), Ok(Token::from(expected)));
@@ -233,6 +243,7 @@ mod tests {
             refresh_token_hash: (*SHA256HASH1).into(),
             admin: FOO.user.admin,
             email_verified: FOO.user.email_verified,
+            mfa_verified: true,
         };
 
         let jwt = MockJwtService::new().with_verify(

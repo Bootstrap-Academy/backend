@@ -56,6 +56,7 @@ async fn ok() {
         FOO.clone(),
         cmd.device_name.clone(),
         true,
+        false,
         expected.clone(),
     );
 
@@ -124,6 +125,7 @@ async fn ok_mfa() {
     let session = MockSessionService::new().with_create(
         expected.user_composite.clone(),
         cmd.device_name.clone(),
+        true,
         true,
         expected.clone(),
     );
@@ -200,6 +202,7 @@ async fn ok_mfa_reset() {
         expected.user_composite.clone(),
         cmd.device_name.clone(),
         true,
+        false,
         expected.clone(),
     );
 
@@ -261,6 +264,7 @@ async fn ok_captcha() {
         FOO.clone(),
         cmd.device_name.clone(),
         true,
+        false,
         expected.clone(),
     );
 

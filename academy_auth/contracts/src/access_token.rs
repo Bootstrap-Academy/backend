@@ -16,6 +16,7 @@ pub trait AuthAccessTokenService: Send + Sync + 'static {
         user: &User,
         session_id: SessionId,
         refresh_token_hash: SessionRefreshTokenHash,
+        mfa_verified: bool,
     ) -> anyhow::Result<AccessToken>;
 
     /// Verify the given access token and return its content if it is valid.
@@ -41,6 +42,7 @@ impl MockAuthAccessTokenService {
         user: User,
         session_id: SessionId,
         refresh_token_hash: SessionRefreshTokenHash,
+        mfa_verified: bool,
         result: AccessToken,
     ) -> Self {
         self.expect_issue()
@@ -49,8 +51,9 @@ impl MockAuthAccessTokenService {
                 mockall::predicate::eq(user),
                 mockall::predicate::eq(session_id),
                 mockall::predicate::eq(refresh_token_hash),
+                mockall::predicate::eq(mfa_verified),
             )
-            .return_once(|_, _, _| Ok(result));
+            .return_once(|_, _, _, _| Ok(result));
         self
     }
 

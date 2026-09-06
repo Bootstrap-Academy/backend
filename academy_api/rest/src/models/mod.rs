@@ -6,6 +6,7 @@ use serde::Deserialize;
 
 use crate::const_schema;
 
+pub mod admin_audit;
 pub mod coin;
 pub mod contact;
 pub mod contract;

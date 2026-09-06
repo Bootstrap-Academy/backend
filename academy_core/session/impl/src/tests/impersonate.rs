@@ -29,7 +29,8 @@ async fn ok() {
 
     let user_repo = MockUserRepository::new().with_get_composite(FOO.user.id, Some(FOO.clone()));
 
-    let session = MockSessionService::new().with_create(FOO.clone(), None, false, expected.clone());
+    let session =
+        MockSessionService::new().with_create(FOO.clone(), None, false, false, expected.clone());
 
     let sut = SessionFeatureServiceImpl {
         auth,

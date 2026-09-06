@@ -54,6 +54,7 @@ async fn ok() {
         FOO.clone(),
         FOO_1.device_name.clone(),
         true,
+        false,
         expected.clone(),
     );
 
@@ -123,6 +124,7 @@ async fn ok_oauth2() {
         FOO.clone(),
         FOO_1.device_name.clone(),
         true,
+        false,
         expected.clone(),
     );
 

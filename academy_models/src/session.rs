@@ -18,6 +18,12 @@ pub struct Session {
     #[no_patch]
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    /// Whether the second factor was verified when this session was created.
+    ///
+    /// Sessions that were not established with a second factor do not grant
+    /// administrative privileges, even if the account is an administrator.
+    #[no_patch]
+    pub mfa_verified: bool,
 }
 
 nutype_string!(DeviceName(validate(len_char_max = DeviceName::MAX_LEN)));

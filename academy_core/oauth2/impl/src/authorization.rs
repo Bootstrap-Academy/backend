@@ -10,6 +10,7 @@ use academy_models::{
         OAuth2PendingAuthorization, OAuth2ProviderId, OAuth2State,
     },
     url::Url,
+    user::UserId,
 };
 use academy_shared_contracts::secret::SecretService;
 use academy_utils::trace_instrument;
@@ -38,6 +39,7 @@ where
         &self,
         provider_id: OAuth2ProviderId,
         redirect_uri: Url,
+        user_id: Option<UserId>,
     ) -> Result<OAuth2AuthorizationUrl, OAuth2AuthorizationServiceError> {
         let provider = self
             .config
@@ -80,6 +82,7 @@ where
                     provider_id,
                     redirect_uri,
                     code_verifier,
+                    user_id,
                 },
                 Some(self.config.authorization_ttl),
             )
@@ -111,7 +114,10 @@ fn oauth2_authorization_cache_key(state: &OAuth2State) -> String {
 #[cfg(test)]
 mod tests {
     use academy_cache_contracts::MockCacheService;
-    use academy_demo::oauth2::{TEST_OAUTH2_PROVIDER, TEST_OAUTH2_PROVIDER_ID};
+    use academy_demo::{
+        oauth2::{TEST_OAUTH2_PROVIDER, TEST_OAUTH2_PROVIDER_ID},
+        user::FOO,
+    };
     use academy_extern_contracts::oauth2::MockOAuth2ApiService;
     use academy_shared_contracts::secret::MockSecretService;
     use academy_utils::{Apply, assert_matches};
@@ -150,6 +156,7 @@ mod tests {
                 provider_id: TEST_OAUTH2_PROVIDER_ID.clone(),
                 redirect_uri: redirect_uri.clone(),
                 code_verifier: Some(CODE_VERIFIER.try_into().unwrap()),
+                user_id: Some(FOO.user.id),
             },
             Some(config.authorization_ttl),
         );
@@ -163,7 +170,11 @@ mod tests {
 
         // Act
         let result = sut
-            .begin(TEST_OAUTH2_PROVIDER_ID.clone(), redirect_uri)
+            .begin(
+                TEST_OAUTH2_PROVIDER_ID.clone(),
+                redirect_uri,
+                Some(FOO.user.id),
+            )
             .await;
 
         // Assert
@@ -201,6 +212,7 @@ mod tests {
                 provider_id: TEST_OAUTH2_PROVIDER_ID.clone(),
                 redirect_uri: redirect_uri.clone(),
                 code_verifier: None,
+                user_id: Some(FOO.user.id),
             },
             Some(config.authorization_ttl),
         );
@@ -221,7 +233,11 @@ mod tests {
 
         // Act
         let result = sut
-            .begin(TEST_OAUTH2_PROVIDER_ID.clone(), redirect_uri)
+            .begin(
+                TEST_OAUTH2_PROVIDER_ID.clone(),
+                redirect_uri,
+                Some(FOO.user.id),
+            )
             .await;
 
         // Assert
@@ -244,6 +260,7 @@ mod tests {
             .begin(
                 "invalid-provider".into(),
                 "http://test/oauth/callback".parse().unwrap(),
+                None,
             )
             .await;
 
@@ -266,6 +283,7 @@ mod tests {
             .begin(
                 TEST_OAUTH2_PROVIDER_ID.clone(),
                 "https://attacker.example/oauth/callback".parse().unwrap(),
+                None,
             )
             .await;
 
@@ -293,6 +311,7 @@ mod tests {
                 .begin(
                     TEST_OAUTH2_PROVIDER_ID.clone(),
                     redirect_uri.parse().unwrap(),
+                    None,
                 )
                 .await;
 
@@ -314,6 +333,7 @@ mod tests {
             provider_id: TEST_OAUTH2_PROVIDER_ID.clone(),
             redirect_uri: "http://test/oauth/callback".parse().unwrap(),
             code_verifier: Some(CODE_VERIFIER.try_into().unwrap()),
+            user_id: None,
         };
 
         let cache = MockCacheService::new().with_pop(

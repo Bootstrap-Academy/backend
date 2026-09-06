@@ -19,7 +19,7 @@ use academy_utils::{Apply, assert_matches};
 
 use crate::{
     OAuth2FeatureServiceImpl, OAuth2Registration,
-    tests::{STATE, Sut, callback, login, pending_authorization},
+    tests::{STATE, Sut, callback, login, pending_authorization, pending_authorization_of},
 };
 
 #[tokio::test]
@@ -224,4 +224,26 @@ async fn user_disabled() {
 
     // Assert
     assert_matches!(result, Err(OAuth2CreateSessionError::UserDisabled));
+}
+
+/// A callback of a flow that an account started is a link, not a login:
+/// submitting it here must not create a session.
+#[tokio::test]
+async fn authorization_of_an_account() {
+    // Arrange
+    let oauth2_authorization = MockOAuth2AuthorizationService::new().with_consume(
+        STATE.try_into().unwrap(),
+        Some(pending_authorization_of(FOO.user.id)),
+    );
+
+    let sut = OAuth2FeatureServiceImpl {
+        oauth2_authorization,
+        ..Sut::default()
+    };
+
+    // Act
+    let result = sut.create_session(callback(), None).await;
+
+    // Assert
+    assert_matches!(result, Err(OAuth2CreateSessionError::InvalidState));
 }

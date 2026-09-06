@@ -73,6 +73,16 @@ pub struct OAuth2PendingAuthorization {
     pub provider_id: OAuth2ProviderId,
     pub redirect_uri: Url,
     pub code_verifier: Option<OAuth2CodeVerifier>,
+    /// The account the flow was started for, or `None` if it was started
+    /// without a token.
+    ///
+    /// Binds the flow to the operation it was started for: a flow started
+    /// while signed in can only add a login method to that very account, and
+    /// a flow started without a token can only create a session. Without it,
+    /// any `(state, code)` pair could be redeemed as either, which is the
+    /// classic account-link CSRF.
+    #[serde(default)]
+    pub user_id: Option<UserId>,
 }
 
 /// The authorize URL a client has to send the user agent to, together with the

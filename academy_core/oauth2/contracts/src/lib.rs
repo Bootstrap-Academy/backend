@@ -23,8 +23,20 @@ pub trait OAuth2FeatureService: Send + Sync + 'static {
 
     /// Start an OAuth2 authorization flow and return the authorize URL the
     /// user agent has to be sent to.
+    ///
+    /// The token decides what the resulting callback may be redeemed as: a
+    /// flow started while signed in can only add a login method to that
+    /// account ([`OAuth2FeatureService::create_link`]), a flow started without
+    /// a usable token can only create a session
+    /// ([`OAuth2FeatureService::create_session`]).
+    ///
+    /// The token is optional, and one that cannot be authenticated is treated
+    /// like none: the endpoint is reached both by a signed-in account adding a
+    /// login method and by a visitor signing in, and a client whose access
+    /// token has expired has to be able to sign in with it.
     fn begin_authorization(
         &self,
+        token: &AccessToken,
         provider_id: OAuth2ProviderId,
         redirect_uri: Url,
     ) -> impl Future<Output = Result<OAuth2AuthorizationUrl, OAuth2BeginAuthorizationError>> + Send;

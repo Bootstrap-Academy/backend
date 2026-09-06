@@ -81,6 +81,24 @@ resp = c.post("/auth/oauth/links/me", json=callback)
 assert resp.status_code == 401
 assert resp.json() == {"detail": "Invalid state"}
 
+# a flow is bound to what it was started for: one started without a token can
+# only create a session, one started while signed in can only add a login
+# method to that very account
+discard_auth()
+anonymous_callback = authenticate(42, "foo")
+save_auth(login)
+
+resp = c.post("/auth/oauth/links/me", json=anonymous_callback)
+assert resp.status_code == 401
+assert resp.json() == {"detail": "Invalid state"}
+
+linked_callback = authenticate(42, "foo")
+discard_auth()
+resp = c.post("/auth/sessions/oauth", json=linked_callback)
+assert resp.status_code == 401
+assert resp.json() == {"detail": "Invalid state"}
+save_auth(login)
+
 # list links
 resp = c.get("/auth/oauth/links/me")
 assert resp.status_code == 200

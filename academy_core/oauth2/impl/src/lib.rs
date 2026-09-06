@@ -20,7 +20,7 @@ use academy_models::{
     },
     session::DeviceName,
     url::Url,
-    user::UserIdOrSelf,
+    user::{UserId, UserIdOrSelf},
 };
 use academy_persistence_contracts::{
     Database, Transaction, oauth2::OAuth2Repository, user::UserRepository,
@@ -118,14 +118,27 @@ where
             .collect()
     }
 
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, token))]
     async fn begin_authorization(
         &self,
+        token: &AccessToken,
         provider_id: OAuth2ProviderId,
         redirect_uri: Url,
     ) -> Result<OAuth2AuthorizationUrl, OAuth2BeginAuthorizationError> {
+        // The token is optional: this endpoint is reached both by a signed-in
+        // account adding a login method and by a visitor signing in. A token
+        // that cannot be authenticated therefore starts an anonymous flow,
+        // which can create a session but can never be redeemed as a link to
+        // somebody's account.
+        let user_id = self
+            .auth
+            .authenticate(token)
+            .await
+            .ok()
+            .map(|auth| auth.user_id);
+
         self.oauth2_authorization
-            .begin(provider_id, redirect_uri)
+            .begin(provider_id, redirect_uri, user_id)
             .await
             .map_err(|err| match err {
                 OAuth2AuthorizationServiceError::InvalidProvider => {
@@ -195,15 +208,22 @@ where
             return Err(OAuth2CreateLinkError::NotFound);
         }
 
-        let (provider_id, user_info) =
-            resolve_callback(&self.oauth2_authorization, &self.oauth2_login, callback)
-                .await
-                .map_err(|err| match err {
-                    ResolveCallbackError::InvalidState => OAuth2CreateLinkError::InvalidState,
-                    ResolveCallbackError::InvalidProvider => OAuth2CreateLinkError::InvalidProvider,
-                    ResolveCallbackError::InvalidCode => OAuth2CreateLinkError::InvalidCode,
-                    ResolveCallbackError::Other(err) => err.into(),
-                })?;
+        let (provider_id, user_info) = resolve_callback(
+            &self.oauth2_authorization,
+            &self.oauth2_login,
+            callback,
+            // A link can only be created from a flow this very account
+            // started, so a callback of somebody else's flow cannot be
+            // submitted to make their provider account a login method here.
+            Some(user_id),
+        )
+        .await
+        .map_err(|err| match err {
+            ResolveCallbackError::InvalidState => OAuth2CreateLinkError::InvalidState,
+            ResolveCallbackError::InvalidProvider => OAuth2CreateLinkError::InvalidProvider,
+            ResolveCallbackError::InvalidCode => OAuth2CreateLinkError::InvalidCode,
+            ResolveCallbackError::Other(err) => err.into(),
+        })?;
 
         let link = self
             .oauth2_create_link
@@ -272,17 +292,21 @@ where
         callback: OAuth2Callback,
         device_name: Option<DeviceName>,
     ) -> Result<OAuth2CreateSessionResponse, OAuth2CreateSessionError> {
-        let (provider_id, user_info) =
-            resolve_callback(&self.oauth2_authorization, &self.oauth2_login, callback)
-                .await
-                .map_err(|err| match err {
-                    ResolveCallbackError::InvalidState => OAuth2CreateSessionError::InvalidState,
-                    ResolveCallbackError::InvalidProvider => {
-                        OAuth2CreateSessionError::InvalidProvider
-                    }
-                    ResolveCallbackError::InvalidCode => OAuth2CreateSessionError::InvalidCode,
-                    ResolveCallbackError::Other(err) => err.into(),
-                })?;
+        let (provider_id, user_info) = resolve_callback(
+            &self.oauth2_authorization,
+            &self.oauth2_login,
+            callback,
+            // A session can only be created from a flow that was started
+            // without a token; a flow an account started is for linking.
+            None,
+        )
+        .await
+        .map_err(|err| match err {
+            ResolveCallbackError::InvalidState => OAuth2CreateSessionError::InvalidState,
+            ResolveCallbackError::InvalidProvider => OAuth2CreateSessionError::InvalidProvider,
+            ResolveCallbackError::InvalidCode => OAuth2CreateSessionError::InvalidCode,
+            ResolveCallbackError::Other(err) => err.into(),
+        })?;
 
         let mut txn = self.db.begin_transaction().await?;
 
@@ -337,16 +361,26 @@ where
 /// The `state` decides which provider and redirect URI the exchange uses, so a
 /// callback can neither be replayed nor pointed at a different provider than
 /// the flow it belongs to.
+///
+/// `expected_user_id` is the account the callback is being redeemed for, or
+/// `None` when it is redeemed as a login. It has to match the account the flow
+/// was started for, so that a callback can only complete the operation it was
+/// started for and not the other one.
 async fn resolve_callback(
     authorization: &impl OAuth2AuthorizationService,
     login: &impl OAuth2LoginService,
     callback: OAuth2Callback,
+    expected_user_id: Option<UserId>,
 ) -> Result<(OAuth2ProviderId, OAuth2UserInfo), ResolveCallbackError> {
     let pending = authorization
         .consume(&callback.state)
         .await
         .context("Failed to get OAuth2 authorization")?
         .ok_or(ResolveCallbackError::InvalidState)?;
+
+    if pending.user_id != expected_user_id {
+        return Err(ResolveCallbackError::InvalidState);
+    }
 
     let provider_id = pending.provider_id.clone();
 

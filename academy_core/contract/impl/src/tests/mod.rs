@@ -42,14 +42,16 @@ type Sut = ContractFeatureServiceImpl<
 
 const CLIENT_IP: IpAddr = IpAddr::V4(Ipv4Addr::new(203, 0, 113, 42));
 const RATE_LIMIT_WINDOW: Duration = Duration::from_secs(3600);
-const RATE_LIMIT_COUNT: u64 = 5;
+const RATE_LIMIT_PER_IP: u64 = 60;
+const RATE_LIMIT_PER_EMAIL: u64 = 5;
 
 impl Default for ContractFeatureConfig {
     fn default() -> Self {
         Self {
             internal_email: Arc::new("contact@example.com".parse().unwrap()),
             rate_limit_window: RATE_LIMIT_WINDOW,
-            rate_limit_count: RATE_LIMIT_COUNT,
+            rate_limit_per_ip: RATE_LIMIT_PER_IP,
+            rate_limit_per_email: RATE_LIMIT_PER_EMAIL,
         }
     }
 }

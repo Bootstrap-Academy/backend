@@ -1,4 +1,4 @@
-use std::{collections::HashMap, sync::Arc, time::Duration};
+use std::{collections::HashMap, sync::Arc};
 
 use academy_api_rest::{RestServerConfig, RestServerRealIpConfig};
 use academy_auth_impl::AuthServiceConfig;
@@ -241,12 +241,11 @@ impl ConfigProvider {
             email: config.contact.email.clone().into(),
         };
 
-        // Contract declarations are handled entirely by the backend, so the
-        // rate limits are not configurable.
         let contract_feature_config = ContractFeatureConfig {
             internal_email: config.contact.email.clone().into(),
-            rate_limit_window: Duration::from_secs(3600),
-            rate_limit_count: 5,
+            rate_limit_window: config.contract.rate_limit_window.into(),
+            rate_limit_per_ip: config.contract.rate_limit_per_ip,
+            rate_limit_per_email: config.contract.rate_limit_per_email,
         };
 
         let health_feature_config = HealthFeatureConfig {

@@ -91,6 +91,7 @@ pub struct Config {
     pub session: SessionConfig,
     pub totp: TotpConfig,
     pub contact: ContactConfig,
+    pub contract: ContractConfig,
     pub recaptcha: Option<RecaptchaConfig>,
     pub vat: VatConfig,
     pub paypal: PaypalConfig,
@@ -123,7 +124,9 @@ where
 #[derive(Debug, Deserialize)]
 pub struct HttpRealIpConfig {
     pub header: String,
-    pub set_from: Option<IpAddr>,
+    /// Address of the reverse proxy. The header is only read when the request
+    /// comes from it, so a client cannot set its own address.
+    pub set_from: IpAddr,
 }
 
 #[derive(Debug, Deserialize)]
@@ -185,6 +188,14 @@ pub struct UserConfig {
     pub verification_redirect_url: String,
     pub password_reset_code_ttl: Duration,
     pub password_reset_redirect_url: String,
+}
+
+/// Rate limits of the consumer declaration endpoints.
+#[derive(Debug, Deserialize)]
+pub struct ContractConfig {
+    pub rate_limit_window: Duration,
+    pub rate_limit_per_ip: u64,
+    pub rate_limit_per_email: u64,
 }
 
 #[derive(Debug, Deserialize)]

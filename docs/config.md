@@ -12,8 +12,8 @@ Durations are strings built from `d`, `h`, `m` and `s` parts, e.g. `"30d"`, `"10
 | Property | Default | Description |
 | --- | --- | --- |
 | `address` | **required** | Socket address the API server binds to, e.g. `"0.0.0.0:80"`. |
-| `real_ip.header` | *unset* | Header to read the client ip from when running behind a reverse proxy, e.g. `"X-Real-Ip"`. |
-| `real_ip.set_from` | *unset* | Only trust `real_ip.header` if the request comes from this address. |
+| `real_ip.header` | *unset* | Header to read the client ip from when running behind a reverse proxy, e.g. `"X-Real-Ip"`. Without it the socket address of the TCP client is used. |
+| `real_ip.set_from` | **required** with `real_ip.header` | Address of the reverse proxy. The header is read only when the request comes from it; requests from anywhere else keep their socket address, so a client cannot choose its own ip. |
 | `allowed_origins` | `[]` | List of regular expressions matching the origins that are allowed by CORS. |
 
 ## `[database]`
@@ -89,6 +89,18 @@ Durations are strings built from `d`, `h`, `m` and `s` parts, e.g. `"30d"`, `"10
 | Property | Default | Description |
 | --- | --- | --- |
 | `email` | **required** | Recipient of the contact form and of the internal notifications about contract declarations. |
+
+## `[contract]`
+Rate limits of the consumer declaration endpoints (`POST /contracts/cancellations` and `POST /contracts/withdrawals`), counted per client ip address and per email address over the same window.
+Both counters are shared between the two endpoints, and a request that is refused is not counted.
+
+The per-ip budget only stops a single machine from flooding the endpoint, so it is deliberately much larger than the per-address one: everybody behind the same NAT — a household, a school, a carrier's CGNAT — shares one ip address, and § 312k Abs. 2 BGB requires the cancellation form to be permanently available to each of them.
+
+| Property | Default | Description |
+| --- | --- | --- |
+| `rate_limit_window` | `"1h"` | Window both counters are reset after. |
+| `rate_limit_per_ip` | `60` | Maximum number of declarations per client ip address within the window. |
+| `rate_limit_per_email` | `5` | Maximum number of declarations per email address within the window. |
 
 ## `[recaptcha]`
 The section is always parsed, so `sitekey` and `secret` have to be set even when the check is switched off.

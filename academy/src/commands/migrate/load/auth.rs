@@ -161,6 +161,7 @@ pub async fn load(db: PostgresDatabase, auth: DbConnection) -> anyhow::Result<()
             device_name: Some(device_name.try_into()?),
             created_at: last_update.and_utc(),
             updated_at: last_update.and_utc(),
+            mfa_verified: false,
         };
 
         let refresh_token_hash = SessionRefreshTokenHash::new(Sha256Hash(

@@ -21,6 +21,7 @@ async fn ok() {
         FOO.user.clone(),
         UUID1.into(),
         (*SHA256HASH1).into(),
+        true,
         expected.access_token.clone(),
     );
 
@@ -36,7 +37,7 @@ async fn ok() {
     };
 
     // Act
-    let result = sut.issue_tokens(&FOO.user, UUID1.into());
+    let result = sut.issue_tokens(&FOO.user, UUID1.into(), true);
 
     // Assert
     assert_eq!(result.unwrap(), expected);

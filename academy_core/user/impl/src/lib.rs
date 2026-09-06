@@ -222,7 +222,7 @@ where
 
         let result = self
             .session
-            .create(&mut txn, user, device_name, true)
+            .create(&mut txn, user, device_name, true, false)
             .await
             .context("Failed to create session")?;
 

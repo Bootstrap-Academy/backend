@@ -1,5 +1,6 @@
 use academy_models::pagination::PaginationSlice;
 
+mod admin_audit;
 mod coins;
 mod contract;
 mod heart;

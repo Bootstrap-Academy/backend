@@ -14,6 +14,8 @@ pub static ADMIN_1: LazyLock<Session> = LazyLock::new(|| Session {
     device_name: Some("laptop".try_into().unwrap()),
     created_at: ADMIN.user.created_at,
     updated_at: ADMIN.user.created_at + Duration::from_secs(1337),
+    // administrative privileges require a session created with a second factor
+    mfa_verified: true,
 });
 
 pub static FOO_1: LazyLock<Session> = LazyLock::new(|| Session {
@@ -22,6 +24,7 @@ pub static FOO_1: LazyLock<Session> = LazyLock::new(|| Session {
     device_name: Some("desktop".try_into().unwrap()),
     created_at: FOO.user.created_at + Duration::from_secs(42),
     updated_at: FOO.user.created_at + Duration::from_secs(1337),
+    mfa_verified: false,
 });
 
 pub static FOO_2: LazyLock<Session> = LazyLock::new(|| Session {
@@ -30,6 +33,7 @@ pub static FOO_2: LazyLock<Session> = LazyLock::new(|| Session {
     device_name: None,
     created_at: FOO.user.created_at,
     updated_at: FOO.user.created_at + Duration::from_secs(17),
+    mfa_verified: false,
 });
 
 pub static BAR_1: LazyLock<Session> = LazyLock::new(|| Session {
@@ -38,6 +42,7 @@ pub static BAR_1: LazyLock<Session> = LazyLock::new(|| Session {
     device_name: None,
     created_at: BAR.user.created_at,
     updated_at: BAR.user.created_at + Duration::from_secs(23),
+    mfa_verified: false,
 });
 
 pub async fn create<Txn: Send + Sync + 'static>(

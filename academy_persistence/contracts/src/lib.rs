@@ -1,5 +1,6 @@
 use std::future::Future;
 
+pub mod admin_audit;
 pub mod coin;
 pub mod contract;
 pub mod heart;

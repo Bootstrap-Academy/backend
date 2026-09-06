@@ -16,6 +16,7 @@ async fn ok() {
         refresh_token_hash: (*SHA256HASH1).into(),
         admin: FOO.user.admin,
         email_verified: FOO.user.email_verified,
+        mfa_verified: false,
     };
 
     let auth_access_token = MockAuthAccessTokenService::new()
@@ -61,6 +62,7 @@ async fn access_token_invalidated() {
         refresh_token_hash: (*SHA256HASH1).into(),
         admin: FOO.user.admin,
         email_verified: FOO.user.email_verified,
+        mfa_verified: false,
     };
 
     let auth_access_token = MockAuthAccessTokenService::new()

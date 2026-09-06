@@ -7,7 +7,7 @@ use academy_core_finance_contracts::{
 };
 use academy_di::Build;
 use academy_models::{auth::AccessToken, user::UserId};
-use academy_persistence_contracts::{Database, finance::FinancialDocumentRepository};
+use academy_persistence_contracts::{Database, Transaction, finance::FinancialDocumentRepository};
 use academy_shared_contracts::jwt::{JwtService, VerifyJwtError};
 use academy_utils::{static_value, trace_instrument};
 use anyhow::Context;
@@ -84,10 +84,17 @@ where
 
         let mut txn = self.db.begin_transaction().await?;
 
-        self.finance_invoice
+        let invoice = self
+            .finance_invoice
             .get_invoice_pdf(&mut txn, Some(user_id), invoice_number)
             .await?
-            .ok_or(FinanceDownloadError::NotFound)
+            .ok_or(FinanceDownloadError::NotFound)?;
+
+        // Rendering a document for the first time also records it in
+        // `financial_documents`, so the transaction has to be committed.
+        txn.commit().await?;
+
+        Ok(invoice)
     }
 
     #[instrument(skip(self))]
@@ -106,10 +113,17 @@ where
 
         let mut txn = self.db.begin_transaction().await?;
 
-        self.finance_invoice
+        let credit_note = self
+            .finance_invoice
             .get_credit_note(&mut txn, user_id, year, month)
             .await?
-            .ok_or(FinanceDownloadError::NotFound)
+            .ok_or(FinanceDownloadError::NotFound)?;
+
+        // Rendering a document for the first time also records it in
+        // `financial_documents`, so the transaction has to be committed.
+        txn.commit().await?;
+
+        Ok(credit_note)
     }
 
     #[trace_instrument(skip(self))]

@@ -201,17 +201,19 @@ where
         let withdrawal_consent = withdrawal_consent_confirmation(&order);
         let new_balance = self.paypal_coin_order.capture(&mut txn, order).await?;
 
-        if let Some(email) = user_composite.user.email {
-            let Some(invoice_pdf) = self
-                .finance_invoice
-                .get_invoice_pdf(&mut txn, Some(auth.user_id), invoice_number)
-                .await?
-            else {
-                return Err(
-                    anyhow!("Failed to get invoice of order that has just been captured.").into(),
-                );
-            };
+        // The invoice is issued and recorded in `financial_documents` for every
+        // captured order, whether or not there is an address to send it to.
+        let Some(invoice_pdf) = self
+            .finance_invoice
+            .get_invoice_pdf(&mut txn, Some(auth.user_id), invoice_number)
+            .await?
+        else {
+            return Err(
+                anyhow!("Failed to get invoice of order that has just been captured.").into(),
+            );
+        };
 
+        if let Some(email) = user_composite.user.email {
             let CoinPrices {
                 vat_total,
                 gross_total,

@@ -37,9 +37,13 @@ async fn generate(config: Config) -> anyhow::Result<()> {
     let mut stream = std::pin::pin!(paypal_repo.stream_coin_orders(&mut txn));
     let mut write_txn = db.begin_transaction().await?;
     while let Some(coin_order) = stream.try_next().await? {
-        finance_invoice_service
-            .get_invoice_pdf(&mut write_txn, None, coin_order.invoice_number)
-            .await?;
+        // An order that was never paid was never invoiced, so it must not get
+        // a document either.
+        if coin_order.captured_at.is_some() {
+            finance_invoice_service
+                .get_invoice_pdf(&mut write_txn, None, coin_order.invoice_number)
+                .await?;
+        }
         bar.inc(1);
     }
     bar.finish();

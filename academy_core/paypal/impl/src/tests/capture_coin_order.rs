@@ -122,6 +122,66 @@ async fn ok() {
 }
 
 #[tokio::test]
+async fn ok_without_email() {
+    // Arrange
+    let user = FOO.clone().with(|user| user.user.email = None);
+
+    let order = PaypalCoinOrder {
+        id: PaypalOrderId::try_new("asdf1234").unwrap(),
+        user_id: user.user.id,
+        created_at: user.user.created_at,
+        captured_at: None,
+        coins: 1337,
+        invoice_number: 42,
+        withdrawal_consent_at: Some(user.user.created_at),
+        withdrawal_text_version: Some("2026-09".try_into().unwrap()),
+    };
+
+    let expected = Balance {
+        coins: 123456,
+        withheld_coins: 7,
+    };
+
+    let auth = MockAuthService::new().with_authenticate(Some((user.user.clone(), FOO_1.clone())));
+
+    let db = MockDatabase::build(true);
+
+    let paypal_repo =
+        MockPaypalRepository::new().with_get_coin_order(order.id.clone(), Some(order.clone()));
+
+    let user_repo = MockUserRepository::new().with_get_composite(user.user.id, Some(user.clone()));
+
+    let paypal_api = MockPaypalApiService::new().with_capture_order(order.id.clone(), true);
+
+    let paypal_coin_order = MockPaypalCoinOrderService::new().with_capture(order.clone(), expected);
+
+    // The invoice is still issued, and therefore still recorded, even though
+    // there is no address to send the confirmation to.
+    let finance_invoice = MockFinanceInvoiceService::new().with_get_invoice_pdf(
+        Some(user.user.id),
+        42,
+        Some(vec![1, 2, 3, 4, 5]),
+    );
+
+    let sut = PaypalFeatureServiceImpl {
+        auth,
+        db,
+        paypal_repo,
+        user_repo,
+        paypal_api,
+        paypal_coin_order,
+        finance_invoice,
+        ..Sut::default()
+    };
+
+    // Act
+    let result = sut.capture_coin_order(&"token".into(), order.id).await;
+
+    // Assert
+    assert_eq!(result.unwrap(), expected);
+}
+
+#[tokio::test]
 async fn unauthenticated() {
     // Arrange
     let order_id = PaypalOrderId::try_new("asdf1234").unwrap();

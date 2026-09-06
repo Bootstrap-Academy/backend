@@ -130,7 +130,7 @@
         <div class="details">
           <div class="row">
             <b>Datum</b>
-            <div>{{ timestamp | date(format="%d.%m.%Y") }}</div>
+            <div>{{ timestamp | date(format="%d.%m.%Y", timezone="Europe/Berlin") }}</div>
           </div>
           <div class="row">
             <b>Rechnungs-Nr.</b>

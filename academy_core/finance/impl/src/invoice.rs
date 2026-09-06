@@ -533,8 +533,11 @@ mod tests {
     >;
 
     /// A moment at which a document issued in 2024 still has to be kept.
+    ///
+    /// The calendar year is taken in `Europe/Berlin`, where 23:59:59 UTC on
+    /// 31 December is already the next year.
     fn within_retention() -> DateTime<Utc> {
-        Utc.with_ymd_and_hms(2032, 12, 31, 23, 59, 59).unwrap()
+        Utc.with_ymd_and_hms(2032, 12, 31, 12, 0, 0).unwrap()
     }
 
     /// The first moment at which a document issued in 2024 may be deleted.

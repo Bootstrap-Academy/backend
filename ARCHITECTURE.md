@@ -117,7 +117,8 @@ Document number, issue date and amounts stay on the record and the archived pdf 
 Before that, `delete_user` asks `FinanceInvoiceService::create_final_statement` to issue the final statement of the account (AGB Ziffer 6.7).
 It records the unused share of the purchased Morphcoins — `min(balance, purchased)`, because reward coins count as consumed first — together with the name and the email address a later refund has to be offered to, so it is the one kind of document that is **not** pseudonymized.
 It is only issued when there is actually something left to refund, that is for an account that bought Morphcoins and has not spent all of them; in every other case there is nothing to refund and therefore no reason to keep anything that names the account.
-The record is written before its pdf, and a render daemon that is unavailable only costs the pdf, never the deletion.
+The record is written inside the transaction that deletes the account, because it carries everything a later refund needs; its pdf is rendered afterwards, so that no database transaction is held open across the http call to the render daemon.
+A render daemon that is unavailable therefore only costs the pdf, never the deletion, and the failure is logged with the document number alone.
 
 ### Data Export
 `GET /auth/users/{user_id}/export` returns everything the platform stores about one user as a single JSON document (Art. 15 and 20 GDPR); a user can export themselves, an administrator can export anybody.

@@ -1,5 +1,5 @@
 use academy_auth_contracts::MockAuthService;
-use academy_core_finance_contracts::invoice::MockFinanceInvoiceService;
+use academy_core_finance_contracts::invoice::{MockFinanceInvoiceService, PendingFinalStatement};
 use academy_core_user_contracts::{UserDeleteError, UserFeatureService};
 use academy_demo::{
     session::{ADMIN_1, BAR_1, FOO_1},
@@ -18,6 +18,13 @@ use academy_utils::assert_matches;
 
 use crate::{UserFeatureServiceImpl, tests::Sut};
 
+fn pending_final_statement() -> PendingFinalStatement {
+    PendingFinalStatement {
+        number: "S7".try_into().unwrap(),
+        html: "<html>the statement</html>".into(),
+    }
+}
+
 #[tokio::test]
 async fn ok_self() {
     // Arrange
@@ -32,7 +39,9 @@ async fn ok_self() {
     // The unused share of the purchased Morphcoins is recorded before the
     // account is gone.
     let finance_invoice = MockFinanceInvoiceService::new()
-        .with_create_final_statement(FOO.user.id, Some("S7".try_into().unwrap()));
+        .with_create_final_statement(FOO.user.id, Some(pending_final_statement()))
+        // The pdf is produced after the commit.
+        .with_archive_final_statement(pending_final_statement());
 
     // Invoices and credit notes are kept, but no longer name the account.
     let document_repo = MockFinancialDocumentRepository::new().with_pseudonymize(
@@ -74,7 +83,9 @@ async fn ok_admin() {
     // The unused share of the purchased Morphcoins is recorded before the
     // account is gone.
     let finance_invoice = MockFinanceInvoiceService::new()
-        .with_create_final_statement(FOO.user.id, Some("S7".try_into().unwrap()));
+        .with_create_final_statement(FOO.user.id, Some(pending_final_statement()))
+        // The pdf is produced after the commit.
+        .with_archive_final_statement(pending_final_statement());
 
     // Invoices and credit notes are kept, but no longer name the account.
     let document_repo = MockFinancialDocumentRepository::new().with_pseudonymize(

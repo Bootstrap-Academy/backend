@@ -582,8 +582,9 @@ where
 
         // The unused share of the purchased Morphcoins is recorded before the
         // account is gone, so that it can still be refunded on request
-        // afterwards (AGB Ziffer 6.7).
-        self.finance_invoice
+        // afterwards (AGB Ziffer 6.7). Its pdf is produced after the commit.
+        let final_statement = self
+            .finance_invoice
             .create_final_statement(&mut txn, user_id)
             .await
             .context("Failed to create the final statement")?;
@@ -609,6 +610,15 @@ where
         }
 
         txn.commit().await?;
+
+        // The record of the statement is committed and is what a later refund
+        // needs; its pdf is produced outside the transaction, because that
+        // means an http request to the render daemon.
+        if let Some(final_statement) = final_statement {
+            self.finance_invoice
+                .archive_final_statement(final_statement)
+                .await;
+        }
 
         // The microservices are notified only after the user has actually been
         // deleted from the database.

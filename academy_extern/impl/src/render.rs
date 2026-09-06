@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
 
 use academy_di::Build;
 use academy_extern_contracts::render::RenderApiService;
@@ -17,12 +17,19 @@ pub struct RenderApiServiceImpl {
 #[derive(Debug, Clone)]
 pub struct RenderApiServiceConfig {
     base_url: Arc<Url>,
+    /// How long a single render request may take.
+    ///
+    /// Without one a render daemon that accepts the connection and then stops
+    /// answering keeps the caller waiting for as long as the socket stays
+    /// open.
+    timeout: Duration,
 }
 
 impl RenderApiServiceConfig {
-    pub fn new(base_url: Url) -> Self {
+    pub fn new(base_url: Url, timeout: Duration) -> Self {
         Self {
             base_url: base_url.into(),
+            timeout,
         }
     }
 }
@@ -33,6 +40,7 @@ impl RenderApiService for RenderApiServiceImpl {
 
         self.http
             .post(url)
+            .timeout(self.config.timeout)
             .body(html)
             .send()
             .await

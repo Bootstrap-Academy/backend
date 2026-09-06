@@ -1,6 +1,6 @@
 use academy_core_finance_contracts::{
     coin::{CoinPrices, FinanceCoinService},
-    invoice::FinanceInvoiceService,
+    invoice::{FinanceInvoiceService, PendingFinalStatement},
 };
 use academy_di::Build;
 use academy_extern_contracts::render::RenderApiService;
@@ -364,7 +364,7 @@ where
         &self,
         txn: &mut Txn,
         user_id: UserId,
-    ) -> anyhow::Result<Option<FinancialDocumentNumber>> {
+    ) -> anyhow::Result<Option<PendingFinalStatement>> {
         let Some(user_composite) = self.user_repo.get_composite(txn, user_id).await? else {
             return Ok(None);
         };
@@ -399,10 +399,6 @@ where
 
         let user_number = self.user_repo.get_number(txn, user_id).await?;
         let number = FinancialDocumentNumber::try_new(final_statement_number(user_number))?;
-        let archive_path = self
-            .config
-            .final_statements_archive
-            .join(format!("{}.pdf", *number));
 
         let timestamp = self.time.now();
 
@@ -440,7 +436,7 @@ where
             .await
             .context("Failed to record the final statement")?;
 
-        let statement_html = self
+        let html = self
             .template
             .render(&FinalStatementTemplate {
                 title: "Schlussabrechnung",
@@ -455,17 +451,36 @@ where
             })
             .context("Failed to render final statement template")?;
 
-        match self.render_api.render_html_to_pdf(statement_html).await {
-            Ok(statement_pdf) => self.fs.store_file(&archive_path, &statement_pdf).await?,
-            // `academy task list-orphan-documents` reports the records whose
-            // pdf is missing, so the file can be produced later.
-            Err(err) => tracing::warn!(
-                "Failed to render the pdf of final statement {}: {err:#}",
-                *number
-            ),
-        }
+        // The pdf is produced by `archive_final_statement`, after the caller
+        // has committed. Rendering it needs an http request, which must not be
+        // made while the transaction that deletes the account is open.
+        Ok(Some(PendingFinalStatement { number, html }))
+    }
 
-        Ok(Some(number))
+    #[instrument(skip(self, statement))]
+    async fn archive_final_statement(&self, statement: PendingFinalStatement) {
+        let PendingFinalStatement { number, html } = statement;
+        let archive_path = self
+            .config
+            .final_statements_archive
+            .join(format!("{}.pdf", *number));
+
+        // Only the document number is logged. The statement itself names the
+        // person it was issued for.
+        let result = match self.render_api.render_html_to_pdf(html).await {
+            Ok(statement_pdf) => self.fs.store_file(&archive_path, &statement_pdf).await,
+            Err(err) => Err(err),
+        };
+
+        // `academy task list-orphan-documents` reports the records whose pdf
+        // is missing, so the file can be produced later. The record itself is
+        // what a refund needs and is already committed.
+        if let Err(err) = result {
+            tracing::warn!(
+                document = %*number,
+                "Failed to archive the pdf of a final statement: {err:#}"
+            );
+        }
     }
 }
 
@@ -1292,7 +1307,6 @@ mod tests {
     async fn create_final_statement_ok() {
         // Arrange
         let now = within_retention();
-        let pdf = vec![1, 2, 3, 4];
 
         let time = MockTimeService::new().with_now(now);
 
@@ -1359,22 +1373,16 @@ mod tests {
             "final-statement-html".into(),
         );
 
-        let render_api = MockRenderApiService::new()
-            .with_render_html_to_pdf("final-statement-html".into(), pdf.clone());
-
-        let fs =
-            MockFsService::new().with_store_file("/final_statements/S7.pdf".into(), pdf.clone());
-
+        // Nothing is rendered or written yet: the pdf is produced by
+        // `archive_final_statement`, after the caller has committed.
         let sut = FinanceInvoiceServiceImpl {
             time,
-            fs,
             user_repo,
             paypal_repo,
             coin_repo,
             document_repo,
             finance_coin,
             template,
-            render_api,
             ..Sut::default()
         };
 
@@ -1382,7 +1390,13 @@ mod tests {
         let result = sut.create_final_statement(&mut (), FOO.user.id).await;
 
         // Assert
-        assert_eq!(result.unwrap(), Some("S7".try_into().unwrap()));
+        assert_eq!(
+            result.unwrap(),
+            Some(PendingFinalStatement {
+                number: "S7".try_into().unwrap(),
+                html: "final-statement-html".into(),
+            })
+        );
     }
 
     /// Reward coins count as consumed first, so the unused share never exceeds
@@ -1448,21 +1462,14 @@ mod tests {
             "final-statement-html".into(),
         );
 
-        let render_api = MockRenderApiService::new()
-            .with_render_html_to_pdf("final-statement-html".into(), vec![1]);
-
-        let fs = MockFsService::new().with_store_file("/final_statements/S7.pdf".into(), vec![1]);
-
         let sut = FinanceInvoiceServiceImpl {
             time,
-            fs,
             user_repo,
             paypal_repo,
             coin_repo,
             document_repo,
             finance_coin,
             template,
-            render_api,
             ..Sut::default()
         };
 
@@ -1470,7 +1477,13 @@ mod tests {
         let result = sut.create_final_statement(&mut (), FOO.user.id).await;
 
         // Assert
-        assert_eq!(result.unwrap(), Some("S7".try_into().unwrap()));
+        assert_eq!(
+            result.unwrap(),
+            Some(PendingFinalStatement {
+                number: "S7".try_into().unwrap(),
+                html: "final-statement-html".into(),
+            })
+        );
     }
 
     /// An account that never bought Morphcoins gets no statement, so nothing
@@ -1548,70 +1561,39 @@ mod tests {
         assert_eq!(result.unwrap(), None);
     }
 
-    /// A render daemon that is unavailable must not stop an account from being
-    /// deleted, so the record is kept even without its pdf.
+    /// The pdf is produced outside the transaction that deleted the account,
+    /// and only then is it archived.
     #[tokio::test]
-    async fn create_final_statement_without_pdf() {
+    async fn archive_final_statement_ok() {
         // Arrange
-        let now = within_retention();
+        let pdf = vec![1, 2, 3, 4];
 
-        let time = MockTimeService::new().with_now(now);
+        let render_api = MockRenderApiService::new()
+            .with_render_html_to_pdf("final-statement-html".into(), pdf.clone());
 
-        let user_repo = MockUserRepository::new()
-            .with_get_composite(FOO.user.id, Some(FOO.clone()))
-            .with_get_number(FOO.user.id, 7);
+        let fs =
+            MockFsService::new().with_store_file("/final_statements/S7.pdf".into(), pdf.clone());
 
-        let paypal_repo = MockPaypalRepository::new()
-            .with_list_coin_orders_by_user_id(FOO.user.id, vec![captured_order(500, 1)]);
+        let sut = FinanceInvoiceServiceImpl {
+            fs,
+            render_api,
+            ..Sut::default()
+        };
 
-        let coin_repo = MockCoinRepository::new().with_get_balance(
-            FOO.user.id,
-            Balance {
-                coins: 500,
-                withheld_coins: 0,
-            },
-        );
-
-        let finance_coin = MockFinanceCoinService::new()
-            .with_get_price(
-                500,
-                CoinPrices {
-                    net_unit: dec!(0.0084),
-                    net_total: dec!(4.2),
-                    vat_total: dec!(0.8),
-                    gross_total: dec!(5),
-                },
-            )
-            .with_coins_per_euro(100);
-
-        let document_repo = MockFinancialDocumentRepository::new().with_record(FinancialDocument {
+        // Act
+        sut.archive_final_statement(PendingFinalStatement {
             number: "S7".try_into().unwrap(),
-            kind: FinancialDocumentKind::FinalStatement,
-            user_id: Some(FOO.user.id),
-            issued_at: now,
-            customer_details: Some(final_statement_customer_details()),
-            coins: Some(500),
-            net_total_cents: None,
-            vat_total_cents: None,
-            gross_total_cents: Some(500),
-            settled_at: None,
-        });
+            html: "final-statement-html".into(),
+        })
+        .await;
+    }
 
-        let template = MockTemplateService::new().with_render(
-            FinalStatementTemplate {
-                title: "Schlussabrechnung",
-                customer_details: final_statement_customer_details(),
-                timestamp: now,
-                statement_number: "S7".into(),
-                purchased_coins: 500,
-                balance_coins: 500,
-                unused_coins: 500,
-                coins_per_euro: 100,
-                refund_amount: dec!(5),
-            },
-            "final-statement-html".into(),
-        );
-
+    /// A render daemon that is unavailable must not stop an account from being
+    /// deleted, so the failure is only logged; the record is already
+    /// committed.
+    #[tokio::test]
+    async fn archive_final_statement_without_a_render_daemon() {
+        // Arrange
         let mut render_api = MockRenderApiService::new();
         render_api
             .expect_render_html_to_pdf()
@@ -1622,22 +1604,16 @@ mod tests {
         let fs = MockFsService::new();
 
         let sut = FinanceInvoiceServiceImpl {
-            time,
             fs,
-            user_repo,
-            paypal_repo,
-            coin_repo,
-            document_repo,
-            finance_coin,
-            template,
             render_api,
             ..Sut::default()
         };
 
         // Act
-        let result = sut.create_final_statement(&mut (), FOO.user.id).await;
-
-        // Assert
-        assert_eq!(result.unwrap(), Some("S7".try_into().unwrap()));
+        sut.archive_final_statement(PendingFinalStatement {
+            number: "S7".try_into().unwrap(),
+            html: "final-statement-html".into(),
+        })
+        .await;
     }
 }

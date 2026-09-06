@@ -117,6 +117,9 @@ yearly_price = 10000
 
 [render]
 # daemon_url = ""
+# A render daemon that accepts the connection and then stops answering must not
+# keep the request that is waiting for a document open.
+timeout = "30s"
 
 [microservices]
 # skills_url = ""

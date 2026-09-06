@@ -1,0 +1,2 @@
+drop index contract_declarations_user_id_idx;
+drop index paypal_coin_orders_user_id_idx;

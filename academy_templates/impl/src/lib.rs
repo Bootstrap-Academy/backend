@@ -51,8 +51,8 @@ impl TemplateService for TemplateServiceImpl {
 mod tests {
     use academy_templates_contracts::{
         ContractCancellationConfirmationTemplate, ContractWithdrawalConfirmationTemplate,
-        InvoiceTemplate, PurchaseConfirmationTemplate, ResetPasswordTemplate, VerifyEmailTemplate,
-        WithdrawalConsentConfirmation,
+        FinalStatementTemplate, InvoiceTemplate, PurchaseConfirmationTemplate,
+        ResetPasswordTemplate, VerifyEmailTemplate, WithdrawalConsentConfirmation,
     };
 
     use super::*;
@@ -131,6 +131,34 @@ mod tests {
             vat_total: 7.into(),
             gross_total: 49.into(),
         });
+    }
+
+    #[test]
+    fn final_statement() {
+        let rendered = render_template(FinalStatementTemplate {
+            title: "Schlussabrechnung",
+            customer_details: ["Max Mustermann", "max@example.de"]
+                .into_iter()
+                .map(Into::into)
+                .collect(),
+            timestamp: Default::default(),
+            statement_number: "S1337".into(),
+            purchased_coins: 1500,
+            balance_coins: 1200,
+            unused_coins: 1200,
+            coins_per_euro: 100,
+            refund_amount: 12.into(),
+        });
+
+        // The name and the email address are what makes a later refund
+        // possible, and the refundable amount has to be readable.
+        assert!(rendered.contains("Max Mustermann"));
+        assert!(rendered.contains("max@example.de"));
+        assert!(rendered.contains("S1337"));
+        assert!(rendered.contains("1500"));
+        assert!(rendered.contains("1200"));
+        assert!(rendered.contains("12 EUR"));
+        assert!(rendered.contains("Ziffer 6.7"));
     }
 
     #[test]

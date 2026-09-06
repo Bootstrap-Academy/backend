@@ -155,6 +155,8 @@ A microservice without a url is skipped; an empty string counts as no url.
 | `vat_percent` | `19` | VAT rate in percent, published through `GET /shop/coins/config`. |
 | `invoices_archive` | **required** | Directory the generated invoices are written to. |
 | `credit_notes_archive` | **required** | Directory the generated credit notes are written to. |
+| `final_statements_archive` | **required** | Directory the final statements issued at account deletion are written to. |
+| `retention_years` | `8` | Number of years invoices, credit notes and final statements are kept, counted from the end of the calendar year in which they were issued. Enforced by `academy task prune-documents`. |
 
 ## `[sentry]`
 Optional section for error reporting to GlitchTip/Sentry. It is not present in `config.toml`, so error reporting is off unless the deployment adds it.

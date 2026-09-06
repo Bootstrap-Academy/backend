@@ -3,6 +3,7 @@ use std::future::Future;
 pub mod admin_audit;
 pub mod coin;
 pub mod contract;
+pub mod finance;
 pub mod heart;
 pub mod mfa;
 pub mod oauth2;

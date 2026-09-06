@@ -2,9 +2,10 @@ use academy_core_user_contracts::export::{AccountDataExport, UserExportService};
 use academy_di::Build;
 use academy_models::user::UserId;
 use academy_persistence_contracts::{
-    coin::CoinRepository, contract::ContractRepository, heart::HeartRepository,
-    oauth2::OAuth2Repository, paypal::PaypalRepository, premium::PremiumRepository,
-    session::SessionRepository, user::UserRepository, withdrawal::WithdrawalRepository,
+    coin::CoinRepository, contract::ContractRepository, finance::FinancialDocumentRepository,
+    heart::HeartRepository, oauth2::OAuth2Repository, paypal::PaypalRepository,
+    premium::PremiumRepository, session::SessionRepository, user::UserRepository,
+    withdrawal::WithdrawalRepository,
 };
 use anyhow::Context;
 use tracing::instrument;
@@ -20,6 +21,7 @@ pub struct UserExportServiceImpl<
     PaypalRepo,
     ContractRepo,
     WithdrawalRepo,
+    DocumentRepo,
 > {
     user_repo: UserRepo,
     session_repo: SessionRepo,
@@ -30,6 +32,7 @@ pub struct UserExportServiceImpl<
     paypal_repo: PaypalRepo,
     contract_repo: ContractRepo,
     withdrawal_repo: WithdrawalRepo,
+    document_repo: DocumentRepo,
 }
 
 impl<
@@ -43,6 +46,7 @@ impl<
     PaypalRepo,
     ContractRepo,
     WithdrawalRepo,
+    DocumentRepo,
 > UserExportService<Txn>
     for UserExportServiceImpl<
         UserRepo,
@@ -54,6 +58,7 @@ impl<
         PaypalRepo,
         ContractRepo,
         WithdrawalRepo,
+        DocumentRepo,
     >
 where
     Txn: Send + Sync + 'static,
@@ -66,6 +71,7 @@ where
     PaypalRepo: PaypalRepository<Txn>,
     ContractRepo: ContractRepository<Txn>,
     WithdrawalRepo: WithdrawalRepository<Txn>,
+    DocumentRepo: FinancialDocumentRepository<Txn>,
 {
     // Not `trace_instrument`, because that logs the return value, which is
     // everything this service stores about the user.
@@ -126,6 +132,11 @@ where
                 .list_coin_orders_by_user_id(txn, user_id)
                 .await
                 .context("Failed to get coin orders from database")?,
+            financial_documents: self
+                .document_repo
+                .list_by_user_id(txn, user_id)
+                .await
+                .context("Failed to get financial documents from database")?,
             contract_declarations: self
                 .contract_repo
                 .list_by_user_id(txn, user_id)

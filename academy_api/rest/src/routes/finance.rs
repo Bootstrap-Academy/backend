@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
 use academy_core_finance_contracts::{
-    FinanceDownloadError, FinanceFeatureService, FinanceGetDownloadTokenError,
+    FinanceDownloadError, FinanceFeatureService, FinanceGetDownloadTokenError, FinanceListError,
+    FinancialDocumentListQuery, FinancialDocumentListResult,
 };
 use aide::{
     axum::{ApiRouter, routing},
@@ -9,14 +10,14 @@ use aide::{
 };
 use axum::{
     Json,
-    extract::{Path, State},
+    extract::{Path, Query, State},
     http::StatusCode,
     response::{IntoResponse, Response},
 };
 use axum_extra::{TypedHeader, headers::ContentType};
 use mime::APPLICATION_PDF;
 use schemars::JsonSchema;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::{
     docs::TransformOperationExt,
@@ -26,9 +27,19 @@ use crate::{
         internal_server_error_docs,
     },
     extractors::auth::ApiToken,
+    models::{
+        ApiPaginationSlice, StringOption,
+        finance::{ApiFinancialDocument, ApiFinancialDocumentKind},
+    },
 };
 
 pub const TAG: &str = "Finance";
+
+/// Route of the administrative document listing.
+///
+/// Named because the administrative audit log records reads of this route; see
+/// [`crate::middlewares::admin_audit`].
+pub const DOCUMENTS_ROUTE: &str = "/finance/documents";
 
 pub fn router(service: Arc<impl FinanceFeatureService>) -> ApiRouter<()> {
     ApiRouter::new()
@@ -43,6 +54,10 @@ pub fn router(service: Arc<impl FinanceFeatureService>) -> ApiRouter<()> {
         .api_route(
             "/finance/credit_notes/{token}/{year}/{month}/credit_note.pdf",
             routing::get_with(download_credit_note, download_credit_note_docs),
+        )
+        .api_route(
+            DOCUMENTS_ROUTE,
+            routing::get_with(list_documents, list_documents_docs),
         )
         .with_state(service)
         .with_path_items(|op| op.tag(TAG))
@@ -117,6 +132,64 @@ fn download_credit_note_docs(op: TransformOperation) -> TransformOperation {
     op.summary("Download a credit note")
         .add_error::<InvalidTokenError>()
         .add_error::<CreditNoteNotYetAvailableError>()
+        .with(internal_server_error_docs)
+}
+
+#[derive(Deserialize, JsonSchema)]
+struct ListDocumentsFilter {
+    /// Filter by `kind`
+    kind: Option<ApiFinancialDocumentKind>,
+    /// Match the document number or the recorded customer details
+    #[serde(default)]
+    search: StringOption<String>,
+}
+
+#[derive(Serialize, JsonSchema)]
+struct ListDocumentsResult {
+    /// The total number of documents matching the given query
+    total: u64,
+    /// The paginated list of documents matching the given query
+    documents: Vec<ApiFinancialDocument>,
+}
+
+async fn list_documents(
+    service: State<Arc<impl FinanceFeatureService>>,
+    token: ApiToken,
+    Query(pagination): Query<ApiPaginationSlice>,
+    Query(ListDocumentsFilter { kind, search }): Query<ListDocumentsFilter>,
+) -> Response {
+    match service
+        .list_documents(
+            &token.0,
+            FinancialDocumentListQuery {
+                kind: kind.map(Into::into),
+                search: Option::from(search),
+                pagination: pagination.into(),
+            },
+        )
+        .await
+    {
+        Ok(FinancialDocumentListResult { total, documents }) => Json(ListDocumentsResult {
+            total,
+            documents: documents.into_iter().map(Into::into).collect(),
+        })
+        .into_response(),
+        Err(FinanceListError::Auth(err)) => auth_error(err),
+        Err(FinanceListError::Other(err)) => internal_server_error(err),
+    }
+}
+
+fn list_documents_docs(op: TransformOperation) -> TransformOperation {
+    op.summary("Return the issued invoices, credit notes and final statements.")
+        .description(
+            "Newest first. Documents of deleted accounts are included; they no longer carry a \
+             `user_id`, and only a final statement still names its customer, so that the unused \
+             share of the purchased Morphcoins it records can be refunded on request. Because \
+             of that, reading this listing is recorded in the administrative audit \
+             log.\n\nRequires admin privileges.",
+        )
+        .add_response::<ListDocumentsResult>(StatusCode::OK, None)
+        .with(auth_error_docs)
         .with(internal_server_error_docs)
 }
 

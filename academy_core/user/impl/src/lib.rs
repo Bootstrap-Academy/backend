@@ -2,6 +2,7 @@ use std::{sync::Arc, time::Duration};
 
 use academy_auth_contracts::{AuthResultExt, AuthService};
 use academy_cache_contracts::CacheService;
+use academy_core_finance_contracts::invoice::FinanceInvoiceService;
 use academy_core_oauth2_contracts::registration::OAuth2RegistrationService;
 use academy_core_session_contracts::session::SessionService;
 use academy_core_user_contracts::{
@@ -26,11 +27,13 @@ use academy_models::{
     RecaptchaResponse, VerificationCode,
     auth::{AccessToken, Login},
     email_address::EmailAddress,
+    finance::RETENTION_MARKER,
     session::DeviceName,
     user::{UserComposite, UserId, UserIdOrSelf, UserInvoiceInfoPatch, UserPassword},
 };
 use academy_persistence_contracts::{
-    Database, Transaction, coin::CoinRepository, user::UserRepository,
+    Database, Transaction, coin::CoinRepository, finance::FinancialDocumentRepository,
+    user::UserRepository,
 };
 use academy_shared_contracts::captcha::{CaptchaCheckError, CaptchaService};
 use academy_utils::{
@@ -63,8 +66,10 @@ pub struct UserFeatureServiceImpl<
     UserUpdate,
     Session,
     OAuth2Registration,
+    FinanceInvoice,
     UserRepo,
     CoinRepo,
+    DocumentRepo,
 > {
     db: Db,
     auth: Auth,
@@ -78,8 +83,10 @@ pub struct UserFeatureServiceImpl<
     user_update: UserUpdate,
     session: Session,
     oauth2_registration: OAuth2Registration,
+    finance_invoice: FinanceInvoice,
     user_repo: UserRepo,
     coin_repo: CoinRepo,
+    document_repo: DocumentRepo,
     config: UserFeatureConfig,
 }
 
@@ -107,8 +114,10 @@ impl<
     UserUpdate,
     Session,
     OAuth2RegistrationS,
+    FinanceInvoice,
     UserRepo,
     CoinRepo,
+    DocumentRepo,
 > UserFeatureService
     for UserFeatureServiceImpl<
         Db,
@@ -123,8 +132,10 @@ impl<
         UserUpdate,
         Session,
         OAuth2RegistrationS,
+        FinanceInvoice,
         UserRepo,
         CoinRepo,
+        DocumentRepo,
     >
 where
     Db: Database,
@@ -139,8 +150,10 @@ where
     UserUpdate: UserUpdateService<Db::Transaction>,
     Session: SessionService<Db::Transaction>,
     OAuth2RegistrationS: OAuth2RegistrationService,
+    FinanceInvoice: FinanceInvoiceService<Db::Transaction>,
     UserRepo: UserRepository<Db::Transaction>,
     CoinRepo: CoinRepository<Db::Transaction>,
+    DocumentRepo: FinancialDocumentRepository<Db::Transaction>,
 {
     #[trace_instrument(skip(self))]
     async fn list_users(
@@ -540,6 +553,25 @@ where
             .await
             .context("Failed to invalidate access tokens")?;
 
+        // The unused share of the purchased Morphcoins is recorded before the
+        // account is gone, so that it can still be refunded on request
+        // afterwards (AGB Ziffer 6.7).
+        self.finance_invoice
+            .create_final_statement(&mut txn, user_id)
+            .await
+            .context("Failed to create the final statement")?;
+
+        // Invoices and credit notes have to be kept even after the account has
+        // been deleted, so their records are pseudonymized instead: the
+        // customer details are replaced by a retention marker and the account
+        // reference is dropped when the account row is deleted. The final
+        // statement keeps its customer details, because a later refund can
+        // only be offered to somebody it still names.
+        self.document_repo
+            .pseudonymize(&mut txn, user_id, &[RETENTION_MARKER.into()])
+            .await
+            .context("Failed to pseudonymize financial documents")?;
+
         if !self
             .user_repo
             .delete(&mut txn, user_id)
@@ -760,8 +792,10 @@ impl<
     UserUpdate,
     Session,
     OAuth2RegistrationS,
+    FinanceInvoice,
     UserRepo,
     CoinRepo,
+    DocumentRepo,
 >
     UserFeatureServiceImpl<
         Db,
@@ -776,8 +810,10 @@ impl<
         UserUpdate,
         Session,
         OAuth2RegistrationS,
+        FinanceInvoice,
         UserRepo,
         CoinRepo,
+        DocumentRepo,
     >
 where
     Cache: CacheService,

@@ -102,8 +102,26 @@ log = audit_log(admin_user_id=admin["id"])
 assert log["entries"][0]["path"] == f"/auth/sessions/{user['id']}"
 assert log["entries"][0]["target_user_id"] == user["id"]
 
-# the data export is the one read that is recorded, because it hands an
-# administrator everything the platform stores about somebody else
+# reading the financial documents is recorded too, because the listing is
+# searchable by name and email address and still names deleted accounts
+before = audit_log()["total"]
+resp = c.get("/finance/documents", params={"search": "someone@example.com"})
+assert resp.status_code == 200
+
+log = audit_log()
+assert log["total"] == before + 1
+entry = log["entries"][0]
+assert entry["method"] == "GET"
+assert entry["path"] == "/finance/documents"
+assert entry["admin_user_id"] == admin["id"]
+assert entry["target_user_id"] is None
+assert entry["status"] == 200
+
+# the query string is not recorded
+assert "someone@example.com" not in str(entry)
+
+# the data export is recorded, because it hands an administrator everything
+# the platform stores about somebody else
 before = audit_log()["total"]
 resp = c.get(f"/auth/users/{user['id']}/export")
 assert resp.status_code == 200

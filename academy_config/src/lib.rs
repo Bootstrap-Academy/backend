@@ -283,6 +283,10 @@ pub struct FinanceConfig {
     pub vat_percent: Decimal,
     pub invoices_archive: PathBuf,
     pub credit_notes_archive: PathBuf,
+    pub final_statements_archive: PathBuf,
+    /// Number of years invoices, credit notes and final statements are kept,
+    /// counted from the end of the calendar year in which they were issued.
+    pub retention_years: u32,
 }
 
 #[derive(Debug, Deserialize)]
@@ -316,7 +320,7 @@ pub struct OAuth2ProviderConfig {
 mod tests {
     /// The minimal set of properties that have no default value and therefore
     /// need to be set by the deployment.
-    const MINIMAL_OVERRIDES: [&str; 20] = [
+    const MINIMAL_OVERRIDES: [&str; 21] = [
         "http.address = \"0.0.0.0:8000\"",
         "database.url = \"\"",
         "cache.url = \"\"",
@@ -331,6 +335,7 @@ mod tests {
         "render.daemon_url = \"http://localhost:8001\"",
         "finance.invoices_archive = \"\"",
         "finance.credit_notes_archive = \"\"",
+        "finance.final_statements_archive = \"\"",
         "oauth2.providers.github.client_id = \"\"",
         "oauth2.providers.github.client_secret = \"\"",
         "oauth2.providers.discord.client_id = \"\"",

@@ -120,6 +120,7 @@ let
         };
         tasks = {
           prune-database.schedule = [ ];
+          prune-documents.schedule = [ ];
           refresh-premium.schedule = [ ];
         };
         renderDaemon.package = self.packages.${system}.render_daemon.unwrapped;

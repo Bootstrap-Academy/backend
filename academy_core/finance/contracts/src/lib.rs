@@ -1,6 +1,10 @@
 use std::future::Future;
 
-use academy_models::auth::{AccessToken, AuthError};
+use academy_models::{
+    auth::{AccessToken, AuthError},
+    finance::{FinancialDocument, FinancialDocumentKind},
+    pagination::PaginationSlice,
+};
 use thiserror::Error;
 
 pub mod coin;
@@ -29,6 +33,38 @@ pub trait FinanceFeatureService: Send + Sync + 'static {
         year: i32,
         month: u32,
     ) -> impl Future<Output = Result<Vec<u8>, FinanceDownloadError>> + Send;
+
+    /// Return the issued financial documents, newest first.
+    ///
+    /// Requires admin privileges. Documents of deleted accounts are included;
+    /// they are no longer linked to an account.
+    fn list_documents(
+        &self,
+        token: &AccessToken,
+        query: FinancialDocumentListQuery,
+    ) -> impl Future<Output = Result<FinancialDocumentListResult, FinanceListError>> + Send;
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FinancialDocumentListQuery {
+    pub kind: Option<FinancialDocumentKind>,
+    /// Matches the document number and the recorded customer details.
+    pub search: Option<String>,
+    pub pagination: PaginationSlice,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FinancialDocumentListResult {
+    pub total: u64,
+    pub documents: Vec<FinancialDocument>,
+}
+
+#[derive(Debug, Error)]
+pub enum FinanceListError {
+    #[error(transparent)]
+    Auth(#[from] AuthError),
+    #[error(transparent)]
+    Other(#[from] anyhow::Error),
 }
 
 #[derive(Debug, Error)]

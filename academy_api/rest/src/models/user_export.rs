@@ -3,6 +3,7 @@ use std::collections::BTreeMap;
 use academy_core_user_contracts::export::{AccountDataExport, ServiceDataExport, UserDataExport};
 use academy_models::{
     coin::{Transaction, TransactionDescription, TransactionId},
+    finance::{FinancialDocument, FinancialDocumentNumber},
     heart::Hearts,
     oauth2::{
         OAuth2Link, OAuth2LinkId, OAuth2ProviderId, OAuth2RemoteUserId, OAuth2RemoteUserName,
@@ -19,6 +20,7 @@ use serde::Serialize;
 use super::{
     coin::ApiBalance,
     contract::{ApiContractDeclaration, ApiTimestamp},
+    finance::ApiFinancialDocumentKind,
     premium::ApiPremiumPlan,
     user::ApiUser,
     withdrawal::ApiWithdrawalSubject,
@@ -65,6 +67,9 @@ pub struct ApiAccountDataExport {
     pub premium: Option<ApiExportPremium>,
     /// The invoices issued to the user, oldest first
     pub invoices: Vec<ApiExportInvoice>,
+    /// The invoices, credit notes and final statements issued for the account,
+    /// oldest first
+    pub financial_documents: Vec<ApiExportFinancialDocument>,
     /// The cancellations and withdrawals the user has declared, oldest first
     pub contract_declarations: Vec<ApiContractDeclaration>,
     /// The declarations the user gave before placing an order, oldest first
@@ -134,6 +139,43 @@ pub struct ApiExportInvoice {
     pub withdrawal_text_version: Option<WithdrawalTextVersion>,
 }
 
+/// One document that has been issued for the account and is kept for eight
+/// years (§ 147 Abs. 3 AO).
+#[derive(Debug, Clone, Serialize, JsonSchema)]
+pub struct ApiExportFinancialDocument {
+    /// Number of the document, which is also the name of its pdf file
+    pub number: FinancialDocumentNumber,
+    pub kind: ApiFinancialDocumentKind,
+    pub issued_at: ApiTimestamp,
+    /// Address block as printed on the document, one line per entry. Null for
+    /// documents issued before the address block was recorded.
+    pub customer_details: Option<Vec<String>>,
+    /// Number of Morphcoins the document is about
+    pub coins: Option<u64>,
+    /// Net total in euro cents, as printed
+    pub net_total_cents: Option<i64>,
+    /// Vat total in euro cents, as printed
+    pub vat_total_cents: Option<i64>,
+    /// Gross total in euro cents, as printed. On a final statement this is the
+    /// amount that can still be refunded.
+    pub gross_total_cents: Option<i64>,
+}
+
+impl From<FinancialDocument> for ApiExportFinancialDocument {
+    fn from(value: FinancialDocument) -> Self {
+        Self {
+            number: value.number,
+            kind: value.kind.into(),
+            issued_at: value.issued_at.into(),
+            customer_details: value.customer_details,
+            coins: value.coins,
+            net_total_cents: value.net_total_cents,
+            vat_total_cents: value.vat_total_cents,
+            gross_total_cents: value.gross_total_cents,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, JsonSchema)]
 pub struct ApiExportWithdrawalConsent {
     pub id: WithdrawalConsentId,
@@ -190,6 +232,11 @@ impl From<AccountDataExport> for ApiAccountDataExport {
                 subscription: premium_subscription.map(Into::into),
             }),
             invoices: value.invoices.into_iter().map(Into::into).collect(),
+            financial_documents: value
+                .financial_documents
+                .into_iter()
+                .map(Into::into)
+                .collect(),
             contract_declarations: value
                 .contract_declarations
                 .into_iter()

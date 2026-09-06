@@ -57,6 +57,7 @@ templates! {
     VerifyEmailTemplate(templates::VERIFY_EMAIL_HTML),
     PurchaseConfirmationTemplate(templates::PURCHASE_CONFIRMATION_HTML),
     InvoiceTemplate(templates::INVOICE_HTML),
+    FinalStatementTemplate(templates::FINAL_STATEMENT_HTML),
     ContractCancellationConfirmationTemplate(templates::CONTRACT_CANCELLATION_CONFIRMATION_HTML),
     ContractWithdrawalConfirmationTemplate(templates::CONTRACT_WITHDRAWAL_CONFIRMATION_HTML),
 }
@@ -151,6 +152,30 @@ pub struct InvoiceTemplate {
     pub vat_total: Decimal,
     #[serde(serialize_with = "rounded_2")]
     pub gross_total: Decimal,
+}
+
+/// Final statement of the unused share of the purchased Morphcoins, issued
+/// when an account is deleted (AGB Ziffer 6.7).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct FinalStatementTemplate {
+    pub title: &'static str,
+    /// Address block, including the email address a later refund request is
+    /// answered to.
+    pub customer_details: Vec<String>,
+    /// Point in time at which the account was deleted.
+    pub timestamp: DateTime<Utc>,
+    pub statement_number: String,
+    /// Morphcoins the account has bought, from its invoices.
+    pub purchased_coins: u64,
+    /// Morphcoin balance at the moment of the deletion.
+    pub balance_coins: u64,
+    /// Unused share of the purchased Morphcoins.
+    pub unused_coins: u64,
+    /// Number of Morphcoins that correspond to one Euro.
+    pub coins_per_euro: u64,
+    /// Euro value of `unused_coins`.
+    #[serde(serialize_with = "rounded_2")]
+    pub refund_amount: Decimal,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]

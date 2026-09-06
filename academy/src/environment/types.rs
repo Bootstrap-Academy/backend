@@ -49,10 +49,11 @@ use academy_extern_impl::{
 };
 use academy_persistence_postgres::{
     PostgresDatabase, admin_audit::PostgresAdminAuditRepository, coin::PostgresCoinRepository,
-    contract::PostgresContractRepository, heart::PostgresHeartRepository,
-    mfa::PostgresMfaRepository, oauth2::PostgresOAuth2Repository, paypal::PostgresPaypalRepository,
-    premium::PostgresPremiumRepository, session::PostgresSessionRepository,
-    user::PostgresUserRepository, withdrawal::PostgresWithdrawalRepository,
+    contract::PostgresContractRepository, finance::PostgresFinancialDocumentRepository,
+    heart::PostgresHeartRepository, mfa::PostgresMfaRepository, oauth2::PostgresOAuth2Repository,
+    paypal::PostgresPaypalRepository, premium::PostgresPremiumRepository,
+    session::PostgresSessionRepository, user::PostgresUserRepository,
+    withdrawal::PostgresWithdrawalRepository,
 };
 use academy_shared_impl::{
     captcha::CaptchaServiceImpl, fs::FsServiceImpl, hash::HashServiceImpl, id::IdServiceImpl,
@@ -125,6 +126,7 @@ pub type PremiumRepo = PostgresPremiumRepository;
 pub type ContractRepo = PostgresContractRepository;
 pub type AdminAuditRepo = PostgresAdminAuditRepository;
 pub type WithdrawalRepo = PostgresWithdrawalRepository;
+pub type DocumentRepo = PostgresFinancialDocumentRepository;
 
 // Auth
 pub type Auth =
@@ -151,8 +153,10 @@ pub type UserFeature = UserFeatureServiceImpl<
     UserUpdate,
     Session,
     OAuth2Registration,
+    FinanceInvoice,
     UserRepo,
     CoinRepo,
+    DocumentRepo,
 >;
 pub type User = UserServiceImpl<Id, Time, Password, UserRepo, OAuth2Link>;
 pub type UserEmailConfirmation =
@@ -167,6 +171,7 @@ pub type UserExport = UserExportServiceImpl<
     PaypalRepo,
     ContractRepo,
     WithdrawalRepo,
+    DocumentRepo,
 >;
 pub type UserUpdate = UserUpdateServiceImpl<Auth, Time, Password, Session, UserRepo>;
 
@@ -245,7 +250,8 @@ pub type PaypalFeature = PaypalFeatureServiceImpl<
 >;
 pub type PaypalCoinOrder = PaypalCoinOrderServiceImpl<Time, PaypalRepo, Coin>;
 
-pub type FinanceFeature = FinanceFeatureServiceImpl<Database, Auth, Jwt, FinanceInvoice>;
+pub type FinanceFeature =
+    FinanceFeatureServiceImpl<Database, Auth, Jwt, FinanceInvoice, DocumentRepo>;
 pub type FinanceInvoice = FinanceInvoiceServiceImpl<
     Time,
     Fs,
@@ -254,6 +260,7 @@ pub type FinanceInvoice = FinanceInvoiceServiceImpl<
     PaypalRepo,
     UserRepo,
     CoinRepo,
+    DocumentRepo,
     FinanceCoin,
 >;
 pub type FinanceCoin = FinanceCoinServiceImpl;

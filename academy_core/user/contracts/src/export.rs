@@ -3,6 +3,7 @@ use std::{collections::BTreeMap, future::Future};
 use academy_models::{
     coin::{Balance, Transaction},
     contract::ContractDeclaration,
+    finance::FinancialDocument,
     heart::Hearts,
     oauth2::OAuth2Link,
     paypal::PaypalCoinOrder,
@@ -88,6 +89,9 @@ pub struct AccountDataExport {
     pub premium_subscription: Option<PremiumPlan>,
     /// The coin orders of the user, which are the invoices issued to them.
     pub invoices: Vec<PaypalCoinOrder>,
+    /// The invoices, credit notes and final statements that have been issued
+    /// for the account, oldest first.
+    pub financial_documents: Vec<FinancialDocument>,
     /// The cancellations and withdrawals the user has declared.
     pub contract_declarations: Vec<ContractDeclaration>,
     /// The declarations the user gave before placing an order.

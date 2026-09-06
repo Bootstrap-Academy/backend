@@ -1,7 +1,7 @@
 use academy_config::Config;
 use academy_core_finance_contracts::invoice::FinanceInvoiceService;
 use academy_di::Provide;
-use academy_persistence_contracts::{Database, paypal::PaypalRepository};
+use academy_persistence_contracts::{Database, Transaction, paypal::PaypalRepository};
 use clap::Subcommand;
 use futures::TryStreamExt;
 use indicatif::ProgressBar;
@@ -35,13 +35,18 @@ async fn generate(config: Config) -> anyhow::Result<()> {
     let cnt = paypal_repo.count_coin_orders(&mut txn).await?;
     let bar = ProgressBar::new(cnt);
     let mut stream = std::pin::pin!(paypal_repo.stream_coin_orders(&mut txn));
-    let mut txn = db.begin_transaction().await?;
+    let mut write_txn = db.begin_transaction().await?;
     while let Some(coin_order) = stream.try_next().await? {
         finance_invoice_service
-            .get_invoice_pdf(&mut txn, None, coin_order.invoice_number)
+            .get_invoice_pdf(&mut write_txn, None, coin_order.invoice_number)
             .await?;
         bar.inc(1);
     }
+    bar.finish();
+
+    // Rendering an invoice also records it in `financial_documents`, so the
+    // transaction has to be committed.
+    write_txn.commit().await?;
 
     Ok(())
 }

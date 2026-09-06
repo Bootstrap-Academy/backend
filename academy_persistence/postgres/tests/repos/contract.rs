@@ -266,3 +266,52 @@ async fn survives_user_deletion() {
         }]
     );
 }
+
+/// The declarations are pruned once a claim out of the declared contract is
+/// time-barred; `academy task prune-database` passes the cutoff.
+#[tokio::test]
+async fn delete_by_received_at() {
+    let db = setup().await;
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    REPO.create(&mut txn, cancellation()).await.unwrap();
+    REPO.create(&mut txn, withdrawal()).await.unwrap();
+    REPO.create(&mut txn, other_cancellation()).await.unwrap();
+    txn.commit().await.unwrap();
+
+    // Nothing is old enough yet.
+    let mut txn = db.begin_transaction().await.unwrap();
+    assert_eq!(
+        REPO.delete_by_received_at(
+            &mut txn,
+            Utc.with_ymd_and_hms(2026, 9, 1, 12, 0, 0).unwrap()
+        )
+        .await
+        .unwrap(),
+        0
+    );
+
+    // The cutoff is exclusive, so a declaration received exactly at it is
+    // kept.
+    assert_eq!(
+        REPO.delete_by_received_at(
+            &mut txn,
+            Utc.with_ymd_and_hms(2026, 9, 3, 12, 0, 0).unwrap()
+        )
+        .await
+        .unwrap(),
+        2
+    );
+    assert_eq!(
+        REPO.list(&mut txn, None, make_slice(100, 0)).await.unwrap(),
+        [cancellation()]
+    );
+
+    assert_eq!(
+        REPO.delete_by_received_at(&mut txn, Utc.with_ymd_and_hms(2029, 1, 1, 0, 0, 0).unwrap())
+            .await
+            .unwrap(),
+        1
+    );
+    assert_eq!(REPO.count(&mut txn, None).await.unwrap(), 0);
+}

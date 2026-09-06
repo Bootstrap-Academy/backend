@@ -5,15 +5,16 @@ use academy_core_premium_contracts::premium::PremiumService;
 use academy_di::Provide;
 use academy_models::{
     admin_audit::ADMIN_AUDIT_LOG_RETENTION_MONTHS,
-    finance::{FinancialDocumentKind, credit_note_issued_at, retention_cutoff},
+    finance::{FinancialDocumentKind, credit_note_issued_at},
+    retention::retention_cutoff,
 };
 use academy_persistence_contracts::{
-    Database, Transaction, admin_audit::AdminAuditRepository, finance::FinancialDocumentRepository,
-    premium::PremiumRepository, session::SessionRepository,
+    Database, Transaction, admin_audit::AdminAuditRepository, contract::ContractRepository,
+    finance::FinancialDocumentRepository, premium::PremiumRepository, session::SessionRepository,
 };
 use academy_persistence_postgres::{
-    admin_audit::PostgresAdminAuditRepository, finance::PostgresFinancialDocumentRepository,
-    session::PostgresSessionRepository,
+    admin_audit::PostgresAdminAuditRepository, contract::PostgresContractRepository,
+    finance::PostgresFinancialDocumentRepository, session::PostgresSessionRepository,
 };
 use academy_shared_contracts::fs::FsService;
 use academy_shared_impl::fs::FsServiceImpl;
@@ -73,6 +74,20 @@ async fn prune_database(config: Config) -> anyhow::Result<()> {
         .await
         .context("Failed to prune audit log entries")?;
     info!("Pruned {pruned} audit log entries older than {audit_log_cutoff}.");
+
+    // A cancellation or withdrawal is kept as evidence until a claim out of
+    // the declared contract is time-barred: three years, counted from the end
+    // of the calendar year in which the declaration was received
+    // (§ 195, § 199 Abs. 1 BGB). The number of years is configured as
+    // `contract.retention_years`.
+    let contract_repo = PostgresContractRepository;
+    let declaration_cutoff = retention_cutoff(now, config.contract.retention_years)
+        .context("Failed to determine the declaration retention cutoff")?;
+    let pruned = contract_repo
+        .delete_by_received_at(&mut txn, declaration_cutoff)
+        .await
+        .context("Failed to prune contract declarations")?;
+    info!("Pruned {pruned} contract declarations received before {declaration_cutoff}.");
 
     txn.commit().await?;
 

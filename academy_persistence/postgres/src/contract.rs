@@ -10,6 +10,7 @@ use academy_models::{
 };
 use academy_persistence_contracts::contract::ContractRepository;
 use academy_utils::trace_instrument;
+use chrono::{DateTime, Utc};
 use clorinde::{
     client::Params,
     queries::{
@@ -104,6 +105,18 @@ impl ContractRepository<PostgresTransaction> for PostgresContractRepository {
             .await
             .map_err(Into::into)
             .and_then(|row| row.try_into().map_err(Into::into))
+    }
+
+    #[trace_instrument(skip(self, txn))]
+    async fn delete_by_received_at(
+        &self,
+        txn: &mut PostgresTransaction,
+        received_at: DateTime<Utc>,
+    ) -> anyhow::Result<u64> {
+        queries::contract::delete_by_received_at()
+            .bind(txn.txn(), &received_at.into())
+            .await
+            .map_err(Into::into)
     }
 }
 

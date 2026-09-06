@@ -45,8 +45,11 @@ nutype_string!(ContractDeclarationDetails(
 
 /// A declaration made by a consumer regarding one of their contracts.
 ///
-/// Declarations are evidence of a legal declaration and are therefore never
-/// deleted, not even when the associated account is deleted.
+/// A declaration is evidence and therefore outlives the account it belongs to:
+/// deleting the account only drops the reference to it. It is removed by
+/// `academy task prune-database` once a claim out of the declared contract is
+/// time-barred, `contract.retention_years` years after the end of the calendar
+/// year in which it was received (§ 195, § 199 Abs. 1 BGB).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ContractDeclaration {
     pub id: ContractDeclarationId,

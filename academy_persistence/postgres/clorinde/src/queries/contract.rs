@@ -463,3 +463,26 @@ impl CountStmt {
         }
     }
 }
+pub struct DeleteByReceivedAtStmt(&'static str, Option<tokio_postgres::Statement>);
+pub fn delete_by_received_at() -> DeleteByReceivedAtStmt {
+    DeleteByReceivedAtStmt(
+        "delete from contract_declarations where received_at<$1",
+        None,
+    )
+}
+impl DeleteByReceivedAtStmt {
+    pub async fn prepare<'a, C: GenericClient>(
+        mut self,
+        client: &'a C,
+    ) -> Result<Self, tokio_postgres::Error> {
+        self.1 = Some(client.prepare(self.0).await?);
+        Ok(self)
+    }
+    pub async fn bind<'c, 'a, 's, C: GenericClient>(
+        &'s self,
+        client: &'c C,
+        received_at: &'a chrono::DateTime<chrono::FixedOffset>,
+    ) -> Result<u64, tokio_postgres::Error> {
+        client.execute(self.0, &[received_at]).await
+    }
+}

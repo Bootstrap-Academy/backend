@@ -111,6 +111,7 @@ The per-ip budget only stops a single machine from flooding the endpoint, so it 
 | `rate_limit_window` | `"1h"` | Lifetime of a counter. It starts again with every counted request, so the window slides rather than being reset at a fixed point. |
 | `rate_limit_per_ip` | `60` | Maximum number of declarations per client ip address within the window. |
 | `rate_limit_per_email` | `5` | Maximum number of declarations per email address within the window. |
+| `retention_years` | `3` | Number of years a cancellation or withdrawal declaration is kept as evidence, counted from the end of the calendar year in which it was received. Three years is the regular limitation period (§ 195 BGB) counted the way § 199 Abs. 1 BGB counts it. Enforced by `academy task prune-database`. |
 
 ## `[recaptcha]`
 The section is always parsed, so `sitekey` and `secret` have to be set even when the check is switched off.

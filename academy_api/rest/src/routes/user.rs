@@ -212,6 +212,7 @@ async fn create(
         Err(UserCreateError::Recaptcha) => RecaptchaFailedError.into_response(),
         Err(UserCreateError::NoLoginMethod) => NoLoginMethodError.into_response(),
         Err(UserCreateError::AgeNotConfirmed) => AgeNotConfirmedError.into_response(),
+        Err(UserCreateError::TermsVersionMismatch) => OutdatedTermsVersionError.into_response(),
         Err(UserCreateError::InvalidOAuthRegistrationToken) => {
             InvalidOAuthTokenError.into_response()
         }
@@ -223,8 +224,8 @@ async fn create(
 fn create_docs(op: TransformOperation) -> TransformOperation {
     op.summary("Create a new user account.")
         .description(
-            "Also creates a session for the new user. The request must contain the version of \
-             the terms and conditions the user accepts and confirm that the user meets the \
+            "Also creates a session for the new user. The request must accept the version of the \
+             terms and conditions that is currently in force and confirm that the user meets the \
              minimum age.",
         )
         .add_response::<ApiLogin>(StatusCode::OK, None)
@@ -233,6 +234,7 @@ fn create_docs(op: TransformOperation) -> TransformOperation {
         .add_error::<RecaptchaFailedError>()
         .add_error::<NoLoginMethodError>()
         .add_error::<AgeNotConfirmedError>()
+        .add_error::<OutdatedTermsVersionError>()
         .add_error::<InvalidOAuthTokenError>()
         .add_error::<RemoteAlreadyLinkedError>()
         .with(internal_server_error_docs)
@@ -389,6 +391,9 @@ async fn accept_terms(
         Ok(user) => Json(ApiUser::from(user)).into_response(),
         Err(UserAcceptTermsError::NotFound) => UserNotFoundError.into_response(),
         Err(UserAcceptTermsError::AgeNotConfirmed) => AgeNotConfirmedError.into_response(),
+        Err(UserAcceptTermsError::TermsVersionMismatch) => {
+            OutdatedTermsVersionError.into_response()
+        }
         Err(UserAcceptTermsError::Auth(err)) => auth_error(err),
         Err(UserAcceptTermsError::Other(err)) => internal_server_error(err),
     }
@@ -397,14 +402,15 @@ async fn accept_terms(
 fn accept_terms_docs(op: TransformOperation) -> TransformOperation {
     op.summary("Accept a version of the terms and conditions.")
         .description(
-            "Records the accepted version and the time of acceptance for the authenticated \
-             user, and the time of the age confirmation if the user has not confirmed their age \
-             before. Used to collect the acceptance of a new version of the terms and \
-             conditions from existing users.",
+            "Records the version that is currently in force and the time of acceptance for the \
+             authenticated user, and the time of the age confirmation if the user has not \
+             confirmed their age before. `terms_version` has to be that version. Used to collect \
+             the acceptance of a new version of the terms and conditions from existing users.",
         )
         .add_response::<ApiUser>(StatusCode::OK, "The acceptance has been recorded.")
         .add_error::<UserNotFoundError>()
         .add_error::<AgeNotConfirmedError>()
+        .add_error::<OutdatedTermsVersionError>()
         .add_error::<CanOnlyAcceptTermsForSelfError>()
         .with(auth_error_docs)
         .with(internal_server_error_docs)
@@ -650,6 +656,13 @@ error_code! {
     NoLoginMethodError(PRECONDITION_FAILED, "No login method");
     /// The user did not confirm to meet the minimum age.
     AgeNotConfirmedError(PRECONDITION_FAILED, "Age not confirmed");
+    /// The `terms_version` in the request is not the version that is currently
+    /// in force. The server records its own version, so a client that sends
+    /// anything else is showing a text that is no longer the applicable one.
+    OutdatedTermsVersionError(
+        UNPROCESSABLE_ENTITY,
+        "Not the current version of the terms and conditions"
+    );
     /// The OAuth2 registration token is invalid or has expired.
     InvalidOAuthTokenError(UNAUTHORIZED, "Invalid OAuth token");
     /// The vat id is invalid.

@@ -5,7 +5,9 @@ use std::{
 };
 
 use academy_assets::CONFIG_TOML;
-use academy_models::{email_address::EmailAddressWithName, mfa::TotpSecretLength, url::Url};
+use academy_models::{
+    email_address::EmailAddressWithName, mfa::TotpSecretLength, url::Url, user::TermsVersion,
+};
 use anyhow::Context;
 use chrono::NaiveTime;
 use config::{File, FileFormat};
@@ -175,6 +177,8 @@ pub struct HealthConfig {
 
 #[derive(Debug, Deserialize)]
 pub struct UserConfig {
+    /// Version of the terms and conditions that is currently in force.
+    pub terms_version: TermsVersion,
     pub name_change_rate_limit: Duration,
     pub export_rate_limit: Duration,
     pub verification_code_ttl: Duration,

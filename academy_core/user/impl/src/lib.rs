@@ -29,7 +29,7 @@ use academy_models::{
     email_address::EmailAddress,
     finance::RETENTION_MARKER,
     session::DeviceName,
-    user::{UserComposite, UserId, UserIdOrSelf, UserInvoiceInfoPatch, UserPassword},
+    user::{TermsVersion, UserComposite, UserId, UserIdOrSelf, UserInvoiceInfoPatch, UserPassword},
 };
 use academy_persistence_contracts::{
     Database, Transaction, coin::CoinRepository, finance::FinancialDocumentRepository,
@@ -92,6 +92,12 @@ pub struct UserFeatureServiceImpl<
 
 #[derive(Debug, Clone)]
 pub struct UserFeatureConfig {
+    /// Version of the terms and conditions that is currently in force.
+    ///
+    /// The version a consent record is stored with is taken from here and
+    /// never from the request, so the record cannot claim a version that was
+    /// never published.
+    pub terms_version: TermsVersion,
     pub name_change_rate_limit: Duration,
     /// Minimum time between two data exports of the same user.
     pub export_rate_limit: Duration,
@@ -207,6 +213,10 @@ where
             return Err(UserCreateError::AgeNotConfirmed);
         }
 
+        if request.terms_version != self.config.terms_version {
+            return Err(UserCreateError::TermsVersionMismatch);
+        }
+
         self.captcha
             .check(recaptcha_response.as_deref().map(String::as_str))
             .await
@@ -237,7 +247,9 @@ where
             enabled: true,
             email_verified: false,
             oauth2_registration,
-            terms_version: Some(request.terms_version),
+            // The version that is recorded is the server's, not the one the
+            // request carried.
+            terms_version: Some(self.config.terms_version.clone()),
             age_confirmed: request.age_confirmed,
         };
 
@@ -496,6 +508,10 @@ where
             return Err(UserAcceptTermsError::AgeNotConfirmed);
         }
 
+        if terms_version != self.config.terms_version {
+            return Err(UserAcceptTermsError::TermsVersionMismatch);
+        }
+
         let mut txn = self.db.begin_transaction().await?;
 
         let mut user_composite = self
@@ -507,7 +523,11 @@ where
 
         user_composite.user = self
             .user_update
-            .accept_terms(&mut txn, user_composite.user, terms_version)
+            .accept_terms(
+                &mut txn,
+                user_composite.user,
+                self.config.terms_version.clone(),
+            )
             .await
             .context("Failed to record terms acceptance")?;
 

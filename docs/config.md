@@ -64,6 +64,7 @@ Durations are strings built from `d`, `h`, `m` and `s` parts, e.g. `"30d"`, `"10
 ## `[user]`
 | Property | Default | Description |
 | --- | --- | --- |
+| `terms_version` | `"2026-09"` | Version of the terms and conditions that is currently in force. `POST /auth/users` and `POST /auth/users/{user_id}/terms` accept only this version and record it; any other value is rejected with `422`. Has to match `TERMS_VERSION` in the frontend, which decides when the acceptance is asked for. |
 | `name_change_rate_limit` | `"30d"` | Minimum time between two changes of a user name. |
 | `export_rate_limit` | `"10m"` | Minimum time between two data exports (`GET /auth/users/{user_id}/export`) of the same user. Administrators are exempt. |
 | `verification_code_ttl` | `"4h"` | Lifetime of an email verification code. |

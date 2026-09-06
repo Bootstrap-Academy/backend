@@ -260,6 +260,7 @@ impl ConfigProvider {
         };
 
         let user_feature_config = UserFeatureConfig {
+            terms_version: config.user.terms_version.clone(),
             name_change_rate_limit: config.user.name_change_rate_limit.into(),
             export_rate_limit: config.user.export_rate_limit.into(),
             verification_redirect_url: config.user.verification_redirect_url.clone().into(),

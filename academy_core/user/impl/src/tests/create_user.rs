@@ -1,5 +1,3 @@
-use std::sync::LazyLock;
-
 use academy_core_oauth2_contracts::registration::MockOAuth2RegistrationService;
 use academy_core_session_contracts::session::MockSessionService;
 use academy_core_user_contracts::{
@@ -14,15 +12,15 @@ use academy_demo::{
 use academy_models::{
     auth::Login,
     oauth2::{OAuth2Registration, OAuth2RegistrationToken},
-    user::TermsVersion,
 };
 use academy_persistence_contracts::MockDatabase;
 use academy_shared_contracts::captcha::{CaptchaCheckError, MockCaptchaService};
 use academy_utils::assert_matches;
 
-use crate::{UserFeatureServiceImpl, tests::Sut};
-
-static TERMS_VERSION: LazyLock<TermsVersion> = LazyLock::new(|| "2026-09".try_into().unwrap());
+use crate::{
+    UserFeatureServiceImpl,
+    tests::{Sut, TERMS_VERSION},
+};
 
 #[tokio::test]
 async fn ok() {
@@ -494,7 +492,38 @@ fn req_to_cmd(req: &UserCreateRequest) -> UserCreateCommand {
                 provider_id: TEST_OAUTH2_PROVIDER_ID.clone(),
                 remote_user: FOO_OAUTH2_LINK_1.remote_user.clone(),
             }),
-        terms_version: Some(req.terms_version.clone()),
+        // The recorded version is the server's, whatever the request carried.
+        terms_version: Some(TERMS_VERSION.clone()),
         age_confirmed: req.age_confirmed,
     }
+}
+
+/// A version other than the one that is currently in force is refused, so a
+/// consent record can never claim a version that was never published.
+#[tokio::test]
+async fn outdated_terms_version() {
+    // Arrange
+    let request = UserCreateRequest {
+        name: FOO.user.name.clone(),
+        display_name: FOO.profile.display_name.clone(),
+        email: FOO.user.email.clone().unwrap(),
+        password: Some("secure password".try_into().unwrap()),
+        oauth2_registration_token: None,
+        terms_version: "1999-01".try_into().unwrap(),
+        age_confirmed: true,
+    };
+
+    let sut = Sut::default();
+
+    // Act
+    let result = sut
+        .create_user(
+            request,
+            FOO_1.device_name.clone(),
+            Some("resp".try_into().unwrap()),
+        )
+        .await;
+
+    // Assert
+    assert_matches!(result, Err(UserCreateError::TermsVersionMismatch));
 }

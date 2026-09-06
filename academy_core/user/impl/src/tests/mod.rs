@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{sync::LazyLock, time::Duration};
 
 use academy_auth_contracts::MockAuthService;
 use academy_cache_contracts::MockCacheService;
@@ -12,6 +12,7 @@ use academy_core_user_contracts::{
 use academy_extern_contracts::{
     microservices::MockMicroservicesApiService, vat::MockVatApiService,
 };
+use academy_models::user::TermsVersion;
 use academy_persistence_contracts::{
     MockDatabase, MockTransaction, coin::MockCoinRepository,
     finance::MockFinancialDocumentRepository, user::MockUserRepository,
@@ -19,6 +20,9 @@ use academy_persistence_contracts::{
 use academy_shared_contracts::captcha::MockCaptchaService;
 
 use crate::{UserFeatureConfig, UserFeatureServiceImpl};
+
+/// The version of the terms and conditions the tests treat as current.
+static TERMS_VERSION: LazyLock<TermsVersion> = LazyLock::new(|| "2026-09".try_into().unwrap());
 
 mod accept_terms;
 mod create_user;
@@ -55,6 +59,7 @@ type Sut = UserFeatureServiceImpl<
 impl Default for UserFeatureConfig {
     fn default() -> Self {
         Self {
+            terms_version: TERMS_VERSION.clone(),
             name_change_rate_limit: Duration::from_secs(30 * 24 * 3600),
             export_rate_limit: Duration::from_secs(600),
             verification_redirect_url: "https://bootstrap.academy/auth/verify-account"

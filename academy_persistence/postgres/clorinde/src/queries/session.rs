@@ -429,6 +429,29 @@ impl<'a, C: GenericClient + Send + Sync, T1: crate::StringSql>
         ))
     }
 }
+pub struct ClearMfaVerifiedByUserStmt(&'static str, Option<tokio_postgres::Statement>);
+pub fn clear_mfa_verified_by_user() -> ClearMfaVerifiedByUserStmt {
+    ClearMfaVerifiedByUserStmt(
+        "update sessions set mfa_verified=false where user_id=$1",
+        None,
+    )
+}
+impl ClearMfaVerifiedByUserStmt {
+    pub async fn prepare<'a, C: GenericClient>(
+        mut self,
+        client: &'a C,
+    ) -> Result<Self, tokio_postgres::Error> {
+        self.1 = Some(client.prepare(self.0).await?);
+        Ok(self)
+    }
+    pub async fn bind<'c, 'a, 's, C: GenericClient>(
+        &'s self,
+        client: &'c C,
+        user_id: &'a uuid::Uuid,
+    ) -> Result<u64, tokio_postgres::Error> {
+        client.execute(self.0, &[user_id]).await
+    }
+}
 pub struct DeleteStmt(&'static str, Option<tokio_postgres::Statement>);
 pub fn delete() -> DeleteStmt {
     DeleteStmt("delete from sessions where id=$1", None)

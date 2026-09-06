@@ -126,6 +126,13 @@ async fn disable(
 
 fn disable_docs(op: TransformOperation) -> TransformOperation {
     op.summary("Disable MFA for the given user.")
+        .description(
+            "Removes the authenticators and the recovery code. Administrative privileges are \
+             granted only to a session that was established with the second factor, so removing \
+             it also takes that away: every session of the account loses `mfa_verified` and its \
+             access tokens are invalidated, which means the caller has to refresh its \
+             session.\n\nRequires admin privileges if not used on the authenticated user.",
+        )
         .add_response::<OkResponse>(StatusCode::OK, "MFA has been disabled.")
         .add_error::<MfaNotEnabledError>()
         .add_error::<UserNotFoundError>()

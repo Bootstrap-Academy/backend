@@ -56,6 +56,7 @@ A recovery code disables MFA instead of proving possession of the second factor,
 
 `Authentication::ensure_admin` answers `403 Admin MFA required` for an administrator whose session does not have the flag.
 Endpoints that only need the account itself (including the MFA setup endpoints under `/auth/users/{user_id}/mfa`) are unaffected, so an administrator without an authenticator can still log in, set one up and then log in again with a code.
+The authority ends with the second factor: removing it (`DELETE /auth/users/{user_id}/mfa`, and a login with a recovery code, which does the same) clears `mfa_verified` on every session of that account and invalidates its access tokens, so the next refresh issues a token without the flag.
 
 #### Tracing
 Each incoming request is assigned a unique request id (Base64 encoded UUIDv7).

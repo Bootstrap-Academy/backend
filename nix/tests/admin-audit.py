@@ -2,7 +2,16 @@ import os
 import subprocess
 import time
 
-from utils import c, create_account, make_client, save_auth, setup_mfa, wait_for_new_totp_window
+from utils import (
+    assert_access_token_invalid,
+    c,
+    create_account,
+    make_client,
+    refresh_session,
+    save_auth,
+    setup_mfa,
+    wait_for_new_totp_window,
+)
 
 ADMIN_PASSWORD = "supersecureadminpassword"
 
@@ -170,6 +179,20 @@ assert entries == before
 os.system("systemctl start academy-task-prune-database.service")
 time.sleep(1)
 assert db_entry_count() == entries
+
+# removing the second factor ends the authority it granted: the access tokens
+# that carry `mfa_verified` are invalidated, the session it is refreshed into
+# no longer carries it, and the administrative endpoints reject it again
+resp = c.delete(f"/auth/users/{admin['id']}/mfa")
+assert resp.status_code == 200
+
+assert_access_token_invalid()
+login = refresh_session()
+assert login["session"]["mfa_verified"] is False
+
+resp = c.get("/auth/users")
+assert resp.status_code == 403
+assert resp.json() == {"detail": "Admin MFA required"}
 
 os.system("date -s '+400days'")
 time.sleep(0.5)

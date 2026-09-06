@@ -45,6 +45,17 @@ pub trait SessionRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
         patch: SessionPatchRef<'a>,
     ) -> impl Future<Output = anyhow::Result<bool>> + Send;
 
+    /// Clear `mfa_verified` on all sessions of the given user.
+    ///
+    /// Used when the second factor of the account is removed: administrative
+    /// authority is granted to a session that was authenticated with the
+    /// second factor, so it has to end with it.
+    fn clear_mfa_verified_by_user(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
+    ) -> impl Future<Output = anyhow::Result<()>> + Send;
+
     /// Delete a given session.
     fn delete(
         &self,
@@ -162,6 +173,17 @@ impl<Txn: Send + Sync + 'static> MockSessionRepository<Txn> {
                 mockall::predicate::eq(session_id),
             )
             .return_once(move |_, _| Box::pin(std::future::ready(Ok(result))));
+        self
+    }
+
+    pub fn with_clear_mfa_verified_by_user(mut self, user_id: UserId) -> Self {
+        self.expect_clear_mfa_verified_by_user()
+            .once()
+            .with(
+                mockall::predicate::always(),
+                mockall::predicate::eq(user_id),
+            )
+            .return_once(move |_, _| Box::pin(std::future::ready(Ok(()))));
         self
     }
 

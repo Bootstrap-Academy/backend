@@ -188,7 +188,11 @@ mod tests {
     use academy_auth_contracts::{
         MockAuthService, Tokens, access_token::MockAuthAccessTokenService,
     };
-    use academy_demo::{SHA256HASH1, SHA256HASH2, session::FOO_1, user::FOO};
+    use academy_demo::{
+        SHA256HASH1, SHA256HASH2,
+        session::{ADMIN_1, FOO_1},
+        user::{ADMIN, FOO},
+    };
     use academy_models::user::{User, UserPatch};
     use academy_persistence_contracts::{session::MockSessionRepository, user::MockUserRepository};
     use academy_shared_contracts::{id::MockIdService, time::MockTimeService};
@@ -382,6 +386,64 @@ mod tests {
 
         // Assert
         assert_eq!(result.unwrap(), expected);
+    }
+
+    /// Administrative authority is granted per session and is taken away by
+    /// clearing `mfa_verified` on the session row, so a refresh has to read it
+    /// from that row and never carry it over from the previous token.
+    #[tokio::test]
+    async fn refresh_takes_mfa_verified_from_the_stored_session() {
+        // Arrange
+        let tokens = Tokens {
+            access_token: "the new access token".into(),
+            refresh_token: "the new refresh token".into(),
+            refresh_token_hash: (*SHA256HASH2).into(),
+        };
+
+        // The session was created with a second factor, which has since been
+        // removed from the account.
+        assert!(ADMIN_1.mfa_verified);
+        let stored = Session {
+            mfa_verified: false,
+            ..ADMIN_1.clone()
+        };
+
+        let updated_at = ADMIN_1.updated_at + Duration::from_secs(3600);
+
+        let auth =
+            MockAuthService::new().with_issue_tokens(ADMIN.user.clone(), ADMIN_1.id, false, tokens);
+
+        let auth_access_token =
+            MockAuthAccessTokenService::new().with_invalidate((*SHA256HASH1).into());
+
+        let time = MockTimeService::new().with_now(updated_at);
+
+        let user_repo =
+            MockUserRepository::new().with_get_composite(ADMIN_1.user_id, Some(ADMIN.clone()));
+        let session_repo = MockSessionRepository::new()
+            .with_get_refresh_token_hash(ADMIN_1.id, Some((*SHA256HASH1).into()))
+            .with_get(ADMIN_1.id, Some(stored.clone()))
+            .with_update(
+                ADMIN_1.id,
+                SessionPatch::new().update_updated_at(updated_at),
+                true,
+            )
+            .with_save_refresh_token_hash(ADMIN_1.id, (*SHA256HASH2).into());
+
+        let sut = SessionServiceImpl {
+            auth,
+            auth_access_token,
+            time,
+            session_repo,
+            user_repo,
+            ..Sut::default()
+        };
+
+        // Act
+        let result = sut.refresh(&mut (), ADMIN_1.id).await;
+
+        // Assert
+        assert!(!result.unwrap().session.mfa_verified);
     }
 
     #[tokio::test]

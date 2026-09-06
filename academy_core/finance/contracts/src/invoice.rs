@@ -2,6 +2,31 @@ use std::future::Future;
 
 use academy_models::{finance::FinancialDocumentNumber, user::UserId};
 
+/// A final statement whose record has been written and whose pdf has still to
+/// be produced.
+///
+/// The record carries everything a later refund needs, so it is written inside
+/// the transaction that deletes the account. The pdf is not: producing it
+/// means an http request to the render daemon, which must not be made while a
+/// database transaction and the row lock of the account it deletes are held
+/// open.
+#[derive(Clone, PartialEq, Eq)]
+pub struct PendingFinalStatement {
+    pub number: FinancialDocumentNumber,
+    /// The rendered document, waiting to be turned into a pdf.
+    pub html: String,
+}
+
+/// The document names the person it was issued for, so only its number is
+/// ever printed.
+impl std::fmt::Debug for PendingFinalStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        f.debug_struct("PendingFinalStatement")
+            .field("number", &self.number)
+            .finish_non_exhaustive()
+    }
+}
+
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait FinanceInvoiceService<Txn: Send + Sync + 'static>: Send + Sync + 'static {
     /// Generate or return the archived invoice for the given invoice number.
@@ -29,12 +54,28 @@ pub trait FinanceInvoiceService<Txn: Send + Sync + 'static>: Send + Sync + 'stat
     /// Morphcoins; for every other account there is nothing to refund and
     /// therefore no reason to keep their name after the deletion.
     ///
-    /// Returns the number of the statement, or `None` if none was issued.
+    /// Returns the statement whose pdf still has to be archived with
+    /// [`FinanceInvoiceService::archive_final_statement`], or `None` if no
+    /// statement was issued.
     fn create_final_statement(
         &self,
         txn: &mut Txn,
         user_id: UserId,
-    ) -> impl Future<Output = anyhow::Result<Option<FinancialDocumentNumber>>> + Send;
+    ) -> impl Future<Output = anyhow::Result<Option<PendingFinalStatement>>> + Send;
+
+    /// Render the pdf of a recorded final statement and put it into the
+    /// archive.
+    ///
+    /// Has to be called after the transaction that recorded the statement has
+    /// been committed, because it calls the render daemon over http. A failure
+    /// is logged with the document number and nothing else and is not
+    /// returned: the record is what a refund needs, and
+    /// `academy task list-orphan-documents` reports the records whose pdf is
+    /// missing.
+    fn archive_final_statement(
+        &self,
+        statement: PendingFinalStatement,
+    ) -> impl Future<Output = ()> + Send;
 }
 
 #[cfg(feature = "mock")]
@@ -59,7 +100,7 @@ impl<Txn: Send + Sync + 'static> MockFinanceInvoiceService<Txn> {
     pub fn with_create_final_statement(
         mut self,
         user_id: UserId,
-        result: Option<FinancialDocumentNumber>,
+        result: Option<PendingFinalStatement>,
     ) -> Self {
         self.expect_create_final_statement()
             .once()
@@ -68,6 +109,14 @@ impl<Txn: Send + Sync + 'static> MockFinanceInvoiceService<Txn> {
                 mockall::predicate::eq(user_id),
             )
             .return_once(|_, _| Box::pin(std::future::ready(Ok(result))));
+        self
+    }
+
+    pub fn with_archive_final_statement(mut self, statement: PendingFinalStatement) -> Self {
+        self.expect_archive_final_statement()
+            .once()
+            .with(mockall::predicate::eq(statement))
+            .return_once(|_| Box::pin(std::future::ready(())));
         self
     }
 

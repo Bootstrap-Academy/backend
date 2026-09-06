@@ -157,10 +157,13 @@ The section is always parsed, so `sitekey` and `secret` have to be set even when
 | Property | Default | Description |
 | --- | --- | --- |
 | `daemon_url` | **required** | Base url of the render daemon (`academy_render_daemon`), which renders HTML to PDF. |
+| `timeout` | `"30s"` | Timeout of a single render request. A daemon that accepts the connection and then stops answering would otherwise keep the waiting request open indefinitely. |
 
 ## `[microservices]`
 Base urls of the microservices the backend calls over the internal API, to propagate account deletions (see [`ARCHITECTURE.md`](../ARCHITECTURE.md#account-deletion)) and to collect the data export of a user (see [`ARCHITECTURE.md`](../ARCHITECTURE.md#data-export)).
 A microservice without a url is skipped; an empty string counts as no url.
+Skipped means silently skipped: account deletions are not propagated to it, and its share of a data export is simply absent — the export does not list it as unavailable and still reports itself as complete, because "no url" means "this service is not part of this deployment".
+Which services are configured and which are not is logged when the backend starts.
 
 | Property | Default | Description |
 | --- | --- | --- |

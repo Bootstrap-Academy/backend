@@ -163,8 +163,10 @@ impl ConfigProvider {
             config.paypal.client_secret.clone(),
         );
 
-        let render_api_service_config =
-            RenderApiServiceConfig::new(config.render.daemon_url.clone());
+        let render_api_service_config = RenderApiServiceConfig::new(
+            config.render.daemon_url.clone(),
+            config.render.timeout.into(),
+        );
 
         let microservices_api_service_config = MicroservicesApiServiceConfig::new(
             config.microservices.skills_url.clone(),

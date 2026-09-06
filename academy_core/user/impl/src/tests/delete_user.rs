@@ -1,5 +1,5 @@
 use academy_auth_contracts::MockAuthService;
-use academy_core_finance_contracts::invoice::MockFinanceInvoiceService;
+use academy_core_finance_contracts::invoice::{MockFinanceInvoiceService, PendingFinalStatement};
 use academy_core_user_contracts::{UserDeleteError, UserFeatureService};
 use academy_demo::{
     session::{ADMIN_1, BAR_1, FOO_1},
@@ -9,6 +9,7 @@ use academy_extern_contracts::microservices::MockMicroservicesApiService;
 use academy_models::{
     auth::{AuthError, AuthenticateError, AuthorizeError},
     finance::RETENTION_MARKER,
+    session::SessionRefreshTokenHash,
     user::UserIdOrSelf,
 };
 use academy_persistence_contracts::{
@@ -18,12 +19,29 @@ use academy_utils::assert_matches;
 
 use crate::{UserFeatureServiceImpl, tests::Sut};
 
+fn refresh_token_hashes() -> Vec<SessionRefreshTokenHash> {
+    vec![
+        academy_models::Sha256Hash([1; 32]).into(),
+        academy_models::Sha256Hash([2; 32]).into(),
+    ]
+}
+
+fn pending_final_statement() -> PendingFinalStatement {
+    PendingFinalStatement {
+        number: "S7".try_into().unwrap(),
+        html: "<html>the statement</html>".into(),
+    }
+}
+
 #[tokio::test]
 async fn ok_self() {
     // Arrange
     let auth = MockAuthService::new()
         .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
-        .with_invalidate_access_tokens(FOO.user.id);
+        // The access tokens are invalidated only after the deletion has been
+        // committed, so the hashes are read while the sessions still exist.
+        .with_list_refresh_token_hashes(FOO.user.id, refresh_token_hashes())
+        .with_invalidate_access_tokens_of(refresh_token_hashes());
 
     let db = MockDatabase::build(true);
 
@@ -32,7 +50,9 @@ async fn ok_self() {
     // The unused share of the purchased Morphcoins is recorded before the
     // account is gone.
     let finance_invoice = MockFinanceInvoiceService::new()
-        .with_create_final_statement(FOO.user.id, Some("S7".try_into().unwrap()));
+        .with_create_final_statement(FOO.user.id, Some(pending_final_statement()))
+        // The pdf is produced after the commit.
+        .with_archive_final_statement(pending_final_statement());
 
     // Invoices and credit notes are kept, but no longer name the account.
     let document_repo = MockFinancialDocumentRepository::new().with_pseudonymize(
@@ -65,7 +85,8 @@ async fn ok_admin() {
     // Arrange
     let auth = MockAuthService::new()
         .with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())))
-        .with_invalidate_access_tokens(FOO.user.id);
+        .with_list_refresh_token_hashes(FOO.user.id, refresh_token_hashes())
+        .with_invalidate_access_tokens_of(refresh_token_hashes());
 
     let db = MockDatabase::build(true);
 
@@ -74,7 +95,9 @@ async fn ok_admin() {
     // The unused share of the purchased Morphcoins is recorded before the
     // account is gone.
     let finance_invoice = MockFinanceInvoiceService::new()
-        .with_create_final_statement(FOO.user.id, Some("S7".try_into().unwrap()));
+        .with_create_final_statement(FOO.user.id, Some(pending_final_statement()))
+        // The pdf is produced after the commit.
+        .with_archive_final_statement(pending_final_statement());
 
     // Invoices and credit notes are kept, but no longer name the account.
     let document_repo = MockFinancialDocumentRepository::new().with_pseudonymize(
@@ -151,7 +174,8 @@ async fn not_found() {
     // Arrange
     let auth = MockAuthService::new()
         .with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())))
-        .with_invalidate_access_tokens(FOO.user.id);
+        // The deletion rolls back, so nothing is invalidated.
+        .with_list_refresh_token_hashes(FOO.user.id, refresh_token_hashes());
 
     let db = MockDatabase::build(false);
 

@@ -51,6 +51,28 @@ pub trait AuthService<Txn: Send + Sync + 'static>: Send + Sync + 'static {
         txn: &mut Txn,
         user_id: UserId,
     ) -> impl Future<Output = anyhow::Result<()>> + Send;
+
+    /// Return the refresh token hashes of all sessions of the given user.
+    ///
+    /// Together with [`AuthService::invalidate_access_tokens_of`] this is
+    /// [`AuthService::invalidate_access_tokens`] split into its database half
+    /// and its cache half. A caller that deletes those sessions inside a
+    /// transaction has to read the hashes before they are gone but must only
+    /// invalidate the access tokens once the transaction has been committed:
+    /// the cache is not transactional, so an invalidation that ran first
+    /// survives a rollback and logs the user out of every device for nothing.
+    fn list_refresh_token_hashes(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
+    ) -> impl Future<Output = anyhow::Result<Vec<SessionRefreshTokenHash>>> + Send;
+
+    /// Invalidate the access tokens that were issued together with the given
+    /// refresh tokens.
+    fn invalidate_access_tokens_of(
+        &self,
+        refresh_token_hashes: Vec<SessionRefreshTokenHash>,
+    ) -> impl Future<Output = anyhow::Result<()>> + Send;
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -207,6 +229,32 @@ impl<Txn: Send + Sync + 'static> MockAuthService<Txn> {
                 mockall::predicate::eq(mfa_verified),
             )
             .return_once(|_, _, _| Ok(tokens));
+        self
+    }
+
+    pub fn with_list_refresh_token_hashes(
+        mut self,
+        user_id: UserId,
+        result: Vec<SessionRefreshTokenHash>,
+    ) -> Self {
+        self.expect_list_refresh_token_hashes()
+            .once()
+            .with(
+                mockall::predicate::always(),
+                mockall::predicate::eq(user_id),
+            )
+            .return_once(|_, _| Box::pin(std::future::ready(Ok(result))));
+        self
+    }
+
+    pub fn with_invalidate_access_tokens_of(
+        mut self,
+        refresh_token_hashes: Vec<SessionRefreshTokenHash>,
+    ) -> Self {
+        self.expect_invalidate_access_tokens_of()
+            .once()
+            .with(mockall::predicate::eq(refresh_token_hashes))
+            .return_once(|_| Box::pin(std::future::ready(Ok(()))));
         self
     }
 

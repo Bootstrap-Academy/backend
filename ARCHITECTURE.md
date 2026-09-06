@@ -108,6 +108,7 @@ The wording per subject lives in `academy_models::withdrawal` and is repeated in
 Deleting a user (`DELETE /auth/users/{user_id}`) removes the account from the backend database and then notifies the microservices so they can delete the rows that belong to that user.
 The fan-out is implemented in `academy_extern` (`MicroservicesApiService`): for every microservice that has a base url in the `[microservices]` config section, the backend issues a short-lived internal JWT for that service and sends `DELETE <base_url>_internal/users/<user_id>`.
 The requests run concurrently, each with the configured `microservices.timeout`, and any failure is logged and swallowed — a microservice that is unavailable must not prevent an account from being deleted.
+A microservice without a base url is not notified at all; the backend logs at startup which of the three are configured.
 Each microservice additionally runs a periodic sweep that removes data of users the backend no longer knows, which catches the deletions that were lost this way.
 
 Invoices and credit notes are the exception: they have to be kept for `finance.retention_years` years and are therefore not deleted with the account.
@@ -117,13 +118,15 @@ Document number, issue date and amounts stay on the record and the archived pdf 
 Before that, `delete_user` asks `FinanceInvoiceService::create_final_statement` to issue the final statement of the account (AGB Ziffer 6.7).
 It records the unused share of the purchased Morphcoins — `min(balance, purchased)`, because reward coins count as consumed first — together with the name and the email address a later refund has to be offered to, so it is the one kind of document that is **not** pseudonymized.
 It is only issued when there is actually something left to refund, that is for an account that bought Morphcoins and has not spent all of them; in every other case there is nothing to refund and therefore no reason to keep anything that names the account.
-The record is written before its pdf, and a render daemon that is unavailable only costs the pdf, never the deletion.
+The record is written inside the transaction that deletes the account, because it carries everything a later refund needs; its pdf is rendered afterwards, so that no database transaction is held open across the http call to the render daemon.
+A render daemon that is unavailable therefore only costs the pdf, never the deletion, and the failure is logged with the document number alone.
 
 ### Data Export
 `GET /auth/users/{user_id}/export` returns everything the platform stores about one user as a single JSON document (Art. 15 and 20 GDPR); a user can export themselves, an administrator can export anybody.
 The `account` object is assembled by `UserExportService` from the backend database — the account, the sessions, the linked OAuth2 accounts, the Morphcoin balance and transactions, the hearts, the premium membership, the coin orders, the issued financial documents, the contract declarations and the withdrawal declarations.
 The `services` object is assembled by the same `MicroservicesApiService` that the account deletion uses: for every configured microservice the backend issues a short-lived internal JWT and reads `GET <base_url>_internal/users/<user_id>/export`.
 Like the deletion fan-out, a microservice that cannot be read does not fail the request; it is listed in `services` with `available: false` and no data, and the top level `complete` is then `false`, so that an incomplete export is never handed out as if it were complete while the rest of the data still reaches the user.
+This covers the configured microservices only. A microservice **without** a base url is not part of the deployment at all: it is left out of the export silently, is not listed in `services`, and does not make `complete` false. Which services are configured is logged when the backend starts.
 Each response is limited to `microservices.max_export_size` bytes.
 The database transaction is dropped before the fan-out, exports are limited to one per user per `user.export_rate_limit` (administrators are exempt), and neither the logs, the error messages nor the export itself contain any of the exported data or the internal urls.
 An export an administrator runs on somebody else is written to the administrative audit log, because it hands out more than any endpoint an ordinary user can reach; the document listing is the only other read the log records.

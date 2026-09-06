@@ -277,6 +277,8 @@ pub struct PremiumConfig {
 #[derive(Debug, Deserialize)]
 pub struct RenderConfig {
     pub daemon_url: Url,
+    /// Timeout of a single render request.
+    pub timeout: Duration,
 }
 
 #[derive(Debug, Deserialize)]

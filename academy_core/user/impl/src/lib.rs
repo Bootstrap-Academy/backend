@@ -575,15 +575,21 @@ where
 
         let mut txn = self.db.begin_transaction().await?;
 
-        self.auth
-            .invalidate_access_tokens(&mut txn, user_id)
+        // Read while the sessions are still there; the access tokens are
+        // invalidated only after the deletion has been committed, because the
+        // cache is not transactional and a deletion that rolls back must not
+        // log the user out of every device.
+        let refresh_token_hashes = self
+            .auth
+            .list_refresh_token_hashes(&mut txn, user_id)
             .await
-            .context("Failed to invalidate access tokens")?;
+            .context("Failed to get the refresh token hashes of the user")?;
 
         // The unused share of the purchased Morphcoins is recorded before the
         // account is gone, so that it can still be refunded on request
-        // afterwards (AGB Ziffer 6.7).
-        self.finance_invoice
+        // afterwards (AGB Ziffer 6.7). Its pdf is produced after the commit.
+        let final_statement = self
+            .finance_invoice
             .create_final_statement(&mut txn, user_id)
             .await
             .context("Failed to create the final statement")?;
@@ -609,6 +615,20 @@ where
         }
 
         txn.commit().await?;
+
+        self.auth
+            .invalidate_access_tokens_of(refresh_token_hashes)
+            .await
+            .context("Failed to invalidate access tokens")?;
+
+        // The record of the statement is committed and is what a later refund
+        // needs; its pdf is produced outside the transaction, because that
+        // means an http request to the render daemon.
+        if let Some(final_statement) = final_statement {
+            self.finance_invoice
+                .archive_final_statement(final_statement)
+                .await;
+        }
 
         // The microservices are notified only after the user has actually been
         // deleted from the database.

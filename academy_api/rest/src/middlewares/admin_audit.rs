@@ -37,10 +37,16 @@ pub fn add<S: Clone + Send + Sync + 'static>(
 /// another user, which is the most far reaching read the API offers, so it has
 /// to leave a trace like a change would. The document listing is recorded for
 /// the same reason: it is searchable by name and email address, and the final
-/// statements in it still name people whose account has been deleted.
+/// statements in it still name people whose account has been deleted. The user
+/// listing carries the full invoice address of every account and is searchable
+/// by name and email address, and the declaration listing carries the name, the
+/// email address and the free text of every cancellation and withdrawal
+/// declaration, so both are of the same reach.
 const AUDITED_READ_ROUTES: &[&str] = &[
+    crate::routes::user::USERS_ROUTE,
     crate::routes::user::EXPORT_ROUTE,
     crate::routes::finance::DOCUMENTS_ROUTE,
+    crate::routes::contract::DECLARATIONS_ROUTE,
 ];
 
 async fn middleware(

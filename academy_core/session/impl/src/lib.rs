@@ -114,7 +114,10 @@ where
             .map_err(Into::into)
     }
 
-    #[trace_instrument(skip(self))]
+    // The command carries the name or email address the login was attempted
+    // with and the user agent of the client, neither of which belongs in the
+    // logs of every login attempt.
+    #[trace_instrument(skip(self, cmd))]
     async fn create_session(
         &self,
         cmd: SessionCreateCommand,

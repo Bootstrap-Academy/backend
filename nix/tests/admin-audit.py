@@ -129,6 +129,40 @@ assert entry["status"] == 200
 # the query string is not recorded
 assert "someone@example.com" not in str(entry)
 
+# reading the user listing is recorded too, because it carries the full invoice
+# address of every account and is searchable by name and email address
+before = audit_log()["total"]
+resp = c.get("/auth/users", params={"email": "user@example.com"})
+assert resp.status_code == 200
+assert resp.json()["total"] == 1
+
+log = audit_log()
+assert log["total"] == before + 1
+entry = log["entries"][0]
+assert entry["method"] == "GET"
+assert entry["path"] == "/auth/users"
+assert entry["admin_user_id"] == admin["id"]
+assert entry["target_user_id"] is None
+assert entry["status"] == 200
+assert entry["request_id"] == resp.headers["X-Request-Id"]
+assert "user@example.com" not in str(entry)
+
+# and so is reading the declarations, which carry the name, the email address
+# and the free text of every cancellation and withdrawal
+before = audit_log()["total"]
+resp = c.get("/contracts/declarations", params={"kind": "CANCELLATION"})
+assert resp.status_code == 200
+
+log = audit_log()
+assert log["total"] == before + 1
+entry = log["entries"][0]
+assert entry["method"] == "GET"
+assert entry["path"] == "/contracts/declarations"
+assert entry["admin_user_id"] == admin["id"]
+assert entry["target_user_id"] is None
+assert entry["status"] == 200
+assert entry["request_id"] == resp.headers["X-Request-Id"]
+
 # the data export is recorded, because it hands an administrator everything
 # the platform stores about somebody else
 before = audit_log()["total"]

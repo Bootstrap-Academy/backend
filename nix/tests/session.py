@@ -66,6 +66,9 @@ assert resp.status_code == 429
 assert resp.json() == {"detail": "Too many failed login attempts"}
 retry_after = int(resp.headers["retry-after"])
 assert 0 < retry_after <= 60
+## the web interface is served from another origin than this api, so the header
+## has to be exposed explicitly for a browser to be able to read it
+assert "retry-after" in resp.headers["access-control-expose-headers"].lower()
 
 ## the lock belongs to the account, not to the spelling of the login
 resp = c.post("/auth/sessions", json={"name_or_email": "a@a", "password": "a", "recaptcha_response": "success-0.7"})

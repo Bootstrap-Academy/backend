@@ -18,3 +18,6 @@ select * from contract_declarations
 --! count (kind?)
 select count(*) from contract_declarations
   where (:kind::contract_declaration_kind is null or kind = :kind);
+
+--! delete_by_received_at
+delete from contract_declarations where received_at<:received_at;

@@ -214,6 +214,10 @@ pub struct ContractConfig {
     pub rate_limit_window: Duration,
     pub rate_limit_per_ip: u64,
     pub rate_limit_per_email: u64,
+    /// Number of years a cancellation or withdrawal declaration is kept as
+    /// evidence, counted from the end of the calendar year in which it was
+    /// received.
+    pub retention_years: u32,
 }
 
 #[derive(Debug, Deserialize)]

@@ -237,3 +237,28 @@ for secret in ["Kanarienvogel", "kanarienvogel@example.invalid", "Kanarienstrass
     assert secret not in log, f"{secret} reached the log:\n{log}"
 
 assert os.system("systemctl start postfix.service") == 0
+
+
+def declaration_count():
+    status, out = subprocess.getstatusoutput(
+        "sudo -u postgres psql -t --csv academy <<< 'select count(*) from contract_declarations'"
+    )
+    assert status == 0, out
+    return int(out.strip())
+
+
+# A declaration is kept as evidence until a claim out of the declared contract
+# is time-barred: three years, counted from the end of the calendar year in
+# which it was received (`contract.retention_years`).
+recorded = declaration_count()
+assert recorded > 0
+
+assert os.system("systemctl start academy-task-prune-database.service") == 0
+time.sleep(1)
+assert declaration_count() == recorded
+
+os.system("date -s '+4years'")
+time.sleep(0.5)
+assert os.system("systemctl start academy-task-prune-database.service") == 0
+time.sleep(1)
+assert declaration_count() == 0

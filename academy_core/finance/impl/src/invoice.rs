@@ -7,8 +7,9 @@ use academy_extern_contracts::render::RenderApiService;
 use academy_models::{
     finance::{
         FinancialDocument, FinancialDocumentKind, FinancialDocumentNumber, final_statement_number,
-        retention_cutoff, unused_purchased_coins,
+        unused_purchased_coins,
     },
+    retention::retention_cutoff,
     user::UserId,
 };
 use academy_persistence_contracts::{

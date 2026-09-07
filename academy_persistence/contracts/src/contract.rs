@@ -5,6 +5,7 @@ use academy_models::{
     pagination::PaginationSlice,
     user::UserId,
 };
+use chrono::{DateTime, Utc};
 
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait ContractRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
@@ -35,6 +36,14 @@ pub trait ContractRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static 
         &self,
         txn: &mut Txn,
         kind: Option<ContractDeclarationKind>,
+    ) -> impl Future<Output = anyhow::Result<u64>> + Send;
+
+    /// Delete all declarations received before the given point in time and
+    /// return how many were deleted.
+    fn delete_by_received_at(
+        &self,
+        txn: &mut Txn,
+        received_at: DateTime<Utc>,
     ) -> impl Future<Output = anyhow::Result<u64>> + Send;
 }
 
@@ -87,6 +96,17 @@ impl<Txn: Send + Sync + 'static> MockContractRepository<Txn> {
         self.expect_count()
             .once()
             .with(mockall::predicate::always(), mockall::predicate::eq(kind))
+            .return_once(move |_, _| Box::pin(std::future::ready(Ok(result))));
+        self
+    }
+
+    pub fn with_delete_by_received_at(mut self, received_at: DateTime<Utc>, result: u64) -> Self {
+        self.expect_delete_by_received_at()
+            .once()
+            .with(
+                mockall::predicate::always(),
+                mockall::predicate::eq(received_at),
+            )
             .return_once(move |_, _| Box::pin(std::future::ready(Ok(result))));
         self
     }

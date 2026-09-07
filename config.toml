@@ -86,6 +86,12 @@ secret_length = 32
 rate_limit_window = "1h"
 rate_limit_per_ip = 60
 rate_limit_per_email = 5
+# Cancellation and withdrawal declarations are kept as evidence for three
+# years, counted from the end of the calendar year in which they were received.
+# That is the regular limitation period (§ 195 BGB) and the way it is counted
+# (§ 199 Abs. 1 BGB), so a claim out of the declared contract can no longer be
+# raised once the period is over. Enforced by `academy task prune-database`.
+retention_years = 3
 
 [recaptcha]
 enable = true

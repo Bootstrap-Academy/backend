@@ -39,6 +39,12 @@ use crate::{
 
 pub const TAG: &str = "Contract";
 
+/// Route of the administrative declaration listing.
+///
+/// Named because the administrative audit log records reads of this route; see
+/// [`crate::middlewares::admin_audit`].
+pub const DECLARATIONS_ROUTE: &str = "/contracts/declarations";
+
 pub fn router(service: Arc<impl ContractFeatureService>) -> ApiRouter<()> {
     ApiRouter::new()
         .api_route(
@@ -50,7 +56,7 @@ pub fn router(service: Arc<impl ContractFeatureService>) -> ApiRouter<()> {
             routing::post_with(declare_withdrawal, declare_withdrawal_docs),
         )
         .api_route(
-            "/contracts/declarations",
+            DECLARATIONS_ROUTE,
             routing::get_with(list_declarations, list_declarations_docs),
         )
         .with_state(service)

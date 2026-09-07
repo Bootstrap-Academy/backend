@@ -51,6 +51,12 @@ use crate::{
 
 pub const TAG: &str = "User";
 
+/// Route of the user listing.
+///
+/// Named because the administrative audit log records reads of this route; see
+/// [`crate::middlewares::admin_audit`].
+pub const USERS_ROUTE: &str = "/auth/users";
+
 /// Route of the data export.
 ///
 /// Named because the administrative audit log records reads of this route; see
@@ -60,7 +66,7 @@ pub const EXPORT_ROUTE: &str = "/auth/users/{user_id}/export";
 pub fn router(service: Arc<impl UserFeatureService>) -> ApiRouter<()> {
     ApiRouter::new()
         .api_route(
-            "/auth/users",
+            USERS_ROUTE,
             routing::get_with(list, list_docs).post_with(create, create_docs),
         )
         .api_route(

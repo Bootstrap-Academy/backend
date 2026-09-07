@@ -65,12 +65,19 @@ Each incoming request is assigned a unique request id (Base64 encoded UUIDv7).
 This id is automatically attached to any logs associated with the corresponding request and is also returned to the client in the `X-Request-Id` response header.
 
 `#[trace_instrument]` opens a span at `INFO` and records the arguments of the function in it, and the default formatter prints the fields of the enclosing spans with every event inside them.
-Arguments that carry personal data — a `User`, a request body, an email address, a name, an invoice address, a password, a search term an administrator typed — are therefore `skip`ped, with `fields(user_id = …)` or another identifier added where a correlation id is useful.
+Arguments that carry personal data — a `User`, a request body, an email address, a name, an invoice address, a password, a search term an administrator typed, the login identifier and the user agent a login was made with — are therefore `skip`ped, with `fields(user_id = …)` or another identifier added where a correlation id is useful.
 Return values are only recorded at `TRACE`, which no deployment runs at.
 
 ### Administrative Audit Log
 Every `POST`, `PUT`, `PATCH` and `DELETE` request that is authenticated with an administrator's access token is recorded in the `admin_audit_log` table, including requests that were rejected.
-Reads are not recorded, with the exceptions listed in `AUDITED_READ_ROUTES`: the data export (see [Data Export](#data-export)), because it hands out everything the platform stores about a user, and the financial document listing (see [Financial Documents](#financial-documents)), because it is searchable by name and email address and still names accounts that have been deleted.
+Reads are not recorded, with the exceptions listed in `AUDITED_READ_ROUTES`, the four administrative reads that hand out more than the endpoints an ordinary user can reach:
+
+- `GET /auth/users/{user_id}/export` (see [Data Export](#data-export)), because it hands out everything the platform stores about a user,
+- `GET /finance/documents` (see [Financial Documents](#financial-documents)), because it is searchable by name and email address and still names accounts that have been deleted,
+- `GET /auth/users`, because it carries the full invoice address of every account and is searchable by name and email address,
+- `GET /contracts/declarations` (see [Contract Declarations](#contract-declarations)), because it carries the name, the email address and the free text of every declaration.
+
+Each entry uses the route constant the router registers, so the recorded routes and the registered ones cannot drift apart.
 The middleware in `academy_api/rest/src/middlewares/admin_audit.rs` runs after routing and hands the request to the `AdminAuditFeatureService`, which authenticates the token and writes the entry.
 
 An entry holds the time, the acting administrator, the method, the path without its query string, the affected user, the status code and the request id.
@@ -102,7 +109,7 @@ The declaration is committed before any email is sent, so a failing mail server 
 Two emails are sent per declaration: a confirmation to the declarant (`contract_cancellation_confirmation.html` / `contract_withdrawal_confirmation.html`) and a plain-text notification to `contact.email`.
 
 A cancellation that names a premium membership and an email address belonging to an account also switches the automatic renewal off and returns the end of the paid period in `effective_end`.
-`GET /contracts/declarations` lists the recorded declarations and requires admin privileges.
+`GET /contracts/declarations` lists the recorded declarations and requires admin privileges. Because the listing carries the name, the email address and the free text of every declaration, reading it is written to the administrative audit log.
 
 ### Withdrawal Declarations at Checkout
 Before a paid order is placed, the consumer gives the declarations that are shown next to the order button.
@@ -137,7 +144,7 @@ Like the deletion fan-out, a microservice that cannot be read does not fail the 
 This covers the configured microservices only. A microservice **without** a base url is not part of the deployment at all: it is left out of the export silently, is not listed in `services`, and does not make `complete` false. Which services are configured is logged when the backend starts.
 Each response is limited to `microservices.max_export_size` bytes.
 The database transaction is dropped before the fan-out, exports are limited to one per user per `user.export_rate_limit` (administrators are exempt), and neither the logs, the error messages nor the export itself contain any of the exported data or the internal urls.
-An export an administrator runs on somebody else is written to the administrative audit log, because it hands out more than any endpoint an ordinary user can reach; the document listing is the only other read the log records.
+An export an administrator runs on somebody else is written to the administrative audit log, because it hands out more than any endpoint an ordinary user can reach; the same holds for the three other reads listed in [Administrative Audit Log](#administrative-audit-log).
 
 ### Financial Documents
 Every invoice, credit note and final statement that is issued is recorded in `financial_documents`, keyed by its number (`R0000042`, `G202402-7`, `S1337`), which is also the name of its pdf file in `finance.invoices_archive` / `finance.credit_notes_archive` / `finance.final_statements_archive`.

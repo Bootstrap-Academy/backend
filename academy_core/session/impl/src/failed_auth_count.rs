@@ -17,7 +17,7 @@ where
     Hash: HashService,
     Cache: CacheService,
 {
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, name_or_email))]
     async fn get(&self, name_or_email: &UserNameOrEmailAddress) -> anyhow::Result<u64> {
         self.cache
             .get(&self.cache_key(name_or_email))

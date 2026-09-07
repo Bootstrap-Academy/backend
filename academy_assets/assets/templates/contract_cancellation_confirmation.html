@@ -15,6 +15,7 @@
     <li>Name: {{ name | escape }}</li>
     <li>E-Mail-Adresse: {{ email | escape }}</li>
     <li>Vertrag: {{ contract | escape }}</li>
+    {% if contract_designation %}<li>Ihre Bezeichnung des Vertrags: {{ contract_designation | escape }}</li>{% endif %}
     <li>Art der Kündigung: {{ cancellation_type | escape }}</li>
     {% if details %}<li>Begründung: {{ details | escape }}</li>{% endif %}
     <li>
@@ -23,7 +24,13 @@
     </li>
   </ul>
 
-  {% if effective_end %}
+  {% if extraordinary %}
+	<p>
+    Sie haben außerordentlich gekündigt. Den Beendigungszeitpunkt ermitteln wir dafür nicht
+    automatisch. Wir prüfen Ihre Erklärung und teilen Ihnen das Ergebnis der Prüfung und den
+    Beendigungszeitpunkt gesondert in Textform mit.
+	</p>
+  {% elif effective_end %}
 	<p>
     Ihr Vertrag endet zum {{ effective_end }}. Die automatische Verlängerung ist abgeschaltet;
     bis zum Vertragsende können Sie Premium weiter nutzen.

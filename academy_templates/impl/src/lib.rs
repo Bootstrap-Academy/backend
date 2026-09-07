@@ -234,15 +234,41 @@ mod tests {
             name: "Max Mustermann".into(),
             email: "max.mustermann@example.de".into(),
             contract: "Premium-Mitgliedschaft".into(),
+            contract_designation: Some("Premium-Abo, monatlich".into()),
             cancellation_type: "ordentliche Kündigung".into(),
+            extraordinary: false,
             details: Some("Zu teuer".into()),
             requested_end: Some("31.12.2026".into()),
             effective_end: Some("01.10.2026".into()),
         });
         assert!(rendered.contains("Wir bestätigen den Eingang Ihrer Kündigungserklärung."));
         assert!(rendered.contains("Ihr Vertrag endet zum 01.10.2026."));
+        assert!(rendered.contains("Ihre Bezeichnung des Vertrags: Premium-Abo, monatlich"));
         assert!(rendered.contains("Begründung: Zu teuer"));
         assert!(rendered.contains("Diese Bestätigung erfolgt nach § 312k Abs. 4 BGB."));
+    }
+
+    /// An extraordinary cancellation is not confirmed with the ordinary end
+    /// date; it is examined and answered separately.
+    #[test]
+    fn contract_cancellation_confirmation_extraordinary() {
+        let rendered = render_template(ContractCancellationConfirmationTemplate {
+            received_at: "03.09.2026 um 14:00:00 Uhr".into(),
+            name: "Max Mustermann".into(),
+            email: "max.mustermann@example.de".into(),
+            contract: "Premium-Mitgliedschaft".into(),
+            contract_designation: None,
+            cancellation_type: "außerordentliche Kündigung".into(),
+            extraordinary: true,
+            details: Some("Leistung nicht verfügbar".into()),
+            requested_end: None,
+            effective_end: None,
+        });
+        assert!(rendered.contains("Sie haben außerordentlich gekündigt."));
+        assert!(rendered.contains("teilen Ihnen das Ergebnis der Prüfung und den"));
+        assert!(rendered.contains("Beendigungszeitpunkt gesondert in Textform mit."));
+        assert!(!rendered.contains("Ihr Vertrag endet zum"));
+        assert!(!rendered.contains("Ihre Bezeichnung des Vertrags"));
     }
 
     #[test]
@@ -252,7 +278,9 @@ mod tests {
             name: "Max Mustermann".into(),
             email: "max.mustermann@example.de".into(),
             contract: "Sonstiger Vertrag".into(),
-            cancellation_type: "außerordentliche Kündigung".into(),
+            contract_designation: None,
+            cancellation_type: "ordentliche Kündigung".into(),
+            extraordinary: false,
             details: None,
             requested_end: None,
             effective_end: None,
@@ -271,6 +299,7 @@ mod tests {
             name: "Max Mustermann".into(),
             email: "max.mustermann@example.de".into(),
             contract: "MorphCoins-Kauf".into(),
+            contract_designation: Some("Bestellung vom 01.09.2026".into()),
             details: None,
         });
         assert!(rendered.contains("Wir bestätigen den Eingang Ihrer Widerrufserklärung."));
@@ -279,6 +308,7 @@ mod tests {
              Zahlungsmittel."
         ));
         assert!(rendered.contains("Diese Bestätigung erfolgt nach § 356a BGB."));
+        assert!(rendered.contains("Ihre Bezeichnung des Vertrags: Bestellung vom 01.09.2026"));
     }
 
     /// No template may reference a remote resource. The logo used to be loaded

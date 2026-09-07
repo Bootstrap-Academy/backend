@@ -4,7 +4,8 @@ use academy_auth_contracts::{AuthResultExt, AuthService};
 use academy_cache_contracts::CacheService;
 use academy_core_contract_contracts::{
     ContractCancellationRequest, ContractDeclarationListQuery, ContractDeclarationListResult,
-    ContractDeclarationResult, ContractDeclareError, ContractFeatureService, ContractListError,
+    ContractDeclarationProcessingUpdate, ContractDeclarationResult, ContractDeclareError,
+    ContractFeatureService, ContractListError, ContractSetProcessedError,
     ContractWithdrawalRequest,
 };
 use academy_di::Build;
@@ -12,7 +13,8 @@ use academy_email_contracts::{ContentType, Email, EmailService, template::Templa
 use academy_models::{
     auth::AccessToken,
     contract::{
-        ContractCancellationType, ContractDeclaration, ContractDeclarationKind, ContractKind,
+        ContractCancellationType, ContractDeclaration, ContractDeclarationId,
+        ContractDeclarationKind, ContractKind,
     },
     email_address::{EmailAddress, EmailAddressWithName},
 };
@@ -135,14 +137,21 @@ where
 
         // The end of the contract can only be determined for premium
         // memberships of a known account.
-        let effective_end = match user_id.filter(|_| request.contract == ContractKind::Premium) {
-            Some(user_id) => {
-                trace!("disable premium subscription");
-                self.premium_repo
-                    .set_subscription(&mut txn, user_id, None)
-                    .await
-                    .context("Failed to disable premium subscription")?;
+        let mut effective_end = None;
+        if let Some(user_id) = user_id.filter(|_| request.contract == ContractKind::Premium) {
+            trace!("disable premium subscription");
+            self.premium_repo
+                .set_subscription(&mut txn, user_id, None)
+                .await
+                .context("Failed to disable premium subscription")?;
 
+            // An extraordinary cancellation claims an end before the paid
+            // period is over, and whether that claim holds is a question for a
+            // person. Computing the ordinary end date here and confirming it
+            // would answer a different declaration than the one that was made,
+            // so the end date is left open and confirmed separately in
+            // Textform.
+            if cancellation_type == ContractCancellationType::Ordinary {
                 // Read the repository directly instead of using the premium use
                 // case, which would purchase a new period for an expired
                 // membership and therefore debit coins.
@@ -152,13 +161,12 @@ where
                     .await
                     .context("Failed to get premium membership from database")?;
 
-                Some(match latest {
+                effective_end = Some(match latest {
                     Some(premium) if received_at < premium.until => premium.until,
                     _ => received_at,
-                })
+                });
             }
-            None => None,
-        };
+        }
 
         let declaration = ContractDeclaration {
             id,
@@ -168,11 +176,13 @@ where
             email: request.email,
             user_id,
             contract: request.contract,
+            contract_designation: request.contract_designation,
             cancellation_type: Some(cancellation_type),
             details: request.details,
             requested_end: request.requested_end,
             effective_end,
             processed_at: None,
+            processing_note: None,
         };
 
         self.contract_repo
@@ -188,7 +198,9 @@ where
             name: declaration.name.clone().into_inner(),
             email: declaration.email.as_str().into(),
             contract: contract_label(declaration.contract).into(),
+            contract_designation: designation(&declaration),
             cancellation_type: cancellation_type_label(cancellation_type).into(),
+            extraordinary: cancellation_type == ContractCancellationType::Extraordinary,
             details: details(&declaration),
             requested_end: declaration.requested_end.map(format_date),
             effective_end: declaration.effective_end.map(format_date),
@@ -248,11 +260,13 @@ where
             email: request.email,
             user_id,
             contract: request.contract,
+            contract_designation: request.contract_designation,
             cancellation_type: None,
             details: request.details,
             requested_end: None,
             effective_end: None,
             processed_at: None,
+            processing_note: None,
         };
 
         self.contract_repo
@@ -268,6 +282,7 @@ where
             name: declaration.name.clone().into_inner(),
             email: declaration.email.as_str().into(),
             contract: contract_label(declaration.contract).into(),
+            contract_designation: designation(&declaration),
             details: details(&declaration),
         };
 
@@ -326,6 +341,49 @@ where
             total,
             declarations,
         })
+    }
+
+    #[trace_instrument(skip(self, update))]
+    async fn set_declaration_processed(
+        &self,
+        token: &AccessToken,
+        id: ContractDeclarationId,
+        update: ContractDeclarationProcessingUpdate,
+    ) -> Result<ContractDeclaration, ContractSetProcessedError> {
+        let auth = self.auth.authenticate(token).await.map_auth_err()?;
+        auth.ensure_admin().map_auth_err()?;
+
+        let processed_at = self.time.now();
+
+        let mut txn = self.db.begin_transaction().await?;
+
+        let declaration = self
+            .contract_repo
+            .get(&mut txn, id)
+            .await
+            .context("Failed to get contract declaration from database")?
+            .ok_or(ContractSetProcessedError::NotFound)?;
+
+        // Nothing that is not given is overwritten: an ordinary cancellation
+        // keeps the end date the backend determined when only a note is added.
+        // What comes back is the stored row, so the answer to this request and
+        // the answer to the next listing are the same.
+        let declaration = self
+            .contract_repo
+            .set_processed(
+                &mut txn,
+                id,
+                processed_at,
+                update.effective_end.or(declaration.effective_end),
+                update.note.or(declaration.processing_note),
+            )
+            .await
+            .context("Failed to update contract declaration in database")?
+            .ok_or(ContractSetProcessedError::NotFound)?;
+
+        txn.commit().await?;
+
+        Ok(declaration)
     }
 }
 
@@ -410,8 +468,16 @@ where
     async fn send_internal_notification(&self, declaration: &ContractDeclaration) {
         let email = Email {
             recipient: (*self.config.internal_email).clone(),
+            // An extraordinary cancellation is marked in the subject: it has no
+            // end date yet and the answer is due in Textform, so it cannot wait
+            // in the queue with the rest.
             subject: format!(
-                "[Contract] {} ({})",
+                "[Contract] {}{} ({})",
+                if is_extraordinary(declaration) {
+                    "DRINGEND: "
+                } else {
+                    ""
+                },
                 kind_label(declaration.kind),
                 contract_short_label(declaration.contract)
             ),
@@ -443,19 +509,34 @@ fn details(declaration: &ContractDeclaration) -> Option<String> {
     Some(declaration.details.clone().into_inner()).filter(|details| !details.trim().is_empty())
 }
 
+fn designation(declaration: &ContractDeclaration) -> Option<String> {
+    declaration
+        .contract_designation
+        .as_ref()
+        .map(|designation| designation.clone().into_inner())
+}
+
 fn internal_notification_body(declaration: &ContractDeclaration) -> String {
     format!(
-        "Art der Erklärung: {kind}\n\
+        "{urgent}\
+         Art der Erklärung: {kind}\n\
          Eingegangen am: {received_at}\n\
          Name: {name}\n\
          E-Mail-Adresse: {email}\n\
          Konto: {account}\n\
          Vertrag: {contract}\n\
+         Bezeichnung laut Erklärung: {designation}\n\
          Art der Kündigung: {cancellation_type}\n\
          Begründung/Angaben: {details}\n\
          Gewünschter Beendigungszeitpunkt: {requested_end}\n\
          Beendigungszeitpunkt: {effective_end}\n\
          ID der Erklärung: {id}\n",
+        urgent = if is_extraordinary(declaration) {
+            "DRINGEND: außerordentliche Kündigung. Der Beendigungszeitpunkt wurde nicht \
+             automatisch ermittelt und ist gesondert in Textform zu bestätigen.\n\n"
+        } else {
+            ""
+        },
         kind = kind_label(declaration.kind),
         received_at = format_datetime(declaration.received_at),
         name = *declaration.name,
@@ -465,6 +546,7 @@ fn internal_notification_body(declaration: &ContractDeclaration) -> String {
             None => "kein Konto gefunden".into(),
         },
         contract = contract_label(declaration.contract),
+        designation = designation(declaration).unwrap_or_else(|| "-".into()),
         cancellation_type = declaration
             .cancellation_type
             .map(cancellation_type_label)
@@ -494,6 +576,12 @@ fn format_date(value: DateTime<Utc>) -> String {
         .with_timezone(&chrono_tz::Europe::Berlin)
         .format(DATE_FORMAT)
         .to_string()
+}
+
+/// Whether the declaration is an extraordinary cancellation, which is examined
+/// and answered by hand.
+fn is_extraordinary(declaration: &ContractDeclaration) -> bool {
+    declaration.cancellation_type == Some(ContractCancellationType::Extraordinary)
 }
 
 fn kind_label(kind: ContractDeclarationKind) -> &'static str {

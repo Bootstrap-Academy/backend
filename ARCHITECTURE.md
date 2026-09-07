@@ -108,8 +108,13 @@ Both endpoints are public, rate limited per client ip and per email address (`[c
 The declaration is committed before any email is sent, so a failing mail server cannot lose it; the response reports in `confirmation_email_sent` whether the confirmation reached the declarant.
 Two emails are sent per declaration: a confirmation to the declarant (`contract_cancellation_confirmation.html` / `contract_withdrawal_confirmation.html`) and a plain-text notification to `contact.email`.
 
-A cancellation that names a premium membership and an email address belonging to an account also switches the automatic renewal off and returns the end of the paid period in `effective_end`.
+Both endpoints also take a free text `contract_designation`, the contract as the consumer names it (§ 312k Abs. 2 S. 2 Nr. 2 BGB), for every kind of contract. It is stored as it was written and appears on the confirmation and on the notification.
+
+An **ordinary** cancellation that names a premium membership and an email address belonging to an account switches the automatic renewal off and returns the end of the paid period in `effective_end`.
+An **extraordinary** cancellation switches the automatic renewal off as well, but gets no `effective_end`: whether the claim holds is a question for a person, so the confirmation says that the declaration is examined and its end date confirmed separately in Textform, and the notification to `contact.email` is marked `DRINGEND` in its subject and in its first line.
+
 `GET /contracts/declarations` lists the recorded declarations and requires admin privileges. Because the listing carries the name, the email address and the free text of every declaration, reading it is written to the administrative audit log.
+`PATCH /contracts/declarations/{declaration_id}` records that a declaration has been dealt with: it sets `processed_at` to the time of the request and stores `effective_end` and a free text `note` when they are given, leaving what is not given alone. It requires admin privileges — which means an MFA verified session — and is written to the administrative audit log like every other state changing administrative request. The note is part of the data export of the person the declaration belongs to, because it is a note about them.
 
 ### Withdrawal Declarations at Checkout
 Before a paid order is placed, the consumer gives the declarations that are shown next to the order button.

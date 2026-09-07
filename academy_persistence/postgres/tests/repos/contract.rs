@@ -27,11 +27,13 @@ fn cancellation() -> ContractDeclaration {
         email: "max.mustermann@example.de".parse().unwrap(),
         user_id: Some(FOO.user.id),
         contract: ContractKind::Premium,
+        contract_designation: Some("Premium-Abo, monatlich".try_into().unwrap()),
         cancellation_type: Some(ContractCancellationType::Extraordinary),
         details: "Zu teuer".try_into().unwrap(),
         requested_end: Some(Utc.with_ymd_and_hms(2026, 12, 31, 23, 0, 0).unwrap()),
         effective_end: Some(Utc.with_ymd_and_hms(2026, 10, 1, 0, 0, 0).unwrap()),
         processed_at: Some(Utc.with_ymd_and_hms(2026, 9, 4, 8, 0, 0).unwrap()),
+        processing_note: Some("Kündigung akzeptiert, Ende bestätigt".try_into().unwrap()),
     }
 }
 
@@ -45,11 +47,13 @@ fn withdrawal() -> ContractDeclaration {
         email: "erika@example.de".parse().unwrap(),
         user_id: None,
         contract: ContractKind::Coins,
+        contract_designation: None,
         cancellation_type: None,
         details: Default::default(),
         requested_end: None,
         effective_end: None,
         processed_at: None,
+        processing_note: None,
     }
 }
 
@@ -62,11 +66,13 @@ fn other_cancellation() -> ContractDeclaration {
         email: "john@example.de".parse().unwrap(),
         user_id: None,
         contract: ContractKind::Other,
+        contract_designation: Some("Vertrag Nr. 4711".try_into().unwrap()),
         cancellation_type: Some(ContractCancellationType::Ordinary),
         details: "Kein Interesse mehr".try_into().unwrap(),
         requested_end: None,
         effective_end: None,
         processed_at: None,
+        processing_note: None,
     }
 }
 
@@ -314,4 +320,96 @@ async fn delete_by_received_at() {
         1
     );
     assert_eq!(REPO.count(&mut txn, None).await.unwrap(), 0);
+}
+
+#[tokio::test]
+async fn get() {
+    let db = setup().await;
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    assert_eq!(REPO.get(&mut txn, cancellation().id).await.unwrap(), None);
+
+    REPO.create(&mut txn, cancellation()).await.unwrap();
+    REPO.create(&mut txn, withdrawal()).await.unwrap();
+    txn.commit().await.unwrap();
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    assert_eq!(
+        REPO.get(&mut txn, cancellation().id).await.unwrap(),
+        Some(cancellation())
+    );
+    assert_eq!(
+        REPO.get(&mut txn, withdrawal().id).await.unwrap(),
+        Some(withdrawal())
+    );
+}
+
+/// Recording that a declaration has been processed writes the time, the end of
+/// the contract and the note, and leaves everything else alone.
+#[tokio::test]
+async fn set_processed() {
+    let db = setup().await;
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    REPO.create(&mut txn, withdrawal()).await.unwrap();
+    REPO.create(&mut txn, other_cancellation()).await.unwrap();
+    txn.commit().await.unwrap();
+
+    let processed_at = Utc.with_ymd_and_hms(2026, 9, 8, 9, 30, 0).unwrap();
+    let effective_end = Utc.with_ymd_and_hms(2026, 9, 30, 21, 59, 59).unwrap();
+    let note = "Außerordentliche Kündigung anerkannt".try_into().unwrap();
+
+    let expected = ContractDeclaration {
+        processed_at: Some(processed_at),
+        effective_end: Some(effective_end),
+        processing_note: Some("Außerordentliche Kündigung anerkannt".try_into().unwrap()),
+        ..withdrawal()
+    };
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    // what comes back is the stored row, not what the caller passed in
+    assert_eq!(
+        REPO.set_processed(
+            &mut txn,
+            withdrawal().id,
+            processed_at,
+            Some(effective_end),
+            Some(note),
+        )
+        .await
+        .unwrap(),
+        Some(expected.clone())
+    );
+    txn.commit().await.unwrap();
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    assert_eq!(
+        REPO.get(&mut txn, withdrawal().id).await.unwrap(),
+        Some(expected)
+    );
+    // the other declaration is untouched
+    assert_eq!(
+        REPO.get(&mut txn, other_cancellation().id).await.unwrap(),
+        Some(other_cancellation())
+    );
+}
+
+/// A declaration that does not exist is reported rather than silently created.
+#[tokio::test]
+async fn set_processed_not_found() {
+    let db = setup().await;
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    assert_eq!(
+        REPO.set_processed(
+            &mut txn,
+            cancellation().id,
+            Utc.with_ymd_and_hms(2026, 9, 8, 9, 30, 0).unwrap(),
+            None,
+            None,
+        )
+        .await
+        .unwrap(),
+        None
+    );
 }

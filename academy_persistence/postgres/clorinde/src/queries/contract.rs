@@ -1,7 +1,13 @@
 // This file was generated with `clorinde`. Do not modify.
 
 #[derive(Debug)]
-pub struct CreateParams<T1: crate::StringSql, T2: crate::StringSql, T3: crate::StringSql> {
+pub struct CreateParams<
+    T1: crate::StringSql,
+    T2: crate::StringSql,
+    T3: crate::StringSql,
+    T4: crate::StringSql,
+    T5: crate::StringSql,
+> {
     pub id: uuid::Uuid,
     pub kind: crate::types::ContractDeclarationKind,
     pub received_at: chrono::DateTime<chrono::FixedOffset>,
@@ -9,17 +15,26 @@ pub struct CreateParams<T1: crate::StringSql, T2: crate::StringSql, T3: crate::S
     pub email: T2,
     pub user_id: Option<uuid::Uuid>,
     pub contract: crate::types::ContractDeclarationContract,
+    pub contract_designation: Option<T3>,
     pub cancellation_type: Option<crate::types::ContractCancellationType>,
-    pub details: T3,
+    pub details: T4,
     pub requested_end: Option<chrono::DateTime<chrono::FixedOffset>>,
     pub effective_end: Option<chrono::DateTime<chrono::FixedOffset>>,
     pub processed_at: Option<chrono::DateTime<chrono::FixedOffset>>,
+    pub processing_note: Option<T5>,
 }
 #[derive(Clone, Copy, Debug)]
 pub struct ListParams {
     pub kind: Option<crate::types::ContractDeclarationKind>,
     pub limit: i64,
     pub offset: i64,
+}
+#[derive(Debug)]
+pub struct SetProcessedParams<T1: crate::StringSql> {
+    pub processed_at: chrono::DateTime<chrono::FixedOffset>,
+    pub effective_end: Option<chrono::DateTime<chrono::FixedOffset>>,
+    pub processing_note: Option<T1>,
+    pub id: uuid::Uuid,
 }
 #[derive(Debug, Clone, PartialEq)]
 pub struct ContractDeclaration {
@@ -35,6 +50,8 @@ pub struct ContractDeclaration {
     pub requested_end: Option<chrono::DateTime<chrono::FixedOffset>>,
     pub effective_end: Option<chrono::DateTime<chrono::FixedOffset>>,
     pub processed_at: Option<chrono::DateTime<chrono::FixedOffset>>,
+    pub contract_designation: Option<String>,
+    pub processing_note: Option<String>,
 }
 pub struct ContractDeclarationBorrowed<'a> {
     pub id: uuid::Uuid,
@@ -49,6 +66,8 @@ pub struct ContractDeclarationBorrowed<'a> {
     pub requested_end: Option<chrono::DateTime<chrono::FixedOffset>>,
     pub effective_end: Option<chrono::DateTime<chrono::FixedOffset>>,
     pub processed_at: Option<chrono::DateTime<chrono::FixedOffset>>,
+    pub contract_designation: Option<&'a str>,
+    pub processing_note: Option<&'a str>,
 }
 impl<'a> From<ContractDeclarationBorrowed<'a>> for ContractDeclaration {
     fn from(
@@ -65,6 +84,8 @@ impl<'a> From<ContractDeclarationBorrowed<'a>> for ContractDeclaration {
             requested_end,
             effective_end,
             processed_at,
+            contract_designation,
+            processing_note,
         }: ContractDeclarationBorrowed<'a>,
     ) -> Self {
         Self {
@@ -80,6 +101,8 @@ impl<'a> From<ContractDeclarationBorrowed<'a>> for ContractDeclaration {
             requested_end,
             effective_end,
             processed_at,
+            contract_designation: contract_designation.map(|v| v.into()),
+            processing_note: processing_note.map(|v| v.into()),
         }
     }
 }
@@ -220,7 +243,7 @@ where
 pub struct CreateStmt(&'static str, Option<tokio_postgres::Statement>);
 pub fn create() -> CreateStmt {
     CreateStmt(
-        "insert into contract_declarations (id, kind, received_at, name, email, user_id, contract, cancellation_type, details, requested_end, effective_end, processed_at) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
+        "insert into contract_declarations (id, kind, received_at, name, email, user_id, contract, contract_designation, cancellation_type, details, requested_end, effective_end, processed_at, processing_note) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)",
         None,
     )
 }
@@ -240,6 +263,8 @@ impl CreateStmt {
         T1: crate::StringSql,
         T2: crate::StringSql,
         T3: crate::StringSql,
+        T4: crate::StringSql,
+        T5: crate::StringSql,
     >(
         &'s self,
         client: &'c C,
@@ -250,11 +275,13 @@ impl CreateStmt {
         email: &'a T2,
         user_id: &'a Option<uuid::Uuid>,
         contract: &'a crate::types::ContractDeclarationContract,
+        contract_designation: &'a Option<T3>,
         cancellation_type: &'a Option<crate::types::ContractCancellationType>,
-        details: &'a T3,
+        details: &'a T4,
         requested_end: &'a Option<chrono::DateTime<chrono::FixedOffset>>,
         effective_end: &'a Option<chrono::DateTime<chrono::FixedOffset>>,
         processed_at: &'a Option<chrono::DateTime<chrono::FixedOffset>>,
+        processing_note: &'a Option<T5>,
     ) -> Result<u64, tokio_postgres::Error> {
         client
             .execute(
@@ -267,11 +294,13 @@ impl CreateStmt {
                     email,
                     user_id,
                     contract,
+                    contract_designation,
                     cancellation_type,
                     details,
                     requested_end,
                     effective_end,
                     processed_at,
+                    processing_note,
                 ],
             )
             .await
@@ -283,12 +312,14 @@ impl<
     T1: crate::StringSql,
     T2: crate::StringSql,
     T3: crate::StringSql,
+    T4: crate::StringSql,
+    T5: crate::StringSql,
 >
     crate::client::async_::Params<
         'a,
         'a,
         'a,
-        CreateParams<T1, T2, T3>,
+        CreateParams<T1, T2, T3, T4, T5>,
         std::pin::Pin<
             Box<dyn futures::Future<Output = Result<u64, tokio_postgres::Error>> + Send + 'a>,
         >,
@@ -298,7 +329,7 @@ impl<
     fn params(
         &'a self,
         client: &'a C,
-        params: &'a CreateParams<T1, T2, T3>,
+        params: &'a CreateParams<T1, T2, T3, T4, T5>,
     ) -> std::pin::Pin<
         Box<dyn futures::Future<Output = Result<u64, tokio_postgres::Error>> + Send + 'a>,
     > {
@@ -311,12 +342,60 @@ impl<
             &params.email,
             &params.user_id,
             &params.contract,
+            &params.contract_designation,
             &params.cancellation_type,
             &params.details,
             &params.requested_end,
             &params.effective_end,
             &params.processed_at,
+            &params.processing_note,
         ))
+    }
+}
+pub struct GetStmt(&'static str, Option<tokio_postgres::Statement>);
+pub fn get() -> GetStmt {
+    GetStmt("select * from contract_declarations where id=$1", None)
+}
+impl GetStmt {
+    pub async fn prepare<'a, C: GenericClient>(
+        mut self,
+        client: &'a C,
+    ) -> Result<Self, tokio_postgres::Error> {
+        self.1 = Some(client.prepare(self.0).await?);
+        Ok(self)
+    }
+    pub fn bind<'c, 'a, 's, C: GenericClient>(
+        &'s self,
+        client: &'c C,
+        id: &'a uuid::Uuid,
+    ) -> ContractDeclarationQuery<'c, 'a, 's, C, ContractDeclaration, 1> {
+        ContractDeclarationQuery {
+            client,
+            params: [id],
+            query: self.0,
+            cached: self.1.as_ref(),
+            extractor: |
+                row: &tokio_postgres::Row,
+            | -> Result<ContractDeclarationBorrowed, tokio_postgres::Error> {
+                Ok(ContractDeclarationBorrowed {
+                    id: row.try_get(0)?,
+                    kind: row.try_get(1)?,
+                    received_at: row.try_get(2)?,
+                    name: row.try_get(3)?,
+                    email: row.try_get(4)?,
+                    user_id: row.try_get(5)?,
+                    contract: row.try_get(6)?,
+                    cancellation_type: row.try_get(7)?,
+                    details: row.try_get(8)?,
+                    requested_end: row.try_get(9)?,
+                    effective_end: row.try_get(10)?,
+                    processed_at: row.try_get(11)?,
+                    contract_designation: row.try_get(12)?,
+                    processing_note: row.try_get(13)?,
+                })
+            },
+            mapper: |it| ContractDeclaration::from(it),
+        }
     }
 }
 pub struct ListStmt(&'static str, Option<tokio_postgres::Statement>);
@@ -362,6 +441,8 @@ impl ListStmt {
                     requested_end: row.try_get(9)?,
                     effective_end: row.try_get(10)?,
                     processed_at: row.try_get(11)?,
+                    contract_designation: row.try_get(12)?,
+                    processing_note: row.try_get(13)?,
                 })
             },
             mapper: |it| ContractDeclaration::from(it),
@@ -427,6 +508,8 @@ impl ListByUserIdStmt {
                     requested_end: row.try_get(9)?,
                     effective_end: row.try_get(10)?,
                     processed_at: row.try_get(11)?,
+                    contract_designation: row.try_get(12)?,
+                    processing_note: row.try_get(13)?,
                 })
             },
             mapper: |it| ContractDeclaration::from(it),
@@ -461,6 +544,82 @@ impl CountStmt {
             extractor: |row| Ok(row.try_get(0)?),
             mapper: |it| it,
         }
+    }
+}
+pub struct SetProcessedStmt(&'static str, Option<tokio_postgres::Statement>);
+pub fn set_processed() -> SetProcessedStmt {
+    SetProcessedStmt(
+        "update contract_declarations set processed_at=$1, effective_end=$2, processing_note=$3 where id=$4 returning *",
+        None,
+    )
+}
+impl SetProcessedStmt {
+    pub async fn prepare<'a, C: GenericClient>(
+        mut self,
+        client: &'a C,
+    ) -> Result<Self, tokio_postgres::Error> {
+        self.1 = Some(client.prepare(self.0).await?);
+        Ok(self)
+    }
+    pub fn bind<'c, 'a, 's, C: GenericClient, T1: crate::StringSql>(
+        &'s self,
+        client: &'c C,
+        processed_at: &'a chrono::DateTime<chrono::FixedOffset>,
+        effective_end: &'a Option<chrono::DateTime<chrono::FixedOffset>>,
+        processing_note: &'a Option<T1>,
+        id: &'a uuid::Uuid,
+    ) -> ContractDeclarationQuery<'c, 'a, 's, C, ContractDeclaration, 4> {
+        ContractDeclarationQuery {
+            client,
+            params: [processed_at, effective_end, processing_note, id],
+            query: self.0,
+            cached: self.1.as_ref(),
+            extractor: |
+                row: &tokio_postgres::Row,
+            | -> Result<ContractDeclarationBorrowed, tokio_postgres::Error> {
+                Ok(ContractDeclarationBorrowed {
+                    id: row.try_get(0)?,
+                    kind: row.try_get(1)?,
+                    received_at: row.try_get(2)?,
+                    name: row.try_get(3)?,
+                    email: row.try_get(4)?,
+                    user_id: row.try_get(5)?,
+                    contract: row.try_get(6)?,
+                    cancellation_type: row.try_get(7)?,
+                    details: row.try_get(8)?,
+                    requested_end: row.try_get(9)?,
+                    effective_end: row.try_get(10)?,
+                    processed_at: row.try_get(11)?,
+                    contract_designation: row.try_get(12)?,
+                    processing_note: row.try_get(13)?,
+                })
+            },
+            mapper: |it| ContractDeclaration::from(it),
+        }
+    }
+}
+impl<'c, 'a, 's, C: GenericClient, T1: crate::StringSql>
+    crate::client::async_::Params<
+        'c,
+        'a,
+        's,
+        SetProcessedParams<T1>,
+        ContractDeclarationQuery<'c, 'a, 's, C, ContractDeclaration, 4>,
+        C,
+    > for SetProcessedStmt
+{
+    fn params(
+        &'s self,
+        client: &'c C,
+        params: &'a SetProcessedParams<T1>,
+    ) -> ContractDeclarationQuery<'c, 'a, 's, C, ContractDeclaration, 4> {
+        self.bind(
+            client,
+            &params.processed_at,
+            &params.effective_end,
+            &params.processing_note,
+            &params.id,
+        )
     }
 }
 pub struct DeleteByReceivedAtStmt(&'static str, Option<tokio_postgres::Statement>);

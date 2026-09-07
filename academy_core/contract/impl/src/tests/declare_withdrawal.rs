@@ -30,6 +30,7 @@ fn make_request() -> ContractWithdrawalRequest {
         name: declarant_name(),
         email: declarant_email(),
         contract: ContractKind::Coins,
+        contract_designation: Some("MorphCoins, Bestellung 4711".try_into().unwrap()),
         details: "Bestellung vom 01.09.2026".try_into().unwrap(),
     }
 }
@@ -43,11 +44,13 @@ fn make_declaration() -> ContractDeclaration {
         email: declarant_email(),
         user_id: Some(FOO.user.id),
         contract: ContractKind::Coins,
+        contract_designation: Some("MorphCoins, Bestellung 4711".try_into().unwrap()),
         cancellation_type: None,
         details: "Bestellung vom 01.09.2026".try_into().unwrap(),
         requested_end: None,
         effective_end: None,
         processed_at: None,
+        processing_note: None,
     }
 }
 
@@ -75,6 +78,7 @@ async fn ok() {
                 name: "Max Mustermann".into(),
                 email: "foo@example.com".into(),
                 contract: "MorphCoins-Kauf".into(),
+                contract_designation: Some("MorphCoins, Bestellung 4711".into()),
                 details: Some("Bestellung vom 01.09.2026".into()),
             },
             Ok(true),
@@ -160,6 +164,7 @@ async fn ip_budget_is_larger_than_the_email_budget() {
                 name: "Max Mustermann".into(),
                 email: "foo@example.com".into(),
                 contract: "MorphCoins-Kauf".into(),
+                contract_designation: Some("MorphCoins, Bestellung 4711".into()),
                 details: Some("Bestellung vom 01.09.2026".into()),
             },
             Ok(true),

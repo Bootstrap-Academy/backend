@@ -4,7 +4,8 @@ use academy_models::{
     auth::{AccessToken, AuthError},
     contract::{
         ContractCancellationType, ContractDeclarantName, ContractDeclaration,
-        ContractDeclarationDetails, ContractDeclarationKind, ContractKind,
+        ContractDeclarationDetails, ContractDeclarationId, ContractDeclarationKind,
+        ContractDesignation, ContractKind, ContractProcessingNote,
     },
     email_address::EmailAddress,
     pagination::PaginationSlice,
@@ -39,6 +40,28 @@ pub trait ContractFeatureService: Send + Sync + 'static {
         token: &AccessToken,
         query: ContractDeclarationListQuery,
     ) -> impl Future<Output = Result<ContractDeclarationListResult, ContractListError>> + Send;
+
+    /// Record that a declaration has been processed by hand.
+    ///
+    /// Requires admin privileges.
+    fn set_declaration_processed(
+        &self,
+        token: &AccessToken,
+        id: ContractDeclarationId,
+        update: ContractDeclarationProcessingUpdate,
+    ) -> impl Future<Output = Result<ContractDeclaration, ContractSetProcessedError>> + Send;
+}
+
+/// What an administrator records when a declaration has been processed.
+///
+/// A field that is not given leaves the stored value alone; `processed_at` is
+/// always set to the time of the request.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct ContractDeclarationProcessingUpdate {
+    /// The end of the contract as it was confirmed to the declarant.
+    pub effective_end: Option<DateTime<Utc>>,
+    /// What was done.
+    pub note: Option<ContractProcessingNote>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -46,6 +69,9 @@ pub struct ContractCancellationRequest {
     pub name: ContractDeclarantName,
     pub email: EmailAddress,
     pub contract: ContractKind,
+    /// The contract as the declarant named it
+    /// (§ 312k Abs. 2 S. 2 Nr. 2 BGB), for every kind of contract.
+    pub contract_designation: Option<ContractDesignation>,
     pub cancellation_type: ContractCancellationType,
     pub details: ContractDeclarationDetails,
     pub requested_end: Option<DateTime<Utc>>,
@@ -56,6 +82,8 @@ pub struct ContractWithdrawalRequest {
     pub name: ContractDeclarantName,
     pub email: EmailAddress,
     pub contract: ContractKind,
+    /// The contract or order as the declarant named it.
+    pub contract_designation: Option<ContractDesignation>,
     pub details: ContractDeclarationDetails,
 }
 
@@ -90,6 +118,16 @@ pub enum ContractDeclareError {
 
 #[derive(Debug, Error)]
 pub enum ContractListError {
+    #[error(transparent)]
+    Auth(#[from] AuthError),
+    #[error(transparent)]
+    Other(#[from] anyhow::Error),
+}
+
+#[derive(Debug, Error)]
+pub enum ContractSetProcessedError {
+    #[error("The declaration does not exist.")]
+    NotFound,
     #[error(transparent)]
     Auth(#[from] AuthError),
     #[error(transparent)]

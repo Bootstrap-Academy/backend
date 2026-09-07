@@ -6,7 +6,8 @@ use academy_demo::{UUID1, user::FOO};
 use academy_email_contracts::{MockEmailService, template::MockTemplateEmailService};
 use academy_models::{
     contract::{
-        ContractCancellationType, ContractDeclaration, ContractDeclarationKind, ContractKind,
+        ContractCancellationType, ContractDeclaration, ContractDeclarationKind,
+        ContractDesignation, ContractKind,
     },
     premium::Premium,
     user::UserId,
@@ -41,11 +42,16 @@ fn premium_until() -> DateTime<Utc> {
     Utc.with_ymd_and_hms(2026, 10, 1, 0, 0, 0).unwrap()
 }
 
+fn designation() -> ContractDesignation {
+    "Premium-Abo, monatlich".try_into().unwrap()
+}
+
 fn make_request() -> ContractCancellationRequest {
     ContractCancellationRequest {
         name: declarant_name(),
         email: declarant_email(),
         contract: ContractKind::Premium,
+        contract_designation: Some(designation()),
         cancellation_type: ContractCancellationType::Ordinary,
         details: "Zu teuer".try_into().unwrap(),
         requested_end: Some(requested_end()),
@@ -64,11 +70,13 @@ fn make_declaration(
         email: declarant_email(),
         user_id,
         contract: ContractKind::Premium,
+        contract_designation: Some(designation()),
         cancellation_type: Some(ContractCancellationType::Ordinary),
         details: "Zu teuer".try_into().unwrap(),
         requested_end: Some(requested_end()),
         effective_end,
         processed_at: None,
+        processing_note: None,
     }
 }
 
@@ -78,7 +86,9 @@ fn make_template(effective_end: Option<&str>) -> ContractCancellationConfirmatio
         name: "Max Mustermann".into(),
         email: "foo@example.com".into(),
         contract: "Premium-Mitgliedschaft".into(),
+        contract_designation: Some("Premium-Abo, monatlich".into()),
         cancellation_type: "ordentliche Kündigung".into(),
+        extraordinary: false,
         details: Some("Zu teuer".into()),
         requested_end: Some("31.12.2026".into()),
         effective_end: effective_end.map(Into::into),
@@ -213,6 +223,104 @@ async fn ok_user_without_premium() {
             confirmation_email_sent: true
         }
     );
+}
+
+/// An extraordinary cancellation of a premium membership: the automatic
+/// renewal is switched off, but no end date is determined — that is a question
+/// for a person, and the answer goes out separately in Textform. The internal
+/// notification says so in its subject.
+#[tokio::test]
+async fn ok_extraordinary_keeps_the_end_date_open() {
+    // Arrange
+    let request = ContractCancellationRequest {
+        cancellation_type: ContractCancellationType::Extraordinary,
+        requested_end: None,
+        ..make_request()
+    };
+
+    let declaration = ContractDeclaration {
+        cancellation_type: Some(ContractCancellationType::Extraordinary),
+        requested_end: None,
+        ..make_declaration(Some(FOO.user.id), None)
+    };
+
+    let hash = make_hash(&declarant_email());
+    let cache = make_cache(0, 0);
+    let time = MockTimeService::new().with_now(now());
+    let id = MockIdService::new().with_generate(declaration.id);
+    let db = MockDatabase::build(true);
+
+    let user_repo =
+        MockUserRepository::new().with_get_composite_by_email(declarant_email(), Some(FOO.clone()));
+
+    // the subscription is switched off, but the paid period is never read
+    let premium_repo = MockPremiumRepository::new().with_set_subscription(FOO.user.id, None);
+
+    let contract_repo = MockContractRepository::new().with_create(declaration.clone());
+
+    let template_email = MockTemplateEmailService::new()
+        .with_send_contract_cancellation_confirmation_email(
+            declarant_email().with_name("Max Mustermann".into()),
+            ContractCancellationConfirmationTemplate {
+                cancellation_type: "außerordentliche Kündigung".into(),
+                extraordinary: true,
+                requested_end: None,
+                ..make_template(None)
+            },
+            Ok(true),
+        );
+
+    let email = MockEmailService::new().with_send(
+        make_internal_email(&declaration, "[Contract] DRINGEND: Kündigung (Premium)"),
+        true,
+    );
+
+    let sut = ContractFeatureServiceImpl {
+        hash,
+        cache,
+        time,
+        id,
+        db,
+        user_repo,
+        premium_repo,
+        contract_repo,
+        template_email,
+        email,
+        ..Sut::default()
+    };
+
+    // Act
+    let result = sut.declare_cancellation(CLIENT_IP, request).await;
+
+    // Assert
+    let result = result.unwrap();
+    assert_eq!(result.declaration.effective_end, None);
+    assert_eq!(
+        result,
+        ContractDeclarationResult {
+            declaration,
+            confirmation_email_sent: true
+        }
+    );
+}
+
+/// The urgent marker also reaches the body of the internal notification.
+#[test]
+fn internal_notification_body_marks_an_extraordinary_cancellation() {
+    let body = crate::internal_notification_body(&ContractDeclaration {
+        cancellation_type: Some(ContractCancellationType::Extraordinary),
+        ..make_declaration(Some(FOO.user.id), None)
+    });
+
+    assert!(
+        body.starts_with("DRINGEND: außerordentliche Kündigung."),
+        "{body}"
+    );
+    assert!(
+        body.contains("gesondert in Textform zu bestätigen."),
+        "{body}"
+    );
+    assert!(body.contains("Beendigungszeitpunkt: -"), "{body}");
 }
 
 /// No account matches the declarant's email address: the declaration is stored
@@ -413,6 +521,7 @@ fn internal_notification_body_text() {
              E-Mail-Adresse: foo@example.com\n\
              Konto: {}\n\
              Vertrag: Premium-Mitgliedschaft\n\
+             Bezeichnung laut Erklärung: Premium-Abo, monatlich\n\
              Art der Kündigung: ordentliche Kündigung\n\
              Begründung/Angaben: Zu teuer\n\
              Gewünschter Beendigungszeitpunkt: 31.12.2026\n\

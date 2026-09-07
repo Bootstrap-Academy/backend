@@ -15,6 +15,7 @@
     <li>Name: {{ name | escape }}</li>
     <li>E-Mail-Adresse: {{ email | escape }}</li>
     <li>Vertrag/Bestellung: {{ contract | escape }}</li>
+    {% if contract_designation %}<li>Ihre Bezeichnung des Vertrags: {{ contract_designation | escape }}</li>{% endif %}
     {% if details %}<li>Angaben: {{ details | escape }}</li>{% endif %}
   </ul>
 

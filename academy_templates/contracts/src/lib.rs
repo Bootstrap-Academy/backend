@@ -85,7 +85,12 @@ pub struct ContractCancellationConfirmationTemplate {
     pub name: String,
     pub email: String,
     pub contract: String,
+    /// The contract as the declarant named it, if they named it.
+    pub contract_designation: Option<String>,
     pub cancellation_type: String,
+    /// Whether the cancellation is an extraordinary one, for which no end date
+    /// is determined automatically.
+    pub extraordinary: bool,
     pub details: Option<String>,
     pub requested_end: Option<String>,
     pub effective_end: Option<String>,
@@ -100,6 +105,8 @@ pub struct ContractWithdrawalConfirmationTemplate {
     pub name: String,
     pub email: String,
     pub contract: String,
+    /// The contract or order as the declarant named it, if they named it.
+    pub contract_designation: Option<String>,
     pub details: Option<String>,
 }
 

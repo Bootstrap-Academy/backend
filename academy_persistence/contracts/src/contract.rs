@@ -1,7 +1,9 @@
 use std::future::Future;
 
 use academy_models::{
-    contract::{ContractDeclaration, ContractDeclarationKind},
+    contract::{
+        ContractDeclaration, ContractDeclarationId, ContractDeclarationKind, ContractProcessingNote,
+    },
     pagination::PaginationSlice,
     user::UserId,
 };
@@ -15,6 +17,26 @@ pub trait ContractRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static 
         txn: &mut Txn,
         declaration: ContractDeclaration,
     ) -> impl Future<Output = anyhow::Result<()>> + Send;
+
+    /// Return the contract declaration with the given id.
+    fn get(
+        &self,
+        txn: &mut Txn,
+        id: ContractDeclarationId,
+    ) -> impl Future<Output = anyhow::Result<Option<ContractDeclaration>>> + Send;
+
+    /// Record that a declaration has been processed by hand and return the
+    /// declaration as it is now stored.
+    ///
+    /// Returns `None` if there is no declaration with that id.
+    fn set_processed(
+        &self,
+        txn: &mut Txn,
+        id: ContractDeclarationId,
+        processed_at: DateTime<Utc>,
+        effective_end: Option<DateTime<Utc>>,
+        processing_note: Option<ContractProcessingNote>,
+    ) -> impl Future<Output = anyhow::Result<Option<ContractDeclaration>>> + Send;
 
     /// Return a paginated list of all contract declarations, most recent first.
     fn list(
@@ -57,6 +79,39 @@ impl<Txn: Send + Sync + 'static> MockContractRepository<Txn> {
                 mockall::predicate::eq(declaration),
             )
             .return_once(|_, _| Box::pin(std::future::ready(Ok(()))));
+        self
+    }
+
+    pub fn with_get(
+        mut self,
+        id: ContractDeclarationId,
+        result: Option<ContractDeclaration>,
+    ) -> Self {
+        self.expect_get()
+            .once()
+            .with(mockall::predicate::always(), mockall::predicate::eq(id))
+            .return_once(|_, _| Box::pin(std::future::ready(Ok(result))));
+        self
+    }
+
+    pub fn with_set_processed(
+        mut self,
+        id: ContractDeclarationId,
+        processed_at: DateTime<Utc>,
+        effective_end: Option<DateTime<Utc>>,
+        processing_note: Option<ContractProcessingNote>,
+        result: Option<ContractDeclaration>,
+    ) -> Self {
+        self.expect_set_processed()
+            .once()
+            .with(
+                mockall::predicate::always(),
+                mockall::predicate::eq(id),
+                mockall::predicate::eq(processed_at),
+                mockall::predicate::eq(effective_end),
+                mockall::predicate::eq(processing_note),
+            )
+            .return_once(move |_, _, _, _, _| Box::pin(std::future::ready(Ok(result))));
         self
     }
 

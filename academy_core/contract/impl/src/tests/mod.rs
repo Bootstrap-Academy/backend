@@ -25,6 +25,7 @@ use crate::{ContractFeatureConfig, ContractFeatureServiceImpl, internal_notifica
 mod declare_cancellation;
 mod declare_withdrawal;
 mod list_declarations;
+mod set_declaration_processed;
 
 type Sut = ContractFeatureServiceImpl<
     MockDatabase,

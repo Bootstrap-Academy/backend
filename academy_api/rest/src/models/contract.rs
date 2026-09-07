@@ -3,7 +3,8 @@ use std::borrow::Cow;
 use academy_models::{
     contract::{
         ContractCancellationType, ContractDeclarantName, ContractDeclaration,
-        ContractDeclarationDetails, ContractDeclarationId, ContractDeclarationKind, ContractKind,
+        ContractDeclarationDetails, ContractDeclarationId, ContractDeclarationKind,
+        ContractDesignation, ContractKind, ContractProcessingNote,
     },
     email_address::EmailAddress,
     user::UserId,
@@ -72,11 +73,16 @@ pub struct ApiContractDeclaration {
     pub name: ContractDeclarantName,
     pub email: EmailAddress,
     pub contract: ApiContractKind,
+    /// The contract as the declarant named it
+    pub contract_designation: Option<ContractDesignation>,
     pub cancellation_type: Option<ApiContractCancellationType>,
     pub details: Option<ContractDeclarationDetails>,
     pub requested_end: Option<ApiTimestamp>,
     pub effective_end: Option<ApiTimestamp>,
     pub processed_at: Option<ApiTimestamp>,
+    /// What was done when the declaration was processed. Part of the data
+    /// export as well, because it is a note about the person who declared.
+    pub processing_note: Option<ContractProcessingNote>,
 }
 
 /// A contract declaration as returned by the admin endpoint.
@@ -153,11 +159,13 @@ impl From<ContractDeclaration> for ApiContractDeclaration {
             name: value.name,
             email: value.email,
             contract: value.contract.into(),
+            contract_designation: value.contract_designation,
             cancellation_type: value.cancellation_type.map(Into::into),
             details: Some(value.details).filter(|details| !details.trim().is_empty()),
             requested_end: value.requested_end.map(Into::into),
             effective_end: value.effective_end.map(Into::into),
             processed_at: value.processed_at.map(Into::into),
+            processing_note: value.processing_note,
         }
     }
 }

@@ -20,11 +20,13 @@ DECLARATION_KEYS = {
     "name",
     "email",
     "contract",
+    "contract_designation",
     "cancellation_type",
     "details",
     "requested_end",
     "effective_end",
     "processed_at",
+    "processing_note",
 }
 
 
@@ -59,6 +61,7 @@ resp = c.post(
         "name": "Dieter Mustermann",
         "email": "dieter@example.com",
         "contract": "PREMIUM",
+        "contract_designation": "Premium-Abo, monatlich",
         "cancellation_type": "ORDINARY",
         "details": "Zu teuer",
         "requested_end": None,
@@ -75,10 +78,12 @@ assert cancellation["kind"] == "CANCELLATION"
 assert cancellation["name"] == "Dieter Mustermann"
 assert cancellation["email"] == "dieter@example.com"
 assert cancellation["contract"] == "PREMIUM"
+assert cancellation["contract_designation"] == "Premium-Abo, monatlich"
 assert cancellation["cancellation_type"] == "ORDINARY"
 assert cancellation["details"] == "Zu teuer"
 assert cancellation["requested_end"] is None
 assert cancellation["processed_at"] is None
+assert cancellation["processing_note"] is None
 
 # the contract ends when the paid period ends
 until = datetime.fromtimestamp(premium["until"], timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
@@ -98,6 +103,7 @@ content = decode_mail_payload(confirmation)
 assert "Wir bestätigen den Eingang Ihrer Kündigungserklärung." in content
 assert "(Uhrzeit in der Zeitzone Europe/Berlin)" in content
 assert "Begründung: Zu teuer" in content
+assert "Ihre Bezeichnung des Vertrags: Premium-Abo, monatlich" in content
 assert "Die automatische Verlängerung ist abgeschaltet" in content
 assert "Diese Bestätigung erfolgt nach § 312k Abs. 4 BGB." in content
 
@@ -107,13 +113,52 @@ content = decode_mail_payload(notification)
 assert "Art der Erklärung: Kündigung" in content
 assert f"Konto: {user_id}" in content
 assert "Vertrag: Premium-Mitgliedschaft" in content
+assert "Bezeichnung laut Erklärung: Premium-Abo, monatlich" in content
 assert "Art der Kündigung: ordentliche Kündigung" in content
 assert f"ID der Erklärung: {cancellation['id']}" in content
+
+# an extraordinary cancellation is not answered with the ordinary end date
+resp = c.post(
+    "/contracts/cancellations",
+    json={
+        "name": "Dieter Mustermann",
+        "email": "dieter@example.com",
+        "contract": "PREMIUM",
+        "contract_designation": "Premium-Abo, monatlich",
+        "cancellation_type": "EXTRAORDINARY",
+        "details": "Leistung seit zwei Wochen nicht erreichbar",
+    },
+)
+assert resp.status_code == 200
+extraordinary = resp.json()["declaration"]
+assert extraordinary["cancellation_type"] == "EXTRAORDINARY"
+assert extraordinary["effective_end"] is None
+assert extraordinary["processed_at"] is None
+
+mails = fetch_mails(2)
+assert set(mails) == {"dieter@example.com", "contact@academy"}
+
+content = decode_mail_payload(mails["dieter@example.com"])
+assert "Sie haben außerordentlich gekündigt." in content
+assert "gesondert in Textform mit." in content
+assert "Ihr Vertrag endet zum" not in content
+
+notification = mails["contact@academy"]
+assert decode_mail_header(notification["Subject"]) == "[Contract] DRINGEND: Kündigung (Premium)"
+content = decode_mail_payload(notification)
+assert "DRINGEND: außerordentliche Kündigung." in content
+assert "Beendigungszeitpunkt: -" in content
 
 # declare a withdrawal
 resp = c.post(
     "/contracts/withdrawals",
-    json={"name": "Dieter Mustermann", "email": "dieter@example.com", "contract": "COINS", "details": None},
+    json={
+        "name": "Dieter Mustermann",
+        "email": "dieter@example.com",
+        "contract": "COINS",
+        "contract_designation": "MorphCoins, Bestellung 4711",
+        "details": None,
+    },
 )
 assert resp.status_code == 200
 result = resp.json()
@@ -123,6 +168,7 @@ withdrawal = result["declaration"]
 assert set(withdrawal) == DECLARATION_KEYS
 assert withdrawal["kind"] == "WITHDRAWAL"
 assert withdrawal["contract"] == "COINS"
+assert withdrawal["contract_designation"] == "MorphCoins, Bestellung 4711"
 assert withdrawal["cancellation_type"] is None
 assert withdrawal["details"] is None
 assert withdrawal["requested_end"] is None
@@ -144,6 +190,7 @@ assert decode_mail_header(notification["Subject"]) == "[Contract] Widerruf (Coin
 content = decode_mail_payload(notification)
 assert "Art der Erklärung: Widerruf" in content
 assert "Vertrag: MorphCoins-Kauf" in content
+assert "Bezeichnung laut Erklärung: MorphCoins, Bestellung 4711" in content
 
 # the admin listing exposes the matched account
 ca = make_client()
@@ -152,22 +199,65 @@ create_admin_account("admin", "admin@example.com", "supersecureadminpassword", c
 resp = ca.get("/contracts/declarations")
 assert resp.status_code == 200
 listing = resp.json()
-assert listing["total"] == 2
-assert [d["kind"] for d in listing["declarations"]] == ["WITHDRAWAL", "CANCELLATION"]
+assert listing["total"] == 3
+assert [d["kind"] for d in listing["declarations"]] == ["WITHDRAWAL", "CANCELLATION", "CANCELLATION"]
 assert all(set(d) == DECLARATION_KEYS | {"user_id"} for d in listing["declarations"])
 assert all(d["user_id"] == user_id for d in listing["declarations"])
 
 resp = ca.get("/contracts/declarations", params={"kind": "CANCELLATION"})
 assert resp.status_code == 200
 listing = resp.json()
-assert listing["total"] == 1
-assert [d["id"] for d in listing["declarations"]] == [cancellation["id"]]
+assert listing["total"] == 2
+assert [d["id"] for d in listing["declarations"]] == [extraordinary["id"], cancellation["id"]]
 
 resp = ca.get("/contracts/declarations", params={"limit": 1, "offset": 1})
 assert resp.status_code == 200
 listing = resp.json()
-assert listing["total"] == 2
-assert [d["id"] for d in listing["declarations"]] == [cancellation["id"]]
+assert listing["total"] == 3
+assert [d["id"] for d in listing["declarations"]] == [extraordinary["id"]]
+
+# the extraordinary cancellation is answered by hand: an administrator records
+# the end date that was confirmed in Textform and what was done
+resp = ca.patch(
+    f"/contracts/declarations/{extraordinary['id']}",
+    json={"effective_end": "2026-10-31T22:59:59Z", "note": "Kündigung anerkannt, Ende bestätigt"},
+)
+assert resp.status_code == 200
+processed = resp.json()
+assert processed["id"] == extraordinary["id"]
+assert processed["effective_end"].startswith("2026-10-31T22:59:59")
+assert processed["processing_note"] == "Kündigung anerkannt, Ende bestätigt"
+assert processed["processed_at"] is not None
+assert processed["user_id"] == user_id
+
+# the change is in the administrative audit log. Checked before the listing is
+# read again, because reading the listing is recorded too.
+log = ca.get("/admin/audit-log").json()
+entry = log["entries"][0]
+assert entry["method"] == "PATCH"
+assert entry["path"] == f"/contracts/declarations/{extraordinary['id']}"
+assert entry["status"] == 200
+
+# and the listing shows the change
+resp = ca.get("/contracts/declarations", params={"kind": "CANCELLATION"})
+assert resp.json()["declarations"][0] == processed
+
+# a field that is not given is left alone
+resp = ca.patch(f"/contracts/declarations/{cancellation['id']}", json={})
+assert resp.status_code == 200
+assert resp.json()["effective_end"] == cancellation["effective_end"]
+assert resp.json()["processing_note"] is None
+assert resp.json()["processed_at"] is not None
+
+resp = ca.patch("/contracts/declarations/0f5ba9d2-1a1c-4c22-bd2f-1cb0d9e0f8a1", json={})
+assert resp.status_code == 404
+assert resp.json() == {"detail": "Declaration not found"}
+
+# recording the processing requires admin privileges, which since the audit log
+# work means an mfa verified session
+resp = c.patch(f"/contracts/declarations/{cancellation['id']}", json={})
+assert resp.status_code == 403
+assert resp.json() == {"detail": "Permission denied"}
 
 # the admin listing requires admin privileges
 resp = c.get("/contracts/declarations")
@@ -180,8 +270,8 @@ assert resp.status_code == 401
 assert resp.json() == {"detail": "Invalid token"}
 
 # the rate limit allows five declarations per hour and email address;
-# dieter@example.com has used two of them above
-for _ in range(3):
+# dieter@example.com has used three of them above
+for _ in range(2):
     resp = c.post(
         "/contracts/withdrawals",
         json={"name": "Dieter Mustermann", "email": "dieter@example.com", "contract": "OTHER", "details": None},

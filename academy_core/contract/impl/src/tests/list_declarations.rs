@@ -43,11 +43,13 @@ fn make_declaration() -> ContractDeclaration {
         email: declarant_email(),
         user_id: Some(FOO.user.id),
         contract: ContractKind::Premium,
+        contract_designation: None,
         cancellation_type: Some(ContractCancellationType::Ordinary),
         details: "Zu teuer".try_into().unwrap(),
         requested_end: None,
         effective_end: None,
         processed_at: None,
+        processing_note: None,
     }
 }
 

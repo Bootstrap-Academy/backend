@@ -42,6 +42,8 @@ fn make_document() -> FinancialDocument {
         vat_total_cents: Some(214),
         gross_total_cents: Some(1337),
         settled_at: None,
+        withdrawal_consent_at: None,
+        withdrawal_text_version: None,
     }
 }
 

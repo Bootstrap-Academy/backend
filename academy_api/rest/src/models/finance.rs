@@ -1,6 +1,7 @@
 use academy_models::{
     finance::{FinancialDocument, FinancialDocumentKind, FinancialDocumentNumber},
     user::UserId,
+    withdrawal::WithdrawalTextVersion,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -68,6 +69,15 @@ pub struct ApiFinancialDocument {
     /// `academy admin finance settle <number>` once the refund has been paid,
     /// so that the same statement is not paid out twice.
     pub settled_at: Option<ApiTimestamp>,
+    /// When the consumer gave the declarations under § 356 Abs. 6 Nr. 2 BGB
+    /// for the order this document was issued for. Only an invoice for a
+    /// Morphcoin purchase carries them; null for the other kinds and for
+    /// orders placed before the declarations were collected. The declarations
+    /// themselves are deleted with the account, so this is the evidence that
+    /// is kept for as long as the document is.
+    pub withdrawal_consent_at: Option<ApiTimestamp>,
+    /// Version of the withdrawal instruction the declarations were taken from
+    pub withdrawal_text_version: Option<WithdrawalTextVersion>,
 }
 
 impl From<FinancialDocument> for ApiFinancialDocument {
@@ -83,6 +93,8 @@ impl From<FinancialDocument> for ApiFinancialDocument {
             vat_total_cents: value.vat_total_cents,
             gross_total_cents: value.gross_total_cents,
             settled_at: value.settled_at.map(Into::into),
+            withdrawal_consent_at: value.withdrawal_consent_at.map(Into::into),
+            withdrawal_text_version: value.withdrawal_text_version,
         }
     }
 }

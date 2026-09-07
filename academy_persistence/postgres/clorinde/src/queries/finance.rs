@@ -6,6 +6,7 @@ pub struct RecordDocumentParams<
     T2: crate::StringSql,
     T3: crate::StringSql,
     T4: crate::ArraySql<Item = T3>,
+    T5: crate::StringSql,
 > {
     pub number: T1,
     pub kind: T2,
@@ -16,6 +17,8 @@ pub struct RecordDocumentParams<
     pub net_total_cents: Option<i64>,
     pub vat_total_cents: Option<i64>,
     pub gross_total_cents: Option<i64>,
+    pub withdrawal_consent_at: Option<chrono::DateTime<chrono::FixedOffset>>,
+    pub withdrawal_text_version: Option<T5>,
 }
 #[derive(Debug)]
 pub struct SettleDocumentParams<T1: crate::StringSql> {
@@ -51,6 +54,8 @@ pub struct Document {
     pub vat_total_cents: Option<i64>,
     pub gross_total_cents: Option<i64>,
     pub settled_at: Option<chrono::DateTime<chrono::FixedOffset>>,
+    pub withdrawal_consent_at: Option<chrono::DateTime<chrono::FixedOffset>>,
+    pub withdrawal_text_version: Option<String>,
 }
 pub struct DocumentBorrowed<'a> {
     pub number: &'a str,
@@ -63,6 +68,8 @@ pub struct DocumentBorrowed<'a> {
     pub vat_total_cents: Option<i64>,
     pub gross_total_cents: Option<i64>,
     pub settled_at: Option<chrono::DateTime<chrono::FixedOffset>>,
+    pub withdrawal_consent_at: Option<chrono::DateTime<chrono::FixedOffset>>,
+    pub withdrawal_text_version: Option<&'a str>,
 }
 impl<'a> From<DocumentBorrowed<'a>> for Document {
     fn from(
@@ -77,6 +84,8 @@ impl<'a> From<DocumentBorrowed<'a>> for Document {
             vat_total_cents,
             gross_total_cents,
             settled_at,
+            withdrawal_consent_at,
+            withdrawal_text_version,
         }: DocumentBorrowed<'a>,
     ) -> Self {
         Self {
@@ -90,6 +99,8 @@ impl<'a> From<DocumentBorrowed<'a>> for Document {
             vat_total_cents,
             gross_total_cents,
             settled_at,
+            withdrawal_consent_at,
+            withdrawal_text_version: withdrawal_text_version.map(|v| v.into()),
         }
     }
 }
@@ -322,6 +333,8 @@ impl GetDocumentStmt {
                         vat_total_cents: row.try_get(7)?,
                         gross_total_cents: row.try_get(8)?,
                         settled_at: row.try_get(9)?,
+                        withdrawal_consent_at: row.try_get(10)?,
+                        withdrawal_text_version: row.try_get(11)?,
                     })
                 },
             mapper: |it| Document::from(it),
@@ -331,7 +344,7 @@ impl GetDocumentStmt {
 pub struct RecordDocumentStmt(&'static str, Option<tokio_postgres::Statement>);
 pub fn record_document() -> RecordDocumentStmt {
     RecordDocumentStmt(
-        "insert into financial_documents (number, kind, user_id, issued_at, customer_details, coins, net_total_cents, vat_total_cents, gross_total_cents) values ($1, $2, $3, $4, $5, $6, $7, $8, $9) on conflict (number) do update set user_id=coalesce(financial_documents.user_id, excluded.user_id), customer_details=coalesce(financial_documents.customer_details, excluded.customer_details), coins=coalesce(financial_documents.coins, excluded.coins), net_total_cents=coalesce(financial_documents.net_total_cents, excluded.net_total_cents), vat_total_cents=coalesce(financial_documents.vat_total_cents, excluded.vat_total_cents), gross_total_cents=coalesce(financial_documents.gross_total_cents, excluded.gross_total_cents)",
+        "insert into financial_documents (number, kind, user_id, issued_at, customer_details, coins, net_total_cents, vat_total_cents, gross_total_cents, withdrawal_consent_at, withdrawal_text_version) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) on conflict (number) do update set user_id=coalesce(financial_documents.user_id, excluded.user_id), customer_details=coalesce(financial_documents.customer_details, excluded.customer_details), coins=coalesce(financial_documents.coins, excluded.coins), net_total_cents=coalesce(financial_documents.net_total_cents, excluded.net_total_cents), vat_total_cents=coalesce(financial_documents.vat_total_cents, excluded.vat_total_cents), gross_total_cents=coalesce(financial_documents.gross_total_cents, excluded.gross_total_cents), withdrawal_consent_at=coalesce(financial_documents.withdrawal_consent_at, excluded.withdrawal_consent_at), withdrawal_text_version=coalesce(financial_documents.withdrawal_text_version, excluded.withdrawal_text_version)",
         None,
     )
 }
@@ -352,6 +365,7 @@ impl RecordDocumentStmt {
         T2: crate::StringSql,
         T3: crate::StringSql,
         T4: crate::ArraySql<Item = T3>,
+        T5: crate::StringSql,
     >(
         &'s self,
         client: &'c C,
@@ -364,6 +378,8 @@ impl RecordDocumentStmt {
         net_total_cents: &'a Option<i64>,
         vat_total_cents: &'a Option<i64>,
         gross_total_cents: &'a Option<i64>,
+        withdrawal_consent_at: &'a Option<chrono::DateTime<chrono::FixedOffset>>,
+        withdrawal_text_version: &'a Option<T5>,
     ) -> Result<u64, tokio_postgres::Error> {
         client
             .execute(
@@ -378,6 +394,8 @@ impl RecordDocumentStmt {
                     net_total_cents,
                     vat_total_cents,
                     gross_total_cents,
+                    withdrawal_consent_at,
+                    withdrawal_text_version,
                 ],
             )
             .await
@@ -390,12 +408,13 @@ impl<
     T2: crate::StringSql,
     T3: crate::StringSql,
     T4: crate::ArraySql<Item = T3>,
+    T5: crate::StringSql,
 >
     crate::client::async_::Params<
         'a,
         'a,
         'a,
-        RecordDocumentParams<T1, T2, T3, T4>,
+        RecordDocumentParams<T1, T2, T3, T4, T5>,
         std::pin::Pin<
             Box<dyn futures::Future<Output = Result<u64, tokio_postgres::Error>> + Send + 'a>,
         >,
@@ -405,7 +424,7 @@ impl<
     fn params(
         &'a self,
         client: &'a C,
-        params: &'a RecordDocumentParams<T1, T2, T3, T4>,
+        params: &'a RecordDocumentParams<T1, T2, T3, T4, T5>,
     ) -> std::pin::Pin<
         Box<dyn futures::Future<Output = Result<u64, tokio_postgres::Error>> + Send + 'a>,
     > {
@@ -420,6 +439,8 @@ impl<
             &params.net_total_cents,
             &params.vat_total_cents,
             &params.gross_total_cents,
+            &params.withdrawal_consent_at,
+            &params.withdrawal_text_version,
         ))
     }
 }
@@ -560,6 +581,8 @@ impl ListDocumentsByUserIdStmt {
                         vat_total_cents: row.try_get(7)?,
                         gross_total_cents: row.try_get(8)?,
                         settled_at: row.try_get(9)?,
+                        withdrawal_consent_at: row.try_get(10)?,
+                        withdrawal_text_version: row.try_get(11)?,
                     })
                 },
             mapper: |it| Document::from(it),
@@ -607,6 +630,8 @@ impl ListDocumentsStmt {
                         vat_total_cents: row.try_get(7)?,
                         gross_total_cents: row.try_get(8)?,
                         settled_at: row.try_get(9)?,
+                        withdrawal_consent_at: row.try_get(10)?,
+                        withdrawal_text_version: row.try_get(11)?,
                     })
                 },
             mapper: |it| Document::from(it),
@@ -753,6 +778,8 @@ impl ListDocumentsIssuedBeforeStmt {
                         vat_total_cents: row.try_get(7)?,
                         gross_total_cents: row.try_get(8)?,
                         settled_at: row.try_get(9)?,
+                        withdrawal_consent_at: row.try_get(10)?,
+                        withdrawal_text_version: row.try_get(11)?,
                     })
                 },
             mapper: |it| Document::from(it),

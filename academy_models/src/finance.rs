@@ -10,10 +10,15 @@
 //! account keeps its customer details, because the unused share of the
 //! purchased Morphcoins it records can only be refunded to somebody it still
 //! names (AGB Ziffer 6.7).
+//!
+//! An invoice also carries the declarations the consumer gave under
+//! § 356 Abs. 6 Nr. 2 BGB before the order it documents. They are recorded
+//! elsewhere as well, but only as long as the account exists, so the copy on
+//! the document is what keeps the evidence and the invoice together.
 
 use chrono::{DateTime, TimeZone, Utc};
 
-use crate::{macros::nutype_string, user::UserId};
+use crate::{macros::nutype_string, user::UserId, withdrawal::WithdrawalTextVersion};
 
 nutype_string!(FinancialDocumentNumber(validate(
     len_char_min = 1,
@@ -106,6 +111,18 @@ pub struct FinancialDocument {
     /// `academy admin finance settle <number>`, so that the same statement
     /// cannot be paid out twice.
     pub settled_at: Option<DateTime<Utc>>,
+    /// When the consumer gave the declarations under § 356 Abs. 6 Nr. 2 BGB
+    /// for the order this document was issued for.
+    ///
+    /// Only an invoice for a Morphcoin purchase carries them. The consent
+    /// itself is deleted together with the account, so the copy on the
+    /// document is what is left of the evidence for as long as the document
+    /// is kept. `None` for the other kinds and for orders that were placed
+    /// before the declarations were collected.
+    pub withdrawal_consent_at: Option<DateTime<Utc>>,
+    /// Version of the withdrawal instruction the declarations were taken from,
+    /// alongside [`FinancialDocument::withdrawal_consent_at`].
+    pub withdrawal_text_version: Option<WithdrawalTextVersion>,
 }
 
 /// Number of the final statement that is issued for the account with the given

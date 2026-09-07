@@ -1,4 +1,4 @@
-use std::future::Future;
+use std::{future::Future, net::IpAddr, time::Duration};
 
 use academy_models::{
     RecaptchaResponse,
@@ -10,6 +10,7 @@ use academy_models::{
 use thiserror::Error;
 
 pub mod failed_auth_count;
+pub mod login_throttle;
 pub mod session;
 
 pub trait SessionFeatureService: Send + Sync + 'static {
@@ -30,8 +31,12 @@ pub trait SessionFeatureService: Send + Sync + 'static {
 
     /// Create a new session by authenticating via username/password and MFA (if
     /// enabled).
+    ///
+    /// `client_ip` is the address the attempt came from; it is only used to
+    /// count failed attempts.
     fn create_session(
         &self,
+        client_ip: IpAddr,
         cmd: SessionCreateCommand,
         recaptcha_response: Option<RecaptchaResponse>,
     ) -> impl Future<Output = Result<Login, SessionCreateError>> + Send;
@@ -117,8 +122,23 @@ pub enum SessionCreateError {
     UserDisabled,
     #[error("Invalid recaptcha response")]
     Recaptcha,
+    /// Too many attempts have failed. The caller has to wait for the given
+    /// time before the next one is accepted.
+    #[error("Too many failed login attempts")]
+    TooManyFailedAttempts(Duration),
     #[error(transparent)]
     Other(#[from] anyhow::Error),
+}
+
+impl From<login_throttle::SessionLoginThrottleError> for SessionCreateError {
+    fn from(value: login_throttle::SessionLoginThrottleError) -> Self {
+        match value {
+            login_throttle::SessionLoginThrottleError::TooManyFailedAttempts(retry_after) => {
+                Self::TooManyFailedAttempts(retry_after)
+            }
+            login_throttle::SessionLoginThrottleError::Other(err) => Self::Other(err),
+        }
+    }
 }
 
 #[derive(Debug, Error)]

@@ -3135,10 +3135,22 @@ rec {
             features = [ "std" ];
           }
           {
+            name = "chrono";
+            packageId = "chrono";
+            usesDefaultFeatures = false;
+            features = [ "serde" "clock" ];
+          }
+          {
             name = "hex";
             packageId = "hex";
             usesDefaultFeatures = false;
             features = [ "std" ];
+          }
+          {
+            name = "serde";
+            packageId = "serde";
+            usesDefaultFeatures = false;
+            features = [ "derive" "std" ];
           }
           {
             name = "tracing";
@@ -3157,6 +3169,14 @@ rec {
             name = "academy_cache_contracts";
             packageId = "academy_cache_contracts";
             features = [ "mock" ];
+          }
+          {
+            name = "academy_cache_valkey";
+            packageId = "academy_cache_valkey";
+          }
+          {
+            name = "academy_config";
+            packageId = "academy_config";
           }
           {
             name = "academy_core_mfa_contracts";
@@ -3186,6 +3206,10 @@ rec {
             name = "academy_shared_contracts";
             packageId = "academy_shared_contracts";
             features = [ "mock" ];
+          }
+          {
+            name = "academy_shared_impl";
+            packageId = "academy_shared_impl";
           }
           {
             name = "tokio";

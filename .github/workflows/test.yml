@@ -60,6 +60,11 @@ jobs:
         env:
           ACADEMY_CONFIG: ${{ github.workspace }}/config.extra.toml:${{ github.workspace }}/config.dev.toml
           RUST_TEST_THREADS: 1
+      - name: test login throttle
+        run: cargo test -p academy_core_session_impl --no-fail-fast --all-features --test '*'
+        env:
+          ACADEMY_CONFIG: ${{ github.workspace }}/config.extra.toml:${{ github.workspace }}/config.dev.toml
+          RUST_TEST_THREADS: 1
     services:
       valkey:
         image: valkey/valkey:9.1-alpine

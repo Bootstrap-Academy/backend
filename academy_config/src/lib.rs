@@ -226,6 +226,20 @@ pub struct SessionConfig {
     pub refresh_token_ttl: Duration,
     pub refresh_token_length: usize,
     pub login_fails_before_captcha: u64,
+    /// Number of failed attempts against one login after which it is locked.
+    pub login_fails_before_lock: u64,
+    /// Lifetime of the counter of failed attempts against one login.
+    pub login_fail_window: Duration,
+    /// Length of the first lock of a login.
+    pub login_lock_initial: Duration,
+    /// Longest lock a login can receive.
+    pub login_lock_max: Duration,
+    /// Number of failed attempts from one client ip address after which
+    /// further attempts from it are refused.
+    pub login_fails_per_ip: u64,
+    /// Lifetime of the counter of failed attempts from one client ip address,
+    /// and the length of the block that follows it.
+    pub login_ip_window: Duration,
 }
 
 #[derive(Debug, Deserialize)]

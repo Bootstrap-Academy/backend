@@ -487,6 +487,26 @@ resp = c.post("/auth/sessions", json={"name_or_email": user["name"], "password":
 assert resp.status_code == 401
 assert resp.json() == {"detail": "Invalid credentials"}
 
+# The brake on password guessing does not depend on the account existing: a
+# name nobody uses is locked exactly like a real one, so the 429 says nothing
+# about whether there is an account behind the name. The captcha response is
+# sent along because after three failures one is asked for; it is the lock, not
+# the captcha, that ends the attempts.
+for _ in range(4):
+    resp = c.post(
+        "/auth/sessions",
+        json={"name_or_email": user["name"], "password": password, "recaptcha_response": "success-1.0"},
+    )
+    assert resp.status_code == 401
+    assert resp.json() == {"detail": "Invalid credentials"}
+
+resp = c.post(
+    "/auth/sessions", json={"name_or_email": user["name"], "password": password, "recaptcha_response": "success-1.0"}
+)
+assert resp.status_code == 429
+assert resp.json() == {"detail": "Too many failed login attempts"}
+assert 0 < int(resp.headers["retry-after"]) <= 60
+
 # admin: create via cli and log in with a second factor
 login = create_admin_account("admin", "admin@example.com", "supersecureadminpassword")
 

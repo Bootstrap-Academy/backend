@@ -1,3 +1,5 @@
+use std::net::IpAddr;
+
 use academy_auth_contracts::{
     AuthResultExt, AuthService, AuthenticateByPasswordError, AuthenticateByRefreshTokenError,
 };
@@ -8,7 +10,7 @@ use academy_core_session_contracts::{
     SessionCreateCommand, SessionCreateError, SessionDeleteByUserError, SessionDeleteCurrentError,
     SessionDeleteError, SessionFeatureService, SessionGetCurrentError, SessionImpersonateError,
     SessionListByUserError, SessionRefreshError, failed_auth_count::SessionFailedAuthCountService,
-    session::SessionService,
+    login_throttle::SessionLoginThrottleService, session::SessionService,
 };
 use academy_di::Build;
 use academy_models::{
@@ -25,6 +27,7 @@ use academy_utils::trace_instrument;
 use anyhow::{Context, anyhow};
 
 pub mod failed_auth_count;
+pub mod login_throttle;
 pub mod session;
 
 #[cfg(test)]
@@ -38,6 +41,7 @@ pub struct SessionFeatureServiceImpl<
     Captcha,
     Session,
     SessionFailedAuthCount,
+    SessionLoginThrottle,
     MfaAuthenticate,
     UserRepo,
     SessionRepo,
@@ -47,6 +51,7 @@ pub struct SessionFeatureServiceImpl<
     captcha: Captcha,
     session: Session,
     session_failed_auth_count: SessionFailedAuthCount,
+    session_login_throttle: SessionLoginThrottle,
     mfa_authenticate: MfaAuthenticate,
     user_repo: UserRepo,
     session_repo: SessionRepo,
@@ -58,14 +63,24 @@ pub struct SessionFeatureConfig {
     pub login_fails_before_captcha: u64,
 }
 
-impl<Db, Auth, Captcha, SessionS, SessionFailedAuthCount, MfaAuthenticate, UserRepo, SessionRepo>
-    SessionFeatureService
+impl<
+    Db,
+    Auth,
+    Captcha,
+    SessionS,
+    SessionFailedAuthCount,
+    SessionLoginThrottle,
+    MfaAuthenticate,
+    UserRepo,
+    SessionRepo,
+> SessionFeatureService
     for SessionFeatureServiceImpl<
         Db,
         Auth,
         Captcha,
         SessionS,
         SessionFailedAuthCount,
+        SessionLoginThrottle,
         MfaAuthenticate,
         UserRepo,
         SessionRepo,
@@ -76,6 +91,7 @@ where
     Captcha: CaptchaService,
     SessionS: SessionService<Db::Transaction>,
     SessionFailedAuthCount: SessionFailedAuthCountService,
+    SessionLoginThrottle: SessionLoginThrottleService,
     MfaAuthenticate: MfaAuthenticateService<Db::Transaction>,
     UserRepo: UserRepository<Db::Transaction>,
     SessionRepo: SessionRepository<Db::Transaction>,
@@ -120,9 +136,16 @@ where
     #[trace_instrument(skip(self, cmd))]
     async fn create_session(
         &self,
+        client_ip: IpAddr,
         cmd: SessionCreateCommand,
         recaptcha_response: Option<RecaptchaResponse>,
     ) -> Result<Login, SessionCreateError> {
+        // The brake comes first: a locked login is refused before any password
+        // is checked, whether or not a captcha is configured.
+        self.session_login_throttle
+            .check(&cmd.name_or_email, client_ip)
+            .await?;
+
         let failed_login_attempts = self
             .session_failed_auth_count
             .get(&cmd.name_or_email)
@@ -153,23 +176,34 @@ where
                     .increment(&cmd.name_or_email)
                     .await
                     .context("Failed to increment failed auth count")?;
+                self.record_failed_attempt(client_ip, [&cmd.name_or_email])
+                    .await?;
                 return Err(SessionCreateError::InvalidCredentials);
             }
         };
 
+        // Both spellings of the login are counted, so that switching between
+        // the user name and the email address does not dodge the lock.
+        let logins = std::iter::once(UserNameOrEmailAddress::Name(
+            user_composite.user.name.clone(),
+        ))
+        .chain(
+            user_composite
+                .user
+                .email
+                .clone()
+                .map(UserNameOrEmailAddress::Email),
+        )
+        .collect::<Vec<_>>();
+
         let increment_failed_login_attempts = || async {
-            self.session_failed_auth_count
-                .increment(&UserNameOrEmailAddress::Name(
-                    user_composite.user.name.clone(),
-                ))
-                .await
-                .context("Failed to increment failed auth count for name")?;
-            if let Some(email) = user_composite.user.email.clone() {
+            for login in &logins {
                 self.session_failed_auth_count
-                    .increment(&UserNameOrEmailAddress::Email(email))
+                    .increment(login)
                     .await
-                    .context("Failed to increment failed auth count for email")?;
+                    .context("Failed to increment failed auth count")?;
             }
+            self.record_failed_attempt(client_ip, &logins).await?;
             anyhow::Ok(())
         };
 
@@ -213,17 +247,19 @@ where
             }
         }
 
-        self.session_failed_auth_count
-            .reset(&UserNameOrEmailAddress::Name(
-                user_composite.user.name.clone(),
-            ))
-            .await
-            .context("Failed to reset failed auth count for name")?;
-        if let Some(email) = user_composite.user.email.clone() {
+        // A successful login clears the account counter. The counter of the
+        // client address is deliberately not cleared: one account whose
+        // password is known would otherwise buy an unlimited number of guesses
+        // against every other one.
+        for login in &logins {
             self.session_failed_auth_count
-                .reset(&UserNameOrEmailAddress::Email(email))
+                .reset(login)
                 .await
-                .context("Failed to reset failed auth count for email")?;
+                .context("Failed to reset failed auth count")?;
+            self.session_login_throttle
+                .reset(login)
+                .await
+                .context("Failed to reset failed login attempts")?;
         }
 
         if !user_composite.user.enabled {
@@ -393,6 +429,54 @@ where
             .context("Failed to delete sessions")?;
 
         txn.commit().await?;
+
+        Ok(())
+    }
+}
+
+impl<
+    Db,
+    Auth,
+    Captcha,
+    SessionS,
+    SessionFailedAuthCount,
+    SessionLoginThrottle,
+    MfaAuthenticate,
+    UserRepo,
+    SessionRepo,
+>
+    SessionFeatureServiceImpl<
+        Db,
+        Auth,
+        Captcha,
+        SessionS,
+        SessionFailedAuthCount,
+        SessionLoginThrottle,
+        MfaAuthenticate,
+        UserRepo,
+        SessionRepo,
+    >
+where
+    SessionLoginThrottle: SessionLoginThrottleService,
+{
+    /// Count a failed attempt against the client address and against every
+    /// spelling of the login it was made with.
+    async fn record_failed_attempt<'a>(
+        &self,
+        client_ip: IpAddr,
+        logins: impl IntoIterator<Item = &'a UserNameOrEmailAddress>,
+    ) -> anyhow::Result<()> {
+        self.session_login_throttle
+            .record_ip_failure(client_ip)
+            .await
+            .context("Failed to count failed login attempt for client ip")?;
+
+        for login in logins {
+            self.session_login_throttle
+                .record_account_failure(login)
+                .await
+                .context("Failed to count failed login attempt")?;
+        }
 
         Ok(())
     }

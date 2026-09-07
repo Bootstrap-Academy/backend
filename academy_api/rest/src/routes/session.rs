@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
 
 use academy_core_session_contracts::{
     SessionCreateCommand, SessionCreateError, SessionDeleteByUserError, SessionDeleteCurrentError,
@@ -17,9 +17,9 @@ use aide::{
     transform::TransformOperation,
 };
 use axum::{
-    Json,
+    Extension, Json,
     extract::{Path, State},
-    http::StatusCode,
+    http::{StatusCode, header::RETRY_AFTER},
     response::{IntoResponse, Response},
 };
 use schemars::JsonSchema;
@@ -37,6 +37,7 @@ use crate::{
         internal_server_error_docs,
     },
     extractors::{auth::ApiToken, user_agent::UserAgent},
+    middlewares::client_ip::ClientIp,
     models::{
         OkResponse, StringOption,
         session::{ApiLogin, ApiSession},
@@ -128,6 +129,7 @@ struct CreateRequest {
 async fn create(
     session_service: State<Arc<impl SessionFeatureService>>,
     user_agent: UserAgent,
+    Extension(ClientIp(client_ip)): Extension<ClientIp>,
     Json(CreateRequest {
         name_or_email,
         password,
@@ -138,6 +140,7 @@ async fn create(
 ) -> Response {
     match session_service
         .create_session(
+            client_ip,
             SessionCreateCommand {
                 name_or_email,
                 password,
@@ -156,8 +159,24 @@ async fn create(
         Err(SessionCreateError::MfaFailed) => InvalidMfaCodeError.into_response(),
         Err(SessionCreateError::UserDisabled) => UserDisabledError.into_response(),
         Err(SessionCreateError::Recaptcha) => RecaptchaFailedError.into_response(),
+        Err(SessionCreateError::TooManyFailedAttempts(retry_after)) => {
+            too_many_failed_attempts(retry_after)
+        }
         Err(SessionCreateError::Other(err)) => internal_server_error(err),
     }
+}
+
+/// Refuse a login attempt and tell the client when to try again.
+///
+/// The header is rounded up to whole seconds and is never `0`, so a client that
+/// obeys it always waits.
+fn too_many_failed_attempts(retry_after: Duration) -> Response {
+    let seconds = retry_after.as_secs() + u64::from(retry_after.subsec_nanos() > 0);
+    (
+        [(RETRY_AFTER, seconds.max(1).to_string())],
+        TooManyFailedLoginAttemptsError,
+    )
+        .into_response()
 }
 
 fn create_docs(op: TransformOperation) -> TransformOperation {
@@ -165,13 +184,19 @@ fn create_docs(op: TransformOperation) -> TransformOperation {
         .description(
             "If the user has MFA enabled, the current TOTP needs to provided. Alternatively, the \
              recovery code can be used to disable MFA.\n\nAfter too many failed login attempts, a \
-             valid reCAPTCHA response is required, if reCAPTCHA is enabled.",
+             valid reCAPTCHA response is required, if reCAPTCHA is enabled.\n\nIndependently of \
+             that, failed attempts are counted per login and per client ip address. Once either \
+             budget is exhausted, further attempts are refused with `429` until the time given in \
+             the `Retry-After` header has passed; every following lock of the same login lasts \
+             twice as long as the previous one. A successful login clears the counter of that \
+             login.",
         )
         .add_response::<ApiLogin>(StatusCode::OK, "A new session has been created.")
         .add_error::<InvalidCredentialsError>()
         .add_error::<InvalidMfaCodeError>()
         .add_error::<UserDisabledError>()
         .add_error::<RecaptchaFailedError>()
+        .add_error::<TooManyFailedLoginAttemptsError>()
         .with(internal_server_error_docs)
 }
 
@@ -302,6 +327,9 @@ error_code! {
     SessionNotFoundError(NOT_FOUND, "Session not found");
     /// The refresh token is invalid or has expired.
     InvalidRefreshTokenError(UNAUTHORIZED, "Invalid refresh token");
+    /// Too many login attempts have failed. The `Retry-After` header gives the
+    /// number of seconds after which another attempt is accepted.
+    TooManyFailedLoginAttemptsError(TOO_MANY_REQUESTS, "Too many failed login attempts");
 }
 
 #[cfg(test)]

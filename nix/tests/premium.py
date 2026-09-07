@@ -1,8 +1,27 @@
+import calendar
 import os
 import subprocess
 import time
+from datetime import datetime, timezone
 
 from utils import c, create_verified_account, make_internal_client, save_auth
+
+
+def assert_one_month(status):
+    """Assert that the period runs for one calendar month.
+
+    A month is the same day of the next month, or its last day if that day does
+    not exist there (§ 188 Abs. 2 and Abs. 3 BGB), and not a fixed number of
+    days. The backend counts the day in `Europe/Berlin`; the hour of the day
+    used here is far enough from midnight for that to make no difference, and
+    the tolerance absorbs the summer time offset.
+    """
+    since = datetime.fromtimestamp(status["since"], timezone.utc)
+    year, month = (since.year, since.month + 1) if since.month < 12 else (since.year + 1, 1)
+    day = min(since.day, calendar.monthrange(year, month)[1])
+    expected = since.replace(year=year, month=month, day=day).timestamp()
+    assert abs(status["until"] - expected) <= 3601, (status, expected)
+
 
 login = create_verified_account("a", "a@a", "a")
 ci = make_internal_client("shop")
@@ -48,7 +67,7 @@ status = resp.json()
 assert status["premium"] is True
 assert status["autopay"] is None
 assert start <= status["since"] <= end
-assert abs(status["until"] - status["since"] - 3600 * 24 * 365.25 / 12) <= 2
+assert_one_month(status)
 assert c.get("/shop/premium/me").json() == status
 assert c.get("/shop/coins/me").json()["coins"] == 14000
 
@@ -75,7 +94,7 @@ status = resp.json()
 assert status["premium"] is True
 assert status["autopay"] == "MONTHLY"
 assert start <= status["since"] <= end
-assert abs(status["until"] - status["since"] - 3600 * 24 * 365.25 / 12) <= 2
+assert_one_month(status)
 assert c.get("/shop/premium/me").json() == status
 assert c.get("/shop/coins/me").json()["coins"] == 13000
 
@@ -99,7 +118,7 @@ status = c.get("/shop/premium/me").json()
 assert status["premium"] is True
 assert status["autopay"] == "MONTHLY"
 assert c.get("/shop/coins/me").json()["coins"] == 11000
-assert abs(status["until"] - status["since"] - 3600 * 24 * 365.25 / 12) <= 2
+assert_one_month(status)
 
 assert c.put("/shop/premium/autopay", json={"plan": "MONTHLY"}).status_code == 200
 

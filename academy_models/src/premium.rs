@@ -13,6 +13,8 @@ pub enum PremiumPlan {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct PremiumPlanDetails {
     pub price: u64,
+    /// Length of the period in calendar months (§ 188 Abs. 2 and Abs. 3 BGB),
+    /// not in days.
     pub months: u64,
 }
 

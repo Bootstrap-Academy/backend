@@ -19,6 +19,7 @@ use academy_persistence_contracts::{
 };
 use academy_utils::trace_instrument;
 
+pub mod period;
 pub mod plan;
 pub mod premium;
 pub mod purchase;

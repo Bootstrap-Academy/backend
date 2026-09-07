@@ -549,6 +549,7 @@ dependencies = [
  "academy_utils",
  "anyhow",
  "chrono",
+ "chrono-tz",
  "tokio",
  "tracing",
 ]

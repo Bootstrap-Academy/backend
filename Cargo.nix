@@ -2999,6 +2999,12 @@ rec {
             features = [ "serde" "clock" ];
           }
           {
+            name = "chrono-tz";
+            packageId = "chrono-tz";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
             name = "tracing";
             packageId = "tracing";
             usesDefaultFeatures = false;

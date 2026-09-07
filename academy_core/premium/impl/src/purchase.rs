@@ -11,7 +11,8 @@ use academy_models::{
 use academy_persistence_contracts::premium::PremiumRepository;
 use academy_shared_contracts::{id::IdService, time::TimeService};
 use academy_utils::trace_instrument;
-use chrono::TimeDelta;
+
+use crate::period::add_months;
 
 #[derive(Debug, Clone, Build, Default)]
 pub struct PremiumPurchaseServiceImpl<Id, Time, Coin, PremiumPlanS, PremiumRepo> {
@@ -57,8 +58,11 @@ where
             })?;
 
         let now = self.time.now();
-        let seconds = 3600.0 * 24.0 * 365.25 / 12.0 * details.months as f64;
-        let duration = TimeDelta::seconds(seconds as i64);
+
+        // The period sold is a calendar period, so it is added to the day the
+        // membership currently runs to (or to today, if it does not run at
+        // all), not as a fixed number of days.
+        let months = details.months.try_into().unwrap_or(u32::MAX);
 
         if let Some(mut active) = self
             .premium_repo
@@ -66,7 +70,7 @@ where
             .await?
             .filter(|premium| now < premium.until)
         {
-            active.until += duration;
+            active.until = add_months(active.until, months);
             self.premium_repo
                 .extend(txn, active.id, active.until)
                 .await?;
@@ -76,7 +80,7 @@ where
                 id: self.id.generate(),
                 user_id,
                 since: now,
-                until: now + duration,
+                until: add_months(now, months),
             };
             self.premium_repo.create(txn, premium).await?;
             Ok(premium)
@@ -105,6 +109,8 @@ mod tests {
         MockPremiumRepository<()>,
     >;
 
+    /// An active membership is extended by a calendar month from the day it
+    /// currently runs to.
     #[tokio::test]
     async fn ok_extend() {
         // Arrange
@@ -114,7 +120,7 @@ mod tests {
             id: UUID1.into(),
             user_id: FOO.user.id,
             since: Utc.with_ymd_and_hms(2024, 12, 1, 18, 0, 0).unwrap(),
-            until: old_until + TimeDelta::seconds((86400.0 * 365.25 / 12.0) as i64),
+            until: Utc.with_ymd_and_hms(2025, 2, 1, 18, 0, 0).unwrap(),
         };
 
         let premium_plan = MockPremiumPlanService::new().with_get_details(
@@ -166,6 +172,9 @@ mod tests {
         assert_eq!(result.unwrap(), expected);
     }
 
+    /// An expired membership starts a new period of a calendar month from
+    /// today. `now` is 00:00 on 2 January in `Europe/Berlin`, which is the day
+    /// the period is counted from.
     #[tokio::test]
     async fn ok_create() {
         // Arrange
@@ -175,7 +184,7 @@ mod tests {
             id: UUID2.into(),
             user_id: FOO.user.id,
             since: now,
-            until: now + TimeDelta::seconds((86400.0 * 365.25 / 12.0) as i64),
+            until: Utc.with_ymd_and_hms(2025, 2, 1, 23, 0, 0).unwrap(),
         };
 
         let premium_plan = MockPremiumPlanService::new().with_get_details(

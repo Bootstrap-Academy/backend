@@ -67,6 +67,11 @@ async fn get_plans(service: State<Arc<impl PremiumFeatureService>>) -> Response 
 
 fn get_plans_docs(op: TransformOperation) -> TransformOperation {
     op.summary("Return all available premium plans.")
+        .description(
+            "`months` counts calendar months: a period ends on the same day of the month it began \
+             on, or on the last day of that month if it does not have that day (§ 188 Abs. 2 and \
+             Abs. 3 BGB). Twelve of them are a year.",
+        )
         .add_response::<HashMap<ApiPremiumPlan, ApiPremiumPlanDetails>>(StatusCode::OK, None)
 }
 
@@ -130,6 +135,10 @@ async fn purchase(
 
 fn purchase_docs(op: TransformOperation) -> TransformOperation {
     op.summary("Purchase premium for the authenticated user.")
+        .description(
+            "The period bought is a calendar period. An active membership is extended from the \
+             day it currently runs to, an expired one starts a new period today.",
+        )
         .add_response::<ApiPremiumStatus>(StatusCode::OK, None)
         .add_error::<NotEnoughCoinsError>()
         .add_error::<WithdrawalConsentMissingError>()

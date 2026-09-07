@@ -44,6 +44,11 @@ impl FinancialDocumentRepository<PostgresTransaction> for PostgresFinancialDocum
             net_total_cents: document.net_total_cents,
             vat_total_cents: document.vat_total_cents,
             gross_total_cents: document.gross_total_cents,
+            withdrawal_consent_at: document.withdrawal_consent_at.map(Into::into),
+            withdrawal_text_version: document
+                .withdrawal_text_version
+                .as_ref()
+                .map(|version| version.as_str()),
         };
 
         queries::finance::record_document()
@@ -244,5 +249,10 @@ fn decode_document(value: queries::finance::Document) -> anyhow::Result<Financia
         vat_total_cents: value.vat_total_cents,
         gross_total_cents: value.gross_total_cents,
         settled_at: value.settled_at.map(Into::into),
+        withdrawal_consent_at: value.withdrawal_consent_at.map(Into::into),
+        withdrawal_text_version: value
+            .withdrawal_text_version
+            .map(TryInto::try_into)
+            .transpose()?,
     })
 }

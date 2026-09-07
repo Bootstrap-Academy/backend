@@ -29,6 +29,8 @@ fn invoice(number: &str, issued_at: DateTime<Utc>) -> FinancialDocument {
         vat_total_cents: Some(213),
         gross_total_cents: Some(1337),
         settled_at: None,
+        withdrawal_consent_at: None,
+        withdrawal_text_version: None,
     }
 }
 
@@ -44,6 +46,8 @@ fn final_statement(number: &str, issued_at: DateTime<Utc>) -> FinancialDocument 
         vat_total_cents: None,
         gross_total_cents: Some(500),
         settled_at: None,
+        withdrawal_consent_at: None,
+        withdrawal_text_version: None,
     }
 }
 
@@ -571,8 +575,8 @@ async fn migration_backfills_the_captured_coin_orders() {
         captured_at: Some(date(2024, 3, 15)),
         coins: 1337,
         invoice_number: 42,
-        withdrawal_consent_at: None,
-        withdrawal_text_version: None,
+        withdrawal_consent_at: Some(date(2024, 3, 14)),
+        withdrawal_text_version: Some("2026-09".try_into().unwrap()),
     };
     let open = PaypalCoinOrder {
         id: "open".try_into().unwrap(),
@@ -621,6 +625,74 @@ async fn migration_backfills_the_captured_coin_orders() {
             vat_total_cents: None,
             gross_total_cents: Some(1337),
             settled_at: None,
+            // The declarations of the order are copied onto the record, so
+            // that they survive the account the order belongs to.
+            withdrawal_consent_at: captured.withdrawal_consent_at,
+            withdrawal_text_version: captured.withdrawal_text_version.clone(),
         }]
+    );
+}
+
+/// The declarations under § 356 Abs. 6 Nr. 2 BGB are recorded with the invoice
+/// and are kept as long as it is, while the consent on the order and in
+/// `withdrawal_consents` goes with the account.
+#[tokio::test]
+async fn withdrawal_consent_outlives_the_account() {
+    let db = setup().await;
+
+    let document = FinancialDocument {
+        withdrawal_consent_at: Some(date(2024, 3, 14)),
+        withdrawal_text_version: Some("2026-09".try_into().unwrap()),
+        ..invoice("R0000042", date(2024, 3, 14))
+    };
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    REPO.record(&mut txn, &document).await.unwrap();
+    txn.commit().await.unwrap();
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    assert_eq!(
+        REPO.get(&mut txn, &document.number).await.unwrap(),
+        Some(document.clone())
+    );
+
+    // Recording the same document again keeps what was recorded, exactly like
+    // the other columns of an issued document.
+    REPO.record(
+        &mut txn,
+        &FinancialDocument {
+            withdrawal_consent_at: Some(date(2025, 1, 1)),
+            withdrawal_text_version: Some("2027-01".try_into().unwrap()),
+            ..document.clone()
+        },
+    )
+    .await
+    .unwrap();
+    assert_eq!(
+        REPO.get(&mut txn, &document.number).await.unwrap(),
+        Some(document.clone())
+    );
+    txn.commit().await.unwrap();
+
+    // Deleting the account drops the reference and the customer details, but
+    // the declarations stay with the document.
+    let mut txn = db.begin_transaction().await.unwrap();
+    REPO.pseudonymize(&mut txn, FOO.user.id, &[RETENTION_MARKER.into()])
+        .await
+        .unwrap();
+    PostgresUserRepository
+        .delete(&mut txn, FOO.user.id)
+        .await
+        .unwrap();
+    txn.commit().await.unwrap();
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    assert_eq!(
+        REPO.get(&mut txn, &document.number).await.unwrap(),
+        Some(FinancialDocument {
+            user_id: None,
+            customer_details: Some(vec![RETENTION_MARKER.into()]),
+            ..document
+        })
     );
 }

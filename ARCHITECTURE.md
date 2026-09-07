@@ -110,6 +110,7 @@ Endpoints that complete a purchase themselves (`POST /shop/coins/paypal/orders`,
 For purchases that are completed by one of the microservices (unlocking a course, booking a webinar or a coaching) the frontend records the declarations first through `POST /shop/consents`.
 The wording per subject lives in `academy_models::withdrawal` and is repeated in the purchase confirmation email, together with the version of the withdrawal instruction it was taken from (`academy_models::withdrawal::WITHDRAWAL_TEXT_VERSION`).
 `withdrawal_text_version` in the request has to be that version; an order that states another one is rejected like an order without the declarations, so a recorded consent can never name an instruction that was never published.
+The consents in `withdrawal_consents` and the copy on the coin order row are deleted with the account, so the invoice record keeps its own copy of the declarations of the order it documents (`financial_documents.withdrawal_consent_at` and `withdrawal_text_version`), which lives as long as the invoice does.
 
 ### Account Deletion
 Deleting a user (`DELETE /auth/users/{user_id}`) removes the account from the backend database and then notifies the microservices so they can delete the rows that belong to that user.
@@ -146,6 +147,7 @@ Dates are printed, and the calendar year of the retention period is determined, 
 Records that were created by the migration for the captured coin orders that predate this table carry only number, date, user and Morphcoin amount; the remaining values are filled in the next time the document is rendered.
 Once the retention period has expired, `get_invoice_pdf` and `get_credit_note` stop recreating the document.
 `GET /finance/documents` lists the records for administrators, filtered by kind and searched by document number or customer details; documents of deleted accounts have no `user_id`, and a final statement is found by the email address it still carries.
+An invoice also records when the consumer gave the declarations under § 356 Abs. 6 Nr. 2 BGB for the order it documents and which version of the withdrawal instruction they were taken from; the listing shows both. The declarations are also recorded next to the order, but only for as long as the account exists, so this copy is the evidence that is kept together with the document.
 A final statement is the only document that records a claim, namely the unused share of the purchased Morphcoins, which is refunded on request. The refund is made by hand, and after the deletion there is no balance left that would show it, so the record is stamped by hand with `academy admin finance settle <number>` once the money has been sent; `settled_at` is then set and every listing shows that the claim is closed. Without it the same statement could be handed in twice.
 The documents of an account are also part of its data export.
 

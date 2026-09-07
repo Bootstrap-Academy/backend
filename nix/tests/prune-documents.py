@@ -38,6 +38,11 @@ assert query("select number,kind,coins,gross_total_cents from financial_document
 assert query("select user_id from financial_documents") == a["user"]["id"]
 assert "a@a" in query("select customer_details from financial_documents")
 
+# It also records the declarations under § 356 Abs. 6 Nr. 2 BGB that were given
+# for the order, because the order itself goes with the account.
+assert query("select withdrawal_text_version from financial_documents") == "2026-09"
+assert query("select withdrawal_consent_at is not null from financial_documents") == "t"
+
 # The issued documents are part of the data export.
 resp = c.get("/auth/users/me/export")
 assert resp.status_code == 200
@@ -57,6 +62,11 @@ assert (
     == "R0000001,invoice,1337,1337"
 )
 assert query("select count(*) from paypal_coin_orders") == "0"
+
+# The order that carried the declarations is gone, but the evidence that they
+# were given stays with the invoice for as long as the invoice is kept.
+assert query("select withdrawal_text_version from financial_documents where kind='invoice'") == "2026-09"
+assert query("select withdrawal_consent_at is not null from financial_documents where kind='invoice'") == "t"
 
 # The final statement records the unused share of the purchased Morphcoins and
 # is the one document that keeps the name and the email address, so that the
@@ -79,6 +89,15 @@ listing = resp.json()
 assert listing["total"] == 2
 assert [d["number"] for d in listing["documents"]] == [statement_number, "R0000001"]
 assert all(d["user_id"] is None for d in listing["documents"])
+
+# The listing shows the declarations of the invoiced order; a final statement
+# documents no order and carries none.
+invoice_entry = next(d for d in listing["documents"] if d["number"] == "R0000001")
+assert invoice_entry["withdrawal_text_version"] == "2026-09"
+assert invoice_entry["withdrawal_consent_at"] is not None
+statement_entry = next(d for d in listing["documents"] if d["number"] == statement_number)
+assert statement_entry["withdrawal_text_version"] is None
+assert statement_entry["withdrawal_consent_at"] is None
 
 resp = adm.get("/finance/documents", params={"search": "a@a"})
 assert resp.status_code == 200

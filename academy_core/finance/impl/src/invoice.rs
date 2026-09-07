@@ -208,6 +208,12 @@ where
                     gross_total_cents: to_cents(gross_total),
                     // An invoice records no claim that could be settled.
                     settled_at: None,
+                    // The consent on the order is deleted with the account,
+                    // while the invoice is kept: the evidence that the
+                    // declarations were given belongs to the document and is
+                    // copied onto it when it is issued.
+                    withdrawal_consent_at: coin_order.withdrawal_consent_at,
+                    withdrawal_text_version: coin_order.withdrawal_text_version.clone(),
                 },
             )
             .await
@@ -352,6 +358,10 @@ where
                     gross_total_cents: to_cents(gross_total),
                     // A credit note records no claim that could be settled.
                     settled_at: None,
+                    // Only an order carries the declarations; a credit note
+                    // certifies coins the user earned.
+                    withdrawal_consent_at: None,
+                    withdrawal_text_version: None,
                 },
             )
             .await
@@ -432,6 +442,9 @@ where
                     // The refund is made by hand, so the claim is closed by
                     // hand as well (`academy admin finance settle`).
                     settled_at: None,
+                    // A final statement is not an order either.
+                    withdrawal_consent_at: None,
+                    withdrawal_text_version: None,
                 },
             )
             .await
@@ -593,8 +606,8 @@ mod tests {
             captured_at: Some(FOO.user.created_at + chrono::Duration::days(3)),
             coins: 1337,
             invoice_number: 42,
-            withdrawal_consent_at: None,
-            withdrawal_text_version: None,
+            withdrawal_consent_at: Some(FOO.user.created_at),
+            withdrawal_text_version: Some("2026-09".try_into().unwrap()),
         };
         let captured_at = order.captured_at.unwrap();
 
@@ -633,6 +646,10 @@ mod tests {
                 vat_total_cents: Some(200),
                 gross_total_cents: Some(400),
                 settled_at: None,
+                // The declarations of the order are copied onto the
+                // record, which outlives the order.
+                withdrawal_consent_at: order.withdrawal_consent_at,
+                withdrawal_text_version: order.withdrawal_text_version.clone(),
             });
 
         let prices = CoinPrices {
@@ -735,6 +752,8 @@ mod tests {
             vat_total_cents: Some(200),
             gross_total_cents: Some(400),
             settled_at: None,
+            withdrawal_consent_at: None,
+            withdrawal_text_version: None,
         };
 
         let document_repo = MockFinancialDocumentRepository::new()
@@ -1058,6 +1077,8 @@ mod tests {
                 vat_total_cents: Some(200),
                 gross_total_cents: Some(400),
                 settled_at: None,
+                withdrawal_consent_at: None,
+                withdrawal_text_version: None,
             });
 
         let template = MockTemplateService::new().with_render(
@@ -1357,6 +1378,8 @@ mod tests {
             vat_total_cents: None,
             gross_total_cents: Some(1200),
             settled_at: None,
+            withdrawal_consent_at: None,
+            withdrawal_text_version: None,
         });
 
         let template = MockTemplateService::new().with_render(
@@ -1446,6 +1469,8 @@ mod tests {
             vat_total_cents: None,
             gross_total_cents: Some(500),
             settled_at: None,
+            withdrawal_consent_at: None,
+            withdrawal_text_version: None,
         });
 
         let template = MockTemplateService::new().with_render(

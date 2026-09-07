@@ -29,7 +29,7 @@ use aide::{
 use anyhow::Context;
 use axum::{
     Extension, Json,
-    http::{HeaderValue, request::Parts},
+    http::{HeaderValue, header::RETRY_AFTER, request::Parts},
     response::{IntoResponse, Response},
 };
 use extractors::auth::ApiTokenType;
@@ -219,7 +219,13 @@ where
                     allowed_origins.is_match(origin.as_bytes())
                 },
             ))
-            .allow_headers(Any);
+            .allow_headers(Any)
+            // `Retry-After` is not one of the headers a browser exposes to a
+            // cross origin caller by itself, and the web interface is served
+            // from a different origin than this api. Without this the waiting
+            // time of a refused login is unreadable in the browser and the
+            // message can only say "later" instead of naming it.
+            .expose_headers([RETRY_AFTER]);
 
         let admin_audit = Arc::new(self.admin_audit.clone());
 

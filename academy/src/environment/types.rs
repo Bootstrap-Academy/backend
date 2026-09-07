@@ -33,7 +33,7 @@ use academy_core_premium_impl::{
 };
 use academy_core_session_impl::{
     SessionFeatureServiceImpl, failed_auth_count::SessionFailedAuthCountServiceImpl,
-    session::SessionServiceImpl,
+    login_throttle::SessionLoginThrottleServiceImpl, session::SessionServiceImpl,
 };
 use academy_core_user_impl::{
     UserFeatureServiceImpl, email_confirmation::UserEmailConfirmationServiceImpl,
@@ -182,12 +182,14 @@ pub type SessionFeature = SessionFeatureServiceImpl<
     Captcha,
     Session,
     SessionFailedAuthCount,
+    SessionLoginThrottle,
     MfaAuthenticate,
     UserRepo,
     SessionRepo,
 >;
 pub type Session = SessionServiceImpl<Id, Time, Auth, AuthAccessToken, SessionRepo, UserRepo>;
 pub type SessionFailedAuthCount = SessionFailedAuthCountServiceImpl<Hash, Cache>;
+pub type SessionLoginThrottle = SessionLoginThrottleServiceImpl<Time, Hash, Cache>;
 
 pub type ContactFeature = ContactFeatureServiceImpl<Captcha, Email>;
 

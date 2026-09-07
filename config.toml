@@ -65,6 +65,24 @@ access_token_ttl = "5m"
 refresh_token_ttl = "30d"
 refresh_token_length = 64
 login_fails_before_captcha = 3
+# Server side brake on password guessing, independent of the captcha: the
+# captcha only asks the client to solve a challenge and does nothing at all
+# while reCAPTCHA is switched off, whereas these limits refuse the attempt.
+#
+# A login is locked once `login_fails_before_lock` attempts against it have
+# failed, and every following failure locks it for twice as long as the one
+# before, up to `login_lock_max`. A successful login clears its counter.
+login_fails_before_lock = 5
+login_fail_window = "15m"
+login_lock_initial = "1m"
+login_lock_max = "15m"
+# The counter per client ip address only stops one machine from working through
+# a list of accounts. It has to stay far above what a household, a school or a
+# carrier-grade NAT produces, because everybody behind such an address shares
+# it, and it counts failures only, so an office full of people logging in
+# successfully never reaches it.
+login_fails_per_ip = 30
+login_ip_window = "15m"
 
 [totp]
 secret_length = 32

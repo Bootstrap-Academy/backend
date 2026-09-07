@@ -58,6 +58,24 @@ resp = c.post("/auth/sessions", json={"name_or_email": "a", "password": "x", "re
 assert resp.status_code == 401
 assert resp.json() == {"detail": "Invalid credentials"}
 
+## the login is locked after five failed attempts, whatever the captcha says.
+## The five above were: one without a captcha, two more, and the two that were
+## answered with a valid captcha response.
+resp = c.post("/auth/sessions", json={"name_or_email": "a", "password": "a", "recaptcha_response": "success-0.7"})
+assert resp.status_code == 429
+assert resp.json() == {"detail": "Too many failed login attempts"}
+retry_after = int(resp.headers["retry-after"])
+assert 0 < retry_after <= 60
+
+## the lock belongs to the account, not to the spelling of the login
+resp = c.post("/auth/sessions", json={"name_or_email": "a@a", "password": "a", "recaptcha_response": "success-0.7"})
+assert resp.status_code == 429
+assert resp.json() == {"detail": "Too many failed login attempts"}
+
+## it ends on its own; the captcha is still asked for, because that counter is
+## a different one and is only cleared by a successful login
+os.system("date -s '+2min'")
+
 resp = c.post("/auth/sessions", json={"name_or_email": "a", "password": "a"})
 assert resp.status_code == 412
 assert resp.json() == {"detail": "Recaptcha failed"}

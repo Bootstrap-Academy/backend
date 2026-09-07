@@ -11,7 +11,7 @@ use academy_core_heart_impl::HeartFeatureConfig;
 use academy_core_oauth2_impl::OAuth2FeatureConfig;
 use academy_core_paypal_impl::PaypalFeatureConfig;
 use academy_core_premium_impl::PremiumFeatureConfig;
-use academy_core_session_impl::SessionFeatureConfig;
+use academy_core_session_impl::{SessionFeatureConfig, login_throttle::SessionLoginThrottleConfig};
 use academy_core_user_impl::UserFeatureConfig;
 use academy_di::provider;
 use academy_extern_impl::{
@@ -60,6 +60,7 @@ provider! {
             ContractFeatureConfig,
             HealthFeatureConfig,
             SessionFeatureConfig,
+            SessionLoginThrottleConfig,
             UserFeatureConfig,
             PaypalFeatureConfig,
             FinanceFeatureConfig,
@@ -124,6 +125,7 @@ provider! {
         contract_feature_config: ContractFeatureConfig,
         health_feature_config: HealthFeatureConfig,
         session_feature_config: SessionFeatureConfig,
+        session_login_throttle_config: SessionLoginThrottleConfig,
         user_feature_config: UserFeatureConfig,
         paypal_feature_config: PaypalFeatureConfig,
         finance_feature_config: FinanceFeatureConfig,
@@ -266,6 +268,15 @@ impl ConfigProvider {
             login_fails_before_captcha: config.session.login_fails_before_captcha,
         };
 
+        let session_login_throttle_config = SessionLoginThrottleConfig {
+            fails_before_lock: config.session.login_fails_before_lock,
+            fail_window: config.session.login_fail_window.into(),
+            lock_initial: config.session.login_lock_initial.into(),
+            lock_max: config.session.login_lock_max.into(),
+            fails_per_ip: config.session.login_fails_per_ip,
+            ip_window: config.session.login_ip_window.into(),
+        };
+
         let user_feature_config = UserFeatureConfig {
             terms_version: config.user.terms_version.clone(),
             name_change_rate_limit: config.user.name_change_rate_limit.into(),
@@ -327,6 +338,7 @@ impl ConfigProvider {
             contract_feature_config,
             health_feature_config,
             session_feature_config,
+            session_login_throttle_config,
             user_feature_config,
             paypal_feature_config,
             finance_feature_config,

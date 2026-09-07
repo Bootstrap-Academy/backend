@@ -63,6 +63,7 @@ alias covp := coverage-postgres
 # Run valkey integration tests
 test-valkey *args:
     RUST_TEST_THREADS=1 cargo test -p academy_cache_valkey --locked --all-features --test '*' {{args}}
+    RUST_TEST_THREADS=1 cargo test -p academy_core_session_impl --locked --all-features --test '*' {{args}}
 [private]
 alias tv := test-valkey
 

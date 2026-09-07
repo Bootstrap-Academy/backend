@@ -2,9 +2,12 @@ use academy_auth_contracts::MockAuthService;
 use academy_core_mfa_contracts::authenticate::{
     MfaAuthenticateError, MfaAuthenticateResult, MockMfaAuthenticateService,
 };
+use std::time::Duration;
+
 use academy_core_session_contracts::{
     SessionCreateCommand, SessionCreateError, SessionFeatureService,
-    failed_auth_count::MockSessionFailedAuthCountService, session::MockSessionService,
+    failed_auth_count::MockSessionFailedAuthCountService,
+    login_throttle::MockSessionLoginThrottleService, session::MockSessionService,
 };
 use academy_demo::{
     session::{BAR_1, FOO_1},
@@ -15,7 +18,10 @@ use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
 use academy_shared_contracts::captcha::{CaptchaCheckError, MockCaptchaService};
 use academy_utils::{Apply, assert_matches};
 
-use crate::{SessionFeatureServiceImpl, tests::Sut};
+use crate::{
+    SessionFeatureServiceImpl,
+    tests::{CLIENT_IP, Sut},
+};
 
 #[tokio::test]
 async fn ok() {
@@ -60,7 +66,15 @@ async fn ok() {
         expected.clone(),
     );
 
+    let session_login_throttle = MockSessionLoginThrottleService::new()
+        .with_check(cmd.name_or_email.clone(), CLIENT_IP, Ok(()))
+        .with_reset(UserNameOrEmailAddress::Name(FOO.user.name.clone()))
+        .with_reset(UserNameOrEmailAddress::Email(
+            FOO.user.email.clone().unwrap(),
+        ));
+
     let sut = SessionFeatureServiceImpl {
+        session_login_throttle,
         db,
         session_failed_auth_count,
         auth,
@@ -70,7 +84,7 @@ async fn ok() {
     };
 
     // Act
-    let result = sut.create_session(cmd, None).await;
+    let result = sut.create_session(CLIENT_IP, cmd, None).await;
 
     // Assert
     assert_eq!(result.unwrap(), expected);
@@ -130,7 +144,15 @@ async fn ok_mfa() {
         expected.clone(),
     );
 
+    let session_login_throttle = MockSessionLoginThrottleService::new()
+        .with_check(cmd.name_or_email.clone(), CLIENT_IP, Ok(()))
+        .with_reset(UserNameOrEmailAddress::Name(FOO.user.name.clone()))
+        .with_reset(UserNameOrEmailAddress::Email(
+            FOO.user.email.clone().unwrap(),
+        ));
+
     let sut = SessionFeatureServiceImpl {
+        session_login_throttle,
         db,
         session_failed_auth_count,
         auth,
@@ -141,7 +163,7 @@ async fn ok_mfa() {
     };
 
     // Act
-    let result = sut.create_session(cmd, None).await;
+    let result = sut.create_session(CLIENT_IP, cmd, None).await;
 
     // Assert
     assert_eq!(result.unwrap(), expected);
@@ -206,7 +228,15 @@ async fn ok_mfa_reset() {
         expected.clone(),
     );
 
+    let session_login_throttle = MockSessionLoginThrottleService::new()
+        .with_check(cmd.name_or_email.clone(), CLIENT_IP, Ok(()))
+        .with_reset(UserNameOrEmailAddress::Name(FOO.user.name.clone()))
+        .with_reset(UserNameOrEmailAddress::Email(
+            FOO.user.email.clone().unwrap(),
+        ));
+
     let sut = SessionFeatureServiceImpl {
+        session_login_throttle,
         db,
         session_failed_auth_count,
         auth,
@@ -217,7 +247,7 @@ async fn ok_mfa_reset() {
     };
 
     // Act
-    let result = sut.create_session(cmd, None).await;
+    let result = sut.create_session(CLIENT_IP, cmd, None).await;
 
     // Assert
     assert_eq!(result.unwrap(), expected);
@@ -268,7 +298,15 @@ async fn ok_captcha() {
         expected.clone(),
     );
 
+    let session_login_throttle = MockSessionLoginThrottleService::new()
+        .with_check(cmd.name_or_email.clone(), CLIENT_IP, Ok(()))
+        .with_reset(UserNameOrEmailAddress::Name(FOO.user.name.clone()))
+        .with_reset(UserNameOrEmailAddress::Email(
+            FOO.user.email.clone().unwrap(),
+        ));
+
     let sut = SessionFeatureServiceImpl {
+        session_login_throttle,
         db,
         session_failed_auth_count,
         captcha,
@@ -280,7 +318,7 @@ async fn ok_captcha() {
 
     // Act
     let result = sut
-        .create_session(cmd, Some("resp".try_into().unwrap()))
+        .create_session(CLIENT_IP, cmd, Some("resp".try_into().unwrap()))
         .await;
 
     // Assert
@@ -303,7 +341,14 @@ async fn invalid_recaptcha_response() {
     let captcha =
         MockCaptchaService::new().with_check(Some("resp"), Err(CaptchaCheckError::Failed));
 
+    let session_login_throttle = MockSessionLoginThrottleService::new().with_check(
+        cmd.name_or_email.clone(),
+        CLIENT_IP,
+        Ok(()),
+    );
+
     let sut = SessionFeatureServiceImpl {
+        session_login_throttle,
         session_failed_auth_count,
         captcha,
         ..Sut::default()
@@ -311,7 +356,7 @@ async fn invalid_recaptcha_response() {
 
     // Act
     let result = sut
-        .create_session(cmd, Some("resp".try_into().unwrap()))
+        .create_session(CLIENT_IP, cmd, Some("resp".try_into().unwrap()))
         .await;
 
     // Assert
@@ -337,7 +382,13 @@ async fn user_not_found() {
     let user_repo = MockUserRepository::new()
         .with_get_composite_by_name_or_email(cmd.name_or_email.clone(), None);
 
+    let session_login_throttle = MockSessionLoginThrottleService::new()
+        .with_check(cmd.name_or_email.clone(), CLIENT_IP, Ok(()))
+        .with_record_ip_failure(CLIENT_IP)
+        .with_record_account_failure(cmd.name_or_email.clone());
+
     let sut = SessionFeatureServiceImpl {
+        session_login_throttle,
         db,
         session_failed_auth_count,
         user_repo,
@@ -345,7 +396,7 @@ async fn user_not_found() {
     };
 
     // Act
-    let result = sut.create_session(cmd, None).await;
+    let result = sut.create_session(CLIENT_IP, cmd, None).await;
 
     // Assert
     assert_matches!(result, Err(SessionCreateError::InvalidCredentials));
@@ -381,7 +432,16 @@ async fn wrong_password() {
         false,
     );
 
+    let session_login_throttle = MockSessionLoginThrottleService::new()
+        .with_check(cmd.name_or_email.clone(), CLIENT_IP, Ok(()))
+        .with_record_ip_failure(CLIENT_IP)
+        .with_record_account_failure(UserNameOrEmailAddress::Name(FOO.user.name.clone()))
+        .with_record_account_failure(UserNameOrEmailAddress::Email(
+            FOO.user.email.clone().unwrap(),
+        ));
+
     let sut = SessionFeatureServiceImpl {
+        session_login_throttle,
         db,
         session_failed_auth_count,
         auth,
@@ -390,7 +450,7 @@ async fn wrong_password() {
     };
 
     // Act
-    let result = sut.create_session(cmd, None).await;
+    let result = sut.create_session(CLIENT_IP, cmd, None).await;
 
     // Assert
     assert_matches!(result, Err(SessionCreateError::InvalidCredentials));
@@ -435,7 +495,16 @@ async fn mfa_failed() {
         Err(MfaAuthenticateError::Failed),
     );
 
+    let session_login_throttle = MockSessionLoginThrottleService::new()
+        .with_check(cmd.name_or_email.clone(), CLIENT_IP, Ok(()))
+        .with_record_ip_failure(CLIENT_IP)
+        .with_record_account_failure(UserNameOrEmailAddress::Name(FOO.user.name.clone()))
+        .with_record_account_failure(UserNameOrEmailAddress::Email(
+            FOO.user.email.clone().unwrap(),
+        ));
+
     let sut = SessionFeatureServiceImpl {
+        session_login_throttle,
         db,
         session_failed_auth_count,
         auth,
@@ -445,7 +514,7 @@ async fn mfa_failed() {
     };
 
     // Act
-    let result = sut.create_session(cmd, None).await;
+    let result = sut.create_session(CLIENT_IP, cmd, None).await;
 
     // Assert
     assert_matches!(result, Err(SessionCreateError::MfaFailed));
@@ -476,7 +545,12 @@ async fn user_disabled() {
         true,
     );
 
+    let session_login_throttle = MockSessionLoginThrottleService::new()
+        .with_check(cmd.name_or_email.clone(), CLIENT_IP, Ok(()))
+        .with_reset(UserNameOrEmailAddress::Name(BAR.user.name.clone()));
+
     let sut = SessionFeatureServiceImpl {
+        session_login_throttle,
         db,
         session_failed_auth_count,
         auth,
@@ -485,8 +559,41 @@ async fn user_disabled() {
     };
 
     // Act
-    let result = sut.create_session(cmd, None).await;
+    let result = sut.create_session(CLIENT_IP, cmd, None).await;
 
     // Assert
     assert_matches!(result, Err(SessionCreateError::UserDisabled));
+}
+
+/// A locked login is refused before the password is looked at, so neither the
+/// captcha nor the database is reached.
+#[tokio::test]
+async fn too_many_failed_attempts() {
+    // Arrange
+    let cmd = SessionCreateCommand {
+        name_or_email: UserNameOrEmailAddress::Name(FOO.user.name.clone()),
+        password: FOO_PASSWORD.clone(),
+        device_name: FOO_1.device_name.clone(),
+        mfa: MfaAuthentication::default(),
+    };
+
+    let session_login_throttle = MockSessionLoginThrottleService::new().with_check(
+        cmd.name_or_email.clone(),
+        CLIENT_IP,
+        Err(Duration::from_secs(120)),
+    );
+
+    let sut = SessionFeatureServiceImpl {
+        session_login_throttle,
+        ..Sut::default()
+    };
+
+    // Act
+    let result = sut.create_session(CLIENT_IP, cmd, None).await;
+
+    // Assert
+    assert_matches!(
+        result,
+        Err(SessionCreateError::TooManyFailedAttempts(retry_after)) if *retry_after == Duration::from_secs(120)
+    );
 }

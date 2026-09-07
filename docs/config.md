@@ -89,6 +89,12 @@ The audiences are `auth` and `shop` (incoming, verified by the `_internal` endpo
 | `refresh_token_ttl` | `"30d"` | Lifetime of a refresh token. Sessions that have not been refreshed within this period are removed by `academy task prune-database`. |
 | `refresh_token_length` | `64` | Length of the generated refresh tokens in bytes. |
 | `login_fails_before_captcha` | `3` | Number of failed logins after which a captcha is requested. Only relevant while reCAPTCHA is enabled. |
+| `login_fails_before_lock` | `5` | Number of failed attempts against one login after which it is locked. Counted per login (the user name and the email address of the same account share the count) in the cache, independently of the captcha, so password guessing is slowed down even while reCAPTCHA is switched off. A successful login clears the count. |
+| `login_fail_window` | `"15m"` | Lifetime of the counter of failed attempts against one login. It starts again with every counted attempt, and never expires before the lock it caused has run out. |
+| `login_lock_initial` | `"1m"` | Length of the first lock of a login. Every following failed attempt locks it for twice as long as the one before. |
+| `login_lock_max` | `"15m"` | Longest lock a login can receive. |
+| `login_fails_per_ip` | `30` | Number of failed attempts from one client ip address after which further attempts from it are refused for `login_ip_window`. Only failures are counted, so a household, a school or a carrier-grade NAT full of people logging in successfully never reaches it; it exists to stop one machine from working through a list of accounts. |
+| `login_ip_window` | `"15m"` | Lifetime of the counter of failed attempts from one client ip address, and the length of the block that follows it. Requires `http.real_ip` to be configured when the api runs behind a reverse proxy, or every request lands in the bucket of the proxy. |
 
 ## `[totp]`
 | Property | Default | Description |

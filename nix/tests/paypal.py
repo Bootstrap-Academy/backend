@@ -123,7 +123,7 @@ assert "foobar@example.com" in invoice_text
 assert terms.get_filename() == "agb-2026-09.pdf"
 assert terms["Content-Type"] == "application/pdf"
 hash = hashlib.sha256(decode_mail_part(terms)).hexdigest()
-assert hash == "61c8a97a8f8ec0a31a3b7ef6279552ac6720b0cfad3b7410970d10ea0dd021af"
+assert hash == "d418bcb88f935e70745932259071e6738835db9140d1451edbea4f21b3c6c94e"
 
 assert revocation_policy.get_filename() == "widerrufsbelehrung-2026-09.pdf"
 assert revocation_policy["Content-Type"] == "application/pdf"

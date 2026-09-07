@@ -387,7 +387,11 @@ where
         }
 
         if let PatchValue::Update(name) = name {
-            let rate_limit_policy = if auth.admin {
+            // The exemption is an administrative privilege, so it is granted
+            // by `ensure_admin()` like every other one: an administrator on a
+            // session without a verified second factor is rate limited like
+            // anybody else.
+            let rate_limit_policy = if auth.ensure_admin().is_ok() {
                 UserUpdateNameRateLimitPolicy::Bypass
             } else {
                 UserUpdateNameRateLimitPolicy::Enforce
@@ -653,8 +657,11 @@ where
         auth.ensure_self_or_admin(user_id).map_auth_err()?;
 
         // Administrators are exempt so that a request for information can be
-        // answered without waiting for the rate limit of the account.
-        if !auth.admin {
+        // answered without waiting for the rate limit of the account. The
+        // exemption is an administrative privilege, so it is granted by
+        // `ensure_admin()` like every other one: an administrator on a session
+        // without a verified second factor is rate limited like anybody else.
+        if auth.ensure_admin().is_err() {
             self.check_export_rate_limit(user_id).await?;
         }
 

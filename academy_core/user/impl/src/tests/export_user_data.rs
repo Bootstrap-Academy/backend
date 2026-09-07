@@ -13,6 +13,7 @@ use academy_demo::{
 use academy_extern_contracts::microservices::{MicroserviceExports, MockMicroservicesApiService};
 use academy_models::{
     auth::{AuthError, AuthenticateError, AuthorizeError},
+    session::Session,
     user::UserIdOrSelf,
 };
 use academy_persistence_contracts::MockDatabase;
@@ -156,6 +157,40 @@ async fn rate_limited() {
     let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
 
     let cache = MockCacheService::new().with_get(rate_limit_key(), Some(true));
+
+    let sut = UserFeatureServiceImpl {
+        auth,
+        cache,
+        ..Sut::default()
+    };
+
+    // Act
+    let result = sut
+        .export_user_data(&"token".into(), UserIdOrSelf::Slf)
+        .await;
+
+    // Assert
+    assert_matches!(result, Err(UserExportError::RateLimit));
+}
+
+/// The exemption from the rate limit is an administrative privilege, so an
+/// administrator whose session was not established with a second factor does
+/// not have it. Exporting somebody else's account is already refused by
+/// `ensure_self_or_admin`, so the case that matters is the administrator
+/// exporting their own account.
+#[tokio::test]
+async fn admin_without_mfa_is_rate_limited() {
+    // Arrange
+    let session = Session {
+        mfa_verified: false,
+        ..ADMIN_1.clone()
+    };
+    let auth = MockAuthService::new().with_authenticate(Some((ADMIN.user.clone(), session)));
+
+    let cache = MockCacheService::new().with_get(
+        format!("user_data_export_rate_limit_{}", *ADMIN.user.id),
+        Some(true),
+    );
 
     let sut = UserFeatureServiceImpl {
         auth,

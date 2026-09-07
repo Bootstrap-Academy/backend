@@ -9,7 +9,10 @@ use academy_demo::{
     session::{ADMIN_1, FOO_1},
     user::{ADMIN, BAR, FOO},
 };
-use academy_models::user::{User, UserComposite, UserIdOrSelf};
+use academy_models::{
+    session::Session,
+    user::{User, UserComposite, UserIdOrSelf},
+};
 use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
 use academy_utils::assert_matches;
 
@@ -106,6 +109,70 @@ async fn update_name_admin_no_rate_limit() {
         .update_user(
             &"token".into(),
             UserIdOrSelf::UserId(FOO.user.id),
+            UserUpdateRequest {
+                user: UserUpdateUserRequest {
+                    name: BAR.user.name.clone().into(),
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+        )
+        .await;
+
+    // Assert
+    assert_eq!(result.unwrap(), expected);
+}
+
+/// The exemption from the rate limit is an administrative privilege, so an
+/// administrator whose session was not established with a second factor does
+/// not have it. Acting on somebody else's account is already refused by
+/// `ensure_self_or_admin`, so the case that matters is the administrator
+/// renaming their own account.
+#[tokio::test]
+async fn update_name_admin_without_mfa_rate_limit() {
+    // Arrange
+    let expected = UserComposite {
+        user: User {
+            name: BAR.user.name.clone(),
+            last_name_change: Some(ADMIN.user.last_login.unwrap()),
+            ..ADMIN.user.clone()
+        },
+        ..ADMIN.clone()
+    };
+
+    let session = Session {
+        mfa_verified: false,
+        ..ADMIN_1.clone()
+    };
+    let auth = MockAuthService::new().with_authenticate(Some((ADMIN.user.clone(), session)));
+
+    let db = MockDatabase::build(true);
+
+    let user_repo =
+        MockUserRepository::new().with_get_composite(ADMIN.user.id, Some(ADMIN.clone()));
+
+    // `Enforce` instead of `Bypass` is the whole assertion: the mock only
+    // matches a call with this policy.
+    let user_update = MockUserUpdateService::new().with_update_name(
+        ADMIN.user.clone(),
+        BAR.user.name.clone(),
+        UserUpdateNameRateLimitPolicy::Enforce,
+        Ok(expected.user.clone()),
+    );
+
+    let sut = UserFeatureServiceImpl {
+        auth,
+        db,
+        user_update,
+        user_repo,
+        ..Sut::default()
+    };
+
+    // Act
+    let result = sut
+        .update_user(
+            &"token".into(),
+            UserIdOrSelf::Slf,
             UserUpdateRequest {
                 user: UserUpdateUserRequest {
                     name: BAR.user.name.clone().into(),

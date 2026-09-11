@@ -118,6 +118,8 @@ pub struct Config {
     pub session: SessionConfig,
     pub totp: TotpConfig,
     pub contact: ContactConfig,
+    #[serde(default)]
+    pub feedback: FeedbackConfig,
     pub contract: ContractConfig,
     pub recaptcha: Option<RecaptchaConfig>,
     pub vat: VatConfig,
@@ -261,6 +263,20 @@ pub struct TotpConfig {
 #[derive(Debug, Deserialize)]
 pub struct ContactConfig {
     pub email: EmailAddressWithName,
+}
+
+/// Public feedback is opt-in at deployment; credentials never enter public config.
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FeedbackConfig {
+    #[serde(default)]
+    pub enabled: bool,
+    #[serde(default)]
+    pub github_token_file: PathBuf,
+    #[serde(default)]
+    pub storage_path: PathBuf,
+    #[serde(default)]
+    pub public_base_url: String,
 }
 
 #[derive(Debug, Deserialize)]

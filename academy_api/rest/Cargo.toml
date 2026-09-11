@@ -14,6 +14,7 @@ academy_core_moderation_contracts.workspace = true
 academy_core_purchase_contracts.workspace = true
 
 academy_assets.workspace = true
+academy_config.workspace = true
 academy_auth_contracts.workspace = true
 academy_core_admin_audit_contracts.workspace = true
 academy_core_coin_contracts.workspace = true
@@ -47,17 +48,21 @@ axum.workspace = true
 base64.workspace = true
 chrono.workspace = true
 futures.workspace = true
+image = { version = "0.25.10", default-features = false, features = ["png", "jpeg"] }
 mime.workspace = true
 regex.workspace = true
+reqwest.workspace = true
 rust_decimal.workspace = true
 schemars.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+sha2.workspace = true
 tokio.workspace = true
 tower-http = { version = "0.6.11", default-features = false, features = ["cors", "trace"] }
 tracing.workspace = true
-uuid.workspace = true
+uuid = { workspace = true, features = ["std"] }
 
 [dev-dependencies]
 serde_json.workspace = true
+tempfile.workspace = true
 tower = { version = "0.5.3", default-features = false, features = ["util"] }

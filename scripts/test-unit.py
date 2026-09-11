@@ -12,6 +12,26 @@ import tempfile
 import uuid
 
 
+# Exact inputs formerly interpreted by the integration tests, not toolchain namespaces.
+HISTORICAL_FIXTURE_ENV = (
+    "BOOTSTRAP_DETERMINATION_FIXTURE",
+    "BOOTSTRAP_HOLD_REVIEW_FIXTURE",
+    "BOOTSTRAP_IF1_FIXTURE",
+    "BOOTSTRAP_INVENTORY_FIXTURE",
+    "BOOTSTRAP_INVOICE_PRESERVATION_FIXTURE",
+    "BOOTSTRAP_L3_LEARNING_FIXTURE",
+    "BOOTSTRAP_LEARNING_START_BASELINE",
+    "BOOTSTRAP_PERSONAL_PURCHASE_FIXTURE",
+    "BOOTSTRAP_RETENTION_PAGING_FIXTURE",
+    "BOOTSTRAP_STAFF_READS_FIXTURE",
+    "BOOTSTRAP_WALLET_RED",
+    "BOOTSTRAP_WALLET_TARGET_FIXTURE",
+    "IF1_BASELINE",
+    "IF1_RESIDUAL_BASELINE",
+    "INVOICE_SOURCE_BASELINE",
+)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--evidence-dir", type=Path, required=True)
@@ -41,8 +61,9 @@ def main() -> int:
         and key not in {"DATABASE_URL", "ACADEMY_CONFIG", "ACADEMY_UNIT_TEST_FIXTURE", "ACADEMY_UNIT_TEST_RUN_ID"}
     }
     env.update(SQLX_OFFLINE="true", RUST_TEST_THREADS="1")
-    if args.suite == "postgres" and any(key.startswith(("BOOTSTRAP_", "IF1_", "INVOICE_")) for key in env):
-        parser.error("historical private-fixture and baseline overrides are not CI inputs")
+    forbidden = [key for key in HISTORICAL_FIXTURE_ENV if key in env]
+    if args.suite == "postgres" and forbidden:
+        parser.error("historical fixture inputs are not CI inputs: " + ", ".join(forbidden))
     root = Path(tempfile.mkdtemp(prefix="academy-unit-tests-", dir="/tmp")).resolve()
     data = root / "pgdata"
     (root / "evidence").mkdir(mode=0o700)

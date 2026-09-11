@@ -10,6 +10,25 @@ use academy_persistence_postgres::{MIGRATIONS, PostgresDatabase, PostgresDatabas
 use serde_json::{Value, json};
 use uuid::Uuid;
 
+// Exact inputs formerly interpreted by the integration tests, not toolchain namespaces.
+const HISTORICAL_FIXTURE_ENV: &[&str] = &[
+    "BOOTSTRAP_DETERMINATION_FIXTURE",
+    "BOOTSTRAP_HOLD_REVIEW_FIXTURE",
+    "BOOTSTRAP_IF1_FIXTURE",
+    "BOOTSTRAP_INVENTORY_FIXTURE",
+    "BOOTSTRAP_INVOICE_PRESERVATION_FIXTURE",
+    "BOOTSTRAP_L3_LEARNING_FIXTURE",
+    "BOOTSTRAP_LEARNING_START_BASELINE",
+    "BOOTSTRAP_PERSONAL_PURCHASE_FIXTURE",
+    "BOOTSTRAP_RETENTION_PAGING_FIXTURE",
+    "BOOTSTRAP_STAFF_READS_FIXTURE",
+    "BOOTSTRAP_WALLET_RED",
+    "BOOTSTRAP_WALLET_TARGET_FIXTURE",
+    "IF1_BASELINE",
+    "IF1_RESIDUAL_BASELINE",
+    "INVOICE_SOURCE_BASELINE",
+];
+
 pub fn root() -> PathBuf {
     let requested = PathBuf::from(
         std::env::var("ACADEMY_UNIT_TEST_FIXTURE").expect("owned CI fixture required"),
@@ -90,11 +109,14 @@ async fn connect_database(name: &str) -> PostgresDatabase {
     assert!(!std::env::vars_os().any(|(key, _)| key.to_string_lossy().starts_with("PG")));
     assert_eq!(std::env::var("SQLX_OFFLINE").unwrap(), "true");
     assert_eq!(std::env::var("RUST_TEST_THREADS").unwrap(), "1");
-    assert!(!std::env::vars_os().any(|(key, _)| {
-        ["BOOTSTRAP_", "IF1_", "INVOICE_"]
-            .iter()
-            .any(|prefix| key.to_string_lossy().starts_with(prefix))
-    }));
+    let forbidden: Vec<_> = HISTORICAL_FIXTURE_ENV
+        .iter()
+        .filter(|key| std::env::var_os(key).is_some())
+        .collect();
+    assert!(
+        forbidden.is_empty(),
+        "historical fixture inputs are not CI inputs: {forbidden:?}"
+    );
     let config = academy_config::load().unwrap();
     let parsed: bb8_postgres::tokio_postgres::Config = config.database.url.parse().unwrap();
     assert_eq!(

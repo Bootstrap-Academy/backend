@@ -31,6 +31,9 @@ impl EmailServiceImpl {
 }
 
 impl EmailService for EmailServiceImpl {
+    fn sender(&self) -> Option<EmailAddressWithName> {
+        Some(self.from.clone())
+    }
     // The message carries the recipient and the body.
     #[trace_instrument(skip(self, email))]
     async fn send(&self, email: Email) -> anyhow::Result<bool> {
@@ -54,9 +57,10 @@ impl EmailService for EmailServiceImpl {
         );
 
         let message = Message::builder()
-            .from(self.from.0.clone())
+            .from(email.sender.unwrap_or_else(|| self.from.clone()).0)
             .to(email.recipient.0)
             .apply_map(email.reply_to.map(|x| x.0), MessageBuilder::reply_to)
+            .message_id(email.message_id)
             .subject(email.subject)
             .multipart(multipart)
             .context("Failed to build email message")?;

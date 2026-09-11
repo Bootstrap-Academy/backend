@@ -6,6 +6,10 @@ pub mod template;
 
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait EmailService: Send + Sync + 'static {
+    fn sender(&self) -> Option<EmailAddressWithName> {
+        None
+    }
+
     /// Send the given [`Email`].
     fn send(&self, email: Email) -> impl Future<Output = anyhow::Result<bool>> + Send;
 
@@ -15,6 +19,8 @@ pub trait EmailService: Send + Sync + 'static {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Email {
+    pub sender: Option<EmailAddressWithName>,
+    pub message_id: Option<String>,
     pub recipient: EmailAddressWithName,
     pub subject: String,
     pub body: String,

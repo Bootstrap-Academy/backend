@@ -2,7 +2,9 @@ use std::{collections::HashMap, future::Future};
 
 use academy_models::{
     auth::{AccessToken, AuthError},
-    premium::{PremiumPlan, PremiumPlanDetails, PremiumStatus},
+    premium::{
+        PremiumPlan, PremiumPlanDetails, PremiumRenewalConsent, PremiumRenewalOffer, PremiumStatus,
+    },
     user::UserIdOrSelf,
     withdrawal::WithdrawalConsentDeclaration,
 };
@@ -11,8 +13,11 @@ use thiserror::Error;
 pub mod plan;
 pub mod premium;
 pub mod purchase;
+pub mod renewal;
 
 pub trait PremiumFeatureService: Send + Sync + 'static {
+    fn get_renewal_offer(&self) -> PremiumRenewalOffer;
+    fn retry_renewal_confirmations(&self) -> impl Future<Output = anyhow::Result<()>> + Send;
     /// Return all available premium plans.
     fn get_plans(&self) -> HashMap<PremiumPlan, PremiumPlanDetails>;
 
@@ -26,7 +31,8 @@ pub trait PremiumFeatureService: Send + Sync + 'static {
     ) -> impl Future<Output = Result<Option<PremiumStatus>, PremiumGetStatusError>> + Send;
 
     /// Purchase premium for the authenticated user using the given plan and
-    /// optionally set up a subscription.
+    /// preserve the existing subscription. `subscribe=true` is rejected; enabling
+    /// renewal requires a separate explicit monthly agreement.
     ///
     /// Requires a verified email address and the declarations under
     /// § 356 Abs. 5 Nr. 2 BGB.
@@ -45,6 +51,7 @@ pub trait PremiumFeatureService: Send + Sync + 'static {
         &self,
         token: &AccessToken,
         plan: Option<PremiumPlan>,
+        consent: Option<PremiumRenewalConsent>,
     ) -> impl Future<Output = Result<(), PremiumUpdateSubscriptionError>> + Send;
 }
 
@@ -60,6 +67,8 @@ pub enum PremiumGetStatusError {
 
 #[derive(Debug, Error)]
 pub enum PremiumPurchaseError {
+    #[error("Automatic renewal requires a separate explicit agreement.")]
+    RenewalConsentRequired,
     #[error("The user does not have enough coins.")]
     NotEnoughCoins,
     #[error("The user did not give the withdrawal declarations.")]
@@ -72,6 +81,8 @@ pub enum PremiumPurchaseError {
 
 #[derive(Debug, Error)]
 pub enum PremiumUpdateSubscriptionError {
+    #[error("A current monthly renewal offer and explicit declarations are required.")]
+    RenewalConsentRequired,
     #[error("The user is not a premium member.")]
     NoPremium,
     #[error(transparent)]

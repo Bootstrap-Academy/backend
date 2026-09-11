@@ -17,10 +17,11 @@ mod issue_tokens;
 type Sut = AuthServiceImpl<
     MockTimeService,
     MockPasswordService,
-    MockUserRepository<()>,
-    MockSessionRepository<()>,
+    MockUserRepository<academy_persistence_contracts::MockTransaction>,
+    MockSessionRepository<academy_persistence_contracts::MockTransaction>,
     MockAuthAccessTokenService,
     MockAuthRefreshTokenService,
+    academy_persistence_contracts::MockDatabase,
 >;
 
 impl Default for AuthServiceConfig {

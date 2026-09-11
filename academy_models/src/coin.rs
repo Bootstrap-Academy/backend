@@ -7,6 +7,24 @@ use crate::{
 };
 
 id!(TransactionId);
+id!(CoinOperationId);
+
+/// Immutable request identity for an internal credit, independent of account deletion.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CoinOperation {
+    pub id: CoinOperationId,
+    pub user_id: UserId,
+    pub coins: i64,
+    pub description: Option<TransactionDescription>,
+    pub include_in_credit_note: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CoinOperationClaim {
+    New,
+    Completed(Balance),
+    Conflict,
+}
 
 /// Public pricing information for Morphcoin purchases.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

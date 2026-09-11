@@ -1,14 +1,70 @@
 use std::future::Future;
 
 use academy_models::{
-    premium::{Premium, PremiumId, PremiumPlan},
+    premium::{
+        Premium, PremiumId, PremiumPlan, PremiumRenewalAgreement, PremiumRenewalId,
+        PremiumRenewalStatus,
+    },
     user::UserId,
 };
 use chrono::{DateTime, Utc};
 
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait PremiumRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
-    /// Return the most recent premium membership for the given user.
+    /// JSON containing legacy observations, agreements/documents and delivery/cancellation state.
+    fn export_renewal_evidence(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
+    ) -> impl Future<Output = anyhow::Result<String>> + Send;
+
+    fn prune_renewal_evidence(
+        &self,
+        txn: &mut Txn,
+        cutoff: DateTime<Utc>,
+    ) -> impl Future<Output = anyhow::Result<u64>> + Send;
+
+    /// Serialize with account restrictions; paid periods and agreements remain intact.
+    fn renewal_allowed(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
+    ) -> impl Future<Output = anyhow::Result<bool>> + Send;
+
+    fn get_renewal(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
+    ) -> impl Future<Output = anyhow::Result<Option<PremiumRenewalStatus>>> + Send;
+
+    fn get_renewal_agreement(
+        &self,
+        txn: &mut Txn,
+        id: PremiumRenewalId,
+    ) -> impl Future<Output = anyhow::Result<Option<PremiumRenewalAgreement>>> + Send;
+
+    /// Atomically persist declaration/outbox and activate monthly renewal.
+    fn create_renewal(
+        &self,
+        txn: &mut Txn,
+        agreement: &PremiumRenewalAgreement,
+    ) -> impl Future<Output = anyhow::Result<()>> + Send;
+
+    fn pending_renewal_confirmations(
+        &self,
+        txn: &mut Txn,
+    ) -> impl Future<Output = anyhow::Result<Vec<PremiumRenewalAgreement>>> + Send;
+
+    fn record_renewal_delivery(
+        &self,
+        txn: &mut Txn,
+        id: PremiumRenewalId,
+        sent: bool,
+    ) -> impl Future<Output = anyhow::Result<()>> + Send;
+
+    /// Lock the user and terminate renewal whose immutable confirmation deadline
+    /// was missed, then return their latest paid membership. Call before purchase
+    /// can change paid dates; reconciliation never charges or removes paid access.
     fn get_latest_by_user_id(
         &self,
         txn: &mut Txn,

@@ -22,6 +22,14 @@ pub struct ApiPremiumStatus {
     pub until: Option<i64>,
     #[serde(rename = "autopay")]
     pub subscription: Option<ApiPremiumPlan>,
+    pub renewal: Option<ApiPremiumRenewalStatus>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
+pub struct ApiPremiumRenewalStatus {
+    pub id: uuid::Uuid,
+    pub monthly_price: u64,
+    pub confirmation_sent: bool,
 }
 
 impl From<ApiPremiumPlan> for PremiumPlan {
@@ -58,6 +66,11 @@ impl From<PremiumStatus> for ApiPremiumStatus {
             since: Some(value.since.timestamp()),
             until: Some(value.until.timestamp()),
             subscription: value.subscription.map(Into::into),
+            renewal: value.renewal.map(|r| ApiPremiumRenewalStatus {
+                id: *r.id,
+                monthly_price: r.monthly_price,
+                confirmation_sent: r.confirmation_sent,
+            }),
         }
     }
 }
@@ -71,6 +84,7 @@ impl From<Option<PremiumStatus>> for ApiPremiumStatus {
                 since: None,
                 until: None,
                 subscription: None,
+                renewal: None,
             },
         }
     }

@@ -3,13 +3,13 @@ use std::sync::Arc;
 use academy_core_contract_contracts::{
     ContractCancellationRequest, ContractDeclarationListQuery, ContractDeclarationListResult,
     ContractDeclarationProcessingUpdate, ContractDeclarationResult, ContractDeclareError,
-    ContractFeatureService, ContractListError, ContractSetProcessedError,
+    ContractFeatureService, ContractListError, ContractProcessingAction, ContractSetProcessedError,
     ContractWithdrawalRequest,
 };
 use academy_models::{
     contract::{
         ContractDeclarantName, ContractDeclarationDetails, ContractDeclarationId,
-        ContractDesignation, ContractProcessingNote,
+        ContractDesignation, ContractProcessingNote, ContractRequestKey,
     },
     email_address::EmailAddress,
 };
@@ -35,8 +35,8 @@ use crate::{
     models::{
         ApiPaginationSlice, StringOption,
         contract::{
-            ApiAdminContractDeclaration, ApiContractCancellationType, ApiContractDeclaration,
-            ApiContractDeclarationKind, ApiContractKind, ApiTimestamp,
+            ApiAdminContractDeclaration, ApiContractCancellationType, ApiContractDeclarationKind,
+            ApiContractKind, ApiPublicContractReceipt, ApiTimestamp,
         },
     },
 };
@@ -56,6 +56,13 @@ pub const DECLARATION_ROUTE: &str = "/contracts/declarations/{declaration_id}";
 
 pub fn router(service: Arc<impl ContractFeatureService>) -> ApiRouter<()> {
     ApiRouter::new()
+        .api_route(
+            "/contracts/receipts",
+            routing::post_with(lookup_receipt, |op| {
+                op.summary("Recover a receipt with its private request capability")
+                    .add_response::<DeclarationResponse>(StatusCode::OK, None)
+            }),
+        )
         .api_route(
             "/contracts/cancellations",
             routing::post_with(declare_cancellation, declare_cancellation_docs),
@@ -79,7 +86,7 @@ pub fn router(service: Arc<impl ContractFeatureService>) -> ApiRouter<()> {
 #[derive(Serialize, JsonSchema)]
 struct DeclarationResponse {
     /// The stored declaration
-    declaration: ApiContractDeclaration,
+    declaration: ApiPublicContractReceipt,
     /// Whether the confirmation email has been sent to the declarant
     confirmation_email_sent: bool,
 }
@@ -95,6 +102,8 @@ impl From<ContractDeclarationResult> for DeclarationResponse {
 
 #[derive(Deserialize, JsonSchema)]
 struct DeclareCancellationRequest {
+    request_key: Option<ContractRequestKey>,
+    renewal_agreement_id: Option<academy_models::premium::PremiumRenewalId>,
     /// Full name of the declarant
     name: ContractDeclarantName,
     /// Email address of the declarant
@@ -119,6 +128,8 @@ async fn declare_cancellation(
     service: State<Arc<impl ContractFeatureService>>,
     Extension(ClientIp(client_ip)): Extension<ClientIp>,
     Json(DeclareCancellationRequest {
+        request_key,
+        renewal_agreement_id,
         name,
         email,
         contract,
@@ -132,6 +143,8 @@ async fn declare_cancellation(
         .declare_cancellation(
             client_ip,
             ContractCancellationRequest {
+                request_key,
+                renewal_agreement_id,
                 name,
                 email,
                 contract: contract.into(),
@@ -144,6 +157,8 @@ async fn declare_cancellation(
         .await
     {
         Ok(result) => Json(DeclarationResponse::from(result)).into_response(),
+        Err(ContractDeclareError::NotFound) => DeclarationNotFoundError.into_response(),
+        Err(ContractDeclareError::RequestConflict) => DeclarationConflictError.into_response(),
         Err(ContractDeclareError::RateLimit) => TooManyRequestsError.into_response(),
         Err(ContractDeclareError::Other(err)) => internal_server_error(err),
     }
@@ -152,12 +167,10 @@ async fn declare_cancellation(
 fn declare_cancellation_docs(op: TransformOperation) -> TransformOperation {
     op.summary("Declare the cancellation of a contract.")
         .description(
-            "Does not require authentication. The declaration is stored with its receipt \
-             timestamp and confirmed to the declarant by email (§ 312k Abs. 4 BGB). If the email \
-             address matches an account with a premium membership, the automatic renewal is \
-             switched off and, for an ordinary cancellation, the end of the contract is returned \
-             in `effective_end`. An extraordinary cancellation gets no `effective_end`: it is \
-             examined and its end date is confirmed separately in Textform.",
+            "No authentication required. The receipt contains only submitted data. Optional exact \
+             renewal agreement identification permits ordinary Premium period-end scheduling. \
+             Email/name alone cause no account effects. Requested date and legal effect are distinct; \
+             unverified or extraordinary requests require prompt review without changing receipt-based rights.",
         )
         .add_response::<DeclarationResponse>(StatusCode::OK, "The declaration has been recorded.")
         .add_error::<TooManyRequestsError>()
@@ -166,6 +179,7 @@ fn declare_cancellation_docs(op: TransformOperation) -> TransformOperation {
 
 #[derive(Deserialize, JsonSchema)]
 struct DeclareWithdrawalRequest {
+    request_key: Option<ContractRequestKey>,
     /// Full name of the declarant
     name: ContractDeclarantName,
     /// Email address of the declarant
@@ -184,6 +198,7 @@ async fn declare_withdrawal(
     service: State<Arc<impl ContractFeatureService>>,
     Extension(ClientIp(client_ip)): Extension<ClientIp>,
     Json(DeclareWithdrawalRequest {
+        request_key,
         name,
         email,
         contract,
@@ -195,6 +210,7 @@ async fn declare_withdrawal(
         .declare_withdrawal(
             client_ip,
             ContractWithdrawalRequest {
+                request_key,
                 name,
                 email,
                 contract: contract.into(),
@@ -205,6 +221,8 @@ async fn declare_withdrawal(
         .await
     {
         Ok(result) => Json(DeclarationResponse::from(result)).into_response(),
+        Err(ContractDeclareError::NotFound) => DeclarationNotFoundError.into_response(),
+        Err(ContractDeclareError::RequestConflict) => DeclarationConflictError.into_response(),
         Err(ContractDeclareError::RateLimit) => TooManyRequestsError.into_response(),
         Err(ContractDeclareError::Other(err)) => internal_server_error(err),
     }
@@ -282,6 +300,12 @@ struct DeclarationPath {
 
 #[derive(Deserialize, JsonSchema)]
 struct SetProcessedRequest {
+    #[serde(default)]
+    identity_verified: bool,
+    #[serde(default)]
+    action: ContractProcessingAction,
+    verified_user_id: Option<academy_models::user::UserId>,
+    renewal_agreement_id: Option<academy_models::premium::PremiumRenewalId>,
     /// The end of the contract as it was confirmed to the declarant. Left
     /// unchanged if not given.
     #[serde(default)]
@@ -296,6 +320,10 @@ async fn set_declaration_processed(
     token: ApiToken,
     Path(DeclarationPath { declaration_id }): Path<DeclarationPath>,
     Json(SetProcessedRequest {
+        identity_verified,
+        action,
+        verified_user_id,
+        renewal_agreement_id,
         effective_end,
         note,
     }): Json<SetProcessedRequest>,
@@ -305,6 +333,10 @@ async fn set_declaration_processed(
             &token.0,
             declaration_id,
             ContractDeclarationProcessingUpdate {
+                identity_verified,
+                action,
+                verified_user_id,
+                renewal_agreement_id,
                 effective_end: effective_end.map(Into::into),
                 note: note.into(),
             },
@@ -312,6 +344,8 @@ async fn set_declaration_processed(
         .await
     {
         Ok(declaration) => Json(ApiAdminContractDeclaration::from(declaration)).into_response(),
+        Err(ContractSetProcessedError::Invalid) => DeclarationInvalidError.into_response(),
+        Err(ContractSetProcessedError::Conflict) => DeclarationConflictError.into_response(),
         Err(ContractSetProcessedError::NotFound) => DeclarationNotFoundError.into_response(),
         Err(ContractSetProcessedError::Auth(err)) => auth_error(err),
         Err(ContractSetProcessedError::Other(err)) => internal_server_error(err),
@@ -321,11 +355,11 @@ async fn set_declaration_processed(
 fn set_declaration_processed_docs(op: TransformOperation) -> TransformOperation {
     op.summary("Record that a contract declaration has been processed.")
         .description(
-            "Requires admin privileges. Sets `processed_at` to the time of the request and stores \
-             the end of the contract and the note if they are given; a field that is not given is \
-             left unchanged. Used for the declarations whose end date cannot be determined \
-             automatically, above all extraordinary cancellations, which are confirmed separately \
-             in Textform.",
+            "Requires MFA admin privileges, independently verified identity and a resolution note. \
+             Either record an already implemented external resolution and communication (a cancellation \
+             requires its established end), or schedule the original identified current Premium agreement \
+             using the declaration's original receipt and requested date. Processing time never changes \
+             receipt-based rights. Conflicting or already processed actions are rejected.",
         )
         .add_response::<ApiAdminContractDeclaration>(
             StatusCode::OK,
@@ -337,8 +371,23 @@ fn set_declaration_processed_docs(op: TransformOperation) -> TransformOperation 
 }
 
 error_code! {
+    DeclarationConflictError(CONFLICT, "Declaration request conflicts with stored state");
+    DeclarationInvalidError(BAD_REQUEST, "Verified action, identity, date and resolution note required");
     /// Too many requests.
     pub TooManyRequestsError(TOO_MANY_REQUESTS, "Too many requests");
     /// The contract declaration does not exist.
     DeclarationNotFoundError(NOT_FOUND, "Declaration not found");
+}
+
+async fn lookup_receipt(
+    service: State<Arc<impl ContractFeatureService>>,
+    Json(key): Json<ContractRequestKey>,
+) -> Response {
+    match service.lookup_receipt(key).await {
+        Ok(result) => Json(DeclarationResponse::from(result)).into_response(),
+        Err(ContractDeclareError::NotFound) => DeclarationNotFoundError.into_response(),
+        Err(ContractDeclareError::RequestConflict) => DeclarationConflictError.into_response(),
+        Err(ContractDeclareError::RateLimit) => TooManyRequestsError.into_response(),
+        Err(ContractDeclareError::Other(err)) => internal_server_error(err),
+    }
 }

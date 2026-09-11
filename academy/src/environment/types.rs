@@ -29,7 +29,7 @@ use academy_core_oauth2_impl::{
 use academy_core_paypal_impl::{PaypalFeatureServiceImpl, coin_order::PaypalCoinOrderServiceImpl};
 use academy_core_premium_impl::{
     PremiumFeatureServiceImpl, plan::PremiumPlanServiceImpl, premium::PremiumServiceImpl,
-    purchase::PremiumPurchaseServiceImpl,
+    purchase::PremiumPurchaseServiceImpl, renewal::PremiumRenewalServiceImpl,
 };
 use academy_core_session_impl::{
     SessionFeatureServiceImpl, failed_auth_count::SessionFailedAuthCountServiceImpl,
@@ -78,9 +78,11 @@ pub type RestServer = academy_api_rest::RestServer<
     FinanceFeature,
     HeartFeature,
     PremiumFeature,
+    PurchaseFeature,
     WithdrawalFeature,
     Internal,
     AdminAuditFeature,
+    ModerationFeature,
 >;
 
 // Persistence
@@ -130,8 +132,15 @@ pub type WithdrawalRepo = PostgresWithdrawalRepository;
 pub type DocumentRepo = PostgresFinancialDocumentRepository;
 
 // Auth
-pub type Auth =
-    AuthServiceImpl<Time, Password, UserRepo, SessionRepo, AuthAccessToken, AuthRefreshToken>;
+pub type Auth = AuthServiceImpl<
+    Time,
+    Password,
+    UserRepo,
+    SessionRepo,
+    AuthAccessToken,
+    AuthRefreshToken,
+    Database,
+>;
 pub type AuthAccessToken = AuthAccessTokenServiceImpl<Jwt, Cache>;
 pub type AuthRefreshToken = AuthRefreshTokenServiceImpl<Secret, Hash>;
 pub type AuthInternal = AuthInternalServiceImpl<Jwt>;
@@ -173,6 +182,8 @@ pub type UserExport = UserExportServiceImpl<
     ContractRepo,
     WithdrawalRepo,
     DocumentRepo,
+    PurchaseRepo,
+    ModerationRepo,
 >;
 pub type UserUpdate = UserUpdateServiceImpl<Auth, Time, Password, Session, UserRepo>;
 
@@ -200,10 +211,8 @@ pub type ContractFeature = ContractFeatureServiceImpl<
     Time,
     Cache,
     Hash,
-    TemplateEmail,
     Email,
     UserRepo,
-    PremiumRepo,
     ContractRepo,
 >;
 
@@ -248,7 +257,7 @@ pub type PaypalFeature = PaypalFeatureServiceImpl<
     UserRepo,
     PaypalRepo,
     PaypalCoinOrder,
-    TemplateEmail,
+    PurchaseFeature,
     FinanceInvoice,
     FinanceCoin,
 >;
@@ -282,7 +291,9 @@ pub type PremiumFeature = PremiumFeatureServiceImpl<
     UserRepo,
     PremiumRepo,
     WithdrawalConsent,
+    PremiumRenewal,
 >;
+pub type PremiumRenewal = PremiumRenewalServiceImpl<Database, Time, UserRepo, PremiumRepo, Email>;
 pub type PremiumPlan = PremiumPlanServiceImpl;
 pub type Premium = PremiumServiceImpl<Time, PremiumPurchase, PremiumRepo>;
 pub type PremiumPurchase = PremiumPurchaseServiceImpl<Id, Time, Coin, PremiumPlan, PremiumRepo>;
@@ -290,6 +301,39 @@ pub type PremiumPurchase = PremiumPurchaseServiceImpl<Id, Time, Coin, PremiumPla
 pub type WithdrawalFeature = WithdrawalFeatureServiceImpl<Database, Auth, WithdrawalConsent>;
 pub type WithdrawalConsent = WithdrawalConsentServiceImpl<Id, Time, WithdrawalRepo>;
 
-pub type Internal = InternalServiceImpl<Database, AuthInternal, UserRepo, Coin, Heart, Premium>;
+pub type Internal =
+    InternalServiceImpl<Database, AuthInternal, UserRepo, Coin, Heart, Premium, CoinRepo>;
 
 pub type AdminAuditFeature = AdminAuditFeatureServiceImpl<Database, Auth, Id, Time, AdminAuditRepo>;
+
+pub type PurchaseRepo = academy_persistence_postgres::purchase::PostgresPurchaseRepository;
+pub type PurchaseFeature = academy_core_purchase_impl::PurchaseFeatureServiceImpl<
+    Database,
+    Auth,
+    AuthInternal,
+    UserRepo,
+    CoinRepo,
+    Heart,
+    HeartRepo,
+    PremiumRepo,
+    PurchaseRepo,
+    Email,
+>;
+
+pub type ModerationRepo = academy_persistence_postgres::moderation::PostgresModerationRepository;
+pub type ModerationFeature = academy_core_moderation_impl::ModerationFeatureServiceImpl<
+    Database,
+    Auth,
+    AuthInternal,
+    ModerationRepo,
+    SessionFeature,
+    UserExport,
+    MicroservicesApi,
+    Email,
+    Hash,
+    Secret,
+    OAuth2Feature,
+    PurchaseFeature,
+    FinanceFeature,
+    UserFeature,
+>;

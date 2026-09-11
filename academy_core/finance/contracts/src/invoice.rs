@@ -1,6 +1,10 @@
 use std::future::Future;
 
-use academy_models::{finance::FinancialDocumentNumber, user::UserId};
+use academy_models::{
+    finance::{FinancialDocumentKind, FinancialDocumentNumber},
+    paypal::PaypalPayment,
+    user::UserId,
+};
 
 /// A final statement whose record has been written and whose pdf has still to
 /// be produced.
@@ -29,6 +33,27 @@ impl std::fmt::Debug for PendingFinalStatement {
 
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait FinanceInvoiceService<Txn: Send + Sync + 'static>: Send + Sync + 'static {
+    /// Read the exact archived original. Authorization belongs to the caller;
+    /// missing bytes never cause rendering, identity allocation or new evidence.
+    fn get_original_pdf(
+        &self,
+        txn: &mut Txn,
+        number: &FinancialDocumentNumber,
+        kind: FinancialDocumentKind,
+    ) -> impl Future<Output = anyhow::Result<Option<Vec<u8>>>> + Send;
+    /// Record the immutable invoice before any PDF is written or mail is sent.
+    fn record_payment_invoice(
+        &self,
+        txn: &mut Txn,
+        payment: &PaypalPayment,
+    ) -> impl Future<Output = anyhow::Result<()>> + Send;
+    /// Render/archive an already committed payment invoice from its original snapshot.
+    fn render_payment_invoice(
+        &self,
+        txn: &mut Txn,
+        payment: &PaypalPayment,
+    ) -> impl Future<Output = anyhow::Result<Vec<u8>>> + Send;
+
     /// Generate or return the archived invoice for the given invoice number.
     fn get_invoice_pdf(
         &self,

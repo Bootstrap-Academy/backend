@@ -3,6 +3,8 @@ use academy_models::pagination::PaginationSlice;
 mod admin_audit;
 mod coins;
 mod contract;
+mod contract_lifecycle;
+mod deletion;
 mod finance;
 mod heart;
 mod mfa;
@@ -26,4 +28,14 @@ pub fn sliced<T>(data: &[T], slice: PaginationSlice) -> &[T] {
     let offset = offset as usize;
 
     &data[offset.min(data.len())..(offset + limit).min(data.len())]
+}
+
+/// Named migration targeting keeps isolated historical fixtures stable as migrations are added.
+pub fn revert_through(name: &str) -> usize {
+    let migrations = academy_persistence_postgres::MIGRATIONS;
+    migrations.len()
+        - migrations
+            .iter()
+            .position(|m| m.name == name)
+            .expect("named fixture migration")
 }

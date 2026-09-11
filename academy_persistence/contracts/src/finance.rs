@@ -9,6 +9,68 @@ use chrono::{DateTime, Utc};
 
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait FinancialDocumentRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
+    /// Resolve only existing original-document ownership, including the exact
+    /// retained inventory after erasure. Never allocates a customer number.
+    fn owned_original_number(
+        &self,
+        txn: &mut Txn,
+        user: UserId,
+        kind: FinancialDocumentKind,
+        number: u64,
+        month: u32,
+    ) -> impl Future<Output = anyhow::Result<Option<FinancialDocumentNumber>>> + Send;
+    fn original_invoice(
+        &self,
+        txn: &mut Txn,
+        number: &FinancialDocumentNumber,
+    ) -> impl Future<Output = anyhow::Result<Option<Vec<u8>>>> + Send;
+    fn record_original_invoice(
+        &self,
+        txn: &mut Txn,
+        number: &FinancialDocumentNumber,
+        pdf: &[u8],
+        provenance: &str,
+    ) -> impl Future<Output = anyhow::Result<()>> + Send;
+    fn flag_missing_invoice(
+        &self,
+        txn: &mut Txn,
+        number: &FinancialDocumentNumber,
+    ) -> impl Future<Output = anyhow::Result<()>> + Send;
+    fn invoice_reconciliation(
+        &self,
+        txn: &mut Txn,
+    ) -> impl Future<Output = anyhow::Result<String>> + Send;
+    /// Read each original's exact namespace, record presence and database bytes.
+    fn archive_inventory(&self, txn: &mut Txn) -> impl Future<Output=anyhow::Result<Vec<(FinancialDocumentNumber, FinancialDocumentKind, bool, bool)>>> + Send;
+    /// Serialize archive adoption with disposal. False means a retired original.
+    fn lock_archive(
+        &self, txn: &mut Txn, number: &FinancialDocumentNumber,
+    ) -> impl Future<Output = anyhow::Result<bool>> + Send;
+    /// Require READ COMMITTED and commit this admission before touching the file.
+    /// False preserves originals and any begun intent, and authorizes no file call.
+    /// An uncertain earlier removal must pass current admission again.
+    fn begin_archive_disposal(
+        &self, txn: &mut Txn, number: &FinancialDocumentNumber, kind: FinancialDocumentKind,
+    ) -> impl Future<Output = anyhow::Result<bool>> + Send;
+    /// File removals authorized by a committed record disposal or reviewed orphan.
+    fn pending_archive_disposals(
+        &self,
+        txn: &mut Txn,
+    ) -> impl Future<Output = anyhow::Result<Vec<(FinancialDocumentNumber, FinancialDocumentKind)>>> + Send;
+    fn acknowledge_archive_disposal(
+        &self,
+        txn: &mut Txn,
+        number: &FinancialDocumentNumber,
+        kind: FinancialDocumentKind,
+    ) -> impl Future<Output = anyhow::Result<()>> + Send;
+    /// An unrecorded archive is reviewed, never erased merely because of its filename.
+    fn observe_unrecorded_archive(
+        &self,
+        txn: &mut Txn,
+        number: &FinancialDocumentNumber,
+        kind: FinancialDocumentKind,
+    ) -> impl Future<Output = anyhow::Result<()>> + Send;
+
     /// Record a document that has been issued.
     ///
     /// Values that have already been recorded for this document number are
@@ -27,12 +89,8 @@ pub trait FinancialDocumentRepository<Txn: Send + Sync + 'static>: Send + Sync +
         number: &FinancialDocumentNumber,
     ) -> impl Future<Output = anyhow::Result<Option<FinancialDocument>>> + Send;
 
-    /// Record that the claim the document with the given number records has
-    /// been closed out, and return whether such a document exists.
-    ///
-    /// Only a final statement records a claim, and it is refunded by hand, so
-    /// the timestamp is set by hand as well
-    /// (`academy admin finance settle <number>`).
+    /// Preserve compatibility for historical staff assertions. This is not
+    /// evidence of payment and must not be used to satisfy a commercial claim.
     fn settle(
         &self,
         txn: &mut Txn,
@@ -92,8 +150,8 @@ pub trait FinancialDocumentRepository<Txn: Send + Sync + 'static>: Send + Sync +
         issued_before: DateTime<Utc>,
     ) -> impl Future<Output = anyhow::Result<Vec<FinancialDocument>>> + Send;
 
-    /// Delete all documents that were issued before the given timestamp and
-    /// return the number of documents that were deleted.
+    /// Under READ COMMITTED, delete currently eligible documents issued before
+    /// the timestamp. Skip pending or held originals and count actual deletions.
     fn delete_issued_before(
         &self,
         txn: &mut Txn,

@@ -12,6 +12,7 @@ use crate::{FinanceFeatureConfig, FinanceFeatureServiceImpl};
 
 mod download_credit_note;
 mod download_invoice;
+mod download_recipient_original;
 mod get_download_token;
 mod list_documents;
 

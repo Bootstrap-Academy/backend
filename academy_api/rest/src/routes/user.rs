@@ -346,6 +346,7 @@ async fn update(
         .await
     {
         Ok(user) => Json(ApiUser::from(user)).into_response(),
+        Err(UserUpdateError::ModerationRequired) => ModerationRequiredError.into_response(),
         Err(UserUpdateError::NotFound) => UserNotFoundError.into_response(),
         Err(UserUpdateError::NameConflict) => UserAlreadyExistsError.into_response(),
         Err(UserUpdateError::EmailConflict) => EmailAlreadyExistsError.into_response(),
@@ -477,6 +478,7 @@ async fn delete(
 ) -> Response {
     match user_service.delete_user(&token.0, user_id.into()).await {
         Ok(()) => Json(OkResponse).into_response(),
+        Err(UserDeleteError::ModerationRequired) => ModerationRequiredError.into_response(),
         Err(UserDeleteError::NotFound) => UserNotFoundError.into_response(),
         Err(UserDeleteError::Auth(err)) => auth_error(err),
         Err(UserDeleteError::Other(err)) => internal_server_error(err),
@@ -778,3 +780,5 @@ mod tests {
         }
     }
 }
+
+error_code! { ModerationRequiredError(CONFLICT, "Use a reasoned moderation decision"); }

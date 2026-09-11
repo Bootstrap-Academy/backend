@@ -1,0 +1,18 @@
+[package]
+name = "academy_core_moderation_contracts"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+homepage.workspace = true
+repository.workspace = true
+[lints]
+workspace = true
+[dependencies]
+uuid.workspace = true
+academy_models.workspace = true
+academy_auth_contracts.workspace = true
+academy_core_session_contracts.workspace = true
+academy_core_user_contracts.workspace = true
+anyhow.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true

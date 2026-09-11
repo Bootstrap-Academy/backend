@@ -743,7 +743,7 @@ impl ListDocumentNumbersStmt {
 pub struct ListDocumentsIssuedBeforeStmt(&'static str, Option<tokio_postgres::Statement>);
 pub fn list_documents_issued_before() -> ListDocumentsIssuedBeforeStmt {
     ListDocumentsIssuedBeforeStmt(
-        "select * from financial_documents where issued_at<$1 order by issued_at asc",
+        "select * from financial_documents d where issued_at<$1 and not exists(select 1 from commercial_document_holds h where h.number=d.number) and (kind<>'final_statement' or exists(select 1 from commercial_statement_disposal_reviews r where r.number=d.number and r.authorized)) and (kind<>'invoice' or not commercial_invoice_identity_pending(d.number)) order by issued_at asc",
         None,
     )
 }
@@ -788,7 +788,7 @@ impl ListDocumentsIssuedBeforeStmt {
 }
 pub struct DeleteDocumentsIssuedBeforeStmt(&'static str, Option<tokio_postgres::Statement>);
 pub fn delete_documents_issued_before() -> DeleteDocumentsIssuedBeforeStmt {
-    DeleteDocumentsIssuedBeforeStmt("delete from financial_documents where issued_at<$1", None)
+    DeleteDocumentsIssuedBeforeStmt("delete from financial_documents d where issued_at<$1 and not exists(select 1 from commercial_document_holds h where h.number=d.number) and (kind<>'final_statement' or exists(select 1 from commercial_statement_disposal_reviews r where r.number=d.number and r.authorized))", None)
 }
 impl DeleteDocumentsIssuedBeforeStmt {
     pub async fn prepare<'a, C: GenericClient>(

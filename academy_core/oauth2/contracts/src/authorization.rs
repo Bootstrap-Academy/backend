@@ -9,6 +9,16 @@ use thiserror::Error;
 
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait OAuth2AuthorizationService: Send + Sync + 'static {
+    fn begin_recipient(
+        &self,
+        provider_id: OAuth2ProviderId,
+        redirect_uri: Url,
+    ) -> impl Future<Output = Result<OAuth2AuthorizationUrl, OAuth2AuthorizationServiceError>> + Send;
+    fn consume_recipient(
+        &self,
+        state: &OAuth2State,
+    ) -> impl Future<Output = anyhow::Result<Option<OAuth2PendingAuthorization>>> + Send;
+
     /// Start an authorization flow for the given provider.
     ///
     /// Generates the unguessable `state` nonce (RFC 6749 §10.12) and, for

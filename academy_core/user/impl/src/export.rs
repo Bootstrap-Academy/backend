@@ -4,8 +4,8 @@ use academy_models::user::UserId;
 use academy_persistence_contracts::{
     coin::CoinRepository, contract::ContractRepository, finance::FinancialDocumentRepository,
     heart::HeartRepository, oauth2::OAuth2Repository, paypal::PaypalRepository,
-    premium::PremiumRepository, session::SessionRepository, user::UserRepository,
-    withdrawal::WithdrawalRepository,
+    premium::PremiumRepository, purchase::PurchaseRepository, session::SessionRepository,
+    user::UserRepository, withdrawal::WithdrawalRepository,
 };
 use anyhow::Context;
 use tracing::instrument;
@@ -22,6 +22,8 @@ pub struct UserExportServiceImpl<
     ContractRepo,
     WithdrawalRepo,
     DocumentRepo,
+    PurchaseRepo,
+    ModerationRepo,
 > {
     user_repo: UserRepo,
     session_repo: SessionRepo,
@@ -33,6 +35,8 @@ pub struct UserExportServiceImpl<
     contract_repo: ContractRepo,
     withdrawal_repo: WithdrawalRepo,
     document_repo: DocumentRepo,
+    purchase_repo: PurchaseRepo,
+    moderation_repo: ModerationRepo,
 }
 
 impl<
@@ -47,6 +51,8 @@ impl<
     ContractRepo,
     WithdrawalRepo,
     DocumentRepo,
+    PurchaseRepo,
+    ModerationRepo,
 > UserExportService<Txn>
     for UserExportServiceImpl<
         UserRepo,
@@ -59,6 +65,8 @@ impl<
         ContractRepo,
         WithdrawalRepo,
         DocumentRepo,
+        PurchaseRepo,
+        ModerationRepo,
     >
 where
     Txn: Send + Sync + 'static,
@@ -72,7 +80,34 @@ where
     ContractRepo: ContractRepository<Txn>,
     WithdrawalRepo: WithdrawalRepository<Txn>,
     DocumentRepo: FinancialDocumentRepository<Txn>,
+    PurchaseRepo: PurchaseRepository<Txn>,
+    ModerationRepo: academy_persistence_contracts::moderation::ModerationRepository<Txn>,
 {
+    async fn retained(&self, txn: &mut Txn, user_id: UserId) -> anyhow::Result<serde_json::Value> {
+        let mut retained = self
+            .moderation_repo
+            .operation(
+                txn,
+                "retained_records",
+                Some(user_id),
+                &serde_json::Value::Null,
+            )
+            .await?;
+        retained["purchase_evidence"] =
+            serde_json::from_str(&self.purchase_repo.export(txn, *user_id).await?)?;
+        retained["premium_renewal_evidence"] = serde_json::from_str(
+            &self
+                .premium_repo
+                .export_renewal_evidence(txn, user_id)
+                .await?,
+        )?;
+        retained["commercial"] = self
+            .moderation_repo
+            .commercial_operation(txn, "export", Some(user_id), &serde_json::json!({}))
+            .await?;
+        Ok(retained)
+    }
+
     // Not `trace_instrument`, because that logs the return value, which is
     // everything this service stores about the user.
     #[instrument(skip(self, txn))]
@@ -91,7 +126,18 @@ where
         };
 
         Ok(Some(AccountDataExport {
+            commercial: self
+                .moderation_repo
+                .commercial_operation(txn, "export", Some(user_id), &serde_json::json!({}))
+                .await?,
+            moderation: self
+                .moderation_repo
+                .operation(txn, "inbox", Some(user_id), &serde_json::Value::Null)
+                .await?,
             user,
+            purchase_evidence: serde_json::from_str(
+                &self.purchase_repo.export(txn, *user_id).await?,
+            )?,
             sessions: self
                 .session_repo
                 .list_by_user(txn, user_id)
@@ -127,6 +173,12 @@ where
                 .get_subscription(txn, user_id)
                 .await
                 .context("Failed to get premium subscription from database")?,
+            premium_renewal_evidence: serde_json::from_str(
+                &self
+                    .premium_repo
+                    .export_renewal_evidence(txn, user_id)
+                    .await?,
+            )?,
             invoices: self
                 .paypal_repo
                 .list_coin_orders_by_user_id(txn, user_id)

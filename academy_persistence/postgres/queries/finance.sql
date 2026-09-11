@@ -46,7 +46,13 @@ select count(*) from financial_documents
 select number from financial_documents order by number asc;
 
 --! list_documents_issued_before : Document
-select * from financial_documents where issued_at<:issued_before order by issued_at asc;
+select * from financial_documents d where issued_at<:issued_before
+  and not exists(select 1 from commercial_document_holds h where h.number=d.number)
+  and (kind<>'final_statement' or exists(select 1 from commercial_statement_disposal_reviews r where r.number=d.number and r.authorized))
+  and (kind<>'invoice' or not commercial_invoice_identity_pending(d.number))
+  order by issued_at asc;
 
 --! delete_documents_issued_before
-delete from financial_documents where issued_at<:issued_before;
+delete from financial_documents d where issued_at<:issued_before
+  and not exists(select 1 from commercial_document_holds h where h.number=d.number)
+  and (kind<>'final_statement' or exists(select 1 from commercial_statement_disposal_reviews r where r.number=d.number and r.authorized));

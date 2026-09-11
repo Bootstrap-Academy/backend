@@ -4,13 +4,21 @@ use academy_models::{
     auth::{AccessToken, AuthError},
     coin::Balance,
     paypal::PaypalOrderId,
-    withdrawal::WithdrawalConsentDeclaration,
+    purchase::{PurchaseAcceptance, PurchaseStatus},
 };
 use thiserror::Error;
 
 pub mod coin_order;
 
 pub trait PaypalFeatureService: Send + Sync + 'static {
+    fn offer_coin_order(
+        &self,
+        token: &AccessToken,
+        coins: u64,
+    ) -> impl Future<Output = Result<PurchaseStatus, PaypalCreateCoinOrderError>> + Send;
+    /// Reconcile started payments and retry durable receipt work, isolating individual failures.
+    fn retry_payments(&self) -> impl Future<Output = anyhow::Result<()>> + Send;
+
     /// Return the public PayPal client id.
     fn get_client_id(&self) -> &str;
 
@@ -23,7 +31,7 @@ pub trait PaypalFeatureService: Send + Sync + 'static {
         &self,
         token: &AccessToken,
         coins: u64,
-        declaration: WithdrawalConsentDeclaration,
+        declaration: PurchaseAcceptance,
     ) -> impl Future<Output = Result<PaypalOrderId, PaypalCreateCoinOrderError>> + Send;
 
     /// Complete Morphcoin purchase.
@@ -38,6 +46,8 @@ pub trait PaypalFeatureService: Send + Sync + 'static {
 
 #[derive(Debug, Error)]
 pub enum PaypalCreateCoinOrderError {
+    #[error("Exact offer changed or unavailable; review the original order before a new purchase")]
+    OfferChanged,
     #[error("The specified number of Morphcoins is outside of the allowed range.")]
     InvalidAmount(RangeInclusive<u64>),
     #[error("The user did not give the withdrawal declarations.")]
@@ -54,6 +64,10 @@ pub enum PaypalCreateCoinOrderError {
 
 #[derive(Debug, Error)]
 pub enum PaypalCaptureCoinOrderError {
+    #[error(
+        "Your payment is still being checked. Please retry this order later; do not place a second order."
+    )]
+    Pending,
     #[error(transparent)]
     Auth(#[from] AuthError),
     #[error("The order does not exist.")]

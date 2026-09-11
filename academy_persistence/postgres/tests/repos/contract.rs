@@ -15,11 +15,56 @@ use crate::{
     repos::{make_slice, sliced},
 };
 
+// These original repository tests compare the submitted/processing columns.
+// T12's separate lifecycle suite asserts generated observation/outbox evidence.
+trait OriginalFields {
+    fn original_fields(self) -> Self;
+}
+impl OriginalFields for ContractDeclaration {
+    fn original_fields(mut self) -> Self {
+        self.operational_evidence = None;
+        self
+    }
+}
+impl<T: OriginalFields> OriginalFields for Vec<T> {
+    fn original_fields(self) -> Self {
+        self.into_iter()
+            .map(OriginalFields::original_fields)
+            .collect()
+    }
+}
+impl<T: OriginalFields> OriginalFields for Option<T> {
+    fn original_fields(self) -> Self {
+        self.map(OriginalFields::original_fields)
+    }
+}
+impl<T: OriginalFields, const N: usize> OriginalFields for [T; N] {
+    fn original_fields(self) -> Self {
+        self.map(OriginalFields::original_fields)
+    }
+}
+impl OriginalFields for usize {
+    fn original_fields(self) -> Self {
+        self
+    }
+}
+impl OriginalFields for u64 {
+    fn original_fields(self) -> Self {
+        self
+    }
+}
+macro_rules! assert_original_fields_eq {
+    ($left:expr,$right:expr $(,)?) => {
+        assert_eq!($left.original_fields(), $right.original_fields())
+    };
+}
 const REPO: PostgresContractRepository = PostgresContractRepository;
 
 /// A declaration with all optional columns set.
 fn cancellation() -> ContractDeclaration {
     ContractDeclaration {
+        delivery: Vec::new(),
+        operational_evidence: None,
         id: UUID1.into(),
         kind: ContractDeclarationKind::Cancellation,
         received_at: Utc.with_ymd_and_hms(2026, 9, 3, 12, 0, 0).unwrap(),
@@ -40,6 +85,8 @@ fn cancellation() -> ContractDeclaration {
 /// A declaration with all optional columns unset.
 fn withdrawal() -> ContractDeclaration {
     ContractDeclaration {
+        delivery: Vec::new(),
+        operational_evidence: None,
         id: UUID2.into(),
         kind: ContractDeclarationKind::Withdrawal,
         received_at: Utc.with_ymd_and_hms(2026, 9, 2, 12, 0, 0).unwrap(),
@@ -59,6 +106,8 @@ fn withdrawal() -> ContractDeclaration {
 
 fn other_cancellation() -> ContractDeclaration {
     ContractDeclaration {
+        delivery: Vec::new(),
+        operational_evidence: None,
         id: uuid!("b3a2eb0e-7a35-4c2e-9ee6-6cf4a7a3f5b1").into(),
         kind: ContractDeclarationKind::Cancellation,
         received_at: Utc.with_ymd_and_hms(2026, 9, 1, 12, 0, 0).unwrap(),
@@ -81,8 +130,8 @@ async fn create_list_count() {
     let db = setup().await;
 
     let mut txn = db.begin_transaction().await.unwrap();
-    assert_eq!(REPO.count(&mut txn, None).await.unwrap(), 0);
-    assert_eq!(
+    assert_original_fields_eq!(REPO.count(&mut txn, None).await.unwrap(), 0);
+    assert_original_fields_eq!(
         REPO.list(&mut txn, None, make_slice(100, 0)).await.unwrap(),
         []
     );
@@ -96,8 +145,8 @@ async fn create_list_count() {
     let expected = [cancellation(), withdrawal(), other_cancellation()];
 
     let mut txn = db.begin_transaction().await.unwrap();
-    assert_eq!(REPO.count(&mut txn, None).await.unwrap(), 3);
-    assert_eq!(
+    assert_original_fields_eq!(REPO.count(&mut txn, None).await.unwrap(), 3);
+    assert_original_fields_eq!(
         REPO.list(&mut txn, None, make_slice(100, 0)).await.unwrap(),
         expected
     );
@@ -116,15 +165,15 @@ async fn filter_by_kind() {
     let mut txn = db.begin_transaction().await.unwrap();
 
     let kind = Some(ContractDeclarationKind::Cancellation);
-    assert_eq!(REPO.count(&mut txn, kind).await.unwrap(), 2);
-    assert_eq!(
+    assert_original_fields_eq!(REPO.count(&mut txn, kind).await.unwrap(), 2);
+    assert_original_fields_eq!(
         REPO.list(&mut txn, kind, make_slice(100, 0)).await.unwrap(),
         [cancellation(), other_cancellation()]
     );
 
     let kind = Some(ContractDeclarationKind::Withdrawal);
-    assert_eq!(REPO.count(&mut txn, kind).await.unwrap(), 1);
-    assert_eq!(
+    assert_original_fields_eq!(REPO.count(&mut txn, kind).await.unwrap(), 1);
+    assert_original_fields_eq!(
         REPO.list(&mut txn, kind, make_slice(100, 0)).await.unwrap(),
         [withdrawal()]
     );
@@ -152,7 +201,7 @@ async fn pagination() {
         make_slice(100, 17),
     ] {
         let result = REPO.list(&mut txn, None, slice).await.unwrap();
-        assert_eq!(result, sliced(expected, slice));
+        assert_original_fields_eq!(result, sliced(expected, slice).to_vec());
     }
 }
 
@@ -167,11 +216,15 @@ async fn pagination_with_equal_timestamps() {
     let declarations = [
         cancellation(),
         ContractDeclaration {
+            delivery: Vec::new(),
+            operational_evidence: None,
             id: uuid!("3f5d59fa-8f3b-4e46-9d51-4f3c6b0d0a7e").into(),
             received_at: same_moment,
             ..withdrawal()
         },
         ContractDeclaration {
+            delivery: Vec::new(),
+            operational_evidence: None,
             id: uuid!("b3a2eb0e-7a35-4c2e-9ee6-6cf4a7a3f5b1").into(),
             received_at: same_moment,
             ..other_cancellation()
@@ -186,7 +239,7 @@ async fn pagination_with_equal_timestamps() {
 
     let mut txn = db.begin_transaction().await.unwrap();
     let whole = REPO.list(&mut txn, None, make_slice(100, 0)).await.unwrap();
-    assert_eq!(whole.len(), declarations.len());
+    assert_original_fields_eq!(whole.len(), declarations.len());
 
     // Reading the same list one entry at a time returns exactly the same
     // entries in the same order.
@@ -198,7 +251,7 @@ async fn pagination_with_equal_timestamps() {
                 .unwrap(),
         );
     }
-    assert_eq!(paged, whole);
+    assert_original_fields_eq!(paged, whole);
 }
 
 /// The export of a user contains the declarations of that user, oldest first.
@@ -207,12 +260,14 @@ async fn list_by_user_id() {
     let db = setup().await;
 
     let mut txn = db.begin_transaction().await.unwrap();
-    assert_eq!(
+    assert_original_fields_eq!(
         REPO.list_by_user_id(&mut txn, FOO.user.id).await.unwrap(),
         []
     );
 
     let second = ContractDeclaration {
+        delivery: Vec::new(),
+        operational_evidence: None,
         id: uuid!("3f5d59fa-8f3b-4e46-9d51-4f3c6b0d0a7e").into(),
         received_at: Utc.with_ymd_and_hms(2026, 9, 5, 12, 0, 0).unwrap(),
         ..cancellation()
@@ -226,6 +281,8 @@ async fn list_by_user_id() {
     REPO.create(
         &mut txn,
         ContractDeclaration {
+            delivery: Vec::new(),
+            operational_evidence: None,
             user_id: Some(BAR.user.id),
             ..other_cancellation()
         },
@@ -235,13 +292,15 @@ async fn list_by_user_id() {
     txn.commit().await.unwrap();
 
     let mut txn = db.begin_transaction().await.unwrap();
-    assert_eq!(
+    assert_original_fields_eq!(
         REPO.list_by_user_id(&mut txn, FOO.user.id).await.unwrap(),
         [cancellation(), second]
     );
-    assert_eq!(
+    assert_original_fields_eq!(
         REPO.list_by_user_id(&mut txn, BAR.user.id).await.unwrap(),
         [ContractDeclaration {
+            delivery: Vec::new(),
+            operational_evidence: None,
             user_id: Some(BAR.user.id),
             ..other_cancellation()
         }]
@@ -263,10 +322,12 @@ async fn survives_user_deletion() {
         .unwrap();
 
     let mut txn = db.begin_transaction().await.unwrap();
-    assert_eq!(REPO.count(&mut txn, None).await.unwrap(), 1);
-    assert_eq!(
+    assert_original_fields_eq!(REPO.count(&mut txn, None).await.unwrap(), 1);
+    assert_original_fields_eq!(
         REPO.list(&mut txn, None, make_slice(100, 0)).await.unwrap(),
         [ContractDeclaration {
+            delivery: Vec::new(),
+            operational_evidence: None,
             user_id: None,
             ..cancellation()
         }]
@@ -287,7 +348,7 @@ async fn delete_by_received_at() {
 
     // Nothing is old enough yet.
     let mut txn = db.begin_transaction().await.unwrap();
-    assert_eq!(
+    assert_original_fields_eq!(
         REPO.delete_by_received_at(
             &mut txn,
             Utc.with_ymd_and_hms(2026, 9, 1, 12, 0, 0).unwrap()
@@ -299,7 +360,7 @@ async fn delete_by_received_at() {
 
     // The cutoff is exclusive, so a declaration received exactly at it is
     // kept.
-    assert_eq!(
+    assert_original_fields_eq!(
         REPO.delete_by_received_at(
             &mut txn,
             Utc.with_ymd_and_hms(2026, 9, 3, 12, 0, 0).unwrap()
@@ -308,18 +369,18 @@ async fn delete_by_received_at() {
         .unwrap(),
         2
     );
-    assert_eq!(
+    assert_original_fields_eq!(
         REPO.list(&mut txn, None, make_slice(100, 0)).await.unwrap(),
         [cancellation()]
     );
 
-    assert_eq!(
+    assert_original_fields_eq!(
         REPO.delete_by_received_at(&mut txn, Utc.with_ymd_and_hms(2029, 1, 1, 0, 0, 0).unwrap())
             .await
             .unwrap(),
         1
     );
-    assert_eq!(REPO.count(&mut txn, None).await.unwrap(), 0);
+    assert_original_fields_eq!(REPO.count(&mut txn, None).await.unwrap(), 0);
 }
 
 #[tokio::test]
@@ -327,18 +388,18 @@ async fn get() {
     let db = setup().await;
 
     let mut txn = db.begin_transaction().await.unwrap();
-    assert_eq!(REPO.get(&mut txn, cancellation().id).await.unwrap(), None);
+    assert_original_fields_eq!(REPO.get(&mut txn, cancellation().id).await.unwrap(), None);
 
     REPO.create(&mut txn, cancellation()).await.unwrap();
     REPO.create(&mut txn, withdrawal()).await.unwrap();
     txn.commit().await.unwrap();
 
     let mut txn = db.begin_transaction().await.unwrap();
-    assert_eq!(
+    assert_original_fields_eq!(
         REPO.get(&mut txn, cancellation().id).await.unwrap(),
         Some(cancellation())
     );
-    assert_eq!(
+    assert_original_fields_eq!(
         REPO.get(&mut txn, withdrawal().id).await.unwrap(),
         Some(withdrawal())
     );
@@ -360,6 +421,8 @@ async fn set_processed() {
     let note = "Außerordentliche Kündigung anerkannt".try_into().unwrap();
 
     let expected = ContractDeclaration {
+        delivery: Vec::new(),
+        operational_evidence: None,
         processed_at: Some(processed_at),
         effective_end: Some(effective_end),
         processing_note: Some("Außerordentliche Kündigung anerkannt".try_into().unwrap()),
@@ -368,13 +431,14 @@ async fn set_processed() {
 
     let mut txn = db.begin_transaction().await.unwrap();
     // what comes back is the stored row, not what the caller passed in
-    assert_eq!(
+    assert_original_fields_eq!(
         REPO.set_processed(
             &mut txn,
             withdrawal().id,
             processed_at,
             Some(effective_end),
             Some(note),
+            true,
         )
         .await
         .unwrap(),
@@ -383,12 +447,12 @@ async fn set_processed() {
     txn.commit().await.unwrap();
 
     let mut txn = db.begin_transaction().await.unwrap();
-    assert_eq!(
+    assert_original_fields_eq!(
         REPO.get(&mut txn, withdrawal().id).await.unwrap(),
         Some(expected)
     );
     // the other declaration is untouched
-    assert_eq!(
+    assert_original_fields_eq!(
         REPO.get(&mut txn, other_cancellation().id).await.unwrap(),
         Some(other_cancellation())
     );
@@ -400,13 +464,14 @@ async fn set_processed_not_found() {
     let db = setup().await;
 
     let mut txn = db.begin_transaction().await.unwrap();
-    assert_eq!(
+    assert_original_fields_eq!(
         REPO.set_processed(
             &mut txn,
             cancellation().id,
             Utc.with_ymd_and_hms(2026, 9, 8, 9, 30, 0).unwrap(),
             None,
             None,
+            true,
         )
         .await
         .unwrap(),

@@ -11,6 +11,7 @@ use academy_core_heart_impl::HeartFeatureConfig;
 use academy_core_oauth2_impl::OAuth2FeatureConfig;
 use academy_core_paypal_impl::PaypalFeatureConfig;
 use academy_core_premium_impl::PremiumFeatureConfig;
+use academy_core_purchase_impl::PurchaseFeatureConfig;
 use academy_core_session_impl::{SessionFeatureConfig, login_throttle::SessionLoginThrottleConfig};
 use academy_core_user_impl::UserFeatureConfig;
 use academy_di::provider;
@@ -66,6 +67,7 @@ provider! {
             FinanceFeatureConfig,
             HeartFeatureConfig,
             PremiumFeatureConfig,
+            PurchaseFeatureConfig,
         }
     }
 }
@@ -131,6 +133,7 @@ provider! {
         finance_feature_config: FinanceFeatureConfig,
         heart_feature_config: HeartFeatureConfig,
         premium_feature_config: PremiumFeatureConfig,
+        purchase_feature_config: PurchaseFeatureConfig,
     }
 }
 
@@ -310,6 +313,9 @@ impl ConfigProvider {
             monthly_price: config.premium.monthly_price,
             yearly_price: config.premium.yearly_price,
         };
+        let purchase_feature_config = PurchaseFeatureConfig {
+            provision_window_seconds: config.purchase.provision_window_seconds.clone(),
+        };
 
         Ok(Self {
             _cache: Default::default(),
@@ -344,6 +350,7 @@ impl ConfigProvider {
             finance_feature_config,
             heart_feature_config,
             premium_feature_config,
+            purchase_feature_config,
         })
     }
 }

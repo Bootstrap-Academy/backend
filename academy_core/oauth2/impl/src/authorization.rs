@@ -41,6 +41,50 @@ where
         redirect_uri: Url,
         user_id: Option<UserId>,
     ) -> Result<OAuth2AuthorizationUrl, OAuth2AuthorizationServiceError> {
+        self.begin_scoped(provider_id, redirect_uri, user_id, false)
+            .await
+    }
+
+    async fn begin_recipient(
+        &self,
+        provider_id: OAuth2ProviderId,
+        redirect_uri: Url,
+    ) -> Result<OAuth2AuthorizationUrl, OAuth2AuthorizationServiceError> {
+        self.begin_scoped(provider_id, redirect_uri, None, true)
+            .await
+    }
+    async fn consume_recipient(
+        &self,
+        state: &OAuth2State,
+    ) -> anyhow::Result<Option<OAuth2PendingAuthorization>> {
+        self.cache
+            .pop(&format!("oauth2_rights_authorization:{}", **state))
+            .await
+            .context("Failed to consume rights authorization")
+    }
+
+    #[trace_instrument(skip(self))]
+    async fn consume(
+        &self,
+        state: &OAuth2State,
+    ) -> anyhow::Result<Option<OAuth2PendingAuthorization>> {
+        self.cache
+            .pop(&oauth2_authorization_cache_key(state))
+            .await
+            .context("Failed to get OAuth2 authorization from cache")
+    }
+}
+
+impl<Secret: SecretService, Cache: CacheService, OAuth2Api: OAuth2ApiService>
+    OAuth2AuthorizationServiceImpl<Secret, Cache, OAuth2Api>
+{
+    async fn begin_scoped(
+        &self,
+        provider_id: OAuth2ProviderId,
+        redirect_uri: Url,
+        user_id: Option<UserId>,
+        recipient: bool,
+    ) -> Result<OAuth2AuthorizationUrl, OAuth2AuthorizationServiceError> {
         let provider = self
             .config
             .providers
@@ -77,7 +121,11 @@ where
 
         self.cache
             .set(
-                &oauth2_authorization_cache_key(&state),
+                &if recipient {
+                    format!("oauth2_rights_authorization:{}", state.as_str())
+                } else {
+                    oauth2_authorization_cache_key(&state)
+                },
                 &OAuth2PendingAuthorization {
                     provider_id,
                     redirect_uri,
@@ -93,17 +141,6 @@ where
             state,
             authorize_url,
         })
-    }
-
-    #[trace_instrument(skip(self))]
-    async fn consume(
-        &self,
-        state: &OAuth2State,
-    ) -> anyhow::Result<Option<OAuth2PendingAuthorization>> {
-        self.cache
-            .pop(&oauth2_authorization_cache_key(state))
-            .await
-            .context("Failed to get OAuth2 authorization from cache")
     }
 }
 

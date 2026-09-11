@@ -10,6 +10,9 @@ repository.workspace = true
 workspace = true
 
 [dependencies]
+academy_core_purchase_contracts.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
 academy_auth_contracts.workspace = true
 academy_core_coin_contracts.workspace = true
 academy_core_finance_contracts.workspace = true
@@ -26,8 +29,11 @@ anyhow.workspace = true
 rust_decimal.workspace = true
 rust_decimal_macros.workspace = true
 tracing.workspace = true
+chrono.workspace = true
+uuid.workspace = true
 
 [dev-dependencies]
+academy_core_purchase_contracts = { workspace = true, features = ["mock"] }
 academy_auth_contracts = { workspace = true, features = ["mock"] }
 academy_core_coin_contracts = { workspace = true, features = ["mock"] }
 academy_core_finance_contracts = { workspace = true, features = ["mock"] }

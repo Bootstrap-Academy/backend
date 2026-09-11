@@ -19,6 +19,11 @@ impl HeartRepository<PostgresTransaction> for PostgresHeartRepository {
         txn: &mut PostgresTransaction,
         user_id: UserId,
     ) -> anyhow::Result<Option<Hearts>> {
+        // All paid refills and consumption share this lock, including an absent
+        // hearts row. The caller applies one effective refill-time decision.
+        txn.txn()
+            .query_opt("SELECT id FROM users WHERE id=$1 FOR UPDATE", &[&*user_id])
+            .await?;
         queries::heart::get()
             .bind(txn.txn(), &user_id)
             .opt()

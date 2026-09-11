@@ -49,7 +49,7 @@ nutype_string!(ContractDeclarationDetails(
 // they picked and never derived from it.
 nutype_string!(ContractDesignation(
     sanitize(trim),
-    validate(len_char_min = 1, len_char_max = 256)
+    validate(len_char_min = 1, len_char_max = 1024)
 ));
 
 // A note an administrator leaves when a declaration has been processed.
@@ -64,7 +64,9 @@ nutype_string!(ContractProcessingNote(
 /// deleting the account only drops the reference to it. It is removed by
 /// `academy task prune-database` once a claim out of the declared contract is
 /// time-barred, `contract.retention_years` years after the end of the calendar
-/// year in which it was received (§ 195, § 199 Abs. 1 BGB).
+/// year of the latest receipt, processing or requested/effective end. Pending
+/// processing, delivery and schedules are protected; this is not an automatic
+/// determination of statutory limitation in every individual case.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ContractDeclaration {
     pub id: ContractDeclarationId,
@@ -89,4 +91,40 @@ pub struct ContractDeclaration {
     pub processed_at: Option<DateTime<Utc>>,
     /// What was done when the declaration was processed.
     pub processing_note: Option<ContractProcessingNote>,
+    /// Operational evidence; never included in an anonymous receipt.
+    pub delivery: Vec<ContractDeliveryStatus>,
+    /// JSON archive of receipt-time observations, period changes, schedule and immutable message bytes.
+    pub operational_evidence: Option<String>,
+}
+
+/// The secret is a separate random capability, never included in a receipt or URL.
+#[derive(
+    Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize, schemars::JsonSchema,
+)]
+pub struct ContractRequestKey {
+    pub id: ContractDeclarationId,
+    pub secret: ContractDeclarationId,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, schemars::JsonSchema)]
+pub struct ContractDeliveryStatus {
+    pub kind: String,
+    pub attempts: i64,
+    #[schemars(with = "String")]
+    pub next_attempt_at: DateTime<Utc>,
+    /// SMTP acceptance only, not proof of delivery to the inbox.
+    #[schemars(with = "Option<String>")]
+    pub accepted_at: Option<DateTime<Utc>>,
+    pub last_error: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ContractDeliveryAttempt {
+    pub requested_agreement_id: Option<crate::premium::PremiumRenewalId>,
+    pub declaration_id: ContractDeclarationId,
+    pub kind: String,
+    pub recipient: EmailAddress,
+    pub subject: String,
+    pub body: String,
+    pub generation: i64,
 }

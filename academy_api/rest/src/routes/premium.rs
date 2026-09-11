@@ -1,9 +1,9 @@
 use std::{collections::HashMap, sync::Arc};
 
 use academy_core_premium_contracts::{
-    PremiumFeatureService, PremiumGetStatusError, PremiumPurchaseError,
-    PremiumUpdateSubscriptionError,
+    PremiumFeatureService, PremiumGetStatusError, PremiumUpdateSubscriptionError,
 };
+use academy_models::premium::PremiumRenewalConsent;
 use aide::{
     axum::{ApiRouter, routing},
     transform::TransformOperation,
@@ -15,11 +15,9 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use schemars::JsonSchema;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-use super::{
-    coin::NotEnoughCoinsError, user::UserNotFoundError, withdrawal::WithdrawalConsentMissingError,
-};
+use super::user::UserNotFoundError;
 use crate::{
     docs::TransformOperationExt,
     error_code,
@@ -29,7 +27,6 @@ use crate::{
         OkResponse,
         premium::{ApiPremiumPlan, ApiPremiumPlanDetails, ApiPremiumStatus},
         user::PathUserIdOrSelf,
-        withdrawal::ApiWithdrawalConsentDeclaration,
     },
 };
 
@@ -42,16 +39,42 @@ pub fn router(service: Arc<impl PremiumFeatureService>) -> ApiRouter<()> {
             routing::get_with(get_plans, get_plans_docs),
         )
         .api_route(
+            "/shop/premium/renewal-offer",
+            routing::get_with(get_renewal_offer, |op| {
+                op.summary("Return the exact monthly renewal offer requiring explicit consent.")
+                    .add_response::<RenewalOfferResponse>(StatusCode::OK, None)
+            }),
+        )
+        .api_route(
             "/shop/premium/{user_id}",
             routing::get_with(get_status, get_status_docs),
         )
-        .api_route("/shop/premium", routing::post_with(purchase, purchase_docs))
         .api_route(
             "/shop/premium/autopay",
             routing::put_with(update_subscription, update_subscription_docs),
         )
         .with_state(service)
         .with_path_items(|op| op.tag(TAG))
+}
+
+#[derive(Serialize, JsonSchema)]
+struct RenewalOfferResponse {
+    id: String,
+    monthly_price: u64,
+    terms_version: String,
+    text: String,
+}
+
+async fn get_renewal_offer(
+    service: State<Arc<impl PremiumFeatureService>>,
+) -> Json<RenewalOfferResponse> {
+    let offer = service.get_renewal_offer();
+    Json(RenewalOfferResponse {
+        id: offer.id,
+        monthly_price: offer.monthly_price,
+        terms_version: offer.terms_version,
+        text: offer.text,
+    })
 }
 
 async fn get_plans(service: State<Arc<impl PremiumFeatureService>>) -> Response {
@@ -97,71 +120,42 @@ fn get_status_docs(op: TransformOperation) -> TransformOperation {
 }
 
 #[derive(Deserialize, JsonSchema)]
-struct PurchaseRequest {
-    plan: ApiPremiumPlan,
-    #[serde(rename = "autopay")]
-    subscribe: Option<bool>,
-    #[serde(flatten)]
-    declaration: ApiWithdrawalConsentDeclaration,
-}
-
-async fn purchase(
-    service: State<Arc<impl PremiumFeatureService>>,
-    token: ApiToken,
-    Json(PurchaseRequest {
-        plan,
-        subscribe,
-        declaration,
-    }): Json<PurchaseRequest>,
-) -> Response {
-    match service
-        .purchase(
-            &token.0,
-            plan.into(),
-            subscribe.unwrap_or(false),
-            declaration.into(),
-        )
-        .await
-    {
-        Ok(status) => Json(ApiPremiumStatus::from(status)).into_response(),
-        Err(PremiumPurchaseError::NotEnoughCoins) => NotEnoughCoinsError.into_response(),
-        Err(PremiumPurchaseError::WithdrawalConsentMissing) => {
-            WithdrawalConsentMissingError.into_response()
-        }
-        Err(PremiumPurchaseError::Auth(err)) => auth_error(err),
-        Err(PremiumPurchaseError::Other(err)) => internal_server_error(err),
-    }
-}
-
-fn purchase_docs(op: TransformOperation) -> TransformOperation {
-    op.summary("Purchase premium for the authenticated user.")
-        .description(
-            "The period bought is a calendar period. An active membership is extended from the \
-             day it currently runs to, an expired one starts a new period today.",
-        )
-        .add_response::<ApiPremiumStatus>(StatusCode::OK, None)
-        .add_error::<NotEnoughCoinsError>()
-        .add_error::<WithdrawalConsentMissingError>()
-        .with(auth_error_docs)
-        .with(internal_server_error_docs)
+struct UpdateSubscriptionRequest {
+    plan: Option<ApiPremiumPlan>,
+    consent: Option<RenewalConsentRequest>,
 }
 
 #[derive(Deserialize, JsonSchema)]
-struct UpdateSubscriptionRequest {
-    plan: Option<ApiPremiumPlan>,
+struct RenewalConsentRequest {
+    request_id: uuid::Uuid,
+    offer_id: String,
+    accepted: bool,
+    withdrawal_consent: bool,
 }
 
 async fn update_subscription(
     service: State<Arc<impl PremiumFeatureService>>,
     token: ApiToken,
-    Json(UpdateSubscriptionRequest { plan }): Json<UpdateSubscriptionRequest>,
+    Json(UpdateSubscriptionRequest { plan, consent }): Json<UpdateSubscriptionRequest>,
 ) -> Response {
     match service
-        .update_subscription(&token.0, plan.map(Into::into))
+        .update_subscription(
+            &token.0,
+            plan.map(Into::into),
+            consent.map(|c| PremiumRenewalConsent {
+                request_id: c.request_id.into(),
+                offer_id: c.offer_id,
+                accepted: c.accepted,
+                withdrawal_consent: c.withdrawal_consent,
+            }),
+        )
         .await
     {
         Ok(()) => Json(OkResponse).into_response(),
         Err(PremiumUpdateSubscriptionError::NoPremium) => NoPremiumError.into_response(),
+        Err(PremiumUpdateSubscriptionError::RenewalConsentRequired) => {
+            RenewalConsentRequiredError.into_response()
+        }
         Err(PremiumUpdateSubscriptionError::Auth(err)) => auth_error(err),
         Err(PremiumUpdateSubscriptionError::Other(err)) => internal_server_error(err),
     }
@@ -174,11 +168,14 @@ fn update_subscription_docs(op: TransformOperation) -> TransformOperation {
             "The premium description has been updated/cancelled.",
         )
         .add_error::<NoPremiumError>()
+        .add_error::<RenewalConsentRequiredError>()
         .with(auth_error_docs)
         .with(internal_server_error_docs)
 }
 
 error_code! {
+    /// Explicit consent to the current monthly offer is required; no debit was made.
+    RenewalConsentRequiredError(PRECONDITION_FAILED, "Current monthly renewal consent required");
     /// The user is not a premium member
     NoPremiumError(PRECONDITION_FAILED, "No premium");
 }

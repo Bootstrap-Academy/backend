@@ -85,6 +85,15 @@ fn load_paths(paths: &[impl AsRef<Path>], overrides: &[&str]) -> anyhow::Result<
 /// Everything that is checked here would otherwise only be noticed on the
 /// document that was produced with it, or not at all.
 fn validate(config: &Config) -> anyhow::Result<()> {
+    for (kind, seconds) in &config.purchase.provision_window_seconds {
+        anyhow::ensure!(
+            matches!(
+                kind.as_str(),
+                "premium_monthly" | "premium_yearly" | "hearts" | "course" | "coins"
+            ) && (1..=i32::MAX as u64).contains(seconds),
+            "purchase.provision_window_seconds requires a supported product and positive representable seconds"
+        );
+    }
     let vat_percent = config.finance.vat_percent;
     anyhow::ensure!(
         vat_percent >= Decimal::ZERO && vat_percent < Decimal::ONE_HUNDRED,
@@ -116,6 +125,8 @@ pub struct Config {
     pub coin: CoinConfig,
     pub heart: HeartConfig,
     pub premium: PremiumConfig,
+    #[serde(default)]
+    pub purchase: PurchaseConfig,
     pub render: RenderConfig,
     pub microservices: MicroservicesConfig,
     pub finance: FinanceConfig,
@@ -290,6 +301,14 @@ pub struct HeartConfig {
 pub struct PremiumConfig {
     pub monthly_price: u64,
     pub yearly_price: u64,
+}
+
+#[derive(Debug, Default, Deserialize)]
+pub struct PurchaseConfig {
+    /// No commercial duration is inferred. Missing immediate-product entries
+    /// disable new offers, while already accepted obligations keep recovering.
+    #[serde(default)]
+    pub provision_window_seconds: HashMap<String, u64>,
 }
 
 #[derive(Debug, Deserialize)]

@@ -15,12 +15,15 @@ use tracing::trace;
 pub mod admin_audit;
 pub mod coin;
 pub mod contract;
+pub mod deletion;
 pub mod finance;
 pub mod heart;
 pub mod mfa;
+pub mod moderation;
 pub mod oauth2;
 pub mod paypal;
 pub mod premium;
+pub mod purchase;
 pub mod session;
 pub mod user;
 pub mod withdrawal;
@@ -32,6 +35,7 @@ type PgTransaction<'a> = tokio_postgres::Transaction<'a>;
 #[derive(Debug, Clone)]
 pub struct PostgresDatabase {
     pool: Pool<PostgresConnectionManager<NoTls>>,
+    premium_shared_clock: bool,
 }
 
 #[derive(Debug)]
@@ -44,9 +48,24 @@ pub struct PostgresDatabaseConfig {
     pub max_lifetime: Option<Duration>,
 }
 
+fn premium_shares_receipt_clock(config: &tokio_postgres::Config) -> bool {
+    // hostaddr overrides even Unix hosts and can select a different fallback
+    // route. Conservatively grant no clock proof whenever it is configured.
+    config.get_hostaddrs().is_empty()
+        && !config.get_hosts().is_empty()
+        && config.get_hosts().iter().all(|host| match host {
+            tokio_postgres::config::Host::Unix(_) => true,
+            tokio_postgres::config::Host::Tcp(host) => host == "127.0.0.1" || host == "::1",
+        })
+}
+
 impl PostgresDatabase {
     pub async fn connect(config: &PostgresDatabaseConfig) -> anyhow::Result<Self> {
-        let manager = PostgresConnectionManager::new(config.url.parse()?, NoTls);
+        let postgres_config: tokio_postgres::Config = config.url.parse()?;
+        // Current production uses a local Unix socket. Direct loopback fixtures
+        // share that host clock too. Remote clock order is deliberately unknown.
+        let premium_shared_clock = premium_shares_receipt_clock(&postgres_config);
+        let manager = PostgresConnectionManager::new(postgres_config, NoTls);
         let pool = Pool::builder()
             .max_size(config.max_connections)
             .min_idle(config.min_connections)
@@ -56,7 +75,10 @@ impl PostgresDatabase {
             .build(manager)
             .await?;
 
-        Ok(Self { pool })
+        Ok(Self {
+            pool,
+            premium_shared_clock,
+        })
     }
 
     #[cfg(feature = "dummy")]
@@ -64,6 +86,7 @@ impl PostgresDatabase {
         let manager = PostgresConnectionManager::new("".parse().unwrap(), NoTls);
         Self {
             pool: Pool::builder().build_unchecked(manager),
+            premium_shared_clock: false,
         }
     }
 
@@ -106,6 +129,33 @@ impl PostgresDatabase {
                 .transaction()
                 .await
                 .context("Failed to begin transaction")?;
+            // Old backfills used a truncating formatter. Keep their bytes and
+            // applied-name history intact, but refuse unsafe pending inputs.
+            let invoice_guard = match migration.name {
+                "2026-09-03-200000_create_financial_documents" => Some("captured_at IS NOT NULL"),
+                "2026-09-07-100000_add_withdrawal_consent_to_financial_documents" => {
+                    Some("withdrawal_consent_at IS NOT NULL")
+                }
+                _ => None,
+            };
+            if let Some(predicate) = invoice_guard {
+                // SHARE excludes source writes through the historical batch and
+                // its marker commit; a separate preflight transaction would not.
+                txn.batch_execute("LOCK TABLE paypal_coin_orders IN SHARE MODE")
+                    .await?;
+                let unsafe_input: bool = txn
+                    .query_one(
+                        &format!("SELECT EXISTS(SELECT 1 FROM paypal_coin_orders WHERE invoice_number>=10000000 AND {predicate})"),
+                        &[],
+                    )
+                    .await?
+                    .get(0);
+                anyhow::ensure!(
+                    !unsafe_input,
+                    "Migration {} remains pending: long invoice inputs require an explicit reviewed upgrade procedure; original rows must not be renamed or marked applied",
+                    migration.name
+                );
+            }
             txn.batch_execute(migration.up)
                 .await
                 .with_context(|| format!("Failed to run migration {}", migration.name))?;
@@ -192,6 +242,8 @@ impl Database for PostgresDatabase {
 
         PostgresTransactionAsyncSendTryBuilder {
             conn,
+            premium_observation_users: HashSet::new(),
+            premium_shared_clock: self.premium_shared_clock,
             txn_builder: |conn| Box::pin(async move { conn.transaction().await.map(Some) }),
         }
         .try_build()
@@ -223,12 +275,23 @@ impl Database for PostgresDatabase {
 #[self_referencing]
 pub struct PostgresTransaction {
     conn: PgPooledConnection,
+    premium_observation_users: HashSet<uuid::Uuid>,
+    premium_shared_clock: bool,
     #[borrows(mut conn)]
     #[covariant]
     txn: Option<PgTransaction<'this>>,
 }
 
 impl PostgresTransaction {
+    pub(crate) fn premium_shares_receipt_clock(&self) -> bool {
+        *self.borrow_premium_shared_clock()
+    }
+    pub(crate) fn observe_premium_after_commit(&mut self, user_id: uuid::Uuid) {
+        self.with_premium_observation_users_mut(|users| {
+            users.insert(user_id);
+        });
+    }
+
     pub fn txn(&self) -> &PgTransaction<'_> {
         self.borrow_txn().as_ref().unwrap()
     }
@@ -265,7 +328,28 @@ impl Transaction for PostgresTransaction {
             .unwrap()
             .commit()
             .await
-            .context("Failed to commit transaction")
+            .context("Failed to commit transaction")?;
+
+        let mut heads = self.into_heads();
+        if !heads.premium_observation_users.is_empty() {
+            // This is a new transaction after the purchase COMMIT. Its database
+            // observation bounds visibility; it is never called a commit time.
+            // Failure must not turn a committed debit into a failed purchase.
+            let users: Vec<_> = heads.premium_observation_users.into_iter().collect();
+            let observation: anyhow::Result<()> = async {
+                let txn = heads.conn.transaction().await?;
+                txn.batch_execute("SET LOCAL statement_timeout = '2s'").await?;
+                txn.execute("INSERT INTO premium_period_commit_observation(operation_id) SELECT id FROM premium_period_changes WHERE user_id=ANY($1::uuid[]) ORDER BY id ON CONFLICT DO NOTHING", &[&users]).await?;
+                txn.commit().await?;
+                Ok(())
+            }.await;
+            if observation.is_err() {
+                tracing::warn!(
+                    "Committed Premium visibility observation failed; uncertain declaration ordering requires review"
+                );
+            }
+        }
+        Ok(())
     }
 
     async fn rollback(mut self) -> anyhow::Result<()> {
@@ -325,4 +409,61 @@ fn decode_sha256hash(hash: Vec<u8>) -> anyhow::Result<Sha256Hash> {
     hash.try_into()
         .map(Sha256Hash)
         .map_err(|x| anyhow!("Failed to decode SHA256 hash {x:?}"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn receipt_clock_supports_direct_unix_and_loopback_hosts() {
+        for url in [
+            "host=/run/postgresql user=academy",
+            "postgres://academy@/academy?host=/run/postgresql",
+            "host=127.0.0.1 user=academy",
+            "host=::1 user=academy",
+            "postgres://academy@127.0.0.1/academy",
+            "postgres://academy@[::1]/academy",
+            "host=/run/postgresql,127.0.0.1,::1 user=academy",
+        ] {
+            let config = url.parse().unwrap();
+            assert!(premium_shares_receipt_clock(&config), "{url}");
+        }
+    }
+
+    #[test]
+    fn receipt_clock_rejects_unknown_or_remote_hosts() {
+        for url in [
+            "",
+            "user=academy",
+            "host=localhost user=academy",
+            "host=192.0.2.42 user=academy",
+            "host=db.example user=academy",
+            "postgres://academy@localhost/academy?host=/run/postgresql",
+            "host=127.0.0.1,192.0.2.42 user=academy",
+            "host=192.0.2.42,/run/postgresql user=academy",
+        ] {
+            let config = url.parse().unwrap();
+            assert!(!premium_shares_receipt_clock(&config), "{url}");
+        }
+    }
+
+    #[test]
+    fn receipt_clock_rejects_hostaddr_overrides_and_fallbacks() {
+        for url in [
+            "host=127.0.0.1 hostaddr=192.0.2.42 user=academy",
+            "host=/run/postgresql hostaddr=192.0.2.42 user=academy",
+            "host=127.0.0.1,::1 hostaddr=127.0.0.1,192.0.2.42 user=academy",
+            "host=127.0.0.1,::1 hostaddr=192.0.2.42,::1 user=academy",
+            "host=::1 hostaddr=2001:db8::42 user=academy",
+            "hostaddr=192.0.2.42 user=academy",
+            "host=127.0.0.1 hostaddr=127.0.0.1 user=academy",
+            "host=/run/postgresql hostaddr=::1 user=academy",
+            "postgres://academy@127.0.0.1/academy?hostaddr=192.0.2.42",
+        ] {
+            let config: tokio_postgres::Config = url.parse().unwrap();
+            assert!(!config.get_hostaddrs().is_empty(), "{url}");
+            assert!(!premium_shares_receipt_clock(&config), "{url}");
+        }
+    }
 }

@@ -27,6 +27,8 @@ async fn test(config: Config, recipient: EmailAddressWithName) -> anyhow::Result
 
     email_service
         .send(Email {
+            sender: None,
+            message_id: None,
             recipient,
             subject: "Email Deliverability Test".into(),
             body: "Email deliverability seems to be working!".into(),

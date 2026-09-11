@@ -28,7 +28,11 @@ async fn ok() {
 
     // Act
     let result = sut
-        .authenticate_by_password(&mut (), FOO.user.id, FOO_PASSWORD.clone())
+        .authenticate_by_password(
+            &mut academy_persistence_contracts::MockTransaction::new(),
+            FOO.user.id,
+            FOO_PASSWORD.clone(),
+        )
         .await;
 
     // Assert
@@ -47,7 +51,11 @@ async fn user_not_found() {
 
     // Act
     let result = sut
-        .authenticate_by_password(&mut (), FOO.user.id, FOO_PASSWORD.clone())
+        .authenticate_by_password(
+            &mut academy_persistence_contracts::MockTransaction::new(),
+            FOO.user.id,
+            FOO_PASSWORD.clone(),
+        )
         .await;
 
     // Assert
@@ -76,7 +84,11 @@ async fn wrong_password() {
 
     // Act
     let result = sut
-        .authenticate_by_password(&mut (), FOO.user.id, FOO_PASSWORD.clone())
+        .authenticate_by_password(
+            &mut academy_persistence_contracts::MockTransaction::new(),
+            FOO.user.id,
+            FOO_PASSWORD.clone(),
+        )
         .await;
 
     // Assert

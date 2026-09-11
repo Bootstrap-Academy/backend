@@ -3,7 +3,7 @@ use std::future::Future;
 use academy_auth_contracts::internal::AuthInternalAuthenticateError;
 use academy_models::{
     auth::InternalToken,
-    coin::{Balance, TransactionDescription},
+    coin::{Balance, CoinOperation, TransactionDescription},
     email_address::EmailAddress,
     heart::Hearts,
     user::{UserComposite, UserId},
@@ -27,6 +27,9 @@ pub trait InternalService: Send + Sync + 'static {
     ) -> impl Future<Output = Result<UserComposite, InternalGetUserByEmailError>> + Send;
 
     /// Add Morphcoins to the balance of the given user.
+    /// New negative operations require an ordinary recipient. Limited-service
+    /// purchases use their owning exact-order acceptance; nonnegative credits
+    /// retain the recipient's applicable verification and withholding rules.
     fn add_coins(
         &self,
         token: &InternalToken,
@@ -34,6 +37,15 @@ pub trait InternalService: Send + Sync + 'static {
         coins: i64,
         description: Option<TransactionDescription>,
         include_in_credit_note: bool,
+    ) -> impl Future<Output = Result<Balance, InternalAddCoinsError>> + Send;
+
+    /// Apply or replay a durable, immutable internal coin operation.
+    /// Exact completed receipts are returned before current recipient lookup.
+    /// New negative operations have the same ordinary-recipient scope as add_coins.
+    fn apply_coin_operation(
+        &self,
+        token: &InternalToken,
+        operation: CoinOperation,
     ) -> impl Future<Output = Result<Balance, InternalAddCoinsError>> + Send;
 
     /// Get hearts of the given user.
@@ -81,6 +93,8 @@ pub enum InternalGetUserByEmailError {
 
 #[derive(Debug, Error)]
 pub enum InternalAddCoinsError {
+    #[error("The operation id was already used with a different request.")]
+    OperationConflict,
     #[error("The user does not exist.")]
     UserNotFound,
     #[error("The user does not have enough coins.")]

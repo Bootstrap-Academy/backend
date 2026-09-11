@@ -1,15 +1,12 @@
 use academy_auth_contracts::MockAuthService;
-use academy_core_premium_contracts::{
-    PremiumFeatureService, PremiumUpdateSubscriptionError, premium::MockPremiumService,
-};
+use academy_core_premium_contracts::{PremiumFeatureService, PremiumUpdateSubscriptionError};
 use academy_demo::{
-    UUID1,
     session::{BAR_1, FOO_1},
     user::{BAR, FOO},
 };
 use academy_models::{
     auth::{AuthError, AuthenticateError, AuthorizeError},
-    premium::{Premium, PremiumPlan},
+    premium::PremiumPlan,
 };
 use academy_persistence_contracts::{MockDatabase, premium::MockPremiumRepository};
 use academy_utils::assert_matches;
@@ -28,7 +25,7 @@ async fn unauthenticated() {
 
     // Act
     let result = sut
-        .update_subscription(&"token".into(), Some(PremiumPlan::Yearly))
+        .update_subscription(&"token".into(), Some(PremiumPlan::Yearly), None)
         .await;
 
     // Assert
@@ -52,7 +49,7 @@ async fn email_not_verified() {
 
     // Act
     let result = sut
-        .update_subscription(&"token".into(), Some(PremiumPlan::Yearly))
+        .update_subscription(&"token".into(), Some(PremiumPlan::Yearly), None)
         .await;
 
     // Assert
@@ -65,63 +62,29 @@ async fn email_not_verified() {
 }
 
 #[tokio::test]
-async fn no_premium() {
-    // Arrange
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
-
-    let db = MockDatabase::build(true);
-
-    let premium = MockPremiumService::new().with_get_active(FOO.user.id, None);
-
-    let sut = PremiumFeatureServiceImpl {
-        auth,
-        db,
-        premium,
-        ..Sut::default()
-    };
-
-    // Act
-    let result = sut
-        .update_subscription(&"token".into(), Some(PremiumPlan::Yearly))
-        .await;
-
-    // Assert
-    assert_matches!(result, Err(PremiumUpdateSubscriptionError::NoPremium));
+async fn no_consent_cannot_enable_monthly_or_yearly() {
+    for plan in [PremiumPlan::Monthly, PremiumPlan::Yearly] {
+        let sut = PremiumFeatureServiceImpl {
+            auth: MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone()))),
+            ..Sut::default()
+        };
+        assert_matches!(
+            sut.update_subscription(&"token".into(), Some(plan), None)
+                .await,
+            Err(PremiumUpdateSubscriptionError::RenewalConsentRequired)
+        );
+    }
 }
 
 #[tokio::test]
-async fn ok() {
-    // Arrange
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
-
-    let db = MockDatabase::build(true);
-
-    let premium = MockPremiumService::new().with_get_active(
-        FOO.user.id,
-        Some(Premium {
-            id: UUID1.into(),
-            user_id: FOO.user.id,
-            since: FOO.user.created_at,
-            until: FOO.user.last_login.unwrap(),
-        }),
-    );
-
-    let premium_repo =
-        MockPremiumRepository::new().with_set_subscription(FOO.user.id, Some(PremiumPlan::Yearly));
-
+async fn cancellation_never_calls_charge_on_read_even_without_premium() {
     let sut = PremiumFeatureServiceImpl {
-        auth,
-        db,
-        premium,
-        premium_repo,
+        auth: MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone()))),
+        db: MockDatabase::build(true),
+        premium_repo: MockPremiumRepository::new().with_set_subscription(FOO.user.id, None),
         ..Sut::default()
     };
-
-    // Act
-    let result = sut
-        .update_subscription(&"token".into(), Some(PremiumPlan::Yearly))
-        .await;
-
-    // Assert
-    result.unwrap();
+    sut.update_subscription(&"token".into(), None, None)
+        .await
+        .unwrap();
 }

@@ -16,10 +16,9 @@ select user_id from premium_subscriptions;
 --! get_subscription
 select plan from premium_subscriptions where user_id=:user_id;
 
---! set_subscription (plan?)
-merge into premium_subscriptions
-  using (select :user_id::uuid as user_id where :plan::premium_plan is not null) as s
-  on premium_subscriptions.user_id = s.user_id
-  when not matched by target then insert (user_id, plan) values (:user_id, :plan)
-  when not matched by source then delete
-  when matched then update set plan=:plan;
+--! set_subscription
+insert into premium_subscriptions (user_id, plan) values (:user_id, :plan)
+  on conflict (user_id) do update set plan=excluded.plan;
+
+--! delete_subscription
+delete from premium_subscriptions where user_id=:user_id;

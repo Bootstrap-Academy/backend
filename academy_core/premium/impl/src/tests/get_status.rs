@@ -125,6 +125,7 @@ async fn no_subscription() {
         since: Utc.with_ymd_and_hms(2025, 1, 1, 0, 0, 0).unwrap(),
         until: Utc.with_ymd_and_hms(2025, 2, 1, 0, 0, 0).unwrap(),
         subscription: None,
+        renewal: None,
     };
 
     let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
@@ -143,8 +144,14 @@ async fn no_subscription() {
         }),
     );
 
-    let premium_repo =
+    let mut premium_repo =
         MockPremiumRepository::new().with_get_subscription(FOO.user.id, expected.subscription);
+    if expected.subscription.is_some() {
+        premium_repo
+            .expect_get_renewal()
+            .once()
+            .return_once(|_, _| Box::pin(async { Ok(None) }));
+    }
 
     let sut = PremiumFeatureServiceImpl {
         auth,
@@ -169,6 +176,7 @@ async fn with_subscription() {
         since: Utc.with_ymd_and_hms(2025, 1, 1, 0, 0, 0).unwrap(),
         until: Utc.with_ymd_and_hms(2025, 2, 1, 0, 0, 0).unwrap(),
         subscription: Some(PremiumPlan::Monthly),
+        renewal: None,
     };
 
     let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
@@ -187,8 +195,14 @@ async fn with_subscription() {
         }),
     );
 
-    let premium_repo =
+    let mut premium_repo =
         MockPremiumRepository::new().with_get_subscription(FOO.user.id, expected.subscription);
+    if expected.subscription.is_some() {
+        premium_repo
+            .expect_get_renewal()
+            .once()
+            .return_once(|_, _| Box::pin(async { Ok(None) }));
+    }
 
     let sut = PremiumFeatureServiceImpl {
         auth,

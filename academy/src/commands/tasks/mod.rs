@@ -1,11 +1,11 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, path::Path};
 
 use academy_config::Config;
 use academy_core_premium_contracts::premium::PremiumService;
 use academy_di::Provide;
 use academy_models::{
     admin_audit::ADMIN_AUDIT_LOG_RETENTION_MONTHS,
-    finance::{FinancialDocumentKind, credit_note_issued_at},
+    finance::{FinancialDocumentKind, FinancialDocumentNumber, credit_note_issued_at},
     retention::retention_cutoff,
 };
 use academy_persistence_contracts::{
@@ -39,6 +39,16 @@ pub enum TaskCommand {
     ListOrphanDocuments,
     /// Refresh premium subscriptions.
     RefreshPremium,
+    /// Reconcile started PayPal payments and retry their invoice/confirmation work.
+    RetryPaypalPayments,
+    /// Show unresolved payments and legacy orders requiring provider reconciliation. Read-only.
+    ListPaypalPayments,
+    /// Retry up to 100 due account erasure deliveries (durable, per service).
+    RetryUserDeletions,
+    /// Retry due cancellation/withdrawal confirmations.
+    RetryContractConfirmations,
+    /// Show aggregate pending erasures and the oldest request per service. Read-only.
+    ListUserDeletions,
 }
 
 impl TaskCommand {
@@ -48,6 +58,35 @@ impl TaskCommand {
             TaskCommand::PruneDocuments => prune_documents(config).await,
             TaskCommand::ListOrphanDocuments => list_orphan_documents(config).await,
             TaskCommand::RefreshPremium => refresh_premium(config).await,
+            TaskCommand::RetryPaypalPayments => {
+                use academy_core_paypal_contracts::PaypalFeatureService;
+                let mut provider = Provider::from_config(&config).await?;
+                let payments: types::PaypalFeature = provider.provide();
+                payments.retry_payments().await
+            }
+            TaskCommand::RetryContractConfirmations => {
+                use academy_core_contract_contracts::ContractFeatureService;
+                let mut provider = Provider::from_config(&config).await?;
+                let contracts: types::ContractFeature = provider.provide();
+                contracts.retry_confirmations().await
+            }
+            TaskCommand::RetryUserDeletions => {
+                let db = database::connect(&config.database).await?;
+                let mut provider = crate::environment::ConfigProvider::new(&config)?;
+                let services: types::MicroservicesApi = provider.provide();
+                crate::deletions::retry(&db, &services).await
+            }
+            TaskCommand::ListUserDeletions => {
+                let db = database::connect(&config.database).await?;
+                let mut txn = db.begin_transaction().await?;
+                for (service, count, oldest) in
+                    academy_persistence_postgres::deletion::backlog(&mut txn).await?
+                {
+                    println!("{service}: pending={count} oldest={oldest}");
+                }
+                Ok(())
+            }
+            TaskCommand::ListPaypalPayments => list_paypal_payments(config).await,
         }
     }
 }
@@ -89,6 +128,13 @@ async fn prune_database(config: Config) -> anyhow::Result<()> {
         .context("Failed to prune contract declarations")?;
     info!("Pruned {pruned} contract declarations received before {declaration_cutoff}.");
 
+    let pruned = academy_persistence_postgres::premium::PostgresPremiumRepository
+        .prune_renewal_evidence(&mut txn, declaration_cutoff)
+        .await?;
+    info!(
+        "Pruned {pruned} inactive Premium renewal records after their evidence retention period."
+    );
+
     txn.commit().await?;
 
     Ok(())
@@ -110,35 +156,27 @@ async fn prune_documents(config: Config) -> anyhow::Result<()> {
 
     let mut txn = db.begin_transaction().await?;
 
-    let expired = document_repo
-        .list_issued_before(&mut txn, cutoff)
+    // The record deletion and durable file-disposal queue commit together. A
+    // rollback cannot leave a retained financial record pointing at an erased PDF.
+    let records = document_repo
+        .delete_issued_before(&mut txn, cutoff)
         .await
-        .context("Failed to list expired documents")?;
-
+        .context("Failed to queue expired unheld documents")?;
+    txn.commit().await?;
+    let mut txn = db.begin_transaction().await?;
+    let work = document_repo.pending_archive_disposals(&mut txn).await?;
+    txn.commit().await?;
     let mut files = 0;
-    for document in &expired {
-        let archive = match document.kind {
+    for (number, kind) in work {
+        let archive = match kind {
             FinancialDocumentKind::Invoice => &config.finance.invoices_archive,
             FinancialDocumentKind::CreditNote => &config.finance.credit_notes_archive,
             FinancialDocumentKind::FinalStatement => &config.finance.final_statements_archive,
         };
-        let path = archive.join(format!("{}.pdf", *document.number));
-
-        if fs
-            .delete_file(&path)
-            .await
-            .with_context(|| format!("Failed to delete {}", path.display()))?
-        {
+        if dispose_archive_item(&db, &document_repo, &fs, archive, &number, kind).await? {
             files += 1;
         }
     }
-
-    let records = document_repo
-        .delete_issued_before(&mut txn, cutoff)
-        .await
-        .context("Failed to delete expired documents")?;
-
-    txn.commit().await?;
 
     // Credit notes that were archived before they were recorded in the
     // database have no record to prune, but their file name states the month
@@ -159,22 +197,67 @@ async fn prune_documents(config: Config) -> anyhow::Result<()> {
             .and_then(credit_note_issued_at);
 
         if issued_at.is_some_and(|issued_at| issued_at < cutoff)
-            && fs
-                .delete_file(&path)
-                .await
-                .with_context(|| format!("Failed to delete {}", path.display()))?
+            && let Some(stem) = path.file_stem().and_then(|v| v.to_str())
         {
+            let number =
+                academy_models::finance::FinancialDocumentNumber::try_new(stem.to_owned())?;
+            let mut txn = db.begin_transaction().await?;
+            document_repo
+                .observe_unrecorded_archive(&mut txn, &number, FinancialDocumentKind::CreditNote)
+                .await?;
+            txn.commit().await?;
             unrecorded += 1;
         }
     }
 
     info!(
         "Pruned {records} documents issued before {cutoff}: {files} archived files and \
-         {unrecorded} archived credit notes without a record."
+         {unrecorded} old credit-note archive candidates observed for independent review (recorded/held originals kept)."
     );
 
     Ok(())
 }
+
+/// One existing queue item. Committed admission precedes the file call; a later
+/// review can block a new admission but cannot revoke this committed authority.
+async fn dispose_archive_item<D, R, F>(
+    db: &D,
+    document_repo: &R,
+    fs: &F,
+    archive: &Path,
+    number: &FinancialDocumentNumber,
+    kind: FinancialDocumentKind,
+) -> anyhow::Result<bool>
+where
+    D: Database,
+    R: FinancialDocumentRepository<D::Transaction>,
+    F: FsService,
+{
+    let mut txn = db.begin_transaction().await?;
+    let admitted = document_repo
+        .begin_archive_disposal(&mut txn, number, kind)
+        .await?;
+    txn.commit().await?;
+    if !admitted {
+        return Ok(false);
+    }
+    let path = archive.join(format!("{}.pdf", number.as_str()));
+    let removed = fs
+        .delete_file(&path)
+        .await
+        .with_context(|| format!("Failed to remove {}", path.display()))?;
+    // An absent file is also an observed completed attempt. Do not conceal this
+    // history if a new review appeared after the earlier committed admission.
+    let mut txn = db.begin_transaction().await?;
+    document_repo
+        .acknowledge_archive_disposal(&mut txn, number, kind)
+        .await?;
+    txn.commit().await?;
+    Ok(removed)
+}
+
+#[cfg(test)]
+mod disposal_tests;
 
 /// List the archived documents that no record refers to, and the records whose
 /// archived file is missing.
@@ -184,70 +267,58 @@ async fn prune_documents(config: Config) -> anyhow::Result<()> {
 /// `prune-documents`; a record whose pdf could not be rendered has no file.
 /// This task only reports both, so that they can be dealt with by hand.
 async fn list_orphan_documents(config: Config) -> anyhow::Result<()> {
-    let db = database::connect(&config.database).await?;
-    let document_repo = PostgresFinancialDocumentRepository;
-    let fs = FsServiceImpl;
-
-    let mut txn = db.begin_transaction().await?;
-    let numbers = document_repo
-        .list_numbers(&mut txn)
-        .await
-        .context("Failed to list the recorded documents")?;
+    let db=database::connect(&config.database).await?;
+    let document_repo=PostgresFinancialDocumentRepository;
+    let fs=FsServiceImpl;
+    let mut txn=db.begin_transaction().await?;
+    let inventory=document_repo.archive_inventory(&mut txn).await?;
     txn.commit().await?;
-
-    let archives = [
-        &config.finance.invoices_archive,
-        &config.finance.credit_notes_archive,
-        &config.finance.final_statements_archive,
+    let archives=[
+        (FinancialDocumentKind::Invoice,&config.finance.invoices_archive),
+        (FinancialDocumentKind::CreditNote,&config.finance.credit_notes_archive),
+        (FinancialDocumentKind::FinalStatement,&config.finance.final_statements_archive),
     ];
-
-    let recorded = numbers
-        .iter()
-        .map(|number| (**number).as_str())
-        .collect::<HashSet<_>>();
-    let mut archived = HashSet::new();
-
-    let mut orphan_files = 0;
-    for archive in archives {
-        for path in fs
-            .list_files(archive)
-            .await
-            .with_context(|| format!("Failed to list {}", archive.display()))?
-        {
-            if path.extension().is_none_or(|extension| extension != "pdf") {
-                continue;
-            }
-
-            let Some(number) = path.file_stem().and_then(|stem| stem.to_str()) else {
-                continue;
-            };
-            archived.insert(number.to_owned());
-
-            if !recorded.contains(number) {
-                println!("{}", path.display());
-                orphan_files += 1;
+    let recorded=inventory.iter().filter(|(_,_,recorded,_)| *recorded)
+        .map(|(number,kind,_,_)|(number.as_str().to_owned(),kind.as_str())).collect::<HashSet<_>>();
+    let mut archived=HashSet::new();
+    let mut orphan_files=0;
+    for (kind,archive) in archives {
+        for path in fs.list_files(archive).await.with_context(||format!("Failed to list {}",archive.display()))? {
+            if path.extension().is_none_or(|extension|extension!="pdf") { continue; }
+            let Some(number)=path.file_stem().and_then(|stem|stem.to_str()) else { continue; };
+            let key=(number.to_owned(),kind.as_str());
+            archived.insert(key.clone());
+            if !recorded.contains(&key) {
+                println!("{} (no financial record in {} namespace; original/evidence review required)",path.display(),kind.as_str());
+                orphan_files+=1;
             }
         }
     }
-
-    let mut missing_files = 0;
-    for number in &numbers {
-        if !archived.contains((**number).as_str()) {
-            println!("{} (recorded, no archived file)", **number);
-            missing_files += 1;
+    let mut unavailable=0;
+    for (number,kind,recorded,database_original) in inventory {
+        let has_file=archived.contains(&(number.as_str().to_owned(),kind.as_str()));
+        if database_original && !recorded {
+            println!("{} (authoritative invoice database original; financial record absent, ownership/retention review required)",number.as_str());
+        }
+        if !has_file {
+            if database_original {
+                println!("{} (invoice database original available; filesystem cache absent)",number.as_str());
+            } else {
+                println!("{} ({} recorded original unavailable in its archive namespace)",number.as_str(),kind.as_str());
+                unavailable+=1;
+            }
         }
     }
-
-    info!(
-        "{orphan_files} archived documents have no record and {missing_files} records have no \
-         archived document. Nothing was changed."
-    );
-
+    info!("{orphan_files} files lack a matching namespace record; {unavailable} recorded originals unavailable. Nothing was changed.");
     Ok(())
 }
 
 async fn refresh_premium(config: Config) -> anyhow::Result<()> {
     let mut provider = Provider::from_config(&config).await?;
+
+    use academy_core_premium_contracts::PremiumFeatureService;
+    let feature: types::PremiumFeature = provider.provide();
+    feature.retry_renewal_confirmations().await?;
 
     let db: types::Database = provider.provide();
     let mut txn = db.begin_transaction().await?;
@@ -264,4 +335,22 @@ async fn refresh_premium(config: Config) -> anyhow::Result<()> {
     txn.commit().await?;
 
     Ok(())
+}
+
+async fn list_paypal_payments(config: Config) -> anyhow::Result<()> {
+    let db = database::connect(&config.database).await?;
+    let txn = db.begin_transaction().await?;
+    // No names, addresses, access tokens or full provider payloads in operator output.
+    for row in txn.txn().query(
+        "SELECT order_id,user_id,started_at,attempts,capture_id,fulfilled_at,receipt_sent_at,receipt_attempts,last_error FROM paypal_payments WHERE started_at IS NOT NULL AND receipt_sent_at IS NULL ORDER BY started_at,order_id", &[]).await? {
+        println!("order={} recipient={} started={:?} attempts={} capture={:?} fulfilled={:?} receipt={:?} receipt_attempts={} error={:?}",
+            row.get::<_,String>("order_id"), row.get::<_,uuid::Uuid>("user_id"), row.get::<_,Option<chrono::DateTime<Utc>>>("started_at"),
+            row.get::<_,i64>("attempts"), row.get::<_,Option<String>>("capture_id"), row.get::<_,Option<chrono::DateTime<Utc>>>("fulfilled_at"),
+            row.get::<_,Option<chrono::DateTime<Utc>>>("receipt_sent_at"), row.get::<_,i64>("receipt_attempts"), row.get::<_,Option<String>>("last_error"));
+    }
+    for row in txn.txn().query("SELECT order_id AS id,user_id,coins,invoice_number FROM paypal_legacy_reconciliation UNION SELECT o.id,o.user_id,o.coins,o.invoice_number FROM paypal_coin_orders o LEFT JOIN paypal_payments p ON p.order_id=o.id WHERE p.order_id IS NULL AND o.captured_at IS NULL ORDER BY id", &[]).await? {
+        println!("legacy_unresolved order={} recipient={} coins={} invoice={} action=provider_and_ledger_reconciliation_required_no_automatic_capture",
+            row.get::<_,String>("id"), row.get::<_,uuid::Uuid>("user_id"), row.get::<_,i64>("coins"), row.get::<_,i64>("invoice_number"));
+    }
+    txn.commit().await
 }

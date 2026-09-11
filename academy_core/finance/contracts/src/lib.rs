@@ -12,6 +12,21 @@ pub mod invoice;
 
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait FinanceFeatureService: Send + Sync + 'static {
+    /// Internal caller must prove the recipient; dedicated download audience
+    /// cannot be used as ordinary account or microservice authority.
+    fn recipient_download_token(
+        &self,
+        user: academy_models::user::UserId,
+    ) -> impl Future<Output = Result<String, FinanceGetDownloadTokenError>> + Send;
+    /// Return an existing owner-authorized original only. The internal caller
+    /// must prove full recipient rights; this path never issues a new document.
+    fn download_recipient_original(
+        &self,
+        user: academy_models::user::UserId,
+        kind: FinancialDocumentKind,
+        number: u64,
+        month: u32,
+    ) -> impl Future<Output = Result<Vec<u8>, FinanceDownloadError>> + Send;
     /// Return a short-lived token which can be used to download finance
     /// documents for the authenticated user.
     fn get_download_token(

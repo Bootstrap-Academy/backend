@@ -48,34 +48,33 @@ resp = c.post(
 assert resp.status_code == 200
 order_id = resp.json()
 
-assert c.get(f"http://127.0.0.1:8103/v2/checkout/orders/{order_id}").json() == {"status": "Created", "coins": 1337}
+assert c.get(f"http://127.0.0.1:8103/v2/checkout/orders/{order_id}").json()["status"] == "CREATED"
 
 # try to capture (not confirmed yet)
 resp = c.post(f"/shop/coins/paypal/orders/{order_id}/capture")
-assert resp.status_code == 400
-assert resp.json() == {"detail": "Could not capture order"}
+assert resp.status_code == 503
+assert "payment is still being checked" in resp.json()["detail"]
 assert c.get(f"/shop/coins/me").json() == {"coins": 0, "withheld_coins": 0}
-assert c.get(f"http://127.0.0.1:8103/v2/checkout/orders/{order_id}").json() == {"status": "Created", "coins": 1337}
+assert c.get(f"http://127.0.0.1:8103/v2/checkout/orders/{order_id}").json()["status"] == "CREATED"
 
 # confirm order (client)
-assert c.post(f"http://127.0.0.1:8103/v2/checkout/orders/{order_id}/confirm-payment-source").json() == {
-    "status": "Confirmed",
-    "coins": 1337,
-}
+assert (
+    c.post(f"http://127.0.0.1:8103/v2/checkout/orders/{order_id}/confirm-payment-source").json()["status"] == "APPROVED"
+)
 
 # capture order
 resp = c.post(f"/shop/coins/paypal/orders/{order_id}/capture")
 assert resp.status_code == 200
 assert resp.json() == {"coins": 1337, "withheld_coins": 0}
 assert c.get(f"/shop/coins/me").json() == {"coins": 1337, "withheld_coins": 0}
-assert c.get(f"http://127.0.0.1:8103/v2/checkout/orders/{order_id}").json() == {"status": "Captured"}
+assert c.get(f"http://127.0.0.1:8103/v2/checkout/orders/{order_id}").json()["status"] == "COMPLETED"
 
 # try to capture again
 resp = c.post(f"/shop/coins/paypal/orders/{order_id}/capture")
-assert resp.status_code == 404
-assert resp.json() == {"detail": "Order not found"}
+assert resp.status_code == 200
+assert resp.json() == {"coins": 1337, "withheld_coins": 0}
 assert c.get(f"/shop/coins/me").json() == {"coins": 1337, "withheld_coins": 0}
-assert c.get(f"http://127.0.0.1:8103/v2/checkout/orders/{order_id}").json() == {"status": "Captured"}
+assert c.get(f"http://127.0.0.1:8103/v2/checkout/orders/{order_id}").json()["status"] == "COMPLETED"
 
 # invoice email
 mail = fetch_mail()

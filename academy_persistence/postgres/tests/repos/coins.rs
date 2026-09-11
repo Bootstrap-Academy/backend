@@ -246,3 +246,70 @@ fn balance(coins: u64, withheld_coins: u64) -> Balance {
         withheld_coins,
     }
 }
+
+#[tokio::test]
+async fn durable_operation_rollback_replay_and_conflict() {
+    use academy_models::coin::{CoinOperation, CoinOperationClaim};
+    let db = setup().await;
+    let operation = CoinOperation {
+        id: UUID1.into(),
+        user_id: FOO.user.id,
+        coins: 17,
+        description: Some("Synthetic immutable operation".try_into().unwrap()),
+        include_in_credit_note: false,
+    };
+    // A rolled-back reservation and balance change must leave the key reusable.
+    let mut txn = db.begin_transaction().await.unwrap();
+    assert_eq!(
+        REPO.claim_operation(&mut txn, &operation).await.unwrap(),
+        CoinOperationClaim::New
+    );
+    REPO.add_coins(&mut txn, operation.user_id, 17, false)
+        .await
+        .unwrap();
+    drop(txn);
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    assert_eq!(
+        REPO.claim_operation(&mut txn, &operation).await.unwrap(),
+        CoinOperationClaim::New
+    );
+    let result = REPO
+        .add_coins(&mut txn, operation.user_id, 17, false)
+        .await
+        .unwrap();
+    assert_eq!(result, balance(17, 0));
+    REPO.complete_operation(&mut txn, operation.id, result)
+        .await
+        .unwrap();
+    txn.commit().await.unwrap();
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    assert_eq!(
+        REPO.claim_operation(&mut txn, &operation).await.unwrap(),
+        CoinOperationClaim::Completed(result)
+    );
+    let changed = CoinOperation {
+        coins: 18,
+        ..operation
+    };
+    assert_eq!(
+        REPO.claim_operation(&mut txn, &changed).await.unwrap(),
+        CoinOperationClaim::Conflict
+    );
+    assert_eq!(
+        REPO.get_balance(&mut txn, FOO.user.id).await.unwrap(),
+        result
+    );
+    drop(txn);
+    // Exercise the evidence guard itself, independent of later additive migrations.
+    let migration = academy_persistence_postgres::MIGRATIONS
+        .iter()
+        .find(|migration| migration.name.ends_with("add_internal_coin_operations"))
+        .unwrap();
+    let txn = db.begin_transaction().await.unwrap();
+    assert!(
+        txn.txn().batch_execute(migration.down).await.is_err(),
+        "used idempotency evidence must not be dropped"
+    );
+}

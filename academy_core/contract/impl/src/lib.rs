@@ -1,44 +1,26 @@
-use std::{net::IpAddr, sync::Arc, time::Duration};
-
 use academy_auth_contracts::{AuthResultExt, AuthService};
 use academy_cache_contracts::CacheService;
-use academy_core_contract_contracts::{
-    ContractCancellationRequest, ContractDeclarationListQuery, ContractDeclarationListResult,
-    ContractDeclarationProcessingUpdate, ContractDeclarationResult, ContractDeclareError,
-    ContractFeatureService, ContractListError, ContractSetProcessedError,
-    ContractWithdrawalRequest,
-};
+use academy_core_contract_contracts::*;
 use academy_di::Build;
-use academy_email_contracts::{ContentType, Email, EmailService, template::TemplateEmailService};
+use academy_email_contracts::{ContentType, Email, EmailService};
 use academy_models::{
     auth::AccessToken,
-    contract::{
-        ContractCancellationType, ContractDeclaration, ContractDeclarationId,
-        ContractDeclarationKind, ContractKind,
-    },
+    contract::*,
     email_address::{EmailAddress, EmailAddressWithName},
 };
 use academy_persistence_contracts::{
-    Database, Transaction, contract::ContractRepository, premium::PremiumRepository,
-    user::UserRepository,
+    Database, Transaction, contract::ContractRepository, user::UserRepository,
 };
 use academy_shared_contracts::{hash::HashService, id::IdService, time::TimeService};
-use academy_templates_contracts::{
-    ContractCancellationConfirmationTemplate, ContractWithdrawalConfirmationTemplate,
-};
 use academy_utils::trace_instrument;
 use anyhow::Context;
 use chrono::{DateTime, Utc};
-use tracing::{error, trace};
-
+use std::{net::IpAddr, sync::Arc, time::Duration};
+use tracing::{error, trace, warn};
 #[cfg(test)]
 mod tests;
-
-/// Format used to render a point in time in the `Europe/Berlin` time zone.
 const DATETIME_FORMAT: &str = "%d.%m.%Y um %H:%M:%S Uhr";
-/// Format used to render a date in the `Europe/Berlin` time zone.
 const DATE_FORMAT: &str = "%d.%m.%Y";
-
 #[derive(Debug, Clone, Build)]
 #[cfg_attr(test, derive(Default))]
 pub struct ContractFeatureServiceImpl<
@@ -48,10 +30,8 @@ pub struct ContractFeatureServiceImpl<
     Time,
     Cache,
     Hash,
-    TemplateEmail,
     EmailS,
     UserRepo,
-    PremiumRepo,
     ContractRepo,
 > {
     db: Db,
@@ -60,47 +40,20 @@ pub struct ContractFeatureServiceImpl<
     time: Time,
     cache: Cache,
     hash: Hash,
-    template_email: TemplateEmail,
     email: EmailS,
     user_repo: UserRepo,
-    premium_repo: PremiumRepo,
     contract_repo: ContractRepo,
     config: ContractFeatureConfig,
 }
-
 #[derive(Debug, Clone)]
 pub struct ContractFeatureConfig {
-    /// Internal recipient of the notifications about new declarations.
     pub internal_email: Arc<EmailAddressWithName>,
-    /// Time window used for rate limiting declarations.
     pub rate_limit_window: Duration,
-    /// Maximum number of declarations per client IP address within
-    /// [`ContractFeatureConfig::rate_limit_window`].
-    ///
-    /// An IP address is shared by everybody behind the same NAT, so this budget
-    /// is deliberately far larger than the per-address one: it only stops a
-    /// single machine from flooding the endpoint.
     pub rate_limit_per_ip: u64,
-    /// Maximum number of declarations per email address within
-    /// [`ContractFeatureConfig::rate_limit_window`].
     pub rate_limit_per_email: u64,
 }
-
-impl<Db, Auth, Id, Time, Cache, Hash, TemplateEmail, EmailS, UserRepo, PremiumRepo, ContractRepo>
-    ContractFeatureService
-    for ContractFeatureServiceImpl<
-        Db,
-        Auth,
-        Id,
-        Time,
-        Cache,
-        Hash,
-        TemplateEmail,
-        EmailS,
-        UserRepo,
-        PremiumRepo,
-        ContractRepo,
-    >
+impl<Db, Auth, Id, Time, Cache, Hash, EmailS, UserRepo, ContractRepo> ContractFeatureService
+    for ContractFeatureServiceImpl<Db, Auth, Id, Time, Cache, Hash, EmailS, UserRepo, ContractRepo>
 where
     Db: Database,
     Auth: AuthService<Db::Transaction>,
@@ -108,10 +61,8 @@ where
     Time: TimeService,
     Cache: CacheService,
     Hash: HashService,
-    TemplateEmail: TemplateEmailService,
     EmailS: EmailService,
     UserRepo: UserRepository<Db::Transaction>,
-    PremiumRepo: PremiumRepository<Db::Transaction>,
     ContractRepo: ContractRepository<Db::Transaction>,
 {
     #[trace_instrument(skip(self, request))]
@@ -120,145 +71,55 @@ where
         client_ip: IpAddr,
         request: ContractCancellationRequest,
     ) -> Result<ContractDeclarationResult, ContractDeclareError> {
-        self.check_rate_limit(client_ip, &request.email).await?;
-
-        let received_at = self.time.now();
-        let id = self.id.generate();
-        let cancellation_type = request.cancellation_type;
-
-        let mut txn = self.db.begin_transaction().await?;
-
-        let user_id = self
-            .user_repo
-            .get_composite_by_email(&mut txn, &request.email)
-            .await
-            .context("Failed to get user from database")?
-            .map(|user_composite| user_composite.user.id);
-
-        // The end of the contract can only be determined for premium
-        // memberships of a known account.
-        let mut effective_end = None;
-        if let Some(user_id) = user_id.filter(|_| request.contract == ContractKind::Premium) {
-            trace!("disable premium subscription");
-            self.premium_repo
-                .set_subscription(&mut txn, user_id, None)
-                .await
-                .context("Failed to disable premium subscription")?;
-
-            // An extraordinary cancellation claims an end before the paid
-            // period is over, and whether that claim holds is a question for a
-            // person. Computing the ordinary end date here and confirming it
-            // would answer a different declaration than the one that was made,
-            // so the end date is left open and confirmed separately in
-            // Textform.
-            if cancellation_type == ContractCancellationType::Ordinary {
-                // Read the repository directly instead of using the premium use
-                // case, which would purchase a new period for an expired
-                // membership and therefore debit coins.
-                let latest = self
-                    .premium_repo
-                    .get_latest_by_user_id(&mut txn, user_id)
-                    .await
-                    .context("Failed to get premium membership from database")?;
-
-                effective_end = Some(match latest {
-                    Some(premium) if received_at < premium.until => premium.until,
-                    _ => received_at,
-                });
-            }
-        }
-
         let declaration = ContractDeclaration {
-            id,
+            id: request
+                .request_key
+                .as_ref()
+                .map(|k| k.id)
+                .unwrap_or_else(|| self.id.generate()),
             kind: ContractDeclarationKind::Cancellation,
-            received_at,
+            received_at: self.time.now(),
             name: request.name,
             email: request.email,
-            user_id,
+            user_id: None,
             contract: request.contract,
             contract_designation: request.contract_designation,
-            cancellation_type: Some(cancellation_type),
+            cancellation_type: Some(request.cancellation_type),
             details: request.details,
-            requested_end: request.requested_end,
-            effective_end,
+            requested_end: request
+                .requested_end
+                .map(|time| DateTime::from_timestamp_micros(time.timestamp_micros()).unwrap()),
+            effective_end: None,
             processed_at: None,
             processing_note: None,
+            delivery: vec![],
+            operational_evidence: None,
         };
-
-        self.contract_repo
-            .create(&mut txn, declaration.clone())
-            .await
-            .context("Failed to create contract declaration in database")?;
-
-        // The declaration is durable before any email is attempted.
-        txn.commit().await?;
-
-        let template = ContractCancellationConfirmationTemplate {
-            received_at: format_datetime(declaration.received_at),
-            name: declaration.name.clone().into_inner(),
-            email: declaration.email.as_str().into(),
-            contract: contract_label(declaration.contract).into(),
-            contract_designation: designation(&declaration),
-            cancellation_type: cancellation_type_label(cancellation_type).into(),
-            extraordinary: cancellation_type == ContractCancellationType::Extraordinary,
-            details: details(&declaration),
-            requested_end: declaration.requested_end.map(format_date),
-            effective_end: declaration.effective_end.map(format_date),
-        };
-
-        trace!("send confirmation email");
-        let confirmation_email_sent = match self
-            .template_email
-            .send_contract_cancellation_confirmation_email(recipient(&declaration), &template)
-            .await
-        {
-            Ok(sent) => {
-                if !sent {
-                    error!("Failed to send contract cancellation confirmation email");
-                }
-                sent
-            }
-            Err(err) => {
-                error!("Failed to send contract cancellation confirmation email: {err:#}");
-                false
-            }
-        };
-
-        self.send_internal_notification(&declaration).await;
-
-        Ok(ContractDeclarationResult {
+        self.accept(
+            client_ip,
             declaration,
-            confirmation_email_sent,
-        })
+            request.request_key,
+            request.renewal_agreement_id,
+        )
+        .await
     }
-
     #[trace_instrument(skip(self, request))]
     async fn declare_withdrawal(
         &self,
         client_ip: IpAddr,
         request: ContractWithdrawalRequest,
     ) -> Result<ContractDeclarationResult, ContractDeclareError> {
-        self.check_rate_limit(client_ip, &request.email).await?;
-
-        let received_at = self.time.now();
-        let id = self.id.generate();
-
-        let mut txn = self.db.begin_transaction().await?;
-
-        let user_id = self
-            .user_repo
-            .get_composite_by_email(&mut txn, &request.email)
-            .await
-            .context("Failed to get user from database")?
-            .map(|user_composite| user_composite.user.id);
-
         let declaration = ContractDeclaration {
-            id,
+            id: request
+                .request_key
+                .as_ref()
+                .map(|k| k.id)
+                .unwrap_or_else(|| self.id.generate()),
             kind: ContractDeclarationKind::Withdrawal,
-            received_at,
+            received_at: self.time.now(),
             name: request.name,
             email: request.email,
-            user_id,
+            user_id: None,
             contract: request.contract,
             contract_designation: request.contract_designation,
             cancellation_type: None,
@@ -267,82 +128,59 @@ where
             effective_end: None,
             processed_at: None,
             processing_note: None,
+            delivery: vec![],
+            operational_evidence: None,
         };
-
-        self.contract_repo
-            .create(&mut txn, declaration.clone())
+        self.accept(client_ip, declaration, request.request_key, None)
             .await
-            .context("Failed to create contract declaration in database")?;
-
-        // The declaration is durable before any email is attempted.
-        txn.commit().await?;
-
-        let template = ContractWithdrawalConfirmationTemplate {
-            received_at: format_datetime(declaration.received_at),
-            name: declaration.name.clone().into_inner(),
-            email: declaration.email.as_str().into(),
-            contract: contract_label(declaration.contract).into(),
-            contract_designation: designation(&declaration),
-            details: details(&declaration),
-        };
-
-        trace!("send confirmation email");
-        let confirmation_email_sent = match self
-            .template_email
-            .send_contract_withdrawal_confirmation_email(recipient(&declaration), &template)
-            .await
-        {
-            Ok(sent) => {
-                if !sent {
-                    error!("Failed to send contract withdrawal confirmation email");
-                }
-                sent
-            }
-            Err(err) => {
-                error!("Failed to send contract withdrawal confirmation email: {err:#}");
-                false
-            }
-        };
-
-        self.send_internal_notification(&declaration).await;
-
-        Ok(ContractDeclarationResult {
-            declaration,
-            confirmation_email_sent,
-        })
     }
-
+    #[trace_instrument(skip(self, key))]
+    async fn lookup_receipt(
+        &self,
+        key: ContractRequestKey,
+    ) -> Result<ContractDeclarationResult, ContractDeclareError> {
+        let mut txn = self.db.begin_transaction().await?;
+        let stored = self.contract_repo.receipt_access(&mut txn, key.id).await?;
+        if stored.as_deref() != Some(&self.secret_hash(&key)) {
+            return Err(ContractDeclareError::NotFound);
+        }
+        let declaration = self
+            .contract_repo
+            .get(&mut txn, key.id)
+            .await?
+            .ok_or(ContractDeclareError::NotFound)?;
+        Ok(result(declaration))
+    }
+    async fn retry_confirmations(&self) -> anyhow::Result<()> {
+        let mut txn = self.db.begin_transaction().await?;
+        self.contract_repo.recover_schedules(&mut txn).await?;
+        txn.commit().await?;
+        self.deliver(None).await
+    }
     #[trace_instrument(skip(self))]
     async fn list_declarations(
         &self,
         token: &AccessToken,
         query: ContractDeclarationListQuery,
     ) -> Result<ContractDeclarationListResult, ContractListError> {
-        let auth = self.auth.authenticate(token).await.map_auth_err()?;
-        auth.ensure_admin().map_auth_err()?;
-
-        let mut txn = self.db.begin_transaction().await?;
-
-        let total = self
-            .contract_repo
-            .count(&mut txn, query.kind)
+        self.auth
+            .authenticate(token)
             .await
-            .context("Failed to count contract declarations in database")?;
-
+            .map_auth_err()?
+            .ensure_admin()
+            .map_auth_err()?;
+        let mut txn = self.db.begin_transaction().await?;
+        let total = self.contract_repo.count(&mut txn, query.kind).await?;
         let declarations = self
             .contract_repo
             .list(&mut txn, query.kind, query.pagination)
-            .await
-            .context("Failed to get contract declarations from database")?;
-
+            .await?;
         txn.commit().await?;
-
         Ok(ContractDeclarationListResult {
             total,
             declarations,
         })
     }
-
     #[trace_instrument(skip(self, update))]
     async fn set_declaration_processed(
         &self,
@@ -350,62 +188,281 @@ where
         id: ContractDeclarationId,
         update: ContractDeclarationProcessingUpdate,
     ) -> Result<ContractDeclaration, ContractSetProcessedError> {
-        let auth = self.auth.authenticate(token).await.map_auth_err()?;
-        auth.ensure_admin().map_auth_err()?;
-
-        let processed_at = self.time.now();
-
+        self.auth
+            .authenticate(token)
+            .await
+            .map_auth_err()?
+            .ensure_admin()
+            .map_auth_err()?;
+        if update.note.is_none() || !update.identity_verified {
+            return Err(ContractSetProcessedError::Invalid);
+        }
         let mut txn = self.db.begin_transaction().await?;
-
-        let declaration = self
+        self.contract_repo.lock_request(&mut txn, id).await?;
+        self.contract_repo.lock_processing(&mut txn, id).await?;
+        let mut declaration = self
             .contract_repo
             .get(&mut txn, id)
-            .await
-            .context("Failed to get contract declaration from database")?
+            .await?
             .ok_or(ContractSetProcessedError::NotFound)?;
-
-        // Nothing that is not given is overwritten: an ordinary cancellation
-        // keeps the end date the backend determined when only a note is added.
-        // What comes back is the stored row, so the answer to this request and
-        // the answer to the next listing are the same.
+        if declaration.processed_at.is_some() {
+            return Err(ContractSetProcessedError::Conflict);
+        }
+        if update.action == ContractProcessingAction::SchedulePremiumCancellation {
+            if declaration.contract != ContractKind::Premium
+                || declaration.cancellation_type != Some(ContractCancellationType::Ordinary)
+            {
+                return Err(ContractSetProcessedError::Invalid);
+            }
+            let user_id = update
+                .verified_user_id
+                .ok_or(ContractSetProcessedError::Invalid)?;
+            let agreement_id = update
+                .renewal_agreement_id
+                .ok_or(ContractSetProcessedError::Invalid)?;
+            // The original receipt and date, never the administrator's later approval time.
+            if !self
+                .contract_repo
+                .schedule_cancellation(&mut txn, declaration.clone(), agreement_id, user_id)
+                .await?
+            {
+                return Err(ContractSetProcessedError::Conflict);
+            }
+            declaration = self
+                .contract_repo
+                .get(&mut txn, id)
+                .await?
+                .ok_or(ContractSetProcessedError::NotFound)?;
+        } else if declaration.kind == ContractDeclarationKind::Cancellation
+            && update.effective_end.is_none()
+        {
+            return Err(ContractSetProcessedError::Invalid);
+        }
         let declaration = self
             .contract_repo
             .set_processed(
                 &mut txn,
                 id,
-                processed_at,
-                update.effective_end.or(declaration.effective_end),
-                update.note.or(declaration.processing_note),
+                self.time.now(),
+                if update.action == ContractProcessingAction::SchedulePremiumCancellation {
+                    declaration.effective_end
+                } else {
+                    update.effective_end.or(declaration.effective_end)
+                },
+                match (declaration.processing_note, update.note) {
+                    (Some(old), Some(note)) => Some(
+                        format!("{}\n{}", *old, *note)
+                            .try_into()
+                            .map_err(|_| ContractSetProcessedError::Invalid)?,
+                    ),
+                    (_, note) => note,
+                },
+                update.action == ContractProcessingAction::RecordExternalResolution,
             )
-            .await
-            .context("Failed to update contract declaration in database")?
+            .await?
             .ok_or(ContractSetProcessedError::NotFound)?;
-
         txn.commit().await?;
-
+        // Scheduling may still be pending. Processed is the documented operational action,
+        // never a legal precondition and never a claim that SMTP reached an inbox.
         Ok(declaration)
     }
 }
-
-impl<Db, Auth, Id, Time, Cache, Hash, TemplateEmail, EmailS, UserRepo, PremiumRepo, ContractRepo>
-    ContractFeatureServiceImpl<
-        Db,
-        Auth,
-        Id,
-        Time,
-        Cache,
-        Hash,
-        TemplateEmail,
-        EmailS,
-        UserRepo,
-        PremiumRepo,
-        ContractRepo,
-    >
+impl<Db, Auth, Id, Time, Cache, Hash, EmailS, UserRepo, ContractRepo>
+    ContractFeatureServiceImpl<Db, Auth, Id, Time, Cache, Hash, EmailS, UserRepo, ContractRepo>
 where
+    Db: Database,
+    Auth: AuthService<Db::Transaction>,
+    Id: IdService,
+    Time: TimeService,
     Cache: CacheService,
     Hash: HashService,
     EmailS: EmailService,
+    UserRepo: UserRepository<Db::Transaction>,
+    ContractRepo: ContractRepository<Db::Transaction>,
 {
+    fn secret_hash(&self, key: &ContractRequestKey) -> String {
+        hex::encode(self.hash.sha256(&(*key.secret).to_string()).0)
+    }
+    async fn accept(
+        &self,
+        client_ip: IpAddr,
+        mut declaration: ContractDeclaration,
+        key: Option<ContractRequestKey>,
+        agreement_id: Option<academy_models::premium::PremiumRenewalId>,
+    ) -> Result<ContractDeclarationResult, ContractDeclareError> {
+        let mut txn = self.db.begin_transaction().await?;
+        self.contract_repo
+            .lock_request(&mut txn, declaration.id)
+            .await?;
+        if let Some(existing) = self.contract_repo.get(&mut txn, declaration.id).await? {
+            let Some(key) = key else {
+                return Err(ContractDeclareError::RequestConflict);
+            };
+            if self
+                .contract_repo
+                .receipt_access(&mut txn, key.id)
+                .await?
+                .as_deref()
+                != Some(&self.secret_hash(&key))
+                || !same_submission(&existing, &declaration)
+                || !same_requested_agreement(&existing, agreement_id)
+            {
+                return Err(ContractDeclareError::RequestConflict);
+            }
+            return Ok(result(existing));
+        }
+        self.check_rate_limit(client_ip, &declaration.email).await?;
+        declaration.user_id = self
+            .user_repo
+            .get_composite_by_email(&mut txn, &declaration.email)
+            .await?
+            .map(|u| u.user.id);
+        self.contract_repo
+            .create(&mut txn, declaration.clone())
+            .await?;
+        if let Some(key) = key {
+            self.contract_repo
+                .save_receipt_access(&mut txn, declaration.id, self.secret_hash(&key))
+                .await?;
+        }
+        self.contract_repo
+            .queue_delivery(
+                &mut txn,
+                ContractDeliveryAttempt {
+                    requested_agreement_id: agreement_id,
+                    declaration_id: declaration.id,
+                    kind: "receipt".into(),
+                    recipient: declaration.email.clone(),
+                    subject: format!(
+                        "Eingangsbestätigung Ihrer {} – {}",
+                        kind_label(declaration.kind),
+                        *declaration.id
+                    ),
+                    body: format!(
+                        "{}\nAngegebene Verlängerungsvereinbarung (optional): {}\n",
+                        receipt_body(&declaration),
+                        agreement_id
+                            .map(|id| id.to_string())
+                            .unwrap_or_else(|| "nicht angegeben".into())
+                    ),
+                    generation: 0,
+                },
+            )
+            .await?;
+        self.contract_repo
+            .queue_delivery(
+                &mut txn,
+                ContractDeliveryAttempt {
+                    requested_agreement_id: agreement_id,
+                    declaration_id: declaration.id,
+                    kind: "internal".into(),
+                    recipient: (*self.config.internal_email).clone().into_email_address(),
+                    subject: format!(
+                        "[Contract] Prüfung: {} ({})",
+                        kind_label(declaration.kind),
+                        contract_short_label(declaration.contract)
+                    ),
+                    body: internal_notification_body(&declaration),
+                    generation: 0,
+                },
+            )
+            .await?;
+        // Knowledge of an email/name alone authorizes no account mutation. The optional
+        // unguessable exact agreement reference adds contract-specific identification.
+        if declaration.contract == ContractKind::Premium
+            && declaration.cancellation_type == Some(ContractCancellationType::Ordinary)
+            && let (Some(user_id), Some(agreement_id)) = (declaration.user_id, agreement_id)
+        {
+            self.contract_repo
+                .schedule_cancellation(&mut txn, declaration.clone(), agreement_id, user_id)
+                .await?;
+        }
+        txn.commit().await?;
+        if let Err(err) = self.deliver(Some(declaration.id)).await {
+            error!(error=%err,"Declaration confirmation pending; durable receipt retained");
+        }
+        let mut txn = self.db.begin_transaction().await?;
+        let declaration = self
+            .contract_repo
+            .get(&mut txn, declaration.id)
+            .await?
+            .context("Committed declaration missing")?;
+        Ok(result(declaration))
+    }
+    async fn deliver(&self, only: Option<ContractDeclarationId>) -> anyhow::Result<()> {
+        let mut attempted = Vec::new();
+        let mut failed = false;
+        for _ in 0..if only.is_some() { 1 } else { 100 } {
+            let mut txn = self.db.begin_transaction().await?;
+            let Some(message) = self
+                .contract_repo
+                .claim_delivery(&mut txn, only, attempted.clone())
+                .await?
+            else {
+                break;
+            };
+            txn.commit().await?;
+            attempted.push(format!("{}:{}", *message.declaration_id, message.kind));
+            // A separate guard transaction serializes terminal staff decisions with
+            // resolution SMTP. The attempt and lease have already committed.
+            let mut resolution_txn = if message.kind == "resolution" {
+                let mut guard = self.db.begin_transaction().await?;
+                if !self
+                    .contract_repo
+                    .lock_resolution_delivery(&mut guard, &message)
+                    .await?
+                {
+                    guard.commit().await?;
+                    continue;
+                }
+                Some(guard)
+            } else {
+                None
+            };
+            let accepted = matches!(
+                tokio::time::timeout(
+                    Duration::from_secs(30),
+                    self.email.send(Email {
+                        sender: None,
+                        message_id: Some(format!(
+                            "<contract-{}-{}@bootstrap.academy>",
+                            *message.declaration_id, message.kind
+                        )),
+                        recipient: message.recipient.clone().with_name("".into()),
+                        subject: message.subject.clone(),
+                        body: message.body.clone(),
+                        content_type: ContentType::Text,
+                        reply_to: None,
+                        attachments: vec![]
+                    })
+                )
+                .await,
+                Ok(Ok(true))
+            );
+            if !accepted {
+                warn!(declaration_id=%*message.declaration_id,kind=%message.kind,"Declaration delivery failed; retry scheduled");
+            }
+            let ack: anyhow::Result<()> = async {
+                let mut txn = match resolution_txn.take() {
+                    Some(guard) => guard,
+                    None => self.db.begin_transaction().await?,
+                };
+                self.contract_repo
+                    .acknowledge_delivery(&mut txn, message, accepted)
+                    .await?;
+                txn.commit().await
+            }
+            .await;
+            if ack.is_err() {
+                failed = true;
+                warn!("Declaration delivery acknowledgement failed; continuing fair pass");
+            }
+        }
+        if failed {
+            anyhow::bail!("Declaration acknowledgements failed; durable retry retained")
+        }
+        Ok(())
+    }
     /// Return an error if the client IP address or the email address have
     /// exceeded the allowed number of declarations, otherwise count this
     /// attempt.
@@ -460,51 +517,66 @@ where
             hex::encode(hash.0)
         )
     }
+}
 
-    /// Notify the support team about a new declaration.
-    ///
-    /// Failures are logged but never propagated: the stored declaration is what
-    /// matters.
-    async fn send_internal_notification(&self, declaration: &ContractDeclaration) {
-        let email = Email {
-            recipient: (*self.config.internal_email).clone(),
-            // An extraordinary cancellation is marked in the subject: it has no
-            // end date yet and the answer is due in Textform, so it cannot wait
-            // in the queue with the rest.
-            subject: format!(
-                "[Contract] {}{} ({})",
-                if is_extraordinary(declaration) {
-                    "DRINGEND: "
-                } else {
-                    ""
-                },
-                kind_label(declaration.kind),
-                contract_short_label(declaration.contract)
-            ),
-            body: internal_notification_body(declaration),
-            content_type: ContentType::Text,
-            reply_to: Some(recipient(declaration)),
-            attachments: Vec::new(),
-        };
-
-        trace!("send internal notification email");
-        match self.email.send(email).await {
-            Ok(true) => {}
-            Ok(false) => error!("Failed to send contract declaration notification email"),
-            Err(err) => {
-                error!("Failed to send contract declaration notification email: {err:#}")
-            }
-        }
+fn result(declaration: ContractDeclaration) -> ContractDeclarationResult {
+    let confirmation_email_sent = declaration
+        .delivery
+        .iter()
+        .any(|d| d.kind == "receipt" && d.accepted_at.is_some());
+    ContractDeclarationResult {
+        declaration,
+        confirmation_email_sent,
     }
 }
-
-fn recipient(declaration: &ContractDeclaration) -> EmailAddressWithName {
-    declaration
-        .email
-        .clone()
-        .with_name(declaration.name.clone().into_inner())
+fn same_submission(a: &ContractDeclaration, b: &ContractDeclaration) -> bool {
+    a.kind == b.kind
+        && a.name == b.name
+        && a.email == b.email
+        && a.contract == b.contract
+        && a.contract_designation == b.contract_designation
+        && a.cancellation_type == b.cancellation_type
+        && a.details == b.details
+        && a.requested_end == b.requested_end
 }
-
+fn same_requested_agreement(
+    d: &ContractDeclaration,
+    agreement: Option<academy_models::premium::PremiumRenewalId>,
+) -> bool {
+    let stored = d
+        .operational_evidence
+        .as_deref()
+        .and_then(|v| serde_json::from_str::<serde_json::Value>(v).ok());
+    let original = stored
+        .as_ref()
+        .and_then(|v| v["messages"].as_array())
+        .and_then(|messages| messages.iter().find(|m| m["kind"] == "receipt"))
+        .and_then(|m| m["requested_agreement_id"].as_str());
+    original == agreement.as_ref().map(|id| id.to_string()).as_deref()
+}
+fn receipt_body(d: &ContractDeclaration) -> String {
+    format!(
+        "Bootstrap Academy GmbH\nEingangsbestätigung: {}\nDurch Betätigung der Bestätigungsschaltfläche abgegeben und eingegangen am: {} (Europe/Berlin)\nReferenz: {}\nName: {}\nE-Mail: {}\nVertrag: {}\nBezeichnung: {}\nArt der Kündigung: {}\nAngaben/Begründung: {}\nGewünschter Beendigungszeitpunkt: {}\n\nDies bestätigt den Eingang und Inhalt Ihrer Erklärung. Ihre Rechte richten sich nach der Erklärung und ihrem ursprünglichen Eingang, nicht nach einer späteren Bearbeitung oder dieser E-Mail. Die Vertragszuordnung und gegebenenfalls der rechtlich maßgebliche Beendigungszeitpunkt werden gesondert geprüft und über den verifizierten Kontakt bestätigt. Bei ordentlicher Premium-Kündigung gilt die vereinbarte Beendigung zum maßgeblichen bezahlten Periodenende; ein ausdrücklich späterer Termin wird berücksichtigt. Es entsteht durch diese Erklärung keine neue Verlängerungsvereinbarung.\n",
+        kind_label(d.kind),
+        format_datetime(d.received_at),
+        *d.id,
+        *d.name,
+        d.email.as_str(),
+        contract_label(d.contract),
+        designation(d).unwrap_or_default(),
+        d.cancellation_type
+            .map(cancellation_type_label)
+            .unwrap_or("–"),
+        *d.details,
+        d.requested_end.map(format_datetime).unwrap_or_else(|| {
+            if d.kind == ContractDeclarationKind::Cancellation {
+                "zum frühestmöglichen Zeitpunkt".into()
+            } else {
+                "nicht anwendbar (Widerruf)".into()
+            }
+        })
+    )
+}
 fn details(declaration: &ContractDeclaration) -> Option<String> {
     Some(declaration.details.clone().into_inner()).filter(|details| !details.trim().is_empty())
 }

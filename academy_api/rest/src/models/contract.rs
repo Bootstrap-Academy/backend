@@ -83,6 +83,8 @@ pub struct ApiContractDeclaration {
     /// What was done when the declaration was processed. Part of the data
     /// export as well, because it is a note about the person who declared.
     pub processing_note: Option<ContractProcessingNote>,
+    pub delivery: Vec<academy_models::contract::ContractDeliveryStatus>,
+    pub operational_evidence: Option<String>,
 }
 
 /// A contract declaration as returned by the admin endpoint.
@@ -166,6 +168,8 @@ impl From<ContractDeclaration> for ApiContractDeclaration {
             effective_end: value.effective_end.map(Into::into),
             processed_at: value.processed_at.map(Into::into),
             processing_note: value.processing_note,
+            delivery: value.delivery,
+            operational_evidence: value.operational_evidence,
         }
     }
 }
@@ -175,6 +179,38 @@ impl From<ContractDeclaration> for ApiAdminContractDeclaration {
         Self {
             user_id: value.user_id,
             declaration: value.into(),
+        }
+    }
+}
+
+/// Only the consumer's submitted content and its receipt. No account findings,
+/// processing notes, paid dates, or internal delivery status are public.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, JsonSchema)]
+pub struct ApiPublicContractReceipt {
+    pub id: ContractDeclarationId,
+    pub kind: ApiContractDeclarationKind,
+    pub received_at: ApiTimestamp,
+    pub name: ContractDeclarantName,
+    pub email: EmailAddress,
+    pub contract: ApiContractKind,
+    pub contract_designation: Option<ContractDesignation>,
+    pub cancellation_type: Option<ApiContractCancellationType>,
+    pub details: Option<ContractDeclarationDetails>,
+    pub requested_end: Option<ApiTimestamp>,
+}
+impl From<ContractDeclaration> for ApiPublicContractReceipt {
+    fn from(value: ContractDeclaration) -> Self {
+        Self {
+            id: value.id,
+            kind: value.kind.into(),
+            received_at: value.received_at.into(),
+            name: value.name,
+            email: value.email,
+            contract: value.contract.into(),
+            contract_designation: value.contract_designation,
+            cancellation_type: value.cancellation_type.map(Into::into),
+            details: Some(value.details).filter(|d| !d.trim().is_empty()),
+            requested_end: value.requested_end.map(Into::into),
         }
     }
 }

@@ -19,6 +19,22 @@ use academy_utils::assert_matches;
 
 use crate::{UserFeatureServiceImpl, tests::Sut};
 
+// Intake commits separately even when the later erasure cannot commit.
+fn deletion_database(erase_commits: bool) -> MockDatabase {
+    let mut transactions=std::collections::VecDeque::new();
+    for commit in [true,erase_commits] {
+        let mut txn=academy_persistence_contracts::MockTransaction::new();
+        if commit { txn.expect_commit().once().return_once(||Box::pin(async {Ok(())})); }
+        transactions.push_back(txn);
+    }
+    let mut db=MockDatabase::new();
+    db.expect_begin_transaction().times(2).returning(move || {
+        let txn=transactions.pop_front().expect("exactly intake then erasure transaction");
+        Box::pin(async {Ok(txn)})
+    });
+    db
+}
+
 fn refresh_token_hashes() -> Vec<SessionRefreshTokenHash> {
     vec![
         academy_models::Sha256Hash([1; 32]).into(),
@@ -43,9 +59,12 @@ async fn ok_self() {
         .with_list_refresh_token_hashes(FOO.user.id, refresh_token_hashes())
         .with_invalidate_access_tokens_of(refresh_token_hashes());
 
-    let db = MockDatabase::build(true);
+    let db = deletion_database(true);
 
-    let user_repo = MockUserRepository::new().with_delete(FOO.user.id, true);
+    let user_repo = MockUserRepository::new()
+        .with_record_deletion_request(FOO.user.id)
+        .with_lock_for_deletion(FOO.user.id, true)
+        .with_delete(FOO.user.id, true);
 
     // The unused share of the purchased Morphcoins is recorded before the
     // account is gone.
@@ -81,48 +100,16 @@ async fn ok_self() {
 }
 
 #[tokio::test]
-async fn ok_admin() {
-    // Arrange
-    let auth = MockAuthService::new()
-        .with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())))
-        .with_list_refresh_token_hashes(FOO.user.id, refresh_token_hashes())
-        .with_invalidate_access_tokens_of(refresh_token_hashes());
-
-    let db = MockDatabase::build(true);
-
-    let user_repo = MockUserRepository::new().with_delete(FOO.user.id, true);
-
-    // The unused share of the purchased Morphcoins is recorded before the
-    // account is gone.
-    let finance_invoice = MockFinanceInvoiceService::new()
-        .with_create_final_statement(FOO.user.id, Some(pending_final_statement()))
-        // The pdf is produced after the commit.
-        .with_archive_final_statement(pending_final_statement());
-
-    // Invoices and credit notes are kept, but no longer name the account.
-    let document_repo = MockFinancialDocumentRepository::new().with_pseudonymize(
-        FOO.user.id,
-        vec![RETENTION_MARKER.into()],
-        1,
-    );
-
-    let microservices_api = MockMicroservicesApiService::new().with_delete_user(FOO.user.id);
-
+async fn admin_cannot_erase_another_account_without_case_workflow() {
     let sut = UserFeatureServiceImpl {
-        auth,
-        db,
-        user_repo,
-        finance_invoice,
-        document_repo,
-        microservices_api,
+        auth: MockAuthService::new().with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone()))),
         ..Sut::default()
     };
-
-    // Act
-    let result = sut.delete_user(&"token".into(), FOO.user.id.into()).await;
-
-    // Assert
-    result.unwrap();
+    // No database, finance or distributed deletion call may run.
+    assert_matches!(
+        sut.delete_user(&"token".into(), FOO.user.id.into()).await,
+        Err(UserDeleteError::ModerationRequired)
+    );
 }
 
 #[tokio::test]
@@ -171,25 +158,12 @@ async fn unauthorized() {
 
 #[tokio::test]
 async fn not_found() {
-    // Arrange
-    let auth = MockAuthService::new()
-        .with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())))
-        // The deletion rolls back, so nothing is invalidated.
-        .with_list_refresh_token_hashes(FOO.user.id, refresh_token_hashes());
-
-    let db = MockDatabase::build(false);
-
-    let user_repo = MockUserRepository::new().with_delete(FOO.user.id, false);
-
-    // No account, so no final statement.
-    let finance_invoice =
-        MockFinanceInvoiceService::new().with_create_final_statement(FOO.user.id, None);
-
-    let document_repo = MockFinancialDocumentRepository::new().with_pseudonymize(
-        FOO.user.id,
-        vec![RETENTION_MARKER.into()],
-        0,
-    );
+    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let db = deletion_database(false);
+    let user_repo = MockUserRepository::new().with_record_deletion_request(FOO.user.id)
+        .with_lock_for_deletion(FOO.user.id, false);
+    let finance_invoice = MockFinanceInvoiceService::new();
+    let document_repo = MockFinancialDocumentRepository::new();
 
     let sut = UserFeatureServiceImpl {
         auth,
@@ -205,4 +179,60 @@ async fn not_found() {
 
     // Assert
     assert_matches!(result, Err(UserDeleteError::NotFound));
+}
+
+#[tokio::test]
+async fn cache_failure_after_commit_does_not_skip_fanout_or_final_statement() {
+    // Arrange
+    let mut auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        // The access tokens are invalidated only after the deletion has been
+        // committed, so the hashes are read while the sessions still exist.
+        .with_list_refresh_token_hashes(FOO.user.id, refresh_token_hashes());
+    auth.expect_invalidate_access_tokens_of()
+        .once()
+        .return_once(|_| {
+            Box::pin(std::future::ready(Err(anyhow::anyhow!(
+                "synthetic cache outage"
+            ))))
+        });
+
+    let db = deletion_database(true);
+
+    let user_repo = MockUserRepository::new()
+        .with_record_deletion_request(FOO.user.id)
+        .with_lock_for_deletion(FOO.user.id, true)
+        .with_delete(FOO.user.id, true);
+
+    // The unused share of the purchased Morphcoins is recorded before the
+    // account is gone.
+    let finance_invoice = MockFinanceInvoiceService::new()
+        .with_create_final_statement(FOO.user.id, Some(pending_final_statement()))
+        // The pdf is produced after the commit.
+        .with_archive_final_statement(pending_final_statement());
+
+    // Invoices and credit notes are kept, but no longer name the account.
+    let document_repo = MockFinancialDocumentRepository::new().with_pseudonymize(
+        FOO.user.id,
+        vec![RETENTION_MARKER.into()],
+        1,
+    );
+
+    let microservices_api = MockMicroservicesApiService::new().with_delete_user(FOO.user.id);
+
+    let sut = UserFeatureServiceImpl {
+        auth,
+        db,
+        user_repo,
+        finance_invoice,
+        document_repo,
+        microservices_api,
+        ..Sut::default()
+    };
+
+    // Act
+    let result = sut.delete_user(&"token".into(), UserIdOrSelf::Slf).await;
+
+    // Assert
+    result.unwrap();
 }

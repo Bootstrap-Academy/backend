@@ -4,7 +4,7 @@ import subprocess
 import time
 from datetime import datetime, timezone
 
-from utils import c, create_verified_account, make_internal_client, save_auth
+from utils import c, create_verified_account, make_internal_client, save_auth, enable_premium_renewal
 
 
 def assert_one_month(status):
@@ -34,7 +34,7 @@ assert resp.json() == {"MONTHLY": {"price": 1000, "months": 1}, "YEARLY": {"pric
 # get status (no premium yet)
 resp = c.get("/shop/premium/me")
 assert resp.status_code == 200
-assert resp.json() == {"premium": False, "since": None, "until": None, "autopay": None}
+assert resp.json() == {"premium": False, "since": None, "until": None, "autopay": None, "renewal": None}
 
 # get internal
 resp = ci.get(f"/shop/_internal/premium/{login['user']['id']}")
@@ -73,24 +73,30 @@ assert c.get("/shop/coins/me").json()["coins"] == 14000
 
 # get internal
 resp = ci.get(f"/shop/_internal/premium/{login['user']['id']}")
-assert resp.status_code == 200
-assert resp.json() is True
+assert resp.status_code == 412
+assert c.get("/shop/premium/me").json()["autopay"] == "MONTHLY"
 
 # premium expires
 os.system(f"date -s @{int(status["until"] + 2)}")
 save_auth(login := c.post("/auth/sessions", json={"name_or_email": "a", "password": "a"}).json())
 
-assert c.get("/shop/premium/me").json() == {"premium": False, "since": None, "until": None, "autopay": None}
+assert c.get("/shop/premium/me").json() == {
+    "premium": False,
+    "since": None,
+    "until": None,
+    "autopay": None,
+    "renewal": None,
+}
 
 # purchase with subscription
 start = time.time() - 1
 resp = c.post(
     "/shop/premium",
-    json={"plan": "MONTHLY", "autopay": True, "withdrawal_consent": True, "withdrawal_text_version": "2026-09"},
+    json={"plan": "MONTHLY", "autopay": False, "withdrawal_consent": True, "withdrawal_text_version": "2026-09"},
 )
 end = time.time() + 1
 assert resp.status_code == 200
-status = resp.json()
+status = enable_premium_renewal(c)
 assert status["premium"] is True
 assert status["autopay"] == "MONTHLY"
 assert start <= status["since"] <= end
@@ -107,11 +113,10 @@ assert c.get("/shop/coins/me").json()["coins"] == 12000
 
 # update subscription
 resp = c.put("/shop/premium/autopay", json={"plan": "YEARLY"})
-assert resp.status_code == 200
-assert resp.json() is True
+assert resp.status_code == 412
+assert c.get("/shop/premium/me").json()["autopay"] == "MONTHLY"
 
-# a yearly subscription is renewed month by month at the monthly price and the
-# stored subscription is updated accordingly
+# Rejected yearly activation leaves the explicitly agreed monthly renewal intact.
 os.system("date -s '+32days'")
 save_auth(login := c.post("/auth/sessions", json={"name_or_email": "a", "password": "a"}).json())
 status = c.get("/shop/premium/me").json()
@@ -120,7 +125,7 @@ assert status["autopay"] == "MONTHLY"
 assert c.get("/shop/coins/me").json()["coins"] == 11000
 assert_one_month(status)
 
-assert c.put("/shop/premium/autopay", json={"plan": "MONTHLY"}).status_code == 200
+assert c.put("/shop/premium/autopay", json={"plan": "MONTHLY"}).status_code == 412
 
 os.system("date -s '+367days'")
 save_auth(login := c.post("/auth/sessions", json={"name_or_email": "a", "password": "a"}).json())

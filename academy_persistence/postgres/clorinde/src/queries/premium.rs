@@ -15,7 +15,7 @@ pub struct ExtendParams {
 #[derive(Clone, Copy, Debug)]
 pub struct SetSubscriptionParams {
     pub user_id: uuid::Uuid,
-    pub plan: Option<crate::types::PremiumPlan>,
+    pub plan: crate::types::PremiumPlan,
 }
 #[derive(Debug, Clone, PartialEq, Copy)]
 pub struct Premium {
@@ -414,7 +414,7 @@ impl GetSubscriptionStmt {
 pub struct SetSubscriptionStmt(&'static str, Option<tokio_postgres::Statement>);
 pub fn set_subscription() -> SetSubscriptionStmt {
     SetSubscriptionStmt(
-        "merge into premium_subscriptions using (select $1::uuid as user_id where $2::premium_plan is not null) as s on premium_subscriptions.user_id = s.user_id when not matched by target then insert (user_id, plan) values ($1, $2) when not matched by source then delete when matched then update set plan=$2",
+        "insert into premium_subscriptions (user_id, plan) values ($1, $2) on conflict (user_id) do update set plan=excluded.plan",
         None,
     )
 }
@@ -430,7 +430,7 @@ impl SetSubscriptionStmt {
         &'s self,
         client: &'c C,
         user_id: &'a uuid::Uuid,
-        plan: &'a Option<crate::types::PremiumPlan>,
+        plan: &'a crate::types::PremiumPlan,
     ) -> Result<u64, tokio_postgres::Error> {
         client.execute(self.0, &[user_id, plan]).await
     }
@@ -455,5 +455,25 @@ impl<'a, C: GenericClient + Send + Sync>
         Box<dyn futures::Future<Output = Result<u64, tokio_postgres::Error>> + Send + 'a>,
     > {
         Box::pin(self.bind(client, &params.user_id, &params.plan))
+    }
+}
+pub struct DeleteSubscriptionStmt(&'static str, Option<tokio_postgres::Statement>);
+pub fn delete_subscription() -> DeleteSubscriptionStmt {
+    DeleteSubscriptionStmt("delete from premium_subscriptions where user_id=$1", None)
+}
+impl DeleteSubscriptionStmt {
+    pub async fn prepare<'a, C: GenericClient>(
+        mut self,
+        client: &'a C,
+    ) -> Result<Self, tokio_postgres::Error> {
+        self.1 = Some(client.prepare(self.0).await?);
+        Ok(self)
+    }
+    pub async fn bind<'c, 'a, 's, C: GenericClient>(
+        &'s self,
+        client: &'c C,
+        user_id: &'a uuid::Uuid,
+    ) -> Result<u64, tokio_postgres::Error> {
+        client.execute(self.0, &[user_id]).await
     }
 }

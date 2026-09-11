@@ -106,6 +106,46 @@ where
     OAuth2RegistrationS: OAuth2RegistrationService,
     Session: SessionService<Db::Transaction>,
 {
+    async fn begin_recipient(
+        &self,
+        provider: OAuth2ProviderId,
+        redirect: Url,
+    ) -> anyhow::Result<OAuth2AuthorizationUrl> {
+        Ok(self
+            .oauth2_authorization
+            .begin_recipient(provider, redirect)
+            .await?)
+    }
+    async fn prove_recipient(&self, callback: OAuth2Callback) -> anyhow::Result<UserId> {
+        let pending = self
+            .oauth2_authorization
+            .consume_recipient(&callback.state)
+            .await?
+            .ok_or(academy_core_oauth2_contracts::RecipientProofInvalid)?;
+        anyhow::ensure!(
+            pending.user_id.is_none(),
+            academy_core_oauth2_contracts::RecipientProofInvalid
+        );
+        let provider = pending.provider_id.clone();
+        let remote = self
+            .oauth2_login
+            .login(OAuth2Login {
+                provider_id: provider.clone(),
+                code: callback.code,
+                redirect_uri: pending.redirect_uri,
+                code_verifier: pending.code_verifier,
+            })
+            .await?;
+        let mut txn = self.db.begin_transaction().await?;
+        let user = self
+            .user_repo
+            .get_composite_by_oauth2_provider_id_and_remote_user_id(&mut txn, &provider, &remote.id)
+            .await?
+            .ok_or(academy_core_oauth2_contracts::RecipientProofInvalid)?;
+        // Explicitly no registration token, local account, link or session creation.
+        Ok(user.user.id)
+    }
+
     #[trace_instrument(skip(self))]
     fn list_providers(&self) -> Vec<OAuth2ProviderSummary> {
         self.config

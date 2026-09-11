@@ -29,13 +29,15 @@ async fn ok() {
 
         let db = MockDatabase::build(true);
 
-        let user_repo = MockUserRepository::new().with_get_composite(
-            FOO.user.id,
-            Some(
-                FOO.clone()
-                    .with(|u| u.invoice_info.country.take_if(|_| !can_receive_coins)),
-            ),
+        let recipient = Some(
+            FOO.clone()
+                .with(|u| u.invoice_info.country.take_if(|_| !can_receive_coins)),
         );
+        let user_repo = if coins < 0 {
+            MockUserRepository::new().with_get_composite(FOO.user.id, recipient)
+        } else {
+            MockUserRepository::new().with_get_purchase_composite(FOO.user.id, recipient)
+        };
 
         let coin = MockCoinService::new().with_add_coins(
             FOO.user.id,
@@ -101,7 +103,7 @@ async fn user_not_found() {
 
     let db = MockDatabase::build(false);
 
-    let user_repo = MockUserRepository::new().with_get_composite(FOO.user.id, None);
+    let user_repo = MockUserRepository::new().with_get_purchase_composite(FOO.user.id, None);
 
     let sut = InternalServiceImpl {
         auth_internal,

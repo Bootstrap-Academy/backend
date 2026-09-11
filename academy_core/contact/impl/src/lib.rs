@@ -45,6 +45,8 @@ where
             })?;
 
         let email = Email {
+            sender: None,
+            message_id: None,
             recipient: (*self.config.email).clone(),
             subject: format!("[Contact Form] {}", *message.subject),
             body: format!(
@@ -173,6 +175,8 @@ mod tests {
 
     fn make_email() -> Email {
         Email {
+            sender: None,
+            message_id: None,
             recipient: "contact@example.com".parse().unwrap(),
             subject: "[Contact Form] Test".into(),
             body: "Message from Max Mustermann (max.mustermann@example.de):\n\nHello World!".into(),

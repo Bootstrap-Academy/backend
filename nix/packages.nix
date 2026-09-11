@@ -92,12 +92,18 @@ let
       ++ lib.optionals stdenv.hostPlatform.isDarwin (
         lib.attrValues { inherit (pkgs.darwin.apple_sdk.frameworks) SystemConfiguration; }
       );
-    postInstall = ''
-      ${attrs.postInstall or ""}
+    postFixup = ''
+      ${attrs.postFixup or ""}
+      # Generate completions only after fixup has finished rewriting the binary.
+      completionDir=$(mktemp -d)
+      COMPLETE=bash "$out/bin/${bin}" > "$completionDir/bash"
+      COMPLETE=fish "$out/bin/${bin}" > "$completionDir/fish"
+      COMPLETE=zsh "$out/bin/${bin}" > "$completionDir/zsh"
       installShellCompletion --cmd ${bin} \
-        --bash <(COMPLETE=bash $out/bin/${bin}) \
-        --fish <(COMPLETE=fish $out/bin/${bin}) \
-        --zsh <(COMPLETE=zsh $out/bin/${bin})
+        --bash "$completionDir/bash" \
+        --fish "$completionDir/fish" \
+        --zsh "$completionDir/zsh"
+      rm -r "$completionDir"
     '';
     meta.mainProgram = bin;
   };

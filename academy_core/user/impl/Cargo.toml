@@ -28,6 +28,7 @@ academy_utils.workspace = true
 anyhow.workspace = true
 chrono.workspace = true
 tracing.workspace = true
+serde_json.workspace = true
 
 [dev-dependencies]
 academy_auth_contracts = { workspace = true, features = ["mock"] }
@@ -43,5 +44,4 @@ academy_extern_contracts = { workspace = true, features = ["mock"] }
 academy_persistence_contracts = { workspace = true, features = ["mock"] }
 academy_shared_contracts = { workspace = true, features = ["mock"] }
 pretty_assertions.workspace = true
-serde_json.workspace = true
 tokio.workspace = true

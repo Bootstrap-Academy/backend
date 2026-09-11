@@ -323,6 +323,26 @@ rec {
       # File a bug if you depend on any for non-debug work!
       debug = internal.debugCrate { inherit packageId; };
     };
+    "academy_core_moderation_contracts" = rec {
+      packageId = "academy_core_moderation_contracts";
+      build = internal.buildRustCrateWithFeatures {
+        packageId = "academy_core_moderation_contracts";
+      };
+
+      # Debug support which might change between releases.
+      # File a bug if you depend on any for non-debug work!
+      debug = internal.debugCrate { inherit packageId; };
+    };
+    "academy_core_moderation_impl" = rec {
+      packageId = "academy_core_moderation_impl";
+      build = internal.buildRustCrateWithFeatures {
+        packageId = "academy_core_moderation_impl";
+      };
+
+      # Debug support which might change between releases.
+      # File a bug if you depend on any for non-debug work!
+      debug = internal.debugCrate { inherit packageId; };
+    };
     "academy_core_oauth2_contracts" = rec {
       packageId = "academy_core_oauth2_contracts";
       build = internal.buildRustCrateWithFeatures {
@@ -377,6 +397,26 @@ rec {
       packageId = "academy_core_premium_impl";
       build = internal.buildRustCrateWithFeatures {
         packageId = "academy_core_premium_impl";
+      };
+
+      # Debug support which might change between releases.
+      # File a bug if you depend on any for non-debug work!
+      debug = internal.debugCrate { inherit packageId; };
+    };
+    "academy_core_purchase_contracts" = rec {
+      packageId = "academy_core_purchase_contracts";
+      build = internal.buildRustCrateWithFeatures {
+        packageId = "academy_core_purchase_contracts";
+      };
+
+      # Debug support which might change between releases.
+      # File a bug if you depend on any for non-debug work!
+      debug = internal.debugCrate { inherit packageId; };
+    };
+    "academy_core_purchase_impl" = rec {
+      packageId = "academy_core_purchase_impl";
+      build = internal.buildRustCrateWithFeatures {
+        packageId = "academy_core_purchase_impl";
       };
 
       # Debug support which might change between releases.
@@ -715,6 +755,10 @@ rec {
             packageId = "academy_core_contact_impl";
           }
           {
+            name = "academy_core_contract_contracts";
+            packageId = "academy_core_contract_contracts";
+          }
+          {
             name = "academy_core_contract_impl";
             packageId = "academy_core_contract_impl";
           }
@@ -743,8 +787,20 @@ rec {
             packageId = "academy_core_mfa_impl";
           }
           {
+            name = "academy_core_moderation_contracts";
+            packageId = "academy_core_moderation_contracts";
+          }
+          {
+            name = "academy_core_moderation_impl";
+            packageId = "academy_core_moderation_impl";
+          }
+          {
             name = "academy_core_oauth2_impl";
             packageId = "academy_core_oauth2_impl";
+          }
+          {
+            name = "academy_core_paypal_contracts";
+            packageId = "academy_core_paypal_contracts";
           }
           {
             name = "academy_core_paypal_impl";
@@ -757,6 +813,14 @@ rec {
           {
             name = "academy_core_premium_impl";
             packageId = "academy_core_premium_impl";
+          }
+          {
+            name = "academy_core_purchase_contracts";
+            packageId = "academy_core_purchase_contracts";
+          }
+          {
+            name = "academy_core_purchase_impl";
+            packageId = "academy_core_purchase_impl";
           }
           {
             name = "academy_core_session_contracts";
@@ -793,6 +857,10 @@ rec {
           {
             name = "academy_email_impl";
             packageId = "academy_email_impl";
+          }
+          {
+            name = "academy_extern_contracts";
+            packageId = "academy_extern_contracts";
           }
           {
             name = "academy_extern_impl";
@@ -992,6 +1060,10 @@ rec {
             packageId = "academy_core_mfa_contracts";
           }
           {
+            name = "academy_core_moderation_contracts";
+            packageId = "academy_core_moderation_contracts";
+          }
+          {
             name = "academy_core_oauth2_contracts";
             packageId = "academy_core_oauth2_contracts";
           }
@@ -1002,6 +1074,10 @@ rec {
           {
             name = "academy_core_premium_contracts";
             packageId = "academy_core_premium_contracts";
+          }
+          {
+            name = "academy_core_purchase_contracts";
+            packageId = "academy_core_purchase_contracts";
           }
           {
             name = "academy_core_session_contracts";
@@ -1133,6 +1209,12 @@ rec {
             packageId = "serde_json";
             usesDefaultFeatures = false;
             features = [ "std" ];
+          }
+          {
+            name = "tower";
+            packageId = "tower";
+            usesDefaultFeatures = false;
+            features = [ "util" ];
           }
         ];
 
@@ -1858,6 +1940,18 @@ rec {
             usesDefaultFeatures = false;
           }
           {
+            name = "schemars";
+            packageId = "schemars";
+            usesDefaultFeatures = false;
+            features = [ "derive" "preserve_order" "uuid1" "url2" ];
+          }
+          {
+            name = "serde";
+            packageId = "serde";
+            usesDefaultFeatures = false;
+            features = [ "derive" "std" ];
+          }
+          {
             name = "thiserror";
             packageId = "thiserror 2.0.18";
             usesDefaultFeatures = false;
@@ -1937,6 +2031,18 @@ rec {
             packageId = "hex";
             usesDefaultFeatures = false;
             features = [ "std" ];
+          }
+          {
+            name = "serde_json";
+            packageId = "serde_json";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "tokio";
+            packageId = "tokio";
+            usesDefaultFeatures = false;
+            features = [ "rt-multi-thread" "macros" "sync" "fs" "process" ];
           }
           {
             name = "tracing";
@@ -2600,6 +2706,197 @@ rec {
         ];
 
       };
+      "academy_core_moderation_contracts" = rec {
+        crateName = "academy_core_moderation_contracts";
+        version = "0.0.0";
+        edition = "2024";
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/moderation/contracts; };
+        dependencies = [
+          {
+            name = "academy_auth_contracts";
+            packageId = "academy_auth_contracts";
+          }
+          {
+            name = "academy_core_session_contracts";
+            packageId = "academy_core_session_contracts";
+          }
+          {
+            name = "academy_core_user_contracts";
+            packageId = "academy_core_user_contracts";
+          }
+          {
+            name = "academy_models";
+            packageId = "academy_models";
+          }
+          {
+            name = "anyhow";
+            packageId = "anyhow";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "serde_json";
+            packageId = "serde_json";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "thiserror";
+            packageId = "thiserror 2.0.18";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "uuid";
+            packageId = "uuid";
+            usesDefaultFeatures = false;
+            features = [ "v4" "v7" "serde" ];
+          }
+        ];
+
+      };
+      "academy_core_moderation_impl" = rec {
+        crateName = "academy_core_moderation_impl";
+        version = "0.0.0";
+        edition = "2024";
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/moderation/impl; };
+        dependencies = [
+          {
+            name = "academy_auth_contracts";
+            packageId = "academy_auth_contracts";
+          }
+          {
+            name = "academy_core_finance_contracts";
+            packageId = "academy_core_finance_contracts";
+          }
+          {
+            name = "academy_core_moderation_contracts";
+            packageId = "academy_core_moderation_contracts";
+          }
+          {
+            name = "academy_core_oauth2_contracts";
+            packageId = "academy_core_oauth2_contracts";
+          }
+          {
+            name = "academy_core_purchase_contracts";
+            packageId = "academy_core_purchase_contracts";
+          }
+          {
+            name = "academy_core_session_contracts";
+            packageId = "academy_core_session_contracts";
+          }
+          {
+            name = "academy_core_user_contracts";
+            packageId = "academy_core_user_contracts";
+          }
+          {
+            name = "academy_di";
+            packageId = "academy_di";
+          }
+          {
+            name = "academy_email_contracts";
+            packageId = "academy_email_contracts";
+          }
+          {
+            name = "academy_extern_contracts";
+            packageId = "academy_extern_contracts";
+          }
+          {
+            name = "academy_models";
+            packageId = "academy_models";
+          }
+          {
+            name = "academy_persistence_contracts";
+            packageId = "academy_persistence_contracts";
+          }
+          {
+            name = "academy_shared_contracts";
+            packageId = "academy_shared_contracts";
+          }
+          {
+            name = "anyhow";
+            packageId = "anyhow";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "chrono";
+            packageId = "chrono";
+            usesDefaultFeatures = false;
+            features = [ "serde" "clock" ];
+          }
+          {
+            name = "serde_json";
+            packageId = "serde_json";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "tokio";
+            packageId = "tokio";
+            usesDefaultFeatures = false;
+            features = [ "rt-multi-thread" "macros" "sync" "fs" "process" ];
+          }
+          {
+            name = "tracing";
+            packageId = "tracing";
+            usesDefaultFeatures = false;
+            features = [ "attributes" ];
+          }
+          {
+            name = "uuid";
+            packageId = "uuid";
+            usesDefaultFeatures = false;
+            features = [ "v4" "v7" "serde" ];
+          }
+        ];
+        devDependencies = [
+          {
+            name = "academy_auth_contracts";
+            packageId = "academy_auth_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_core_finance_contracts";
+            packageId = "academy_core_finance_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_core_purchase_contracts";
+            packageId = "academy_core_purchase_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_core_user_contracts";
+            packageId = "academy_core_user_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_demo";
+            packageId = "academy_demo";
+          }
+          {
+            name = "academy_email_contracts";
+            packageId = "academy_email_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_extern_contracts";
+            packageId = "academy_extern_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_persistence_contracts";
+            packageId = "academy_persistence_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_shared_contracts";
+            packageId = "academy_shared_contracts";
+            features = [ "mock" ];
+          }
+        ];
+
+      };
       "academy_core_oauth2_contracts" = rec {
         crateName = "academy_core_oauth2_contracts";
         version = "0.0.0";
@@ -2797,6 +3094,10 @@ rec {
             packageId = "academy_core_paypal_contracts";
           }
           {
+            name = "academy_core_purchase_contracts";
+            packageId = "academy_core_purchase_contracts";
+          }
+          {
             name = "academy_di";
             packageId = "academy_di";
           }
@@ -2835,6 +3136,12 @@ rec {
             features = [ "std" ];
           }
           {
+            name = "chrono";
+            packageId = "chrono";
+            usesDefaultFeatures = false;
+            features = [ "serde" "clock" ];
+          }
+          {
             name = "rust_decimal";
             packageId = "rust_decimal";
             usesDefaultFeatures = false;
@@ -2846,10 +3153,27 @@ rec {
             usesDefaultFeatures = false;
           }
           {
+            name = "serde_json";
+            packageId = "serde_json";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "sha2";
+            packageId = "sha2 0.10.9";
+            usesDefaultFeatures = false;
+          }
+          {
             name = "tracing";
             packageId = "tracing";
             usesDefaultFeatures = false;
             features = [ "attributes" ];
+          }
+          {
+            name = "uuid";
+            packageId = "uuid";
+            usesDefaultFeatures = false;
+            features = [ "v4" "v7" "serde" ];
           }
         ];
         devDependencies = [
@@ -2871,6 +3195,11 @@ rec {
           {
             name = "academy_core_paypal_contracts";
             packageId = "academy_core_paypal_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_core_purchase_contracts";
+            packageId = "academy_core_purchase_contracts";
             features = [ "mock" ];
           }
           {
@@ -2951,6 +3280,10 @@ rec {
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/premium/impl; };
         dependencies = [
           {
+            name = "academy_assets";
+            packageId = "academy_assets";
+          }
+          {
             name = "academy_auth_contracts";
             packageId = "academy_auth_contracts";
           }
@@ -2969,6 +3302,10 @@ rec {
           {
             name = "academy_di";
             packageId = "academy_di";
+          }
+          {
+            name = "academy_email_contracts";
+            packageId = "academy_email_contracts";
           }
           {
             name = "academy_models";
@@ -3005,6 +3342,11 @@ rec {
             features = [ "std" ];
           }
           {
+            name = "sha2";
+            packageId = "sha2 0.10.9";
+            usesDefaultFeatures = false;
+          }
+          {
             name = "tracing";
             packageId = "tracing";
             usesDefaultFeatures = false;
@@ -3037,6 +3379,11 @@ rec {
             packageId = "academy_demo";
           }
           {
+            name = "academy_email_contracts";
+            packageId = "academy_email_contracts";
+            features = [ "mock" ];
+          }
+          {
             name = "academy_persistence_contracts";
             packageId = "academy_persistence_contracts";
             features = [ "mock" ];
@@ -3051,6 +3398,171 @@ rec {
             packageId = "tokio";
             usesDefaultFeatures = false;
             features = [ "rt-multi-thread" "macros" "sync" "fs" "process" ];
+          }
+        ];
+
+      };
+      "academy_core_purchase_contracts" = rec {
+        crateName = "academy_core_purchase_contracts";
+        version = "0.0.0";
+        edition = "2024";
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/purchase/contracts; };
+        dependencies = [
+          {
+            name = "academy_models";
+            packageId = "academy_models";
+          }
+          {
+            name = "anyhow";
+            packageId = "anyhow";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "mockall";
+            packageId = "mockall";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "serde_json";
+            packageId = "serde_json";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "thiserror";
+            packageId = "thiserror 2.0.18";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "uuid";
+            packageId = "uuid";
+            usesDefaultFeatures = false;
+            features = [ "v4" "v7" "serde" ];
+          }
+        ];
+        features = {
+          "mock" = [ "dep:mockall" ];
+        };
+        resolvedDefaultFeatures = [ "mock" ];
+      };
+      "academy_core_purchase_impl" = rec {
+        crateName = "academy_core_purchase_impl";
+        version = "0.0.0";
+        edition = "2024";
+        src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_core/purchase/impl; };
+        dependencies = [
+          {
+            name = "academy_assets";
+            packageId = "academy_assets";
+          }
+          {
+            name = "academy_auth_contracts";
+            packageId = "academy_auth_contracts";
+          }
+          {
+            name = "academy_core_coin_contracts";
+            packageId = "academy_core_coin_contracts";
+          }
+          {
+            name = "academy_core_heart_contracts";
+            packageId = "academy_core_heart_contracts";
+          }
+          {
+            name = "academy_core_heart_impl";
+            packageId = "academy_core_heart_impl";
+          }
+          {
+            name = "academy_core_premium_contracts";
+            packageId = "academy_core_premium_contracts";
+          }
+          {
+            name = "academy_core_premium_impl";
+            packageId = "academy_core_premium_impl";
+          }
+          {
+            name = "academy_core_purchase_contracts";
+            packageId = "academy_core_purchase_contracts";
+          }
+          {
+            name = "academy_di";
+            packageId = "academy_di";
+          }
+          {
+            name = "academy_email_contracts";
+            packageId = "academy_email_contracts";
+          }
+          {
+            name = "academy_models";
+            packageId = "academy_models";
+          }
+          {
+            name = "academy_persistence_contracts";
+            packageId = "academy_persistence_contracts";
+          }
+          {
+            name = "anyhow";
+            packageId = "anyhow";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "chrono";
+            packageId = "chrono";
+            usesDefaultFeatures = false;
+            features = [ "serde" "clock" ];
+          }
+          {
+            name = "serde_json";
+            packageId = "serde_json";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "sha2";
+            packageId = "sha2 0.10.9";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "tokio";
+            packageId = "tokio";
+            usesDefaultFeatures = false;
+            features = [ "rt-multi-thread" "macros" "sync" "fs" "process" ];
+          }
+          {
+            name = "tracing";
+            packageId = "tracing";
+            usesDefaultFeatures = false;
+            features = [ "attributes" ];
+          }
+          {
+            name = "uuid";
+            packageId = "uuid";
+            usesDefaultFeatures = false;
+            features = [ "v4" "v7" "serde" ];
+          }
+        ];
+        devDependencies = [
+          {
+            name = "academy_auth_contracts";
+            packageId = "academy_auth_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_core_heart_contracts";
+            packageId = "academy_core_heart_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_email_contracts";
+            packageId = "academy_email_contracts";
+            features = [ "mock" ];
+          }
+          {
+            name = "academy_persistence_contracts";
+            packageId = "academy_persistence_contracts";
+            features = [ "mock" ];
           }
         ];
 
@@ -3358,6 +3870,12 @@ rec {
             features = [ "serde" "clock" ];
           }
           {
+            name = "serde_json";
+            packageId = "serde_json";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
             name = "tracing";
             packageId = "tracing";
             usesDefaultFeatures = false;
@@ -3427,12 +3945,6 @@ rec {
           {
             name = "pretty_assertions";
             packageId = "pretty_assertions";
-            usesDefaultFeatures = false;
-            features = [ "std" ];
-          }
-          {
-            name = "serde_json";
-            packageId = "serde_json";
             usesDefaultFeatures = false;
             features = [ "std" ];
           }
@@ -3800,6 +4312,12 @@ rec {
             packageId = "thiserror 2.0.18";
             usesDefaultFeatures = false;
           }
+          {
+            name = "uuid";
+            packageId = "uuid";
+            usesDefaultFeatures = false;
+            features = [ "v4" "v7" "serde" ];
+          }
         ];
         features = {
           "mock" = [ "dep:mockall" ];
@@ -3843,6 +4361,12 @@ rec {
             features = [ "std" ];
           }
           {
+            name = "chrono";
+            packageId = "chrono";
+            usesDefaultFeatures = false;
+            features = [ "serde" "clock" ];
+          }
+          {
             name = "futures";
             packageId = "futures";
             usesDefaultFeatures = false;
@@ -3866,6 +4390,12 @@ rec {
             features = [ "http2" "rustls" "json" "form" ];
           }
           {
+            name = "rust_decimal";
+            packageId = "rust_decimal";
+            usesDefaultFeatures = false;
+            features = [ "std" "serde-str" ];
+          }
+          {
             name = "serde";
             packageId = "serde";
             usesDefaultFeatures = false;
@@ -3883,6 +4413,12 @@ rec {
             usesDefaultFeatures = false;
             features = [ "attributes" ];
           }
+          {
+            name = "uuid";
+            packageId = "uuid";
+            usesDefaultFeatures = false;
+            features = [ "v4" "v7" "serde" ];
+          }
         ];
         devDependencies = [
           {
@@ -3898,12 +4434,6 @@ rec {
             packageId = "tokio";
             usesDefaultFeatures = false;
             features = [ "rt-multi-thread" "macros" "sync" "fs" "process" ];
-          }
-          {
-            name = "uuid";
-            packageId = "uuid";
-            usesDefaultFeatures = false;
-            features = [ "v4" "v7" "serde" ];
           }
         ];
 
@@ -3978,6 +4508,12 @@ rec {
             features = [ "derive" "std" ];
           }
           {
+            name = "serde_json";
+            packageId = "serde_json";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
             name = "thiserror";
             packageId = "thiserror 2.0.18";
             usesDefaultFeatures = false;
@@ -3993,14 +4529,6 @@ rec {
             packageId = "uuid";
             usesDefaultFeatures = false;
             features = [ "v4" "v7" "serde" ];
-          }
-        ];
-        devDependencies = [
-          {
-            name = "serde_json";
-            packageId = "serde_json";
-            usesDefaultFeatures = false;
-            features = [ "std" ];
           }
         ];
 
@@ -4040,9 +4568,21 @@ rec {
             usesDefaultFeatures = false;
           }
           {
+            name = "serde_json";
+            packageId = "serde_json";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
             name = "thiserror";
             packageId = "thiserror 2.0.18";
             usesDefaultFeatures = false;
+          }
+          {
+            name = "uuid";
+            packageId = "uuid";
+            usesDefaultFeatures = false;
+            features = [ "v4" "v7" "serde" ];
           }
         ];
         features = {
@@ -4096,6 +4636,12 @@ rec {
             features = [ "serde" "clock" ];
           }
           {
+            name = "chrono-tz";
+            packageId = "chrono-tz";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
             name = "clorinde";
             packageId = "clorinde";
           }
@@ -4109,6 +4655,12 @@ rec {
             name = "ouroboros";
             packageId = "ouroboros";
             usesDefaultFeatures = false;
+          }
+          {
+            name = "serde_json";
+            packageId = "serde_json";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
           }
           {
             name = "tracing";
@@ -4575,6 +5127,12 @@ rec {
             features = [ "typed-header" ];
           }
           {
+            name = "chrono";
+            packageId = "chrono";
+            usesDefaultFeatures = false;
+            features = [ "serde" "clock" ];
+          }
+          {
             name = "clap";
             packageId = "clap";
             features = [ "derive" "env" ];
@@ -4602,6 +5160,12 @@ rec {
             packageId = "serde";
             usesDefaultFeatures = false;
             features = [ "derive" "std" ];
+          }
+          {
+            name = "serde_json";
+            packageId = "serde_json";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
           }
           {
             name = "tokio";

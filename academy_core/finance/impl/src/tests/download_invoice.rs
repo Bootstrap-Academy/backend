@@ -62,7 +62,7 @@ async fn invalid_token() {
 }
 
 #[tokio::test]
-async fn not_found() {
+async fn missing_original_commits_reconciliation_before_not_found() {
     // Arrange
     let jwt = MockJwtService::new().with_verify(
         "the-jwt".into(),
@@ -72,7 +72,8 @@ async fn not_found() {
         }),
     );
 
-    let db = MockDatabase::build(false);
+    // The missing-original lookup may have recorded a repair obligation.
+    let db = MockDatabase::build(true);
 
     let finance_invoice =
         MockFinanceInvoiceService::new().with_get_invoice_pdf(Some(FOO.user.id), 42, None);

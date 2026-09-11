@@ -225,3 +225,26 @@ Every provider is parsed before the disabled ones are dropped, so `client_id` an
 | `userinfo_id_key` | **required** | Key of the user id in the userinfo response. |
 | `userinfo_name_key` | **required** | Key of the user name in the userinfo response. |
 | `scopes` | **required** | Scopes to request, e.g. `["identify"]`. |
+
+# Prospective purchase confirmation and activation
+
+`purchase.provision_window_seconds` maps `premium_monthly`, `premium_yearly`,
+`hearts`, `course` and `coins` to a positive integer number of seconds. There is
+no default commercial promise. A missing entry prevents a new immediate-product
+offer; it does not disable recovery or remove previously accepted rights.
+
+Before activation the operator must approve a supportable duration for each
+enabled product and assign the overdue-claim handling. Do not copy synthetic test
+durations into a release configuration. The exact duration is saved and disclosed
+in the offer; its clock starts at the saved binding acceptance, including PayPal
+orders. A later payment does not restart it. Scheduled Events use their accepted
+start as the source-availability cutoff.
+
+Overdue unperformed orders stop automatic provision and remain visible for review.
+No new provider capture starts after the saved window. An existing or uncertain
+provider capture still has to be reconciled under its original identity. If a
+provision transaction actually committed but timely visibility is unproved, keep
+the real provision and claim with separate timing evidence; never invent an exact
+COMMIT time, retroactively erase access, or report a refund that did not occur.
+The purchase replay worker must remain scheduled. This configuration supplies no
+refund/tender/forfeiture policy and no retention or staff-response promise.

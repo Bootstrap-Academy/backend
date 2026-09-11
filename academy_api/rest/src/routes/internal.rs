@@ -6,7 +6,10 @@ use academy_core_internal_contracts::{
     InternalGetUserByEmailError, InternalGetUserError, InternalHasPremiumError, InternalService,
 };
 use academy_models::{
-    auth::InternalToken, coin::TransactionDescription, email_address::EmailAddress,
+    auth::InternalToken,
+    coin::{CoinOperation, CoinOperationId, TransactionDescription},
+    email_address::EmailAddress,
+    user::UserId,
 };
 use aide::{
     axum::{ApiRouter, routing},
@@ -57,6 +60,10 @@ pub fn router(service: Arc<impl InternalService>) -> ApiRouter<()> {
         .api_route(
             "/shop/_internal/premium/{user_id}",
             routing::get_with(has_premium, has_premium_docs),
+        )
+        .api_route(
+            "/shop/_internal/coin-operations/{operation_id}/{user_id}",
+            routing::put_with(apply_coin_operation, add_coins_docs),
         )
         .with_state(service)
         .with_path_items(|op| op.tag(TAG))
@@ -141,6 +148,39 @@ async fn add_coins(
         .await
     {
         Ok(balance) => Json(ApiBalance::from(balance)).into_response(),
+        Err(InternalAddCoinsError::OperationConflict) => CoinOperationConflictError.into_response(),
+        Err(InternalAddCoinsError::UserNotFound) => UserNotFoundError.into_response(),
+        Err(InternalAddCoinsError::NotEnoughCoins) => NotEnoughCoinsError.into_response(),
+        Err(InternalAddCoinsError::Auth(err)) => internal_auth_error(err),
+        Err(InternalAddCoinsError::Other(err)) => internal_server_error(err),
+    }
+}
+
+#[derive(Deserialize, JsonSchema)]
+struct CoinOperationPath {
+    operation_id: CoinOperationId,
+    user_id: UserId,
+}
+
+async fn apply_coin_operation(
+    service: State<Arc<impl InternalService>>,
+    token: ApiToken<InternalToken>,
+    Path(CoinOperationPath {
+        operation_id,
+        user_id,
+    }): Path<CoinOperationPath>,
+    Json(request): Json<AddCoinsRequest>,
+) -> Response {
+    let operation = CoinOperation {
+        id: operation_id,
+        user_id,
+        coins: request.coins,
+        description: request.description,
+        include_in_credit_note: request.credit_note.unwrap_or(request.coins > 0),
+    };
+    match service.apply_coin_operation(&token.0, operation).await {
+        Ok(balance) => Json(ApiBalance::from(balance)).into_response(),
+        Err(InternalAddCoinsError::OperationConflict) => CoinOperationConflictError.into_response(),
         Err(InternalAddCoinsError::UserNotFound) => UserNotFoundError.into_response(),
         Err(InternalAddCoinsError::NotEnoughCoins) => NotEnoughCoinsError.into_response(),
         Err(InternalAddCoinsError::Auth(err)) => internal_auth_error(err),
@@ -156,6 +196,7 @@ fn add_coins_docs(op: TransformOperation) -> TransformOperation {
         )
         .add_error::<UserNotFoundError>()
         .add_error::<NotEnoughCoinsError>()
+        .add_error::<CoinOperationConflictError>()
         .with(internal_auth_error_docs)
         .with(internal_server_error_docs)
 }
@@ -245,6 +286,8 @@ fn internal_auth_error_docs(op: TransformOperation) -> TransformOperation {
 }
 
 error_code! {
+    /// The operation id has already been used for a different request.
+    CoinOperationConflictError(CONFLICT, "Coin operation conflict");
     /// The internal authentication token is invalid or has expired.
     InvalidTokenError(UNAUTHORIZED, "Invalid token");
 }

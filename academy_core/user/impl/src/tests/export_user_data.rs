@@ -24,6 +24,9 @@ use crate::{UserFeatureServiceImpl, tests::Sut};
 
 fn account() -> AccountDataExport {
     AccountDataExport {
+        commercial: serde_json::json!({}),
+        moderation: serde_json::json!([]),
+        purchase_evidence: serde_json::json!([]),
         user: FOO.clone(),
         sessions: Vec::new(),
         oauth2_links: Vec::new(),
@@ -32,6 +35,7 @@ fn account() -> AccountDataExport {
         transactions: Vec::new(),
         premium: None,
         premium_subscription: None,
+        premium_renewal_evidence: serde_json::json!({"legacy_observations": null, "agreements": []}),
         invoices: Vec::new(),
         financial_documents: Vec::new(),
         contract_declarations: Vec::new(),

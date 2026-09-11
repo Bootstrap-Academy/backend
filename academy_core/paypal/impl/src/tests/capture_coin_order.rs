@@ -1,186 +1,19 @@
+use crate::{PaypalFeatureServiceImpl, tests::Sut};
 use academy_auth_contracts::MockAuthService;
-use academy_core_finance_contracts::{
-    coin::{CoinPrices, MockFinanceCoinService},
-    invoice::MockFinanceInvoiceService,
-};
-use academy_core_paypal_contracts::{
-    PaypalCaptureCoinOrderError, PaypalFeatureService, coin_order::MockPaypalCoinOrderService,
-};
+use academy_core_paypal_contracts::{PaypalCaptureCoinOrderError, PaypalFeatureService};
 use academy_demo::{
     session::{BAR_1, FOO_1},
     user::{BAR, FOO},
 };
-use academy_email_contracts::template::MockTemplateEmailService;
-use academy_extern_contracts::paypal::MockPaypalApiService;
 use academy_models::{
     auth::{AuthError, AuthenticateError, AuthorizeError},
-    coin::Balance,
     paypal::{PaypalCoinOrder, PaypalOrderId},
-    withdrawal::WITHDRAWAL_CONSENT_DIGITAL_CONTENT,
 };
-use academy_persistence_contracts::{
-    MockDatabase, paypal::MockPaypalRepository, user::MockUserRepository,
-};
-use academy_templates_contracts::{PurchaseConfirmationTemplate, WithdrawalConsentConfirmation};
-use academy_utils::{Apply, assert_matches};
-use rust_decimal_macros::dec;
+use academy_persistence_contracts::{MockDatabase, paypal::MockPaypalRepository};
+use academy_utils::assert_matches;
 
-use crate::{PaypalFeatureServiceImpl, tests::Sut};
-
-#[tokio::test]
-async fn ok() {
-    // Arrange
-    let order = PaypalCoinOrder {
-        id: PaypalOrderId::try_new("asdf1234").unwrap(),
-        user_id: FOO.user.id,
-        created_at: FOO.user.created_at,
-        captured_at: None,
-        coins: 1337,
-        invoice_number: 42,
-        withdrawal_consent_at: Some(FOO.user.created_at),
-        withdrawal_text_version: Some("2026-09".try_into().unwrap()),
-    };
-
-    let expected = Balance {
-        coins: 123456,
-        withheld_coins: 7,
-    };
-
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
-
-    let db = MockDatabase::build(true);
-
-    let paypal_repo =
-        MockPaypalRepository::new().with_get_coin_order(order.id.clone(), Some(order.clone()));
-
-    let user_repo = MockUserRepository::new().with_get_composite(FOO.user.id, Some(FOO.clone()));
-
-    let paypal_api = MockPaypalApiService::new().with_capture_order(order.id.clone(), true);
-
-    let paypal_coin_order = MockPaypalCoinOrderService::new().with_capture(order.clone(), expected);
-
-    let pdf = vec![1, 2, 3, 4, 5];
-
-    let prices = CoinPrices {
-        net_unit: 1.into(),
-        net_total: 2.into(),
-        vat_total: 3.into(),
-        gross_total: 4.into(),
-    };
-    let finance_coin = MockFinanceCoinService::new()
-        .with_get_price(1337, prices)
-        .with_vat_percent(19.into());
-    let finance_invoice = MockFinanceInvoiceService::new().with_get_invoice_pdf(
-        Some(FOO.user.id),
-        42,
-        Some(pdf.clone()),
-    );
-
-    let template_email = MockTemplateEmailService::new().with_send_purchase_confirmation_email(
-        FOO.user
-            .email
-            .clone()
-            .unwrap()
-            .with_name(FOO.profile.display_name.clone().into_inner()),
-        PurchaseConfirmationTemplate {
-            coins: order.coins,
-            vat_percent: dec!(19),
-            vat_total: prices.vat_total,
-            gross_total: prices.gross_total,
-            withdrawal_consent: Some(WithdrawalConsentConfirmation {
-                text: WITHDRAWAL_CONSENT_DIGITAL_CONTENT.into(),
-                version: "2026-09".into(),
-                timestamp: FOO
-                    .user
-                    .created_at
-                    .format("%d.%m.%Y, %H:%M Uhr (UTC)")
-                    .to_string(),
-            }),
-        },
-        pdf.clone(),
-        true,
-    );
-
-    let sut = PaypalFeatureServiceImpl {
-        auth,
-        db,
-        paypal_repo,
-        user_repo,
-        paypal_api,
-        paypal_coin_order,
-        template_email,
-        finance_invoice,
-        finance_coin,
-        ..Sut::default()
-    };
-
-    // Act
-    let result = sut.capture_coin_order(&"token".into(), order.id).await;
-
-    // Assert
-    assert_eq!(result.unwrap(), expected);
-}
-
-#[tokio::test]
-async fn ok_without_email() {
-    // Arrange
-    let user = FOO.clone().with(|user| user.user.email = None);
-
-    let order = PaypalCoinOrder {
-        id: PaypalOrderId::try_new("asdf1234").unwrap(),
-        user_id: user.user.id,
-        created_at: user.user.created_at,
-        captured_at: None,
-        coins: 1337,
-        invoice_number: 42,
-        withdrawal_consent_at: Some(user.user.created_at),
-        withdrawal_text_version: Some("2026-09".try_into().unwrap()),
-    };
-
-    let expected = Balance {
-        coins: 123456,
-        withheld_coins: 7,
-    };
-
-    let auth = MockAuthService::new().with_authenticate(Some((user.user.clone(), FOO_1.clone())));
-
-    let db = MockDatabase::build(true);
-
-    let paypal_repo =
-        MockPaypalRepository::new().with_get_coin_order(order.id.clone(), Some(order.clone()));
-
-    let user_repo = MockUserRepository::new().with_get_composite(user.user.id, Some(user.clone()));
-
-    let paypal_api = MockPaypalApiService::new().with_capture_order(order.id.clone(), true);
-
-    let paypal_coin_order = MockPaypalCoinOrderService::new().with_capture(order.clone(), expected);
-
-    // The invoice is still issued, and therefore still recorded, even though
-    // there is no address to send the confirmation to.
-    let finance_invoice = MockFinanceInvoiceService::new().with_get_invoice_pdf(
-        Some(user.user.id),
-        42,
-        Some(vec![1, 2, 3, 4, 5]),
-    );
-
-    let sut = PaypalFeatureServiceImpl {
-        auth,
-        db,
-        paypal_repo,
-        user_repo,
-        paypal_api,
-        paypal_coin_order,
-        finance_invoice,
-        ..Sut::default()
-    };
-
-    // Act
-    let result = sut.capture_coin_order(&"token".into(), order.id).await;
-
-    // Assert
-    assert_eq!(result.unwrap(), expected);
-}
-
+// Financial success/failure/replay cases use real PostgreSQL and the HTTP/SMTP boundaries in
+// tests/paypal-recovery.py. These unit checks isolate authorization and legacy handling.
 #[tokio::test]
 async fn unauthenticated() {
     // Arrange
@@ -238,7 +71,12 @@ async fn order_not_found() {
 
     let db = MockDatabase::build(false);
 
-    let paypal_repo = MockPaypalRepository::new().with_get_coin_order(order_id.clone(), None);
+    let mut paypal_repo = MockPaypalRepository::new().with_get_coin_order(order_id.clone(), None);
+
+    paypal_repo
+        .expect_get_payment()
+        .once()
+        .return_once(|_, _| Box::pin(std::future::ready(Ok(None))));
 
     let sut = PaypalFeatureServiceImpl {
         auth,
@@ -272,8 +110,13 @@ async fn different_user() {
 
     let db = MockDatabase::build(false);
 
-    let paypal_repo =
+    let mut paypal_repo =
         MockPaypalRepository::new().with_get_coin_order(order.id.clone(), Some(order.clone()));
+
+    paypal_repo
+        .expect_get_payment()
+        .once()
+        .return_once(|_, _| Box::pin(std::future::ready(Ok(None))));
 
     let sut = PaypalFeatureServiceImpl {
         auth,
@@ -290,7 +133,7 @@ async fn different_user() {
 }
 
 #[tokio::test]
-async fn already_captured() {
+async fn legacy_captured_requires_reconciliation() {
     // Arrange
     let order = PaypalCoinOrder {
         id: PaypalOrderId::try_new("asdf1234").unwrap(),
@@ -307,8 +150,13 @@ async fn already_captured() {
 
     let db = MockDatabase::build(false);
 
-    let paypal_repo =
+    let mut paypal_repo =
         MockPaypalRepository::new().with_get_coin_order(order.id.clone(), Some(order.clone()));
+
+    paypal_repo
+        .expect_get_payment()
+        .once()
+        .return_once(|_, _| Box::pin(std::future::ready(Ok(None))));
 
     let sut = PaypalFeatureServiceImpl {
         auth,
@@ -321,93 +169,5 @@ async fn already_captured() {
     let result = sut.capture_coin_order(&"token".into(), order.id).await;
 
     // Assert
-    assert_matches!(result, Err(PaypalCaptureCoinOrderError::NotFound));
-}
-
-#[tokio::test]
-async fn incomplete_invoice_info() {
-    // Arrange
-    let order = PaypalCoinOrder {
-        id: PaypalOrderId::try_new("asdf1234").unwrap(),
-        user_id: FOO.user.id,
-        created_at: FOO.user.created_at,
-        captured_at: None,
-        coins: 1337,
-        invoice_number: 42,
-        withdrawal_consent_at: Some(FOO.user.created_at),
-        withdrawal_text_version: Some("2026-09".try_into().unwrap()),
-    };
-
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
-
-    let db = MockDatabase::build(false);
-
-    let paypal_repo =
-        MockPaypalRepository::new().with_get_coin_order(order.id.clone(), Some(order.clone()));
-
-    let user_repo = MockUserRepository::new().with_get_composite(
-        FOO.user.id,
-        Some(FOO.clone().with(|u| u.invoice_info.country = None)),
-    );
-
-    let sut = PaypalFeatureServiceImpl {
-        auth,
-        db,
-        paypal_repo,
-        user_repo,
-        ..Sut::default()
-    };
-
-    // Act
-    let result = sut.capture_coin_order(&"token".into(), order.id).await;
-
-    // Assert
-    assert_matches!(
-        result,
-        Err(PaypalCaptureCoinOrderError::IncompleteInvoiceInfo)
-    );
-}
-
-#[tokio::test]
-async fn capture_order_failure() {
-    // Arrange
-    let order = PaypalCoinOrder {
-        id: PaypalOrderId::try_new("asdf1234").unwrap(),
-        user_id: FOO.user.id,
-        created_at: FOO.user.created_at,
-        captured_at: None,
-        coins: 1337,
-        invoice_number: 42,
-        withdrawal_consent_at: Some(FOO.user.created_at),
-        withdrawal_text_version: Some("2026-09".try_into().unwrap()),
-    };
-
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
-
-    let db = MockDatabase::build(false);
-
-    let paypal_repo =
-        MockPaypalRepository::new().with_get_coin_order(order.id.clone(), Some(order.clone()));
-
-    let user_repo = MockUserRepository::new().with_get_composite(FOO.user.id, Some(FOO.clone()));
-
-    let paypal_api = MockPaypalApiService::new().with_capture_order(order.id.clone(), false);
-
-    let sut = PaypalFeatureServiceImpl {
-        auth,
-        db,
-        paypal_repo,
-        user_repo,
-        paypal_api,
-        ..Sut::default()
-    };
-
-    // Act
-    let result = sut.capture_coin_order(&"token".into(), order.id).await;
-
-    // Assert
-    assert_matches!(
-        result,
-        Err(PaypalCaptureCoinOrderError::CaptureOrderFailure)
-    );
+    assert_matches!(result, Err(PaypalCaptureCoinOrderError::Pending));
 }

@@ -44,6 +44,10 @@ where
         update_last_login: bool,
         mfa_verified: bool,
     ) -> anyhow::Result<Login> {
+        anyhow::ensure!(
+            user_composite.user.enabled,
+            "Ordinary session unavailable for restricted account"
+        );
         let id = self.id.generate();
         let now = self.time.now();
 
@@ -115,6 +119,10 @@ where
             .context("Failed to get user from database")?
             .ok_or(SessionRefreshError::NotFound)?;
 
+        if !user_composite.user.enabled {
+            return Err(SessionRefreshError::NotFound);
+        }
+
         // invalidate old access token
         self.auth_access_token
             .invalidate(refresh_token_hash)
@@ -129,10 +137,14 @@ where
 
         // update session
         let patch = SessionPatch::new().update_updated_at(self.time.now());
-        self.session_repo
+        if !self
+            .session_repo
             .update(txn, session.id, patch.as_ref())
             .await
-            .context("Failed to update session in database")?;
+            .context("Failed to update session in database")?
+        {
+            return Err(SessionRefreshError::NotFound);
+        }
         let session = session.update(patch);
 
         self.session_repo

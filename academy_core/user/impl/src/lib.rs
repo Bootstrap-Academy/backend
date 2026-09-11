@@ -41,7 +41,7 @@ use academy_utils::{
     trace_instrument,
 };
 use anyhow::{Context, anyhow};
-use tracing::{info, instrument, trace};
+use tracing::{info, instrument, trace, warn};
 
 pub mod email_confirmation;
 pub mod export;
@@ -362,6 +362,11 @@ where
             return Err(UserUpdateError::CannotDisableSelf);
         }
 
+        // Visibility changes need a reasoned moderation case after authorization.
+        if enabled.is_update() {
+            return Err(UserUpdateError::ModerationRequired);
+        }
+
         if admin.is_update() && user_id == auth.user_id {
             return Err(UserUpdateError::CannotDemoteSelf);
         }
@@ -579,8 +584,24 @@ where
         let auth = self.auth.authenticate(token).await.map_auth_err()?;
         let user_id = user_id.unwrap_or(auth.user_id);
         auth.ensure_self_or_admin(user_id).map_auth_err()?;
-
+        if user_id != auth.user_id {
+            return Err(UserDeleteError::ModerationRequired);
+        }
+        self.recipient_delete(user_id).await
+    }
+    async fn recipient_delete(&self, user_id: UserId) -> Result<(), UserDeleteError> {
+        let received_at = chrono::Utc::now();
+        let mut intake = self.db.begin_transaction().await?;
+        self.user_repo
+            .record_deletion_request(&mut intake, user_id, received_at)
+            .await
+            .context("Failed to preserve the authenticated erasure request")?;
+        intake.commit().await?;
         let mut txn = self.db.begin_transaction().await?;
+
+        if !self.user_repo.lock_for_deletion(&mut txn, user_id).await? {
+            return Err(UserDeleteError::NotFound);
+        }
 
         // Read while the sessions are still there; the access tokens are
         // invalidated only after the deletion has been committed, because the
@@ -623,10 +644,15 @@ where
 
         txn.commit().await?;
 
-        self.auth
+        if let Err(err) = self
+            .auth
             .invalidate_access_tokens_of(refresh_token_hashes)
             .await
-            .context("Failed to invalidate access tokens")?;
+        {
+            // Authentication also checks authoritative account existence. A cache outage
+            // cannot restore this account's authority or skip the committed erasure work.
+            warn!(error=%err, "Account deleted; cache invalidation failed");
+        }
 
         // The record of the statement is committed and is what a later refund
         // needs; its pdf is produced outside the transaction, because that

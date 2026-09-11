@@ -42,6 +42,12 @@ impl MfaRepository<PostgresTransaction> for PostgresMfaRepository {
         totp_device: &TotpDevice,
         secret: &TotpSecret,
     ) -> anyhow::Result<()> {
+        txn.txn()
+            .query_opt(
+                "SELECT id FROM users WHERE id=$1 FOR UPDATE",
+                &[&*totp_device.user_id],
+            )
+            .await?;
         let params = CreateTotpDeviceParams {
             id: *totp_device.id,
             user_id: *totp_device.user_id,
@@ -67,6 +73,7 @@ impl MfaRepository<PostgresTransaction> for PostgresMfaRepository {
         totp_device_id: TotpDeviceId,
         TotpDevicePatchRef { enabled }: TotpDevicePatchRef<'a>,
     ) -> anyhow::Result<bool> {
+        txn.txn().query_opt("SELECT id FROM users WHERE id=(SELECT user_id FROM totp_devices WHERE id=$1) FOR UPDATE", &[&*totp_device_id]).await?;
         let params = UpdateTotpDeviceParams {
             id: *totp_device_id,
             enabled: enabled.update().copied(),
@@ -85,6 +92,9 @@ impl MfaRepository<PostgresTransaction> for PostgresMfaRepository {
         txn: &mut PostgresTransaction,
         user_id: UserId,
     ) -> anyhow::Result<()> {
+        txn.txn()
+            .query_opt("SELECT id FROM users WHERE id=$1 FOR UPDATE", &[&*user_id])
+            .await?;
         queries::mfa::delete_totp_devices_by_user()
             .bind(txn.txn(), &user_id)
             .await
@@ -128,6 +138,7 @@ impl MfaRepository<PostgresTransaction> for PostgresMfaRepository {
         totp_device_id: TotpDeviceId,
         secret: &TotpSecret,
     ) -> anyhow::Result<()> {
+        txn.txn().query_opt("SELECT id FROM users WHERE id=(SELECT user_id FROM totp_devices WHERE id=$1) FOR UPDATE", &[&*totp_device_id]).await?;
         queries::mfa::set_totp_device_secret()
             .bind(txn.txn(), &totp_device_id, &**secret)
             .await
@@ -159,6 +170,9 @@ impl MfaRepository<PostgresTransaction> for PostgresMfaRepository {
         user_id: UserId,
         recovery_code_hash: MfaRecoveryCodeHash,
     ) -> anyhow::Result<()> {
+        txn.txn()
+            .query_opt("SELECT id FROM users WHERE id=$1 FOR UPDATE", &[&*user_id])
+            .await?;
         queries::mfa::set_recovery_code_hash()
             .bind(txn.txn(), &user_id, &recovery_code_hash.as_slice())
             .await
@@ -172,6 +186,9 @@ impl MfaRepository<PostgresTransaction> for PostgresMfaRepository {
         txn: &mut PostgresTransaction,
         user_id: UserId,
     ) -> anyhow::Result<()> {
+        txn.txn()
+            .query_opt("SELECT id FROM users WHERE id=$1 FOR UPDATE", &[&*user_id])
+            .await?;
         queries::mfa::delete_recovery_code_hash()
             .bind(txn.txn(), &user_id)
             .await

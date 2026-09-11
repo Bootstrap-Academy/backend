@@ -170,3 +170,29 @@ def get_self(client=None):
 
 
 c = make_client()
+
+
+def enable_premium_renewal(client=None):
+    """Explicitly order the current monthly coin renewal; never use legacy autopay."""
+    from uuid import uuid4
+
+    client = client or c
+    offer = client.get("/shop/premium/renewal-offer")
+    assert offer.status_code == 200, offer.text
+    response = client.put(
+        "/shop/premium/autopay",
+        json={
+            "plan": "MONTHLY",
+            "consent": {
+                "request_id": str(uuid4()),
+                "offer_id": offer.json()["id"],
+                "accepted": True,
+                "withdrawal_consent": True,
+            },
+        },
+    )
+    assert response.status_code == 200, response.text
+    status = client.get("/shop/premium/me").json()
+    assert status["autopay"] == "MONTHLY"
+    assert status["renewal"]["confirmation_sent"] is True
+    return status

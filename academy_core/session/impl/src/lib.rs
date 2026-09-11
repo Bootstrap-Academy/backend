@@ -140,127 +140,10 @@ where
         cmd: SessionCreateCommand,
         recaptcha_response: Option<RecaptchaResponse>,
     ) -> Result<Login, SessionCreateError> {
-        // The brake comes first: a locked login is refused before any password
-        // is checked, whether or not a captcha is configured.
-        self.session_login_throttle
-            .check(&cmd.name_or_email, client_ip)
+        let device_name = cmd.device_name.clone();
+        let (mut txn, user_composite, mfa_verified) = self
+            .prove_credentials(client_ip, cmd, recaptcha_response)
             .await?;
-
-        let failed_login_attempts = self
-            .session_failed_auth_count
-            .get(&cmd.name_or_email)
-            .await
-            .context("Failed to get failed auth count")?;
-
-        if failed_login_attempts >= self.config.login_fails_before_captcha {
-            self.captcha
-                .check(recaptcha_response.as_deref().map(String::as_str))
-                .await
-                .map_err(|err| match err {
-                    CaptchaCheckError::Failed => SessionCreateError::Recaptcha,
-                    CaptchaCheckError::Other(err) => err.context("Failed to check captcha").into(),
-                })?;
-        }
-
-        let mut txn = self.db.begin_transaction().await?;
-
-        let mut user_composite = match self
-            .user_repo
-            .get_composite_by_name_or_email(&mut txn, &cmd.name_or_email)
-            .await
-            .context("Failed to get user from database")?
-        {
-            Some(user_composite) => user_composite,
-            None => {
-                self.session_failed_auth_count
-                    .increment(&cmd.name_or_email)
-                    .await
-                    .context("Failed to increment failed auth count")?;
-                self.record_failed_attempt(client_ip, [&cmd.name_or_email])
-                    .await?;
-                return Err(SessionCreateError::InvalidCredentials);
-            }
-        };
-
-        // Both spellings of the login are counted, so that switching between
-        // the user name and the email address does not dodge the lock.
-        let logins = std::iter::once(UserNameOrEmailAddress::Name(
-            user_composite.user.name.clone(),
-        ))
-        .chain(
-            user_composite
-                .user
-                .email
-                .clone()
-                .map(UserNameOrEmailAddress::Email),
-        )
-        .collect::<Vec<_>>();
-
-        let increment_failed_login_attempts = || async {
-            for login in &logins {
-                self.session_failed_auth_count
-                    .increment(login)
-                    .await
-                    .context("Failed to increment failed auth count")?;
-            }
-            self.record_failed_attempt(client_ip, &logins).await?;
-            anyhow::Ok(())
-        };
-
-        match self
-            .auth
-            .authenticate_by_password(&mut txn, user_composite.user.id, cmd.password)
-            .await
-        {
-            Ok(()) => {}
-            Err(AuthenticateByPasswordError::InvalidCredentials) => {
-                increment_failed_login_attempts().await?;
-                return Err(SessionCreateError::InvalidCredentials);
-            }
-            Err(AuthenticateByPasswordError::Other(err)) => {
-                return Err(err
-                    .context("Failed to perform password authentication")
-                    .into());
-            }
-        };
-
-        // Only a successful TOTP check marks the session as authenticated with a
-        // second factor. A recovery code disables MFA instead of proving
-        // possession of the second factor, so it does not.
-        let mut mfa_verified = false;
-        if user_composite.details.mfa_enabled {
-            match self
-                .mfa_authenticate
-                .authenticate(&mut txn, user_composite.user.id, cmd.mfa)
-                .await
-            {
-                Ok(MfaAuthenticateResult::Ok) => mfa_verified = true,
-                Ok(MfaAuthenticateResult::Disabled) => (),
-                Ok(MfaAuthenticateResult::Reset) => user_composite.details.mfa_enabled = false,
-                Err(MfaAuthenticateError::Failed) => {
-                    increment_failed_login_attempts().await?;
-                    return Err(SessionCreateError::MfaFailed);
-                }
-                Err(MfaAuthenticateError::Other(err)) => {
-                    return Err(err.context("Failed to perform MFA").into());
-                }
-            }
-        }
-
-        // A successful login clears the account counter. The counter of the
-        // client address is deliberately not cleared: one account whose
-        // password is known would otherwise buy an unlimited number of guesses
-        // against every other one.
-        for login in &logins {
-            self.session_failed_auth_count
-                .reset(login)
-                .await
-                .context("Failed to reset failed auth count")?;
-            self.session_login_throttle
-                .reset(login)
-                .await
-                .context("Failed to reset failed login attempts")?;
-        }
 
         if !user_composite.user.enabled {
             return Err(SessionCreateError::UserDisabled);
@@ -268,19 +151,26 @@ where
 
         let login = self
             .session
-            .create(
-                &mut txn,
-                user_composite,
-                cmd.device_name,
-                true,
-                mfa_verified,
-            )
+            .create(&mut txn, user_composite, device_name, true, mfa_verified)
             .await
             .context("Failed to create session")?;
 
         txn.commit().await?;
 
         Ok(login)
+    }
+
+    async fn prove_recipient(
+        &self,
+        client_ip: IpAddr,
+        cmd: SessionCreateCommand,
+        recaptcha_response: Option<RecaptchaResponse>,
+    ) -> Result<UserId, SessionCreateError> {
+        let (txn, user, _mfa_verified) = self
+            .prove_credentials(client_ip, cmd, recaptcha_response)
+            .await?;
+        txn.commit().await?;
+        Ok(user.user.id)
     }
 
     #[trace_instrument(skip(self))]
@@ -300,6 +190,10 @@ where
             .await
             .context("Failed to get user from database")?
             .ok_or(SessionImpersonateError::NotFound)?;
+
+        if !user_composite.user.enabled {
+            return Err(SessionImpersonateError::NotFound);
+        }
 
         // Impersonation never involves the second factor of the impersonated
         // user, so the new session does not grant administrative privileges.
@@ -457,8 +351,146 @@ impl<
         SessionRepo,
     >
 where
+    Db: Database,
+    Auth: AuthService<Db::Transaction>,
+    Captcha: CaptchaService,
+    SessionFailedAuthCount: SessionFailedAuthCountService,
     SessionLoginThrottle: SessionLoginThrottleService,
+    MfaAuthenticate: MfaAuthenticateService<Db::Transaction>,
+    UserRepo: UserRepository<Db::Transaction>,
 {
+    async fn prove_credentials(
+        &self,
+        client_ip: IpAddr,
+        cmd: SessionCreateCommand,
+        recaptcha_response: Option<RecaptchaResponse>,
+    ) -> Result<(Db::Transaction, academy_models::user::UserComposite, bool), SessionCreateError>
+    {
+        // The brake comes first: a locked login is refused before any password
+        // is checked, whether or not a captcha is configured.
+        self.session_login_throttle
+            .check(&cmd.name_or_email, client_ip)
+            .await?;
+
+        let failed_login_attempts = self
+            .session_failed_auth_count
+            .get(&cmd.name_or_email)
+            .await
+            .context("Failed to get failed auth count")?;
+
+        if failed_login_attempts >= self.config.login_fails_before_captcha {
+            self.captcha
+                .check(recaptcha_response.as_deref().map(String::as_str))
+                .await
+                .map_err(|err| match err {
+                    CaptchaCheckError::Failed => SessionCreateError::Recaptcha,
+                    CaptchaCheckError::Other(err) => err.context("Failed to check captcha").into(),
+                })?;
+        }
+
+        let mut txn = self.db.begin_transaction().await?;
+
+        let mut user_composite = match self
+            .user_repo
+            .get_composite_by_name_or_email(&mut txn, &cmd.name_or_email)
+            .await
+            .context("Failed to get user from database")?
+        {
+            Some(user_composite) => user_composite,
+            None => {
+                self.session_failed_auth_count
+                    .increment(&cmd.name_or_email)
+                    .await
+                    .context("Failed to increment failed auth count")?;
+                self.record_failed_attempt(client_ip, [&cmd.name_or_email])
+                    .await?;
+                return Err(SessionCreateError::InvalidCredentials);
+            }
+        };
+
+        // Both spellings of the login are counted, so that switching between
+        // the user name and the email address does not dodge the lock.
+        let logins = std::iter::once(UserNameOrEmailAddress::Name(
+            user_composite.user.name.clone(),
+        ))
+        .chain(
+            user_composite
+                .user
+                .email
+                .clone()
+                .map(UserNameOrEmailAddress::Email),
+        )
+        .collect::<Vec<_>>();
+
+        let increment_failed_login_attempts = || async {
+            for login in &logins {
+                self.session_failed_auth_count
+                    .increment(login)
+                    .await
+                    .context("Failed to increment failed auth count")?;
+            }
+            self.record_failed_attempt(client_ip, &logins).await?;
+            anyhow::Ok(())
+        };
+
+        match self
+            .auth
+            .authenticate_by_password(&mut txn, user_composite.user.id, cmd.password)
+            .await
+        {
+            Ok(()) => {}
+            Err(AuthenticateByPasswordError::InvalidCredentials) => {
+                increment_failed_login_attempts().await?;
+                return Err(SessionCreateError::InvalidCredentials);
+            }
+            Err(AuthenticateByPasswordError::Other(err)) => {
+                return Err(err
+                    .context("Failed to perform password authentication")
+                    .into());
+            }
+        };
+
+        // Only a successful TOTP check marks the session as authenticated with a
+        // second factor. A recovery code disables MFA instead of proving
+        // possession of the second factor, so it does not.
+        let mut mfa_verified = false;
+        if user_composite.details.mfa_enabled {
+            match self
+                .mfa_authenticate
+                .authenticate(&mut txn, user_composite.user.id, cmd.mfa)
+                .await
+            {
+                Ok(MfaAuthenticateResult::Ok) => mfa_verified = true,
+                Ok(MfaAuthenticateResult::Disabled) => (),
+                Ok(MfaAuthenticateResult::Reset) => user_composite.details.mfa_enabled = false,
+                Err(MfaAuthenticateError::Failed) => {
+                    increment_failed_login_attempts().await?;
+                    return Err(SessionCreateError::MfaFailed);
+                }
+                Err(MfaAuthenticateError::Other(err)) => {
+                    return Err(err.context("Failed to perform MFA").into());
+                }
+            }
+        }
+
+        // A successful login clears the account counter. The counter of the
+        // client address is deliberately not cleared: one account whose
+        // password is known would otherwise buy an unlimited number of guesses
+        // against every other one.
+        for login in &logins {
+            self.session_failed_auth_count
+                .reset(login)
+                .await
+                .context("Failed to reset failed auth count")?;
+            self.session_login_throttle
+                .reset(login)
+                .await
+                .context("Failed to reset failed login attempts")?;
+        }
+
+        Ok((txn, user_composite, mfa_verified))
+    }
+
     /// Count a failed attempt against the client address and against every
     /// spelling of the login it was made with.
     async fn record_failed_attempt<'a>(

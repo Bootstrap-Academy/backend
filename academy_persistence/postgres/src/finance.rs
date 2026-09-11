@@ -25,11 +25,23 @@ use crate::PostgresTransaction;
 pub struct PostgresFinancialDocumentRepository;
 
 impl FinancialDocumentRepository<PostgresTransaction> for PostgresFinancialDocumentRepository {
-    async fn archive_inventory(&self, txn: &mut PostgresTransaction) -> anyhow::Result<Vec<(FinancialDocumentNumber, FinancialDocumentKind, bool, bool)>> {
+    async fn archive_inventory(
+        &self,
+        txn: &mut PostgresTransaction,
+    ) -> anyhow::Result<Vec<(FinancialDocumentNumber, FinancialDocumentKind, bool, bool)>> {
         txn.txn().query("SELECT d.number,d.kind,true AS recorded,EXISTS(SELECT 1 FROM invoice_originals i WHERE i.invoice_number=d.number AND d.kind='invoice') AS database_original FROM financial_documents d UNION ALL SELECT i.invoice_number,'invoice',false,true FROM invoice_originals i WHERE NOT EXISTS(SELECT 1 FROM financial_documents d WHERE d.number=i.invoice_number) ORDER BY number", &[]).await?.into_iter().map(|r|Ok((FinancialDocumentNumber::try_new(r.get::<_,String>(0))?,r.get::<_,String>(1).parse()?,r.get(2),r.get(3)))).collect()
     }
-    async fn lock_archive(&self, txn: &mut PostgresTransaction, number: &FinancialDocumentNumber) -> anyhow::Result<bool> {
-        txn.txn().execute("SELECT pg_advisory_xact_lock(hashtextextended('commercial-archive:'||$1::text,0))", &[&number.as_str()]).await?;
+    async fn lock_archive(
+        &self,
+        txn: &mut PostgresTransaction,
+        number: &FinancialDocumentNumber,
+    ) -> anyhow::Result<bool> {
+        txn.txn()
+            .execute(
+                "SELECT pg_advisory_xact_lock(hashtextextended('commercial-archive:'||$1::text,0))",
+                &[&number.as_str()],
+            )
+            .await?;
         // This error must precede every byte source. Returning false/None here
         // would let an original-reader fallback treat a suspect invoice as absent.
         anyhow::ensure!(
@@ -209,7 +221,9 @@ impl FinancialDocumentRepository<PostgresTransaction> for PostgresFinancialDocum
         txn: &mut PostgresTransaction,
         number: &FinancialDocumentNumber,
     ) -> anyhow::Result<Option<Vec<u8>>> {
-        if !self.lock_archive(txn, number).await? { return Ok(None); }
+        if !self.lock_archive(txn, number).await? {
+            return Ok(None);
+        }
         // Serialize first-original adoption/import even when no document or
         // live order exists yet. Every caller takes this lock before choosing
         // archive/rendered bytes; a concurrent cache cannot become a second
@@ -236,7 +250,10 @@ impl FinancialDocumentRepository<PostgresTransaction> for PostgresFinancialDocum
         pdf: &[u8],
         provenance: &str,
     ) -> anyhow::Result<()> {
-        anyhow::ensure!(self.lock_archive(txn, number).await?, "Retired original identifier cannot be imported");
+        anyhow::ensure!(
+            self.lock_archive(txn, number).await?,
+            "Retired original identifier cannot be imported"
+        );
         if let Some(old) = self.original_invoice(txn, number).await? {
             anyhow::ensure!(old == pdf, "An archived original cannot be replaced");
             return Ok(());
@@ -248,8 +265,14 @@ impl FinancialDocumentRepository<PostgresTransaction> for PostgresFinancialDocum
             )
             .await?;
         txn.txn().execute("INSERT INTO invoice_reconciliation(invoice_number,state,reason) VALUES($1,'evidenced','Original invoice bytes archived; capture, money and entitlement history unchanged') ON CONFLICT(invoice_number) DO UPDATE SET state=EXCLUDED.state,reason=EXCLUDED.reason", &[&number.as_str()]).await?;
-        self.observe_unrecorded_archive(txn, number, FinancialDocumentKind::Invoice).await?;
-        txn.txn().execute("SELECT commercial_capture_retention_owner($1,'invoice')", &[&number.as_str()]).await?;
+        self.observe_unrecorded_archive(txn, number, FinancialDocumentKind::Invoice)
+            .await?;
+        txn.txn()
+            .execute(
+                "SELECT commercial_capture_retention_owner($1,'invoice')",
+                &[&number.as_str()],
+            )
+            .await?;
         Ok(())
     }
     async fn flag_missing_invoice(
@@ -257,7 +280,9 @@ impl FinancialDocumentRepository<PostgresTransaction> for PostgresFinancialDocum
         txn: &mut PostgresTransaction,
         number: &FinancialDocumentNumber,
     ) -> anyhow::Result<()> {
-        if !self.lock_archive(txn, number).await? { return Ok(()); }
+        if !self.lock_archive(txn, number).await? {
+            return Ok(());
+        }
         txn.txn().execute("INSERT INTO invoice_reconciliation(invoice_number,state,reason) VALUES($1,'evidence_missing','Original invoice missing; current prices, VAT, customer data and order creation time cannot establish historical invoice/capture facts') ON CONFLICT DO NOTHING", &[&number.as_str()]).await?;
         Ok(())
     }
@@ -276,7 +301,10 @@ impl FinancialDocumentRepository<PostgresTransaction> for PostgresFinancialDocum
         txn: &mut PostgresTransaction,
         document: &FinancialDocument,
     ) -> anyhow::Result<()> {
-        anyhow::ensure!(self.lock_archive(txn, &document.number).await?, "Retired original identifier cannot be adopted again");
+        anyhow::ensure!(
+            self.lock_archive(txn, &document.number).await?,
+            "Retired original identifier cannot be adopted again"
+        );
         let params = RecordDocumentParams {
             number: &*document.number,
             kind: document.kind.as_str(),
@@ -492,7 +520,6 @@ impl FinancialDocumentRepository<PostgresTransaction> for PostgresFinancialDocum
         }
         Ok(deleted)
     }
-
 }
 
 async fn require_disposal_read_committed(txn: &mut PostgresTransaction) -> anyhow::Result<()> {

@@ -628,14 +628,17 @@ fn filter_case(messages: &mut Value, case: Option<&str>) {
     }
 }
 
-
 fn recipient_event_error(error: anyhow::Error) -> anyhow::Error {
     use academy_extern_contracts::microservices::RecipientEventError;
     match error.downcast_ref::<RecipientEventError>() {
-        Some(RecipientEventError::ExactTargetRequired(body)) => RecipientAccessError::ExactTargetRequired(body.clone()).into(),
+        Some(RecipientEventError::ExactTargetRequired(body)) => {
+            RecipientAccessError::ExactTargetRequired(body.clone()).into()
+        }
         Some(RecipientEventError::NotFound) => RecipientAccessError::NotFound.into(),
         Some(RecipientEventError::Forbidden) => RecipientAccessError::Forbidden.into(),
-        Some(RecipientEventError::Pending(body)) => RecipientAccessError::Pending(body.clone()).into(),
+        Some(RecipientEventError::Pending(body)) => {
+            RecipientAccessError::Pending(body.clone()).into()
+        }
         None => error,
     }
 }
@@ -651,7 +654,8 @@ mod ordinary_cancellation_tests {
     fn core_preserves_exact_refusal_and_keeps_it_distinct_from_pending_and_unavailability() {
         let detail = json!({"code":"ExactCancellationTargetRequired", "cancellation_recorded":false,
             "retained_operation":"event-rights/cancel"});
-        let mapped = recipient_event_error(RecipientEventError::ExactTargetRequired(detail.clone()).into());
+        let mapped =
+            recipient_event_error(RecipientEventError::ExactTargetRequired(detail.clone()).into());
         assert!(matches!(mapped.downcast_ref::<RecipientAccessError>(),
             Some(RecipientAccessError::ExactTargetRequired(value)) if value == &detail));
         let pending = json!({"cancellation_committed":true});

@@ -48,10 +48,10 @@ async fn learning(
     Path(op): Path<String>,
     Json(body): Json<Value>,
 ) -> Response {
-    let Some(key)=headers.get("x-learning-key").and_then(|v|v.to_str().ok()) else {
+    let Some(key) = headers.get("x-learning-key").and_then(|v| v.to_str().ok()) else {
         return reply(Err(RecipientAccessError::Invalid.into()));
     };
-    reply(s.commercial_learning(key,&op,body).await)
+    reply(s.commercial_learning(key, &op, body).await)
 }
 
 fn credentials(headers: &HeaderMap) -> Result<CommercialCredentials, RecipientAccessError> {
@@ -107,10 +107,7 @@ async fn recipient(
         Ok(value) => value,
         Err(error) => return reply(Err(error.into())),
     };
-    reply(
-        s.commercial_recipient(credentials, &op, body)
-            .await,
-    )
+    reply(s.commercial_recipient(credentials, &op, body).await)
 }
 async fn admin(
     State(s): State<Arc<impl CommercialFeatureService>>,

@@ -936,10 +936,18 @@ where
         txn.commit().await?;
         Ok(outcome == "smtp_accepted")
     }
-    async fn retained_offer(&self, user: UserId, kind: &str) -> Result<PurchaseStatus, PurchaseError> {
+    async fn retained_offer(
+        &self,
+        user: UserId,
+        kind: &str,
+    ) -> Result<PurchaseStatus, PurchaseError> {
         self.issue(user, "backend", self.builtin(kind)?).await
     }
-    async fn retained_accept(&self, user: UserId, acceptance: PurchaseAcceptance) -> Result<PurchaseStatus, PurchaseError> {
+    async fn retained_accept(
+        &self,
+        user: UserId,
+        acceptance: PurchaseAcceptance,
+    ) -> Result<PurchaseStatus, PurchaseError> {
         self.accept_for(user, "backend", acceptance).await
     }
     async fn retained_get(&self, user: UserId, id: Uuid) -> Result<PurchaseStatus, PurchaseError> {
@@ -950,7 +958,10 @@ where
         if !self.purchase_repo.lock_user(&mut txn, *user).await? {
             return Err(PurchaseError::Unavailable);
         }
-        let premium = self.premium_repo.get_latest_by_user_id(&mut txn, user).await?;
+        let premium = self
+            .premium_repo
+            .get_latest_by_user_id(&mut txn, user)
+            .await?;
         let hearts = self.heart.get(&mut txn, user).await?;
         let balance = self.coin_repo.get_balance(&mut txn, user).await?;
         let now = Utc::now();

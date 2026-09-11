@@ -19,8 +19,11 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           cache-on-failure: true
-      - run: cargo test --no-fail-fast --all-features --bins --lib
-      - run: cargo test --no-fail-fast --all-features --doc
+      - uses: cachix/install-nix-action@v31
+      - run: >-
+          nix shell --accept-flake-config --no-write-lock-file --inputs-from .
+          nixpkgs#postgresql_18 -c python3 scripts/test-unit.py
+          --evidence-dir "$RUNNER_TEMP/academy-unit-test-evidence"
 
   postgres:
     runs-on: ubuntu-latest

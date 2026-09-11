@@ -84,7 +84,9 @@ where
         number: &FinancialDocumentNumber,
         kind: FinancialDocumentKind,
     ) -> anyhow::Result<Option<Vec<u8>>> {
-        if !self.document_repo.lock_archive(txn, number).await? { return Ok(None); }
+        if !self.document_repo.lock_archive(txn, number).await? {
+            return Ok(None);
+        }
         let archive = match kind {
             FinancialDocumentKind::Invoice => {
                 if let Some(pdf) = self.document_repo.original_invoice(txn, number).await? {
@@ -154,7 +156,12 @@ where
         let number = format!("R{:07}", snapshot.order.invoice_number);
         let path = self.config.invoices_archive.join(format!("{number}.pdf"));
         let document_number = FinancialDocumentNumber::try_new(number.clone())?;
-        anyhow::ensure!(self.document_repo.lock_archive(txn, &document_number).await?, "Retired invoice requires independent review, not recreation");
+        anyhow::ensure!(
+            self.document_repo
+                .lock_archive(txn, &document_number)
+                .await?,
+            "Retired invoice requires independent review, not recreation"
+        );
         if let Some(pdf) = self
             .document_repo
             .original_invoice(txn, &document_number)
@@ -249,7 +256,9 @@ where
                 return Ok(None);
             }
         }
-        if !self.document_repo.lock_archive(txn, &number).await? { return Ok(None); }
+        if !self.document_repo.lock_archive(txn, &number).await? {
+            return Ok(None);
+        }
         // Authorization precedes archive access. The immutable original has the
         // same authority for legacy and durable payments, including admin use.
         if let Some(original) = self.document_repo.original_invoice(txn, &number).await? {
@@ -302,7 +311,9 @@ where
             .join(format!("{credit_note_number}.pdf"));
 
         let number = FinancialDocumentNumber::try_new(credit_note_number.clone())?;
-        if !self.document_repo.lock_archive(txn, &number).await? { return Ok(None); }
+        if !self.document_repo.lock_archive(txn, &number).await? {
+            return Ok(None);
+        }
         if let Some(credit_note) = self.fs.read_file(&archive_path).await? {
             return Ok(Some(credit_note));
         }
@@ -620,8 +631,9 @@ mod tests {
     // Existing nonretired fixtures permit the new archive serialization read.
     // Real PostgreSQL/CLI controls cover retirement admission and conflicting imports.
     fn existing_archive_documents() -> MockFinancialDocumentRepository<()> {
-        let mut repo=MockFinancialDocumentRepository::new();
-        repo.expect_lock_archive().returning(|_,_|Box::pin(async {Ok(true)}));
+        let mut repo = MockFinancialDocumentRepository::new();
+        repo.expect_lock_archive()
+            .returning(|_, _| Box::pin(async { Ok(true) }));
         repo
     }
 

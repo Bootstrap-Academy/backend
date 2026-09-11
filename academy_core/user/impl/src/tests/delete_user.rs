@@ -21,16 +21,22 @@ use crate::{UserFeatureServiceImpl, tests::Sut};
 
 // Intake commits separately even when the later erasure cannot commit.
 fn deletion_database(erase_commits: bool) -> MockDatabase {
-    let mut transactions=std::collections::VecDeque::new();
-    for commit in [true,erase_commits] {
-        let mut txn=academy_persistence_contracts::MockTransaction::new();
-        if commit { txn.expect_commit().once().return_once(||Box::pin(async {Ok(())})); }
+    let mut transactions = std::collections::VecDeque::new();
+    for commit in [true, erase_commits] {
+        let mut txn = academy_persistence_contracts::MockTransaction::new();
+        if commit {
+            txn.expect_commit()
+                .once()
+                .return_once(|| Box::pin(async { Ok(()) }));
+        }
         transactions.push_back(txn);
     }
-    let mut db=MockDatabase::new();
+    let mut db = MockDatabase::new();
     db.expect_begin_transaction().times(2).returning(move || {
-        let txn=transactions.pop_front().expect("exactly intake then erasure transaction");
-        Box::pin(async {Ok(txn)})
+        let txn = transactions
+            .pop_front()
+            .expect("exactly intake then erasure transaction");
+        Box::pin(async { Ok(txn) })
     });
     db
 }
@@ -160,7 +166,8 @@ async fn unauthorized() {
 async fn not_found() {
     let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
     let db = deletion_database(false);
-    let user_repo = MockUserRepository::new().with_record_deletion_request(FOO.user.id)
+    let user_repo = MockUserRepository::new()
+        .with_record_deletion_request(FOO.user.id)
         .with_lock_for_deletion(FOO.user.id, false);
     let finance_invoice = MockFinanceInvoiceService::new();
     let document_repo = MockFinancialDocumentRepository::new();

@@ -1,6 +1,10 @@
 //! Test-only unused dependencies: every call fails. No production mock changes.
 
-#![allow(unused_imports, unused_variables)]
+#![allow(
+    unused_imports,
+    unused_variables,
+    reason = "Fail-on-call test dependencies retain trait parameter types without using their values"
+)]
 
 #[derive(Default)]
 pub struct Unused;
@@ -17,68 +21,68 @@ mod session {
     };
     use std::{future::Future, net::IpAddr, time::Duration};
     impl SessionFeatureService for Unused {
-        fn prove_recipient(
+        async fn prove_recipient(
             &self,
             client_ip: IpAddr,
             cmd: SessionCreateCommand,
             recaptcha_response: Option<RecaptchaResponse>,
-        ) -> impl Future<Output = Result<UserId, SessionCreateError>> + Send {
-            async { panic!("unused feature called") }
+        ) -> Result<UserId, SessionCreateError> {
+            panic!("unused feature called")
         }
-        fn get_current_session(
+        async fn get_current_session(
             &self,
             token: &AccessToken,
-        ) -> impl Future<Output = Result<Session, SessionGetCurrentError>> + Send {
-            async { panic!("unused feature called") }
+        ) -> Result<Session, SessionGetCurrentError> {
+            panic!("unused feature called")
         }
-        fn list_by_user(
+        async fn list_by_user(
             &self,
             token: &AccessToken,
             user_id: UserIdOrSelf,
-        ) -> impl Future<Output = Result<Vec<Session>, SessionListByUserError>> + Send {
-            async { panic!("unused feature called") }
+        ) -> Result<Vec<Session>, SessionListByUserError> {
+            panic!("unused feature called")
         }
-        fn create_session(
+        async fn create_session(
             &self,
             client_ip: IpAddr,
             cmd: SessionCreateCommand,
             recaptcha_response: Option<RecaptchaResponse>,
-        ) -> impl Future<Output = Result<Login, SessionCreateError>> + Send {
-            async { panic!("unused feature called") }
+        ) -> Result<Login, SessionCreateError> {
+            panic!("unused feature called")
         }
-        fn impersonate(
+        async fn impersonate(
             &self,
             token: &AccessToken,
             user_id: UserId,
-        ) -> impl Future<Output = Result<Login, SessionImpersonateError>> + Send {
-            async { panic!("unused feature called") }
+        ) -> Result<Login, SessionImpersonateError> {
+            panic!("unused feature called")
         }
-        fn refresh_session(
+        async fn refresh_session(
             &self,
             refresh_token: &RefreshToken,
-        ) -> impl Future<Output = Result<Login, SessionRefreshError>> + Send {
-            async { panic!("unused feature called") }
+        ) -> Result<Login, SessionRefreshError> {
+            panic!("unused feature called")
         }
-        fn delete_session(
+        async fn delete_session(
             &self,
             token: &AccessToken,
             user_id: UserIdOrSelf,
             session_id: SessionId,
-        ) -> impl Future<Output = Result<(), SessionDeleteError>> + Send {
-            async { panic!("unused feature called") }
+        ) -> Result<(), SessionDeleteError> {
+            panic!("unused feature called")
         }
-        fn delete_current_session(
+        async fn delete_current_session(
             &self,
             token: &AccessToken,
-        ) -> impl Future<Output = Result<(), SessionDeleteCurrentError>> + Send {
-            async { panic!("unused feature called") }
+        ) -> Result<(), SessionDeleteCurrentError> {
+            panic!("unused feature called")
         }
-        fn delete_by_user(
+        async fn delete_by_user(
             &self,
             token: &AccessToken,
             user_id: UserIdOrSelf,
-        ) -> impl Future<Output = Result<(), SessionDeleteByUserError>> + Send {
-            async { panic!("unused feature called") }
+        ) -> Result<(), SessionDeleteByUserError> {
+            panic!("unused feature called")
         }
     }
 }
@@ -98,61 +102,56 @@ mod oauth2 {
     };
     use std::future::Future;
     impl OAuth2FeatureService for Unused {
-        fn begin_recipient(
+        async fn begin_recipient(
             &self,
             provider: OAuth2ProviderId,
             redirect: Url,
-        ) -> impl Future<Output = anyhow::Result<OAuth2AuthorizationUrl>> + Send {
-            async { panic!("unused feature called") }
+        ) -> anyhow::Result<OAuth2AuthorizationUrl> {
+            panic!("unused feature called")
         }
-        fn prove_recipient(
-            &self,
-            callback: OAuth2Callback,
-        ) -> impl Future<Output = anyhow::Result<UserId>> + Send {
-            async { panic!("unused feature called") }
+        async fn prove_recipient(&self, callback: OAuth2Callback) -> anyhow::Result<UserId> {
+            panic!("unused feature called")
         }
         fn list_providers(&self) -> Vec<OAuth2ProviderSummary> {
             panic!("unused feature called")
         }
-        fn begin_authorization(
+        async fn begin_authorization(
             &self,
             token: &AccessToken,
             provider_id: OAuth2ProviderId,
             redirect_uri: Url,
-        ) -> impl Future<Output = Result<OAuth2AuthorizationUrl, OAuth2BeginAuthorizationError>> + Send
-        {
-            async { panic!("unused feature called") }
+        ) -> Result<OAuth2AuthorizationUrl, OAuth2BeginAuthorizationError> {
+            panic!("unused feature called")
         }
-        fn list_links(
+        async fn list_links(
             &self,
             token: &AccessToken,
             user_id: UserIdOrSelf,
-        ) -> impl Future<Output = Result<Vec<OAuth2Link>, OAuth2ListLinksError>> + Send {
-            async { panic!("unused feature called") }
+        ) -> Result<Vec<OAuth2Link>, OAuth2ListLinksError> {
+            panic!("unused feature called")
         }
-        fn create_link(
+        async fn create_link(
             &self,
             token: &AccessToken,
             user_id: UserIdOrSelf,
             callback: OAuth2Callback,
-        ) -> impl Future<Output = Result<OAuth2Link, OAuth2CreateLinkError>> + Send {
-            async { panic!("unused feature called") }
+        ) -> Result<OAuth2Link, OAuth2CreateLinkError> {
+            panic!("unused feature called")
         }
-        fn delete_link(
+        async fn delete_link(
             &self,
             token: &AccessToken,
             user_id: UserIdOrSelf,
             link_id: OAuth2LinkId,
-        ) -> impl Future<Output = Result<(), OAuth2DeleteLinkError>> + Send {
-            async { panic!("unused feature called") }
+        ) -> Result<(), OAuth2DeleteLinkError> {
+            panic!("unused feature called")
         }
-        fn create_session(
+        async fn create_session(
             &self,
             callback: OAuth2Callback,
             device_name: Option<DeviceName>,
-        ) -> impl Future<Output = Result<OAuth2CreateSessionResponse, OAuth2CreateSessionError>> + Send
-        {
-            async { panic!("unused feature called") }
+        ) -> Result<OAuth2CreateSessionResponse, OAuth2CreateSessionError> {
+            panic!("unused feature called")
         }
     }
 }
@@ -176,96 +175,93 @@ mod user {
     use std::future::Future;
     use user::{UserListQuery, UserListResult};
     impl UserFeatureService for Unused {
-        fn list_users(
+        async fn list_users(
             &self,
             token: &AccessToken,
             query: UserListQuery,
-        ) -> impl Future<Output = Result<UserListResult, UserListError>> + Send {
-            async { panic!("unused feature called") }
+        ) -> Result<UserListResult, UserListError> {
+            panic!("unused feature called")
         }
-        fn get_user(
+        async fn get_user(
             &self,
             token: &AccessToken,
             user_id: UserIdOrSelf,
-        ) -> impl Future<Output = Result<UserComposite, UserGetError>> + Send {
-            async { panic!("unused feature called") }
+        ) -> Result<UserComposite, UserGetError> {
+            panic!("unused feature called")
         }
-        fn create_user(
+        async fn create_user(
             &self,
             request: UserCreateRequest,
             device_name: Option<DeviceName>,
             recaptcha_response: Option<RecaptchaResponse>,
-        ) -> impl Future<Output = Result<Login, UserCreateError>> + Send {
-            async { panic!("unused feature called") }
+        ) -> Result<Login, UserCreateError> {
+            panic!("unused feature called")
         }
-        fn update_user(
+        async fn update_user(
             &self,
             token: &AccessToken,
             user_id: UserIdOrSelf,
             request: UserUpdateRequest,
-        ) -> impl Future<Output = Result<UserComposite, UserUpdateError>> + Send {
-            async { panic!("unused feature called") }
+        ) -> Result<UserComposite, UserUpdateError> {
+            panic!("unused feature called")
         }
-        fn accept_terms(
+        async fn accept_terms(
             &self,
             token: &AccessToken,
             request: UserAcceptTermsRequest,
-        ) -> impl Future<Output = Result<UserComposite, UserAcceptTermsError>> + Send {
-            async { panic!("unused feature called") }
+        ) -> Result<UserComposite, UserAcceptTermsError> {
+            panic!("unused feature called")
         }
-        fn decline_terms(
+        async fn decline_terms(
             &self,
             token: &AccessToken,
-        ) -> impl Future<Output = Result<UserComposite, UserDeclineTermsError>> + Send {
-            async { panic!("unused feature called") }
+        ) -> Result<UserComposite, UserDeclineTermsError> {
+            panic!("unused feature called")
         }
-        fn delete_user(
+        async fn delete_user(
             &self,
             token: &AccessToken,
             user_id: UserIdOrSelf,
-        ) -> impl Future<Output = Result<(), UserDeleteError>> + Send {
-            async { panic!("unused feature called") }
+        ) -> Result<(), UserDeleteError> {
+            panic!("unused feature called")
         }
-        fn recipient_delete(
+        async fn recipient_delete(
             &self,
             user_id: academy_models::user::UserId,
-        ) -> impl Future<Output = Result<(), UserDeleteError>> + Send {
-            async { panic!("unused feature called") }
+        ) -> Result<(), UserDeleteError> {
+            panic!("unused feature called")
         }
-        fn export_user_data(
+        async fn export_user_data(
             &self,
             token: &AccessToken,
             user_id: UserIdOrSelf,
-        ) -> impl Future<Output = Result<UserDataExport, UserExportError>> + Send {
-            async { panic!("unused feature called") }
+        ) -> Result<UserDataExport, UserExportError> {
+            panic!("unused feature called")
         }
-        fn request_verification_email(
+        async fn request_verification_email(
             &self,
             token: &AccessToken,
             user_id: UserIdOrSelf,
-        ) -> impl Future<Output = Result<(), UserRequestVerificationEmailError>> + Send {
-            async { panic!("unused feature called") }
+        ) -> Result<(), UserRequestVerificationEmailError> {
+            panic!("unused feature called")
         }
-        fn verify_email(
-            &self,
-            code: VerificationCode,
-        ) -> impl Future<Output = Result<(), UserVerifyEmailError>> + Send {
-            async { panic!("unused feature called") }
+        async fn verify_email(&self, code: VerificationCode) -> Result<(), UserVerifyEmailError> {
+            panic!("unused feature called")
         }
-        fn request_password_reset(
+        async fn request_password_reset(
             &self,
             email: EmailAddress,
             recaptcha_response: Option<RecaptchaResponse>,
-        ) -> impl Future<Output = Result<(), UserRequestPasswordResetError>> + Send {
-            async { panic!("unused feature called") }
+        ) -> Result<(), UserRequestPasswordResetError> {
+            panic!("unused feature called")
         }
-        fn reset_password(
+        async fn reset_password(
             &self,
             email: EmailAddress,
             code: VerificationCode,
             new_password: UserPassword,
-        ) -> impl Future<Output = Result<UserComposite, UserResetPasswordError>> + Send {
-            async { panic!("unused feature called") }
+        ) -> Result<UserComposite, UserResetPasswordError> {
+            panic!("unused feature called")
         }
     }
 }

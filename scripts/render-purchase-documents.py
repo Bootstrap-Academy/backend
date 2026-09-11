@@ -35,7 +35,9 @@ def normal(value):
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--release", required=True)
 parser.add_argument("--replace-unpublished", action="store_true")
-parser.add_argument("--reuse-withdrawal-release", help="Reuse the unchanged withdrawal document from an existing verified manifest")
+parser.add_argument(
+    "--reuse-withdrawal-release", help="Reuse the unchanged withdrawal document from an existing verified manifest"
+)
 args = parser.parse_args()
 assert re.fullmatch(r"2026-09-r[1-9][0-9]*", args.release), "Original accepted release is immutable"
 release = args.release
@@ -49,7 +51,11 @@ for page, stem, title in [
     if stem == "widerrufsbelehrung" and args.reuse_withdrawal_release:
         previous_release = args.reuse_withdrawal_release
         assert re.fullmatch(r"2026-09-r[1-9][0-9]*", previous_release)
-        previous = json.loads((ROOT / f"backend/academy_assets/assets/email/purchase-document-manifest-{previous_release}.json").read_text())
+        previous = json.loads(
+            (
+                ROOT / f"backend/academy_assets/assets/email/purchase-document-manifest-{previous_release}.json"
+            ).read_text()
+        )
         assert previous["release"] == previous_release
         matches = [doc for doc in previous["documents"] if doc["source"] == f"frontend/pages/docs/{page}.vue"]
         assert len(matches) == 1
@@ -95,7 +101,10 @@ for page, stem, title in [
         actual = normal(textfile.read_text())
         blocks = re.findall(r"<(h[1-3]|p|li)(?:\s[^>]*)?>(.*?)</\1>", template, re.S)
         assert all(normal(value) in actual for _, value in blocks), "PDF omitted source text"
-        lines = [f"Unveröffentlichte vorgesehene gemeinsame Fassung {release}. Kein Wirksamkeitstermin oder Zustimmungsnachweis.", ""]
+        lines = [
+            f"Unveröffentlichte vorgesehene gemeinsame Fassung {release}. Kein Wirksamkeitstermin oder Zustimmungsnachweis.",
+            "",
+        ]
         for tag, value in blocks:
             prefix = "#" * int(tag[1]) + " " if tag.startswith("h") else "- " if tag == "li" else ""
             lines.extend([prefix + plain(value), ""])
@@ -112,6 +121,4 @@ for page, stem, title in [
             }
         )
         print(f"PASS {stem}: {len(blocks)} exact source blocks in PDF; prospective draft refreshed")
-manifest_path.write_text(
-    json.dumps(manifest, ensure_ascii=False, indent=2) + "\n"
-)
+manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")

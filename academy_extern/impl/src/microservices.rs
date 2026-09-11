@@ -73,16 +73,32 @@ where
         if !matches!(operation, "list" | "original" | "deliver") {
             bail!("Unsupported course-right operation");
         }
-        let (_, base) = self.config.services.iter().find(|(aud, _)| *aud == SKILLS)
+        let (_, base) = self
+            .config
+            .services
+            .iter()
+            .find(|(aud, _)| *aud == SKILLS)
             .ok_or_else(|| anyhow!("Retained course rights unavailable"))?;
         let token = self.auth_internal.issue_token(SKILLS)?;
-        let mut response = self.http.post(base.join(&format!(
-            "_internal/users/{}/course-rights/{operation}", *source_subject
-        ))?).bearer_auth(token.into_inner()).json(&body).timeout(self.config.timeout).send().await?;
-        if !response.status().is_success() { bail!("Course-right operation unavailable"); }
+        let mut response = self
+            .http
+            .post(base.join(&format!(
+                "_internal/users/{}/course-rights/{operation}",
+                *source_subject
+            ))?)
+            .bearer_auth(token.into_inner())
+            .json(&body)
+            .timeout(self.config.timeout)
+            .send()
+            .await?;
+        if !response.status().is_success() {
+            bail!("Course-right operation unavailable");
+        }
         let mut bytes = Vec::new();
         while let Some(chunk) = response.chunk().await? {
-            if bytes.len() + chunk.len() > self.config.max_export_size { bail!("Course-right response exceeds limit"); }
+            if bytes.len() + chunk.len() > self.config.max_export_size {
+                bail!("Course-right response exceeds limit");
+            }
             bytes.extend_from_slice(&chunk);
         }
         Ok(serde_json::from_slice(&bytes)?)
@@ -97,16 +113,32 @@ where
         if !matches!(operation, "list" | "original" | "deliver" | "cancel") {
             bail!("Unsupported event-right operation");
         }
-        let (_, base) = self.config.services.iter().find(|(aud, _)| *aud == EVENTS)
+        let (_, base) = self
+            .config
+            .services
+            .iter()
+            .find(|(aud, _)| *aud == EVENTS)
             .ok_or_else(|| anyhow!("Retained event rights unavailable"))?;
         let token = self.auth_internal.issue_token(EVENTS)?;
-        let mut response = self.http.post(base.join(&format!(
-            "_internal/users/{}/event-rights/{operation}", *source_subject
-        ))?).bearer_auth(token.into_inner()).json(&body).timeout(self.config.timeout).send().await?;
-        if !response.status().is_success() { bail!("Event-right operation unavailable"); }
+        let mut response = self
+            .http
+            .post(base.join(&format!(
+                "_internal/users/{}/event-rights/{operation}",
+                *source_subject
+            ))?)
+            .bearer_auth(token.into_inner())
+            .json(&body)
+            .timeout(self.config.timeout)
+            .send()
+            .await?;
+        if !response.status().is_success() {
+            bail!("Event-right operation unavailable");
+        }
         let mut bytes = Vec::new();
         while let Some(chunk) = response.chunk().await? {
-            if bytes.len() + chunk.len() > self.config.max_export_size { bail!("Event-right response exceeds limit"); }
+            if bytes.len() + chunk.len() > self.config.max_export_size {
+                bail!("Event-right response exceeds limit");
+            }
             bytes.extend_from_slice(&chunk);
         }
         Ok(serde_json::from_slice(&bytes)?)
@@ -357,9 +389,11 @@ where
     }
 }
 
-
 // Deliberate refusal is distinct from a lost or uncertain service response.
-fn recipient_event_response(status: u16, body: serde_json::Value) -> anyhow::Result<serde_json::Value> {
+fn recipient_event_response(
+    status: u16,
+    body: serde_json::Value,
+) -> anyhow::Result<serde_json::Value> {
     use academy_extern_contracts::microservices::RecipientEventError;
     match status {
         200..=299 => Ok(serde_json::json!(true)),
@@ -397,10 +431,22 @@ mod ordinary_cancellation_tests {
     #[test]
     fn ambiguous_or_mismatched_responses_do_not_claim_that_no_cancellation_was_recorded() {
         for (status, body) in [
-            (409, json!({"detail":{"code":"ExactCancellationTargetRequired"}})),
-            (409, json!({"detail":{"code":"ExactCancellationTargetRequired", "cancellation_recorded":true}})),
-            (503, json!({"detail":{"code":"ExactCancellationTargetRequired", "cancellation_recorded":false}})),
-            (409, json!({"detail":{"code":"OtherConflict", "cancellation_recorded":false}})),
+            (
+                409,
+                json!({"detail":{"code":"ExactCancellationTargetRequired"}}),
+            ),
+            (
+                409,
+                json!({"detail":{"code":"ExactCancellationTargetRequired", "cancellation_recorded":true}}),
+            ),
+            (
+                503,
+                json!({"detail":{"code":"ExactCancellationTargetRequired", "cancellation_recorded":false}}),
+            ),
+            (
+                409,
+                json!({"detail":{"code":"OtherConflict", "cancellation_recorded":false}}),
+            ),
         ] {
             let error = recipient_event_response(status, body).unwrap_err();
             assert!(error.downcast_ref::<RecipientEventError>().is_none());
@@ -414,7 +460,17 @@ mod ordinary_cancellation_tests {
         let error = recipient_event_response(503, json!({"detail":detail})).unwrap_err();
         assert!(matches!(error.downcast_ref::<RecipientEventError>(),
             Some(RecipientEventError::Pending(value)) if value == &detail));
-        assert!(matches!(recipient_event_response(404, json!(null)).unwrap_err().downcast_ref::<RecipientEventError>(), Some(RecipientEventError::NotFound)));
-        assert!(matches!(recipient_event_response(403, json!(null)).unwrap_err().downcast_ref::<RecipientEventError>(), Some(RecipientEventError::Forbidden)));
+        assert!(matches!(
+            recipient_event_response(404, json!(null))
+                .unwrap_err()
+                .downcast_ref::<RecipientEventError>(),
+            Some(RecipientEventError::NotFound)
+        ));
+        assert!(matches!(
+            recipient_event_response(403, json!(null))
+                .unwrap_err()
+                .downcast_ref::<RecipientEventError>(),
+            Some(RecipientEventError::Forbidden)
+        ));
     }
 }

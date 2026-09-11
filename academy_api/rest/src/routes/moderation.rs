@@ -401,10 +401,14 @@ async fn rule_evidence(
 // Failed infrastructure must not be mistaken for an invalid credential: clients
 // keep a still-valid proof and exact mutation intent for a later retry.
 fn recipient_error(e: anyhow::Error) -> Response {
-    if let Some(RecipientAccessError::ExactTargetRequired(original)) = e.downcast_ref::<RecipientAccessError>() {
+    if let Some(RecipientAccessError::ExactTargetRequired(original)) =
+        e.downcast_ref::<RecipientAccessError>()
+    {
         let mut detail = original.clone();
         detail["retry_same_request"] = json!(false);
-        detail["message"] = json!("This event-only request recorded no cancellation declaration. Select the original booking right and confirm an exact declaration using retained-rights access. Keep any previously issued receipt.");
+        detail["message"] = json!(
+            "This event-only request recorded no cancellation declaration. Select the original booking right and confirm an exact declaration using retained-rights access. Keep any previously issued receipt."
+        );
         detail["next_steps"] = json!({
             "rights_access_page": "/moderation/access",
             "open_rights_record_if_needed": {
@@ -431,9 +435,13 @@ fn recipient_error(e: anyhow::Error) -> Response {
         });
         return (
             StatusCode::CONFLICT,
-            [(header::CACHE_CONTROL, "no-store"), (header::REFERRER_POLICY, "no-referrer")],
+            [
+                (header::CACHE_CONTROL, "no-store"),
+                (header::REFERRER_POLICY, "no-referrer"),
+            ],
             Json(json!({"detail": detail})),
-        ).into_response();
+        )
+            .into_response();
     }
     if let Some(RecipientAccessError::Pending(body)) = e.downcast_ref::<RecipientAccessError>() {
         return (
@@ -518,57 +526,106 @@ fn recipient_error(e: anyhow::Error) -> Response {
     )
 }
 
-
 #[cfg(test)]
 mod ordinary_cancellation_tests {
     use super::recipient_error;
     use academy_core_moderation_contracts::RecipientAccessError;
-    use axum::{body::to_bytes, http::{StatusCode, header}};
+    use axum::{
+        body::to_bytes,
+        http::{StatusCode, header},
+    };
     use serde_json::{Value, json};
 
     #[tokio::test]
-    async fn deliberate_refusal_reaches_recipient_as_actionable_conflict_without_a_new_declaration() {
+    async fn deliberate_refusal_reaches_recipient_as_actionable_conflict_without_a_new_declaration()
+    {
         let original = json!({"code":"ExactCancellationTargetRequired", "cancellation_recorded":false,
             "retained_operation":"event-rights/cancel"});
-        let response = recipient_error(RecipientAccessError::ExactTargetRequired(original.clone()).into());
+        let response =
+            recipient_error(RecipientAccessError::ExactTargetRequired(original.clone()).into());
         assert_eq!(response.status(), StatusCode::CONFLICT);
         assert_eq!(response.headers()[header::CACHE_CONTROL], "no-store");
         assert_eq!(response.headers()[header::REFERRER_POLICY], "no-referrer");
-        let body: Value = serde_json::from_slice(&to_bytes(response.into_body(), 16_384).await.unwrap()).unwrap();
+        let body: Value =
+            serde_json::from_slice(&to_bytes(response.into_body(), 16_384).await.unwrap()).unwrap();
         for field in ["code", "cancellation_recorded", "retained_operation"] {
             assert_eq!(body["detail"][field], original[field]);
         }
         assert_eq!(body["detail"]["retry_same_request"], false);
         let next = &body["detail"]["next_steps"];
         assert_eq!(next["rights_access_page"], "/moderation/access");
-        assert_eq!(next["open_rights_record_if_needed"]["path"], "/shop/claims/recipient/open");
-        assert_eq!(next["open_rights_record_if_needed"]["required_fields"], json!(["command_id"]));
-        assert_eq!(next["open_rights_record_if_needed"]["declares_cancellation"], false);
-        assert_eq!(next["open_rights_record_if_needed"]["requires_original_account_or_evidenced_case"], true);
-        assert_eq!(next["open_rights_record_if_needed"]["inventory_completion_confirmed"], false);
-        assert_eq!(next["open_rights_record_if_needed"]["creates_replacement_account"], false);
-        assert_eq!(next["list_original_rights"]["path"], "/shop/claims/recipient/event_rights");
-        assert_eq!(next["declare_selected_right"]["path"], "/shop/claims/recipient/event_cancel");
-        assert_eq!(next["declare_selected_right"]["ordinary_bearer_alone_sufficient"], false);
-        assert_eq!(next["declare_selected_right"]["confirmation_required"], true);
-        assert!(next["declare_selected_right"]["command_id_policy"].as_str().unwrap().contains("distinct from case opening"));
-        assert_eq!(next["declare_selected_right"]["optional_fields"], json!(["source_subject"]));
-        assert_eq!(next["declare_selected_right"]["accepted_proof_headers"], json!(["x-moderation-capability", "x-commercial-claim-key"]));
+        assert_eq!(
+            next["open_rights_record_if_needed"]["path"],
+            "/shop/claims/recipient/open"
+        );
+        assert_eq!(
+            next["open_rights_record_if_needed"]["required_fields"],
+            json!(["command_id"])
+        );
+        assert_eq!(
+            next["open_rights_record_if_needed"]["declares_cancellation"],
+            false
+        );
+        assert_eq!(
+            next["open_rights_record_if_needed"]["requires_original_account_or_evidenced_case"],
+            true
+        );
+        assert_eq!(
+            next["open_rights_record_if_needed"]["inventory_completion_confirmed"],
+            false
+        );
+        assert_eq!(
+            next["open_rights_record_if_needed"]["creates_replacement_account"],
+            false
+        );
+        assert_eq!(
+            next["list_original_rights"]["path"],
+            "/shop/claims/recipient/event_rights"
+        );
+        assert_eq!(
+            next["declare_selected_right"]["path"],
+            "/shop/claims/recipient/event_cancel"
+        );
+        assert_eq!(
+            next["declare_selected_right"]["ordinary_bearer_alone_sufficient"],
+            false
+        );
+        assert_eq!(
+            next["declare_selected_right"]["confirmation_required"],
+            true
+        );
+        assert!(
+            next["declare_selected_right"]["command_id_policy"]
+                .as_str()
+                .unwrap()
+                .contains("distinct from case opening")
+        );
+        assert_eq!(
+            next["declare_selected_right"]["optional_fields"],
+            json!(["source_subject"])
+        );
+        assert_eq!(
+            next["declare_selected_right"]["accepted_proof_headers"],
+            json!(["x-moderation-capability", "x-commercial-claim-key"])
+        );
         assert!(body["detail"].get("command_id").is_none());
         assert!(body["detail"].get("right_id").is_none());
     }
 
     #[tokio::test]
-    async fn uncertain_service_result_keeps_retry_semantics_and_committed_pending_keeps_its_receipt() {
+    async fn uncertain_service_result_keeps_retry_semantics_and_committed_pending_keeps_its_receipt()
+     {
         let response = recipient_error(anyhow::anyhow!("synthetic service unavailable"));
         assert_eq!(response.status(), StatusCode::SERVICE_UNAVAILABLE);
-        let body: Value = serde_json::from_slice(&to_bytes(response.into_body(), 16_384).await.unwrap()).unwrap();
+        let body: Value =
+            serde_json::from_slice(&to_bytes(response.into_body(), 16_384).await.unwrap()).unwrap();
         assert!(body["detail"].is_string());
         assert!(body["detail"].get("cancellation_recorded").is_none());
         let pending = json!({"code":"EventSettlementPending", "cancellation_committed":true, "pending_operations":1});
         let response = recipient_error(RecipientAccessError::Pending(pending.clone()).into());
         assert_eq!(response.status(), StatusCode::SERVICE_UNAVAILABLE);
-        let body: Value = serde_json::from_slice(&to_bytes(response.into_body(), 16_384).await.unwrap()).unwrap();
+        let body: Value =
+            serde_json::from_slice(&to_bytes(response.into_body(), 16_384).await.unwrap()).unwrap();
         assert_eq!(body["detail"], pending);
     }
 }

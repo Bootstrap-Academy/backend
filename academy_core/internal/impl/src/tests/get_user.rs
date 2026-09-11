@@ -13,7 +13,8 @@ async fn ok() {
 
     let db = MockDatabase::build(false);
 
-    let user_repo = MockUserRepository::new().with_get_internal_composite(FOO.user.id, Some(FOO.clone()));
+    let user_repo =
+        MockUserRepository::new().with_get_internal_composite(FOO.user.id, Some(FOO.clone()));
 
     let sut = InternalServiceImpl {
         db,

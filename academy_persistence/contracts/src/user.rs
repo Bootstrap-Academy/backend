@@ -17,12 +17,18 @@ use thiserror::Error;
 pub trait UserRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
     /// Internal lifecycle identity; purpose subjects are physically present but
     /// do not acquire ordinary authentication or public-profile authority.
-    fn get_internal_composite(&self, txn: &mut Txn, user_id: UserId)
-        -> impl Future<Output=anyhow::Result<Option<UserComposite>>> + Send;
+    fn get_internal_composite(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
+    ) -> impl Future<Output = anyhow::Result<Option<UserComposite>>> + Send;
     /// New contract/reward recipient projection, with separately verified
     /// commercial contact for a purpose subject. Never an ordinary identity lookup.
-    fn get_purchase_composite(&self, txn: &mut Txn, user_id: UserId)
-        -> impl Future<Output=anyhow::Result<Option<UserComposite>>> + Send;
+    fn get_purchase_composite(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
+    ) -> impl Future<Output = anyhow::Result<Option<UserComposite>>> + Send;
     /// Preserve authenticated erasure intake in its own committed transaction,
     /// before waiting on the account/wallet. This is not completed erasure.
     fn record_deletion_request(
@@ -268,7 +274,11 @@ impl<Txn: Send + Sync + 'static> MockUserRepository<Txn> {
             .return_once(|_, _| Box::pin(std::future::ready(Ok(result))));
         self
     }
-    pub fn with_get_internal_composite(mut self, user_id: UserId, result: Option<UserComposite>) -> Self {
+    pub fn with_get_internal_composite(
+        mut self,
+        user_id: UserId,
+        result: Option<UserComposite>,
+    ) -> Self {
         self.expect_get_internal_composite()
             .once()
             .with(
@@ -278,7 +288,11 @@ impl<Txn: Send + Sync + 'static> MockUserRepository<Txn> {
             .return_once(|_, _| Box::pin(std::future::ready(Ok(result))));
         self
     }
-    pub fn with_get_purchase_composite(mut self, user_id: UserId, result: Option<UserComposite>) -> Self {
+    pub fn with_get_purchase_composite(
+        mut self,
+        user_id: UserId,
+        result: Option<UserComposite>,
+    ) -> Self {
         self.expect_get_purchase_composite()
             .once()
             .with(
@@ -442,9 +456,14 @@ impl<Txn: Send + Sync + 'static> MockUserRepository<Txn> {
     }
 
     pub fn with_record_deletion_request(mut self, user_id: UserId) -> Self {
-        self.expect_record_deletion_request().once()
-            .with(mockall::predicate::always(),mockall::predicate::eq(user_id),mockall::predicate::always())
-            .return_once(|_,_,_|Box::pin(async {Ok(())}));
+        self.expect_record_deletion_request()
+            .once()
+            .with(
+                mockall::predicate::always(),
+                mockall::predicate::eq(user_id),
+                mockall::predicate::always(),
+            )
+            .return_once(|_, _, _| Box::pin(async { Ok(()) }));
         self
     }
 

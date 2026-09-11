@@ -118,7 +118,7 @@ fn timestamp(s: &str) -> Option<Timestamp> {
         return None;
     }
     let time = time.strip_suffix("+00")?;
-    let (whole, fraction) = time.split_once('.').map_or((time, ""), |v| v);
+    let (whole, fraction) = time.split_once('.').unwrap_or((time, ""));
     let parts: Vec<_> = whole.split(':').collect();
     if parts.len() != 3 || parts.iter().any(|s| s.len() != 2) {
         return None;

@@ -34,8 +34,21 @@ use crate::PostgresTransaction;
 pub struct PostgresUserRepository;
 
 impl UserRepository<PostgresTransaction> for PostgresUserRepository {
-    async fn get_internal_composite(&self, txn: &mut PostgresTransaction, user_id: UserId) -> anyhow::Result<Option<UserComposite>> {
-        let Some(row)=txn.txn().query_opt("SELECT c.* FROM commercial_service_composites c WHERE c.id=$1", &[&*user_id]).await? else { return Ok(None); };
+    async fn get_internal_composite(
+        &self,
+        txn: &mut PostgresTransaction,
+        user_id: UserId,
+    ) -> anyhow::Result<Option<UserComposite>> {
+        let Some(row) = txn
+            .txn()
+            .query_opt(
+                "SELECT c.* FROM commercial_service_composites c WHERE c.id=$1",
+                &[&*user_id],
+            )
+            .await?
+        else {
+            return Ok(None);
+        };
         decode_composite(queries::user::UserComposite {
             user_id: row.try_get("user_id")?,
             id: row.try_get("id")?,
@@ -66,10 +79,17 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
             city: row.try_get("city")?,
             country: row.try_get("country")?,
             vat_id: row.try_get("vat_id")?,
-        }).map(Some)
+        })
+        .map(Some)
     }
-    async fn get_purchase_composite(&self, txn: &mut PostgresTransaction, user_id: UserId) -> anyhow::Result<Option<UserComposite>> {
-        let Some(mut account)=self.get_internal_composite(txn,user_id).await? else { return Ok(None); };
+    async fn get_purchase_composite(
+        &self,
+        txn: &mut PostgresTransaction,
+        user_id: UserId,
+    ) -> anyhow::Result<Option<UserComposite>> {
+        let Some(mut account) = self.get_internal_composite(txn, user_id).await? else {
+            return Ok(None);
+        };
         if let Some(contact)=txn.txn().query_opt("SELECT c.contact,c.contact_verified FROM commercial_learning_subjects l JOIN commercial_cases c ON c.id=l.case_id WHERE l.subject=$1 AND l.erased_at IS NULL", &[&*user_id]).await? {
             account.user.email=contact.get::<_,Option<String>>(0).as_deref().map(FromStr::from_str).transpose()?;
             account.user.email_verified=contact.get(1);
@@ -420,10 +440,12 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
     ) -> anyhow::Result<()> {
         // No user/case FK or row lock: a queued erasure must not erase its own
         // original request when the downstream transaction is cancelled.
-        txn.txn().execute(
-            "SELECT commercial_record_erasure_intake($1,$2)",
-            &[&*user_id,&received_at],
-        ).await?;
+        txn.txn()
+            .execute(
+                "SELECT commercial_record_erasure_intake($1,$2)",
+                &[&*user_id, &received_at],
+            )
+            .await?;
         Ok(())
     }
 

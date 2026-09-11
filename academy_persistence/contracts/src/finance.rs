@@ -41,16 +41,26 @@ pub trait FinancialDocumentRepository<Txn: Send + Sync + 'static>: Send + Sync +
         txn: &mut Txn,
     ) -> impl Future<Output = anyhow::Result<String>> + Send;
     /// Read each original's exact namespace, record presence and database bytes.
-    fn archive_inventory(&self, txn: &mut Txn) -> impl Future<Output=anyhow::Result<Vec<(FinancialDocumentNumber, FinancialDocumentKind, bool, bool)>>> + Send;
+    fn archive_inventory(
+        &self,
+        txn: &mut Txn,
+    ) -> impl Future<
+        Output = anyhow::Result<Vec<(FinancialDocumentNumber, FinancialDocumentKind, bool, bool)>>,
+    > + Send;
     /// Serialize archive adoption with disposal. False means a retired original.
     fn lock_archive(
-        &self, txn: &mut Txn, number: &FinancialDocumentNumber,
+        &self,
+        txn: &mut Txn,
+        number: &FinancialDocumentNumber,
     ) -> impl Future<Output = anyhow::Result<bool>> + Send;
     /// Require READ COMMITTED and commit this admission before touching the file.
     /// False preserves originals and any begun intent, and authorizes no file call.
     /// An uncertain earlier removal must pass current admission again.
     fn begin_archive_disposal(
-        &self, txn: &mut Txn, number: &FinancialDocumentNumber, kind: FinancialDocumentKind,
+        &self,
+        txn: &mut Txn,
+        number: &FinancialDocumentNumber,
+        kind: FinancialDocumentKind,
     ) -> impl Future<Output = anyhow::Result<bool>> + Send;
     /// File removals authorized by a committed record disposal or reviewed orphan.
     fn pending_archive_disposals(

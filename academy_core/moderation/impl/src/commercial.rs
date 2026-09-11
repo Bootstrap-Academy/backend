@@ -381,15 +381,54 @@ where
     Finance: FinanceFeatureService,
     UserFeature: UserFeatureService,
 {
-    async fn commercial_learning(&self, key: &str, operation: &str, body: Value) -> anyhow::Result<Value> {
-        ensure!((43..=256).contains(&key.len()) && body.is_object(), RecipientAccessError::Malformed);
-        let authority=self.commercial_op("learning_authority",None,json!({"hash":self.hash.sha256(&key.to_owned()).to_string()})).await?;
-        ensure!(!authority.is_null(),RecipientAccessError::Invalid);
-        let subject: UserId=serde_json::from_value(authority["subject"].clone())?;
+    async fn commercial_learning(
+        &self,
+        key: &str,
+        operation: &str,
+        body: Value,
+    ) -> anyhow::Result<Value> {
+        ensure!(
+            (43..=256).contains(&key.len()) && body.is_object(),
+            RecipientAccessError::Malformed
+        );
+        let authority = self
+            .commercial_op(
+                "learning_authority",
+                None,
+                json!({"hash":self.hash.sha256(&key.to_owned()).to_string()}),
+            )
+            .await?;
+        ensure!(!authority.is_null(), RecipientAccessError::Invalid);
+        let subject: UserId = serde_json::from_value(authority["subject"].clone())?;
         match operation {
-            "offer" => Ok(serde_json::to_value(self.purchase.retained_offer(subject,body["kind"].as_str().ok_or(RecipientAccessError::Malformed)?).await?)?),
-            "accept" => Ok(serde_json::to_value(self.purchase.retained_accept(subject,serde_json::from_value(body).map_err(|_|RecipientAccessError::Malformed)?).await?)?),
-            "status" => Ok(serde_json::to_value(self.purchase.retained_get(subject,serde_json::from_value(body["order_id"].clone()).map_err(|_|RecipientAccessError::Malformed)?).await?)?),
+            "offer" => Ok(serde_json::to_value(
+                self.purchase
+                    .retained_offer(
+                        subject,
+                        body["kind"]
+                            .as_str()
+                            .ok_or(RecipientAccessError::Malformed)?,
+                    )
+                    .await?,
+            )?),
+            "accept" => Ok(serde_json::to_value(
+                self.purchase
+                    .retained_accept(
+                        subject,
+                        serde_json::from_value(body)
+                            .map_err(|_| RecipientAccessError::Malformed)?,
+                    )
+                    .await?,
+            )?),
+            "status" => Ok(serde_json::to_value(
+                self.purchase
+                    .retained_get(
+                        subject,
+                        serde_json::from_value(body["order_id"].clone())
+                            .map_err(|_| RecipientAccessError::Malformed)?,
+                    )
+                    .await?,
+            )?),
             "resources" => Ok(self.purchase.retained_resources(subject).await?),
             _ => Err(RecipientAccessError::Malformed.into()),
         }
@@ -402,12 +441,54 @@ where
     ) -> anyhow::Result<Value> {
         ensure!(body.is_object(), RecipientAccessError::Malformed);
         ensure!(
-            matches!(operation, "event_cancel" | "event_rights" | "event_successor" | "resource_rights" | "premium_continue" | "course_rights" | "course_successor" | "open" | "access" | "export" | "elect" | "revoke" | "learning_start" | "learning_access" | "learning_summary" | "learning_revoke" | "learning_erase" | "purchase_authorize" | "restore_credit" | "request_wallet_cash" | "return_wallet_cash"),
+            matches!(
+                operation,
+                "event_cancel"
+                    | "event_rights"
+                    | "event_successor"
+                    | "resource_rights"
+                    | "premium_continue"
+                    | "course_rights"
+                    | "course_successor"
+                    | "open"
+                    | "access"
+                    | "export"
+                    | "elect"
+                    | "revoke"
+                    | "learning_start"
+                    | "learning_access"
+                    | "learning_summary"
+                    | "learning_revoke"
+                    | "learning_erase"
+                    | "purchase_authorize"
+                    | "restore_credit"
+                    | "request_wallet_cash"
+                    | "return_wallet_cash"
+            ),
             RecipientAccessError::Malformed
         );
         body.as_object_mut().unwrap().remove("_claim_hash");
         body.as_object_mut().unwrap().remove("_moderation_hash");
-        if matches!(operation, "event_cancel" | "event_successor" | "resource_rights" | "premium_continue" | "course_successor" | "access" | "elect" | "revoke" | "learning_start" | "learning_access" | "learning_summary" | "learning_revoke" | "learning_erase" | "purchase_authorize" | "restore_credit" | "request_wallet_cash" | "return_wallet_cash") {
+        if matches!(
+            operation,
+            "event_cancel"
+                | "event_successor"
+                | "resource_rights"
+                | "premium_continue"
+                | "course_successor"
+                | "access"
+                | "elect"
+                | "revoke"
+                | "learning_start"
+                | "learning_access"
+                | "learning_summary"
+                | "learning_revoke"
+                | "learning_erase"
+                | "purchase_authorize"
+                | "restore_credit"
+                | "request_wallet_cash"
+                | "return_wallet_cash"
+        ) {
             if let Some(key) = credentials.claim_key.as_ref() {
                 body["_claim_hash"] = json!(self.hash.sha256(key).to_string());
             } else if let Some(key) = credentials.recipient.capability.as_ref() {
@@ -422,62 +503,146 @@ where
         let user = self.commercial_principal(credentials).await?;
         if matches!(operation, "course_rights" | "course_successor") {
             let source_subject: UserId = if let Some(value) = body.get("source_subject") {
-                serde_json::from_value(value.clone()).map_err(|_| RecipientAccessError::Malformed)?
-            } else { user };
-            let owned = self.commercial_op("owned_service_subject", Some(user), json!({"subject":source_subject})).await?;
+                serde_json::from_value(value.clone())
+                    .map_err(|_| RecipientAccessError::Malformed)?
+            } else {
+                user
+            };
+            let owned = self
+                .commercial_op(
+                    "owned_service_subject",
+                    Some(user),
+                    json!({"subject":source_subject}),
+                )
+                .await?;
             ensure!(!owned.is_null(), RecipientAccessError::Scope);
             if operation == "course_rights" {
-                return self.services.course_rights("list", source_subject, json!({})).await;
+                return self
+                    .services
+                    .course_rights("list", source_subject, json!({}))
+                    .await;
             }
-            let right_id = body.get("right_id").and_then(Value::as_str).ok_or(RecipientAccessError::Malformed)?;
-            let original = self.services.course_rights("original", source_subject, json!({"right_id":right_id})).await?;
+            let right_id = body
+                .get("right_id")
+                .and_then(Value::as_str)
+                .ok_or(RecipientAccessError::Malformed)?;
+            let original = self
+                .services
+                .course_rights("original", source_subject, json!({"right_id":right_id}))
+                .await?;
             body["source_subject"] = json!(source_subject);
             body["original_scope"] = original;
-            let grant = self.commercial_op("course_successor", Some(user), body).await?;
-            let delivered = match self.services.course_rights("deliver", source_subject, json!({"grant_id":grant["id"]})).await {
+            let grant = self
+                .commercial_op("course_successor", Some(user), body)
+                .await?;
+            let delivered = match self
+                .services
+                .course_rights("deliver", source_subject, json!({"grant_id":grant["id"]}))
+                .await
+            {
                 Ok(result) => result,
-                Err(_) => json!({"grant_id":grant["id"],"subject":grant["successor"],"right_id":grant["original_contract"],
-                    "state":"uncertain","reason":"Current delivery result unavailable; exact original command can be retried","new_purchase":false}),
+                Err(_) => {
+                    json!({"grant_id":grant["id"],"subject":grant["successor"],"right_id":grant["original_contract"],
+                    "state":"uncertain","reason":"Current delivery result unavailable; exact original command can be retried","new_purchase":false})
+                }
             };
-            return self.commercial_op("course_successor_outcome", Some(user), json!({"grant_id":grant["id"],"outcome":delivered})).await;
+            return self
+                .commercial_op(
+                    "course_successor_outcome",
+                    Some(user),
+                    json!({"grant_id":grant["id"],"outcome":delivered}),
+                )
+                .await;
         }
         if operation == "event_cancel" {
-            if body.get("source_subject").is_none() { body["source_subject"] = json!(user); }
+            if body.get("source_subject").is_none() {
+                body["source_subject"] = json!(user);
+            }
             // Commit the actual declaration before service lookup/processing;
             // response loss cannot restart its original receipt chronology.
             let receipt = self.commercial_op("event_cancel", Some(user), body).await?;
             let source_subject: UserId = serde_json::from_value(receipt["source_subject"].clone())?;
-            let outcome = match self.services.event_rights("cancel", source_subject, json!({"command_id":receipt["command_id"]})).await {
+            let outcome = match self
+                .services
+                .event_rights(
+                    "cancel",
+                    source_subject,
+                    json!({"command_id":receipt["command_id"]}),
+                )
+                .await
+            {
                 Ok(result) => result,
-                Err(_) => json!({"command_id":receipt["command_id"],"source_subject":source_subject,"right_id":receipt["right_id"],
+                Err(_) => {
+                    json!({"command_id":receipt["command_id"],"source_subject":source_subject,"right_id":receipt["right_id"],
                     "state":"uncertain","financial_satisfaction":false,
-                    "reason":"Declaration retained; exact service processing can be retried"}),
+                    "reason":"Declaration retained; exact service processing can be retried"})
+                }
             };
-            return self.commercial_op("event_cancellation_outcome", Some(user), json!({"command_id":receipt["command_id"],"outcome":outcome})).await;
+            return self
+                .commercial_op(
+                    "event_cancellation_outcome",
+                    Some(user),
+                    json!({"command_id":receipt["command_id"],"outcome":outcome}),
+                )
+                .await;
         }
         if matches!(operation, "event_rights" | "event_successor") {
             let source_subject: UserId = if let Some(value) = body.get("source_subject") {
-                serde_json::from_value(value.clone()).map_err(|_| RecipientAccessError::Malformed)?
-            } else { user };
-            let owned = self.commercial_op("owned_service_subject", Some(user), json!({"subject":source_subject})).await?;
+                serde_json::from_value(value.clone())
+                    .map_err(|_| RecipientAccessError::Malformed)?
+            } else {
+                user
+            };
+            let owned = self
+                .commercial_op(
+                    "owned_service_subject",
+                    Some(user),
+                    json!({"subject":source_subject}),
+                )
+                .await?;
             ensure!(!owned.is_null(), RecipientAccessError::Scope);
             if operation == "event_rights" {
-                return self.services.event_rights("list", source_subject, json!({})).await;
+                return self
+                    .services
+                    .event_rights("list", source_subject, json!({}))
+                    .await;
             }
-            let right_id = body.get("right_id").and_then(Value::as_str).ok_or(RecipientAccessError::Malformed)?;
-            let original = self.services.event_rights("original", source_subject, json!({"right_id":right_id})).await?;
+            let right_id = body
+                .get("right_id")
+                .and_then(Value::as_str)
+                .ok_or(RecipientAccessError::Malformed)?;
+            let original = self
+                .services
+                .event_rights("original", source_subject, json!({"right_id":right_id}))
+                .await?;
             body["source_subject"] = json!(source_subject);
             body["original_scope"] = original;
-            let grant = self.commercial_op("event_successor", Some(user), body).await?;
-            let delivered = match self.services.event_rights("deliver", source_subject, json!({"grant_id":grant["id"]})).await {
+            let grant = self
+                .commercial_op("event_successor", Some(user), body)
+                .await?;
+            let delivered = match self
+                .services
+                .event_rights("deliver", source_subject, json!({"grant_id":grant["id"]}))
+                .await
+            {
                 Ok(result) => result,
-                Err(_) => json!({"grant_id":grant["id"],"subject":grant["successor"],"right_id":grant["original_contract"],
-                    "state":"uncertain","reason":"Current delivery result unavailable; exact original command can be retried","new_purchase":false}),
+                Err(_) => {
+                    json!({"grant_id":grant["id"],"subject":grant["successor"],"right_id":grant["original_contract"],
+                    "state":"uncertain","reason":"Current delivery result unavailable; exact original command can be retried","new_purchase":false})
+                }
             };
-            return self.commercial_op("event_successor_outcome", Some(user), json!({"grant_id":grant["id"],"outcome":delivered})).await;
+            return self
+                .commercial_op(
+                    "event_successor_outcome",
+                    Some(user),
+                    json!({"grant_id":grant["id"],"outcome":delivered}),
+                )
+                .await;
         }
         if operation == "learning_erase" {
-            let admitted = self.commercial_op("learning_erasure_target", Some(user), body).await?;
+            let admitted = self
+                .commercial_op("learning_erasure_target", Some(user), body)
+                .await?;
             let subject: UserId = serde_json::from_value(admitted["subject"].clone())?;
             if admitted["already_erased"] != true {
                 // The existing deletion service commits its permanent original
@@ -485,9 +650,14 @@ where
                 // owns finance preservation, erasure and durable service fanout.
                 self.user_feature.recipient_delete(subject).await?;
             }
-            return self.commercial_op("erasure", Some(subject), json!({})).await;
+            return self
+                .commercial_op("erasure", Some(subject), json!({}))
+                .await;
         }
-        if matches!(operation, "access" | "revoke" | "learning_start" | "learning_access") {
+        if matches!(
+            operation,
+            "access" | "revoke" | "learning_start" | "learning_access"
+        ) {
             // The client generates and retains this credential before sending its
             // exact command. A lost response never loses a server-only secret.
             let key = body
@@ -631,22 +801,49 @@ where
     ) -> anyhow::Result<Value> {
         self.internal.authenticate(token, "shop")?;
         ensure!(
-            matches!(operation, "event_cancellation_pending" | "event_cancellation_outcome" | "event_cancellation_authority" | "event_successor_authority" | "course_successor_authority" | "erasure" | "register_event" | "inventory" | "learning_authority" | "learning_authority_digest"),
+            matches!(
+                operation,
+                "event_cancellation_pending"
+                    | "event_cancellation_outcome"
+                    | "event_cancellation_authority"
+                    | "event_successor_authority"
+                    | "course_successor_authority"
+                    | "erasure"
+                    | "register_event"
+                    | "inventory"
+                    | "learning_authority"
+                    | "learning_authority_digest"
+            ),
             RecipientAccessError::Malformed
         );
         ensure!(body.is_object(), RecipientAccessError::Malformed);
         if operation == "learning_authority" {
-            let key=body.get("key").and_then(Value::as_str).ok_or(RecipientAccessError::Malformed)?;
-            ensure!((43..=256).contains(&key.len()),RecipientAccessError::Malformed);
-            body=json!({"hash":self.hash.sha256(&key.to_owned()).to_string()});
+            let key = body
+                .get("key")
+                .and_then(Value::as_str)
+                .ok_or(RecipientAccessError::Malformed)?;
+            ensure!(
+                (43..=256).contains(&key.len()),
+                RecipientAccessError::Malformed
+            );
+            body = json!({"hash":self.hash.sha256(&key.to_owned()).to_string()});
         }
         if operation == "learning_authority_digest" {
             // Scoped streaming links retain only a digest of the short-lived
             // learning credential. This is an internal transport entrypoint;
             // neither a claimant credential nor ordinary authority is issued.
-            let hash=body.get("hash").and_then(Value::as_str).ok_or(RecipientAccessError::Malformed)?;
-            ensure!(hash.len()==64 && hash.bytes().all(|b|b.is_ascii_digit() || (b'a'..=b'f').contains(&b)),RecipientAccessError::Malformed);
-            body=json!({"hash":hash});
+            let hash = body
+                .get("hash")
+                .and_then(Value::as_str)
+                .ok_or(RecipientAccessError::Malformed)?;
+            ensure!(
+                hash.len() == 64
+                    && hash
+                        .bytes()
+                        .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b)),
+                RecipientAccessError::Malformed
+            );
+            body = json!({"hash":hash});
         }
         let actor = if operation == "erasure" {
             serde_json::from_value(body["subject"].clone())
@@ -654,7 +851,16 @@ where
         } else {
             UserId::from(uuid::Uuid::nil())
         };
-        self.commercial_op(if operation=="learning_authority_digest" {"learning_authority"} else {operation}, Some(actor), body).await
+        self.commercial_op(
+            if operation == "learning_authority_digest" {
+                "learning_authority"
+            } else {
+                operation
+            },
+            Some(actor),
+            body,
+        )
+        .await
     }
 
     async fn commercial_document(

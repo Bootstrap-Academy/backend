@@ -27,16 +27,27 @@ pub trait PurchaseFeatureService: Send + Sync + 'static {
     /// Typed limited-service entrypoints. The caller proves current learning
     /// authority; a new acceptance additionally requires the exact independently
     /// authorized claimant election enforced by the persistence boundary.
-    fn retained_offer(&self, user: UserId, kind: &str)
-        -> impl Future<Output = Result<PurchaseStatus, PurchaseError>> + Send;
-    fn retained_accept(&self, user: UserId, acceptance: PurchaseAcceptance)
-        -> impl Future<Output = Result<PurchaseStatus, PurchaseError>> + Send;
-    fn retained_get(&self, user: UserId, id: uuid::Uuid)
-        -> impl Future<Output = Result<PurchaseStatus, PurchaseError>> + Send;
+    fn retained_offer(
+        &self,
+        user: UserId,
+        kind: &str,
+    ) -> impl Future<Output = Result<PurchaseStatus, PurchaseError>> + Send;
+    fn retained_accept(
+        &self,
+        user: UserId,
+        acceptance: PurchaseAcceptance,
+    ) -> impl Future<Output = Result<PurchaseStatus, PurchaseError>> + Send;
+    fn retained_get(
+        &self,
+        user: UserId,
+        id: uuid::Uuid,
+    ) -> impl Future<Output = Result<PurchaseStatus, PurchaseError>> + Send;
     /// Current resources for an independently admitted limited learner. Reuses
     /// the actual free-refill and paid-period routines; does not buy or renew.
-    fn retained_resources(&self, user: UserId)
-        -> impl Future<Output = Result<serde_json::Value, PurchaseError>> + Send;
+    fn retained_resources(
+        &self,
+        user: UserId,
+    ) -> impl Future<Output = Result<serde_json::Value, PurchaseError>> + Send;
     /// Internal typed boundary: the caller has independently proved this
     /// recipient for retained rights. This never grants ordinary authority.
     fn recipient_document(

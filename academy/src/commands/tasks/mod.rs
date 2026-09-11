@@ -267,49 +267,85 @@ mod disposal_tests;
 /// `prune-documents`; a record whose pdf could not be rendered has no file.
 /// This task only reports both, so that they can be dealt with by hand.
 async fn list_orphan_documents(config: Config) -> anyhow::Result<()> {
-    let db=database::connect(&config.database).await?;
-    let document_repo=PostgresFinancialDocumentRepository;
-    let fs=FsServiceImpl;
-    let mut txn=db.begin_transaction().await?;
-    let inventory=document_repo.archive_inventory(&mut txn).await?;
+    let db = database::connect(&config.database).await?;
+    let document_repo = PostgresFinancialDocumentRepository;
+    let fs = FsServiceImpl;
+    let mut txn = db.begin_transaction().await?;
+    let inventory = document_repo.archive_inventory(&mut txn).await?;
     txn.commit().await?;
-    let archives=[
-        (FinancialDocumentKind::Invoice,&config.finance.invoices_archive),
-        (FinancialDocumentKind::CreditNote,&config.finance.credit_notes_archive),
-        (FinancialDocumentKind::FinalStatement,&config.finance.final_statements_archive),
+    let archives = [
+        (
+            FinancialDocumentKind::Invoice,
+            &config.finance.invoices_archive,
+        ),
+        (
+            FinancialDocumentKind::CreditNote,
+            &config.finance.credit_notes_archive,
+        ),
+        (
+            FinancialDocumentKind::FinalStatement,
+            &config.finance.final_statements_archive,
+        ),
     ];
-    let recorded=inventory.iter().filter(|(_,_,recorded,_)| *recorded)
-        .map(|(number,kind,_,_)|(number.as_str().to_owned(),kind.as_str())).collect::<HashSet<_>>();
-    let mut archived=HashSet::new();
-    let mut orphan_files=0;
-    for (kind,archive) in archives {
-        for path in fs.list_files(archive).await.with_context(||format!("Failed to list {}",archive.display()))? {
-            if path.extension().is_none_or(|extension|extension!="pdf") { continue; }
-            let Some(number)=path.file_stem().and_then(|stem|stem.to_str()) else { continue; };
-            let key=(number.to_owned(),kind.as_str());
+    let recorded = inventory
+        .iter()
+        .filter(|(_, _, recorded, _)| *recorded)
+        .map(|(number, kind, _, _)| (number.as_str().to_owned(), kind.as_str()))
+        .collect::<HashSet<_>>();
+    let mut archived = HashSet::new();
+    let mut orphan_files = 0;
+    for (kind, archive) in archives {
+        for path in fs
+            .list_files(archive)
+            .await
+            .with_context(|| format!("Failed to list {}", archive.display()))?
+        {
+            if path.extension().is_none_or(|extension| extension != "pdf") {
+                continue;
+            }
+            let Some(number) = path.file_stem().and_then(|stem| stem.to_str()) else {
+                continue;
+            };
+            let key = (number.to_owned(), kind.as_str());
             archived.insert(key.clone());
             if !recorded.contains(&key) {
-                println!("{} (no financial record in {} namespace; original/evidence review required)",path.display(),kind.as_str());
-                orphan_files+=1;
+                println!(
+                    "{} (no financial record in {} namespace; original/evidence review required)",
+                    path.display(),
+                    kind.as_str()
+                );
+                orphan_files += 1;
             }
         }
     }
-    let mut unavailable=0;
-    for (number,kind,recorded,database_original) in inventory {
-        let has_file=archived.contains(&(number.as_str().to_owned(),kind.as_str()));
+    let mut unavailable = 0;
+    for (number, kind, recorded, database_original) in inventory {
+        let has_file = archived.contains(&(number.as_str().to_owned(), kind.as_str()));
         if database_original && !recorded {
-            println!("{} (authoritative invoice database original; financial record absent, ownership/retention review required)",number.as_str());
+            println!(
+                "{} (authoritative invoice database original; financial record absent, ownership/retention review required)",
+                number.as_str()
+            );
         }
         if !has_file {
             if database_original {
-                println!("{} (invoice database original available; filesystem cache absent)",number.as_str());
+                println!(
+                    "{} (invoice database original available; filesystem cache absent)",
+                    number.as_str()
+                );
             } else {
-                println!("{} ({} recorded original unavailable in its archive namespace)",number.as_str(),kind.as_str());
-                unavailable+=1;
+                println!(
+                    "{} ({} recorded original unavailable in its archive namespace)",
+                    number.as_str(),
+                    kind.as_str()
+                );
+                unavailable += 1;
             }
         }
     }
-    info!("{orphan_files} files lack a matching namespace record; {unavailable} recorded originals unavailable. Nothing was changed.");
+    info!(
+        "{orphan_files} files lack a matching namespace record; {unavailable} recorded originals unavailable. Nothing was changed."
+    );
     Ok(())
 }
 

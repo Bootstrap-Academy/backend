@@ -259,7 +259,14 @@ where
             )
         };
         if let Some(seconds) = provision_window_seconds {
-            text.push_str(&format!("\nVertragsbestätigung und Bereitstellung innerhalb von {seconds} Sekunden ab Eingang Ihrer wirksamen Bestellung. Bei Premium wird innerhalb dieser Frist der volle gekaufte Zeitraum zugeordnet; ein bereits bezahlter Zeitraum bleibt davor erhalten. Nach Fristablauf wird eine noch ausstehende Bereitstellung nicht automatisch nachgeholt; die Bestellung, tatsächliche Zahlung und Ihre Ansprüche bleiben zur Klärung in der Bestellübersicht erhalten. Für Fragen: hallo@bootstrap.academy. Ein ausstehender Zahlungseingang verlängert diese Frist nicht."));
+            let duration = if seconds == 3600 {
+                "1 Stunde".to_owned()
+            } else if seconds > 0 && seconds.is_multiple_of(3600) {
+                format!("{} Stunden", seconds / 3600)
+            } else {
+                format!("{seconds} Sekunden")
+            };
+            text.push_str(&format!("\nVertragsbestätigung und Bereitstellung innerhalb von {duration} ab Eingang Ihrer wirksamen Bestellung. Bei Premium wird innerhalb dieser Frist der volle gekaufte Zeitraum zugeordnet; ein bereits bezahlter Zeitraum bleibt davor erhalten. Nach Fristablauf wird eine noch ausstehende Bereitstellung nicht automatisch nachgeholt; die Bestellung, tatsächliche Zahlung und Ihre Ansprüche bleiben zur Klärung in der Bestellübersicht erhalten. Für Fragen: hallo@bootstrap.academy. Ein ausstehender Zahlungseingang verlängert diese Frist nicht."));
         }
         let mut offer = PurchaseOffer {
             id: Uuid::new_v4(),

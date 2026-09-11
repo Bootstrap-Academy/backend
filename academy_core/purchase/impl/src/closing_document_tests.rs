@@ -259,8 +259,14 @@ fn document_hash(terms: &[u8], withdrawal: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }
 async fn issued() -> PurchaseRecord {
+    issued_with_window(600).await
+}
+async fn issued_with_window(seconds: u64) -> PurchaseRecord {
     let saved = Arc::new(Mutex::new(Saved::default()));
     let mut s = sut(Arc::clone(&saved), true, true, true);
+    s.purchase_config
+        .provision_window_seconds
+        .insert("premium_monthly".into(), seconds);
     s.user_repo = MockUserRepository::new().with_get_purchase_composite(subject(), Some(account()));
     let result = s
         .issue(subject(), "backend", s.builtin("premium_monthly").unwrap())
@@ -287,6 +293,27 @@ async fn closing_new_offer_binds_r2_terms_and_exact_r1_withdrawal_without_accoun
     );
     assert_eq!(r.status.state, "offered");
     assert!(r.submission.is_none());
+}
+#[tokio::test]
+async fn closing_offer_displays_exact_whole_hours_and_hashes_the_stored_text() {
+    for (seconds, duration) in [
+        (600, "600 Sekunden"),
+        (3600, "1 Stunde"),
+        (3601, "3601 Sekunden"),
+        (86400, "24 Stunden"),
+    ] {
+        let r = issued_with_window(seconds).await;
+        let mut offer = r.status.offer;
+        assert_eq!(offer.provision_window_seconds, Some(seconds));
+        assert!(offer.text.contains(&format!(
+            "Vertragsbestätigung und Bereitstellung innerhalb von {duration} ab Eingang Ihrer wirksamen Bestellung."
+        )));
+        let hash = std::mem::take(&mut offer.hash);
+        assert_eq!(
+            hash,
+            format!("{:x}", Sha256::digest(serde_json::to_vec(&offer).unwrap()))
+        );
+    }
 }
 async fn historical() -> PurchaseRecord {
     let mut r = issued().await;

@@ -36,6 +36,8 @@ fn make_query() -> ContractDeclarationListQuery {
 
 fn make_declaration() -> ContractDeclaration {
     ContractDeclaration {
+        delivery: Vec::new(),
+        operational_evidence: None,
         id: UUID1.into(),
         kind: ContractDeclarationKind::Cancellation,
         received_at: Utc.with_ymd_and_hms(2026, 9, 3, 12, 0, 0).unwrap(),

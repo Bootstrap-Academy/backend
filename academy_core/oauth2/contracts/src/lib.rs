@@ -8,7 +8,7 @@ use academy_models::{
     },
     session::DeviceName,
     url::Url,
-    user::UserIdOrSelf,
+    user::{UserId, UserIdOrSelf},
 };
 use thiserror::Error;
 
@@ -18,6 +18,17 @@ pub mod login;
 pub mod registration;
 
 pub trait OAuth2FeatureService: Send + Sync + 'static {
+    /// Separate OAuth purpose; existing links only, no registration/link/session.
+    fn begin_recipient(
+        &self,
+        provider: OAuth2ProviderId,
+        redirect: Url,
+    ) -> impl Future<Output = anyhow::Result<OAuth2AuthorizationUrl>> + Send;
+    fn prove_recipient(
+        &self,
+        callback: OAuth2Callback,
+    ) -> impl Future<Output = anyhow::Result<UserId>> + Send;
+
     /// Return all available OAuth2 providers.
     fn list_providers(&self) -> Vec<OAuth2ProviderSummary>;
 
@@ -149,3 +160,7 @@ pub enum OAuth2CreateSessionError {
     #[error(transparent)]
     Other(#[from] anyhow::Error),
 }
+
+#[derive(Debug, Error)]
+#[error("Existing recipient authorization is invalid, consumed, or unavailable")]
+pub struct RecipientProofInvalid;

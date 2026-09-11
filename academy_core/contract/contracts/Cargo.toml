@@ -18,3 +18,5 @@ anyhow.workspace = true
 chrono.workspace = true
 mockall = { workspace = true, optional = true }
 thiserror.workspace = true
+serde.workspace = true
+schemars.workspace = true

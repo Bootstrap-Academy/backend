@@ -56,7 +56,7 @@ where
 
     #[trace_instrument(skip(self, txn))]
     async fn capture(&self, txn: &mut Txn, order: PaypalCoinOrder) -> anyhow::Result<Balance> {
-        let now = self.time.now();
+        let now = order.captured_at.unwrap_or_else(|| self.time.now());
 
         self.paypal_repo
             .capture_coin_order(txn, &order.id, now)
@@ -69,7 +69,7 @@ where
                 order.user_id,
                 order.coins.try_into()?,
                 false,
-                Some("PayPal".try_into()?),
+                Some(format!("PayPal: {}", *order.id).try_into()?),
                 false,
             )
             .await?;
@@ -162,7 +162,7 @@ mod tests {
             order.user_id,
             order.coins as _,
             false,
-            Some("PayPal".try_into().unwrap()),
+            Some(format!("PayPal: {}", *order.id).try_into().unwrap()),
             false,
             Ok(expected),
         );

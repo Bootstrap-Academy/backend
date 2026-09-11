@@ -5,7 +5,7 @@ use academy_core_premium_contracts::{
 };
 use academy_di::Build;
 use academy_models::{
-    premium::{Premium, PremiumPlan},
+    premium::{Premium, PremiumPlan, PremiumPlanDetails},
     user::UserId,
 };
 use academy_persistence_contracts::premium::PremiumRepository;
@@ -33,6 +33,23 @@ where
     PremiumPlanS: PremiumPlanService,
     PremiumRepo: PremiumRepository<Txn>,
 {
+    async fn renew(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
+        monthly_price: u64,
+    ) -> Result<Premium, PremiumPurchaseError> {
+        self.purchase_details(
+            txn,
+            user_id,
+            PremiumPlanDetails {
+                price: monthly_price,
+                months: 1,
+            },
+        )
+        .await
+    }
+
     #[trace_instrument(skip(self, txn))]
     async fn purchase(
         &self,
@@ -42,6 +59,32 @@ where
     ) -> Result<Premium, PremiumPurchaseError> {
         let details = self.premium_plan.get_details(plan);
 
+        self.purchase_details(txn, user_id, details).await
+    }
+}
+
+impl<Id, Time, Coin, PremiumPlanS, PremiumRepo>
+    PremiumPurchaseServiceImpl<Id, Time, Coin, PremiumPlanS, PremiumRepo>
+{
+    async fn purchase_details<Txn>(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
+        details: PremiumPlanDetails,
+    ) -> Result<Premium, PremiumPurchaseError>
+    where
+        Txn: Send + Sync + 'static,
+        Id: IdService,
+        Time: TimeService,
+        Coin: CoinService<Txn>,
+        PremiumRepo: PremiumRepository<Txn>,
+    {
+        // Lock/read before the balance debit, in the same order as cancellation
+        // and automatic renewal, to avoid concurrent double extensions/deadlocks.
+        let latest = self
+            .premium_repo
+            .get_latest_by_user_id(txn, user_id)
+            .await?;
         self.coin
             .add_coins(
                 txn,
@@ -64,12 +107,7 @@ where
         // all), not as a fixed number of days.
         let months = details.months.try_into().unwrap_or(u32::MAX);
 
-        if let Some(mut active) = self
-            .premium_repo
-            .get_latest_by_user_id(txn, user_id)
-            .await?
-            .filter(|premium| now < premium.until)
-        {
+        if let Some(mut active) = latest.filter(|premium| now < premium.until) {
             active.until = add_months(active.until, months);
             self.premium_repo
                 .extend(txn, active.id, active.until)
@@ -259,6 +297,8 @@ mod tests {
         );
 
         let sut = PremiumPurchaseServiceImpl {
+            premium_repo: MockPremiumRepository::new()
+                .with_get_latest_by_user_id(FOO.user.id, None),
             premium_plan,
             coin,
             ..Sut::default()

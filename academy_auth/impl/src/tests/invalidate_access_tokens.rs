@@ -27,7 +27,12 @@ async fn ok() {
     };
 
     // Act
-    let result = sut.invalidate_access_tokens(&mut (), FOO.user.id).await;
+    let result = sut
+        .invalidate_access_tokens(
+            &mut academy_persistence_contracts::MockTransaction::new(),
+            FOO.user.id,
+        )
+        .await;
 
     // Assert
     result.unwrap();

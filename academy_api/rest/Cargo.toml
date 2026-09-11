@@ -10,6 +10,9 @@ repository.workspace = true
 workspace = true
 
 [dependencies]
+academy_core_moderation_contracts.workspace = true
+academy_core_purchase_contracts.workspace = true
+
 academy_assets.workspace = true
 academy_auth_contracts.workspace = true
 academy_core_admin_audit_contracts.workspace = true
@@ -57,3 +60,4 @@ uuid.workspace = true
 
 [dev-dependencies]
 serde_json.workspace = true
+tower = { version = "0.5.3", default-features = false, features = ["util"] }

@@ -6,7 +6,7 @@ use academy_core_finance_contracts::{
     FinancialDocumentListQuery, FinancialDocumentListResult, invoice::FinanceInvoiceService,
 };
 use academy_di::Build;
-use academy_models::{auth::AccessToken, user::UserId};
+use academy_models::{auth::AccessToken, finance::FinancialDocumentKind, user::UserId};
 use academy_persistence_contracts::{Database, Transaction, finance::FinancialDocumentRepository};
 use academy_shared_contracts::jwt::{JwtService, VerifyJwtError};
 use academy_utils::{static_value, trace_instrument};
@@ -59,14 +59,40 @@ where
         token: &AccessToken,
     ) -> Result<String, FinanceGetDownloadTokenError> {
         let auth = self.auth.authenticate(token).await.map_auth_err()?;
-
+        self.recipient_download_token(auth.user_id).await
+    }
+    async fn recipient_download_token(
+        &self,
+        user: UserId,
+    ) -> Result<String, FinanceGetDownloadTokenError> {
         let data = DownloadToken {
-            sub: auth.user_id,
+            sub: user,
             aud: DownloadTokenAud,
         };
         let token = self.jwt.sign(data, self.config.download_token_ttl)?;
 
         Ok(token)
+    }
+
+    async fn download_recipient_original(
+        &self,
+        user: UserId,
+        kind: FinancialDocumentKind,
+        number: u64,
+        month: u32,
+    ) -> Result<Vec<u8>, FinanceDownloadError> {
+        let mut txn = self.db.begin_transaction().await?;
+        let number = self
+            .document_repo
+            .owned_original_number(&mut txn, user, kind, number, month)
+            .await?
+            .ok_or(FinanceDownloadError::NotFound)?;
+        // This transaction reads existing authority and bytes only. Ordinary
+        // live-account issuance remains in the separate download methods below.
+        self.finance_invoice
+            .get_original_pdf(&mut txn, &number, kind)
+            .await?
+            .ok_or(FinanceDownloadError::NotFound)
     }
 
     #[instrument(skip(self))]
@@ -87,14 +113,13 @@ where
         let invoice = self
             .finance_invoice
             .get_invoice_pdf(&mut txn, Some(user_id), invoice_number)
-            .await?
-            .ok_or(FinanceDownloadError::NotFound)?;
+            .await?;
 
         // Rendering a document for the first time also records it in
         // `financial_documents`, so the transaction has to be committed.
         txn.commit().await?;
 
-        Ok(invoice)
+        invoice.ok_or(FinanceDownloadError::NotFound)
     }
 
     #[instrument(skip(self))]

@@ -2,7 +2,8 @@ use std::future::Future;
 
 use academy_models::{
     contract::{
-        ContractDeclaration, ContractDeclarationId, ContractDeclarationKind, ContractProcessingNote,
+        ContractDeclaration, ContractDeclarationId, ContractDeclarationKind,
+        ContractDeliveryAttempt, ContractProcessingNote,
     },
     pagination::PaginationSlice,
     user::UserId,
@@ -11,6 +12,64 @@ use chrono::{DateTime, Utc};
 
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait ContractRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
+    fn recover_schedules(&self, txn: &mut Txn) -> impl Future<Output = anyhow::Result<()>> + Send;
+    /// Serialize a request identifier before looking it up or inserting its receipt.
+    fn lock_request(
+        &self,
+        txn: &mut Txn,
+        id: ContractDeclarationId,
+    ) -> impl Future<Output = anyhow::Result<()>> + Send;
+    /// Account then declaration lock, shared with schedule recovery.
+    fn lock_processing(
+        &self,
+        txn: &mut Txn,
+        id: ContractDeclarationId,
+    ) -> impl Future<Output = anyhow::Result<()>> + Send;
+    /// Hold this transaction through SMTP/ack after the separate durable claim.
+    /// A superseded or stale resolution must never be sent by an old claimant.
+    fn lock_resolution_delivery(
+        &self,
+        txn: &mut Txn,
+        message: &ContractDeliveryAttempt,
+    ) -> impl Future<Output = anyhow::Result<bool>> + Send;
+    fn receipt_access(
+        &self,
+        txn: &mut Txn,
+        id: ContractDeclarationId,
+    ) -> impl Future<Output = anyhow::Result<Option<String>>> + Send;
+    fn save_receipt_access(
+        &self,
+        txn: &mut Txn,
+        id: ContractDeclarationId,
+        secret_hash: String,
+    ) -> impl Future<Output = anyhow::Result<()>> + Send;
+    fn queue_delivery(
+        &self,
+        txn: &mut Txn,
+        message: ContractDeliveryAttempt,
+    ) -> impl Future<Output = anyhow::Result<()>> + Send;
+    /// Claims commit before SMTP. Attempt generation fences late acknowledgement.
+    fn claim_delivery(
+        &self,
+        txn: &mut Txn,
+        only: Option<ContractDeclarationId>,
+        attempted: Vec<String>,
+    ) -> impl Future<Output = anyhow::Result<Option<ContractDeliveryAttempt>>> + Send;
+    fn acknowledge_delivery(
+        &self,
+        txn: &mut Txn,
+        message: ContractDeliveryAttempt,
+        accepted: bool,
+    ) -> impl Future<Output = anyhow::Result<()>> + Send;
+    /// Only an exact current agreement can be scheduled; paid periods are never changed.
+    fn schedule_cancellation(
+        &self,
+        txn: &mut Txn,
+        declaration: ContractDeclaration,
+        agreement_id: academy_models::premium::PremiumRenewalId,
+        user_id: UserId,
+    ) -> impl Future<Output = anyhow::Result<bool>> + Send;
+
     /// Create a new contract declaration.
     fn create(
         &self,
@@ -36,6 +95,7 @@ pub trait ContractRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static 
         processed_at: DateTime<Utc>,
         effective_end: Option<DateTime<Utc>>,
         processing_note: Option<ContractProcessingNote>,
+        external_resolution: bool,
     ) -> impl Future<Output = anyhow::Result<Option<ContractDeclaration>>> + Send;
 
     /// Return a paginated list of all contract declarations, most recent first.
@@ -110,8 +170,9 @@ impl<Txn: Send + Sync + 'static> MockContractRepository<Txn> {
                 mockall::predicate::eq(processed_at),
                 mockall::predicate::eq(effective_end),
                 mockall::predicate::eq(processing_note),
+                mockall::predicate::eq(true),
             )
-            .return_once(move |_, _, _, _, _| Box::pin(std::future::ready(Ok(result))));
+            .return_once(move |_, _, _, _, _, _| Box::pin(std::future::ready(Ok(result))));
         self
     }
 

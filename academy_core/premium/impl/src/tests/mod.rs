@@ -23,6 +23,7 @@ type Sut = PremiumFeatureServiceImpl<
     MockUserRepository<MockTransaction>,
     MockPremiumRepository<MockTransaction>,
     MockWithdrawalConsentService<MockTransaction>,
+    academy_core_premium_contracts::renewal::MockPremiumRenewalService,
 >;
 
 impl Default for PremiumFeatureConfig {

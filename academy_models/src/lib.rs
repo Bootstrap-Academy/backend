@@ -19,6 +19,7 @@ pub mod oauth2;
 pub mod pagination;
 pub mod paypal;
 pub mod premium;
+pub mod purchase;
 pub mod retention;
 pub mod session;
 pub mod url;
@@ -91,3 +92,5 @@ impl<T> Deref for Sensitive<T> {
         &self.0
     }
 }
+
+pub mod commercial_document;

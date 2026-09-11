@@ -50,6 +50,8 @@ pub struct ApiServiceExport {
 /// Everything this service stores about a single user.
 #[derive(Debug, Clone, Serialize, JsonSchema)]
 pub struct ApiAccountDataExport {
+    pub commercial: serde_json::Value,
+    pub moderation: serde_json::Value,
     /// The account, the profile and the invoice information, in the same
     /// representation as `GET /auth/users/{user_id}`
     pub user: ApiUser,
@@ -65,6 +67,8 @@ pub struct ApiAccountDataExport {
     pub transactions: Vec<ApiExportTransaction>,
     /// The premium membership of the user, if any
     pub premium: Option<ApiExportPremium>,
+    pub premium_renewal_evidence: serde_json::Value,
+    pub purchase_evidence: serde_json::Value,
     /// The invoices issued to the user, oldest first
     pub invoices: Vec<ApiExportInvoice>,
     /// The invoices, credit notes and final statements issued for the account,
@@ -225,6 +229,10 @@ impl From<AccountDataExport> for ApiAccountDataExport {
 
         Self {
             user: value.user.into(),
+            premium_renewal_evidence: value.premium_renewal_evidence,
+            purchase_evidence: value.purchase_evidence,
+            commercial: value.commercial,
+            moderation: value.moderation,
             sessions: value.sessions.into_iter().map(Into::into).collect(),
             oauth2_links: value.oauth2_links.into_iter().map(Into::into).collect(),
             balance: value.balance.into(),

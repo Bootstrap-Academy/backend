@@ -1,21 +1,21 @@
 import os
 from datetime import date
 
-from utils import c, create_admin_account, create_verified_account, make_client, refresh_session
+from utils import c, create_admin_account, create_verified_account, make_client, refresh_session, paypal_order
+from utils import configure_purchases
+
+configure_purchases()
+
 
 a = create_verified_account("a", "a@a", "a")
 c.patch("/auth/users/me", json={"business": False, "country": "Germany"})
-order_id_a = c.post(
-    "/shop/coins/paypal/orders", json={"coins": 1337, "withdrawal_consent": True, "withdrawal_text_version": "2026-09"}
-).json()
+order_id_a = paypal_order(1337, c)
 c.post(f"http://127.0.0.1:8103/v2/checkout/orders/{order_id_a}/confirm-payment-source")
 c.post(f"/shop/coins/paypal/orders/{order_id_a}/capture")
 
 b = create_verified_account("b", "b@b", "b")
 c.patch("/auth/users/me", json={"business": False, "country": "Germany"})
-order_id_b = c.post(
-    "/shop/coins/paypal/orders", json={"coins": 1337, "withdrawal_consent": True, "withdrawal_text_version": "2026-09"}
-).json()
+order_id_b = paypal_order(1337, c)
 c.post(f"http://127.0.0.1:8103/v2/checkout/orders/{order_id_b}/confirm-payment-source")
 c.post(f"/shop/coins/paypal/orders/{order_id_b}/capture")
 

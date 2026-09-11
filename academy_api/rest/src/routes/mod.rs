@@ -1,5 +1,6 @@
 pub mod admin_audit;
 pub mod coin;
+pub mod commercial;
 pub mod config;
 pub mod contact;
 pub mod contract;
@@ -8,9 +9,11 @@ pub mod health;
 pub mod heart;
 pub mod internal;
 pub mod mfa;
+pub mod moderation;
 pub mod oauth2;
 pub mod paypal;
 pub mod premium;
+pub mod purchase;
 pub mod session;
 pub mod user;
 pub mod withdrawal;

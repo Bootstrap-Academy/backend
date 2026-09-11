@@ -1,7 +1,8 @@
 use std::future::Future;
 
-use academy_models::paypal::PaypalOrderId;
+use academy_models::paypal::{PaypalOrderId, PaypalRemoteOrder};
 use thiserror::Error;
+use uuid::Uuid;
 
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait PaypalApiService: Send + Sync + 'static {
@@ -15,11 +16,18 @@ pub trait PaypalApiService: Send + Sync + 'static {
         coins: u64,
     ) -> impl Future<Output = Result<PaypalOrderId, PaypalCreateOrderError>> + Send;
 
-    /// Capture payment for the given order.
+    /// Read authoritative order identity, payee, amount and capture evidence.
+    fn get_order(
+        &self,
+        order_id: &PaypalOrderId,
+    ) -> impl Future<Output = anyhow::Result<PaypalRemoteOrder>> + Send;
+
+    /// Capture payment with the persisted request UUID; a non-success remains ambiguous.
     fn capture_order(
         &self,
         order_id: &PaypalOrderId,
-    ) -> impl Future<Output = Result<(), PaypalCaptureOrderError>> + Send;
+        request_id: Uuid,
+    ) -> impl Future<Output = Result<PaypalRemoteOrder, PaypalCaptureOrderError>> + Send;
 }
 
 #[derive(Debug, Error)]
@@ -47,18 +55,6 @@ impl MockPaypalApiService {
             .return_once(|_| {
                 Box::pin(std::future::ready(
                     order_id.ok_or(PaypalCreateOrderError::Failed),
-                ))
-            });
-        self
-    }
-
-    pub fn with_capture_order(mut self, order_id: PaypalOrderId, ok: bool) -> Self {
-        self.expect_capture_order()
-            .once()
-            .with(mockall::predicate::eq(order_id))
-            .return_once(move |_| {
-                Box::pin(std::future::ready(
-                    ok.then_some(()).ok_or(PaypalCaptureOrderError::Failed),
                 ))
             });
         self

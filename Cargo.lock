@@ -16,6 +16,7 @@ dependencies = [
  "academy_core_coin_impl",
  "academy_core_config_impl",
  "academy_core_contact_impl",
+ "academy_core_contract_contracts",
  "academy_core_contract_impl",
  "academy_core_finance_contracts",
  "academy_core_finance_impl",
@@ -23,10 +24,15 @@ dependencies = [
  "academy_core_heart_impl",
  "academy_core_internal_impl",
  "academy_core_mfa_impl",
+ "academy_core_moderation_contracts",
+ "academy_core_moderation_impl",
  "academy_core_oauth2_impl",
+ "academy_core_paypal_contracts",
  "academy_core_paypal_impl",
  "academy_core_premium_contracts",
  "academy_core_premium_impl",
+ "academy_core_purchase_contracts",
+ "academy_core_purchase_impl",
  "academy_core_session_contracts",
  "academy_core_session_impl",
  "academy_core_user_contracts",
@@ -36,6 +42,7 @@ dependencies = [
  "academy_di",
  "academy_email_contracts",
  "academy_email_impl",
+ "academy_extern_contracts",
  "academy_extern_impl",
  "academy_models",
  "academy_persistence_contracts",
@@ -78,9 +85,11 @@ dependencies = [
  "academy_core_heart_contracts",
  "academy_core_internal_contracts",
  "academy_core_mfa_contracts",
+ "academy_core_moderation_contracts",
  "academy_core_oauth2_contracts",
  "academy_core_paypal_contracts",
  "academy_core_premium_contracts",
+ "academy_core_purchase_contracts",
  "academy_core_session_contracts",
  "academy_core_user_contracts",
  "academy_core_withdrawal_contracts",
@@ -101,6 +110,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tokio",
+ "tower",
  "tower-http",
  "tracing",
  "uuid",
@@ -290,6 +300,8 @@ dependencies = [
  "anyhow",
  "chrono",
  "mockall",
+ "schemars",
+ "serde",
  "thiserror 2.0.18",
 ]
 
@@ -312,6 +324,7 @@ dependencies = [
  "chrono",
  "chrono-tz",
  "hex",
+ "serde_json",
  "tokio",
  "tracing",
 ]
@@ -460,6 +473,46 @@ dependencies = [
 ]
 
 [[package]]
+name = "academy_core_moderation_contracts"
+version = "0.0.0"
+dependencies = [
+ "academy_auth_contracts",
+ "academy_core_session_contracts",
+ "academy_core_user_contracts",
+ "academy_models",
+ "anyhow",
+ "serde_json",
+ "thiserror 2.0.18",
+ "uuid",
+]
+
+[[package]]
+name = "academy_core_moderation_impl"
+version = "0.0.0"
+dependencies = [
+ "academy_auth_contracts",
+ "academy_core_finance_contracts",
+ "academy_core_moderation_contracts",
+ "academy_core_oauth2_contracts",
+ "academy_core_purchase_contracts",
+ "academy_core_session_contracts",
+ "academy_core_user_contracts",
+ "academy_demo",
+ "academy_di",
+ "academy_email_contracts",
+ "academy_extern_contracts",
+ "academy_models",
+ "academy_persistence_contracts",
+ "academy_shared_contracts",
+ "anyhow",
+ "chrono",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "academy_core_oauth2_contracts"
 version = "0.0.0"
 dependencies = [
@@ -507,6 +560,7 @@ dependencies = [
  "academy_core_coin_contracts",
  "academy_core_finance_contracts",
  "academy_core_paypal_contracts",
+ "academy_core_purchase_contracts",
  "academy_demo",
  "academy_di",
  "academy_email_contracts",
@@ -517,10 +571,14 @@ dependencies = [
  "academy_templates_contracts",
  "academy_utils",
  "anyhow",
+ "chrono",
  "rust_decimal",
  "rust_decimal_macros",
+ "serde_json",
+ "sha2 0.10.9",
  "tokio",
  "tracing",
+ "uuid",
 ]
 
 [[package]]
@@ -537,12 +595,14 @@ dependencies = [
 name = "academy_core_premium_impl"
 version = "0.0.0"
 dependencies = [
+ "academy_assets",
  "academy_auth_contracts",
  "academy_core_coin_contracts",
  "academy_core_premium_contracts",
  "academy_core_withdrawal_contracts",
  "academy_demo",
  "academy_di",
+ "academy_email_contracts",
  "academy_models",
  "academy_persistence_contracts",
  "academy_shared_contracts",
@@ -550,8 +610,46 @@ dependencies = [
  "anyhow",
  "chrono",
  "chrono-tz",
+ "sha2 0.10.9",
  "tokio",
  "tracing",
+]
+
+[[package]]
+name = "academy_core_purchase_contracts"
+version = "0.0.0"
+dependencies = [
+ "academy_models",
+ "anyhow",
+ "mockall",
+ "serde_json",
+ "thiserror 2.0.18",
+ "uuid",
+]
+
+[[package]]
+name = "academy_core_purchase_impl"
+version = "0.0.0"
+dependencies = [
+ "academy_assets",
+ "academy_auth_contracts",
+ "academy_core_coin_contracts",
+ "academy_core_heart_contracts",
+ "academy_core_heart_impl",
+ "academy_core_premium_contracts",
+ "academy_core_premium_impl",
+ "academy_core_purchase_contracts",
+ "academy_di",
+ "academy_email_contracts",
+ "academy_models",
+ "academy_persistence_contracts",
+ "anyhow",
+ "chrono",
+ "serde_json",
+ "sha2 0.10.9",
+ "tokio",
+ "tracing",
+ "uuid",
 ]
 
 [[package]]
@@ -728,6 +826,7 @@ dependencies = [
  "mockall",
  "serde_json",
  "thiserror 2.0.18",
+ "uuid",
 ]
 
 [[package]]
@@ -742,10 +841,12 @@ dependencies = [
  "academy_shared_contracts",
  "academy_utils",
  "anyhow",
+ "chrono",
  "futures",
  "oauth2",
  "regex",
  "reqwest 0.13.4",
+ "rust_decimal",
  "serde",
  "serde_json",
  "tokio",
@@ -783,7 +884,9 @@ dependencies = [
  "chrono",
  "futures",
  "mockall",
+ "serde_json",
  "thiserror 2.0.18",
+ "uuid",
 ]
 
 [[package]]
@@ -800,10 +903,12 @@ dependencies = [
  "bb8",
  "bb8-postgres",
  "chrono",
+ "chrono-tz",
  "clorinde",
  "futures",
  "ouroboros",
  "pretty_assertions",
+ "serde_json",
  "tokio",
  "tracing",
  "uuid",
@@ -904,11 +1009,13 @@ dependencies = [
  "anyhow",
  "axum",
  "axum-extra 0.12.6",
+ "chrono",
  "clap",
  "clap_complete",
  "oauth2",
  "rand 0.10.2",
  "serde",
+ "serde_json",
  "tokio",
  "tracing",
  "tracing-subscriber",

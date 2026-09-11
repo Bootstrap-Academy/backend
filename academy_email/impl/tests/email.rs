@@ -14,6 +14,8 @@ async fn send_email() {
     let result = client
         .email
         .send(Email {
+            sender: None,
+            message_id: None,
             recipient: "recipient@example.com".parse().unwrap(),
             subject: "The Subject".into(),
             body: "<h1>Hello World!</h1>".into(),

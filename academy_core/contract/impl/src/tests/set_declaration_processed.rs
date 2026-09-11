@@ -35,6 +35,8 @@ fn confirmed_end() -> DateTime<Utc> {
 /// looked at it.
 fn make_declaration() -> ContractDeclaration {
     ContractDeclaration {
+        delivery: Vec::new(),
+        operational_evidence: None,
         id: UUID1.into(),
         kind: ContractDeclarationKind::Cancellation,
         received_at: Utc.with_ymd_and_hms(2026, 9, 3, 12, 0, 0).unwrap(),
@@ -54,6 +56,10 @@ fn make_declaration() -> ContractDeclaration {
 
 fn make_update() -> ContractDeclarationProcessingUpdate {
     ContractDeclarationProcessingUpdate {
+        identity_verified: true,
+        action: Default::default(),
+        verified_user_id: None,
+        renewal_agreement_id: None,
         effective_end: Some(confirmed_end()),
         note: Some("Kündigung anerkannt, Ende bestätigt".try_into().unwrap()),
     }
@@ -69,13 +75,15 @@ async fn ok() {
     let time = MockTimeService::new().with_now(now());
 
     let expected = ContractDeclaration {
+        delivery: Vec::new(),
+        operational_evidence: None,
         effective_end: Some(confirmed_end()),
         processed_at: Some(now()),
         processing_note: Some("Kündigung anerkannt, Ende bestätigt".try_into().unwrap()),
         ..make_declaration()
     };
 
-    let contract_repo = MockContractRepository::new()
+    let mut contract_repo = MockContractRepository::new()
         .with_get(make_declaration().id, Some(make_declaration()))
         .with_set_processed(
             make_declaration().id,
@@ -85,6 +93,14 @@ async fn ok() {
             Some(expected.clone()),
         );
 
+    contract_repo
+        .expect_lock_request()
+        .once()
+        .return_once(|_, _| Box::pin(async { Ok(()) }));
+    contract_repo
+        .expect_lock_processing()
+        .once()
+        .return_once(|_, _| Box::pin(async { Ok(()) }));
     let sut = ContractFeatureServiceImpl {
         auth,
         db,
@@ -105,54 +121,18 @@ async fn ok() {
 /// A declaration whose end date the backend already determined keeps it when
 /// the administrator only adds a note.
 #[tokio::test]
-async fn ok_keeps_what_is_not_given() {
-    // Arrange
-    let stored = ContractDeclaration {
-        cancellation_type: Some(ContractCancellationType::Ordinary),
-        effective_end: Some(Utc.with_ymd_and_hms(2026, 10, 1, 0, 0, 0).unwrap()),
-        ..make_declaration()
-    };
-
+async fn completion_requires_identity_and_resolution_evidence() {
     let auth =
         MockAuthService::new().with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())));
-
-    let db = MockDatabase::build(true);
-    let time = MockTimeService::new().with_now(now());
-
-    let expected = ContractDeclaration {
-        processed_at: Some(now()),
-        ..stored.clone()
-    };
-
-    let contract_repo = MockContractRepository::new()
-        .with_get(stored.id, Some(stored.clone()))
-        .with_set_processed(
-            stored.id,
-            now(),
-            stored.effective_end,
-            None,
-            Some(expected.clone()),
-        );
-
-    let sut = ContractFeatureServiceImpl {
+    let sut = Sut {
         auth,
-        db,
-        time,
-        contract_repo,
         ..Sut::default()
     };
-
-    // Act
-    let result = sut
-        .set_declaration_processed(
-            &"token".into(),
-            stored.id,
-            ContractDeclarationProcessingUpdate::default(),
-        )
-        .await;
-
-    // Assert
-    assert_eq!(result.unwrap(), expected);
+    assert_matches!(
+        sut.set_declaration_processed(&"token".into(), make_declaration().id, Default::default())
+            .await,
+        Err(ContractSetProcessedError::Invalid)
+    );
 }
 
 #[tokio::test]
@@ -162,10 +142,18 @@ async fn not_found() {
         MockAuthService::new().with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())));
 
     let db = MockDatabase::build(false);
-    let time = MockTimeService::new().with_now(now());
+    let time = MockTimeService::new();
 
-    let contract_repo = MockContractRepository::new().with_get(make_declaration().id, None);
+    let mut contract_repo = MockContractRepository::new().with_get(make_declaration().id, None);
 
+    contract_repo
+        .expect_lock_request()
+        .once()
+        .return_once(|_, _| Box::pin(async { Ok(()) }));
+    contract_repo
+        .expect_lock_processing()
+        .once()
+        .return_once(|_, _| Box::pin(async { Ok(()) }));
     let sut = ContractFeatureServiceImpl {
         auth,
         db,

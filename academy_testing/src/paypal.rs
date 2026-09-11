@@ -4,7 +4,7 @@ use anyhow::Context;
 use axum::{
     Json, Router,
     extract::Path,
-    http::StatusCode,
+    http::{HeaderMap, StatusCode},
     response::{IntoResponse, Response},
     routing,
 };
@@ -40,6 +40,7 @@ pub async fn start_server(
     info!("Client secret: {client_secret:?}");
 
     let router = Router::new()
+        .route("/v1/oauth2/token", routing::post(token))
         .route("/v2/checkout/orders", routing::post(create_order))
         .route("/v2/checkout/orders/{id}", routing::get(get_order))
         .route(
@@ -68,20 +69,47 @@ struct StateInner {
     orders: RwLock<HashMap<String, Order>>,
 }
 
-#[derive(Serialize)]
-#[serde(tag = "status", content = "coins")]
-enum Order {
-    Created(u64),
-    Confirmed(u64),
-    Captured,
+struct Order {
+    coins: u64,
+    status: &'static str,
+    capture: Option<(String, String, String)>,
+}
+
+fn order_json(id: &str, order: &Order) -> serde_json::Value {
+    let amount = serde_json::json!({"currency_code":"EUR", "value":format!("{}.{:02}",order.coins/100,order.coins%100)});
+    let captures = order
+        .capture
+        .as_ref()
+        .map(|(id, at, _)| {
+            serde_json::json!([{
+                "id":id,"status":"COMPLETED","amount":amount,"create_time":at
+            }])
+        })
+        .unwrap_or_else(|| serde_json::json!([]));
+    serde_json::json!({"id":id,"intent":"CAPTURE","status":order.status,"purchase_units":[{
+        "amount":amount,"payee":{"merchant_id":"TESTMERCHANT"},"payments":{"captures":captures}
+    }]})
+}
+
+async fn token(state: State, TypedHeader(auth): TypedHeader<Authorization<Basic>>) -> Response {
+    if auth.username() != state.client_id || auth.password() != state.client_secret {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    Json(serde_json::json!({"access_token":"synthetic-paypal-token","token_type":"Bearer"}))
+        .into_response()
+}
+fn authorized(headers: &HeaderMap) -> bool {
+    headers
+        .get("authorization")
+        .is_some_and(|h| h == "Bearer synthetic-paypal-token")
 }
 
 async fn create_order(
     state: State,
-    TypedHeader(auth): TypedHeader<Authorization<Basic>>,
+    headers: HeaderMap,
     Json(data): Json<CreateOrderRequest>,
 ) -> Response {
-    if auth.username() != state.client_id || auth.password() != state.client_secret {
+    if !authorized(&headers) {
         return (StatusCode::UNAUTHORIZED, "unauthorized").into_response();
     }
 
@@ -105,7 +133,14 @@ async fn create_order(
     let order_id = generate_order_id();
 
     let mut orders = state.orders.write().await;
-    orders.insert(order_id.clone(), Order::Created(price));
+    orders.insert(
+        order_id.clone(),
+        Order {
+            coins: price,
+            status: "CREATED",
+            capture: None,
+        },
+    );
 
     (
         StatusCode::CREATED,
@@ -117,46 +152,57 @@ async fn create_order(
 async fn get_order(state: State, Path(order_id): Path<String>) -> Response {
     let orders = state.orders.read().await;
     match orders.get(&order_id) {
-        Some(order) => Json(order).into_response(),
+        Some(order) => Json(order_json(&order_id, order)).into_response(),
         None => (StatusCode::NOT_FOUND, "not found").into_response(),
     }
 }
 
 async fn confirm_order(state: State, Path(order_id): Path<String>) -> Response {
     let mut orders = state.orders.write().await;
-    let Some(order @ &mut Order::Created(coins)) = orders.get_mut(&order_id) else {
-        return (StatusCode::NOT_FOUND, "not found").into_response();
+    let Some(order) = orders.get_mut(&order_id) else {
+        return StatusCode::NOT_FOUND.into_response();
     };
-
-    *order = Order::Confirmed(coins);
-
-    Json(order).into_response()
+    if order.status == "CREATED" {
+        order.status = "APPROVED";
+    }
+    Json(order_json(&order_id, order)).into_response()
 }
 
 async fn capture_order(
     state: State,
-    TypedHeader(auth): TypedHeader<Authorization<Basic>>,
+    headers: HeaderMap,
     Path(order_id): Path<String>,
-    Json(CaptureOrderRequest {}): Json<CaptureOrderRequest>,
+    Json(_): Json<serde_json::Value>,
 ) -> Response {
-    if auth.username() != state.client_id || auth.password() != state.client_secret {
-        return (StatusCode::UNAUTHORIZED, "unauthorized").into_response();
+    if !authorized(&headers) {
+        return StatusCode::UNAUTHORIZED.into_response();
     }
-
-    let mut orders = state.orders.write().await;
-    let Some(order @ &mut Order::Confirmed(_)) = orders.get_mut(&order_id) else {
-        return (StatusCode::NOT_FOUND, "not found").into_response();
+    let Some(request_id) = headers
+        .get("paypal-request-id")
+        .and_then(|h| h.to_str().ok())
+    else {
+        return StatusCode::BAD_REQUEST.into_response();
     };
-
-    *order = Order::Captured;
-
-    (
-        StatusCode::CREATED,
-        Json(CaptureOrderResponse {
-            status: "COMPLETED",
-        }),
-    )
-        .into_response()
+    let mut orders = state.orders.write().await;
+    let Some(order) = orders.get_mut(&order_id) else {
+        return StatusCode::NOT_FOUND.into_response();
+    };
+    if let Some((_, _, key)) = &order.capture {
+        if key != request_id {
+            return StatusCode::UNPROCESSABLE_ENTITY.into_response();
+        }
+        return Json(order_json(&order_id, order)).into_response();
+    }
+    if order.status != "APPROVED" {
+        return StatusCode::UNPROCESSABLE_ENTITY.into_response();
+    }
+    order.status = "COMPLETED";
+    order.capture = Some((
+        generate_order_id(),
+        chrono::Utc::now().to_rfc3339(),
+        request_id.into(),
+    ));
+    (StatusCode::CREATED, Json(order_json(&order_id, order))).into_response()
 }
 
 #[derive(Deserialize)]
@@ -179,14 +225,6 @@ struct Amount {
 #[derive(Serialize)]
 struct CreateOrderResponse {
     id: String,
-}
-
-#[derive(Deserialize)]
-struct CaptureOrderRequest {}
-
-#[derive(Serialize)]
-struct CaptureOrderResponse {
-    status: &'static str,
 }
 
 fn generate_order_id() -> String {

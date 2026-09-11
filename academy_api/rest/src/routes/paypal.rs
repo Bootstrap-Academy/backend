@@ -3,7 +3,7 @@ use std::sync::Arc;
 use academy_core_paypal_contracts::{
     PaypalCaptureCoinOrderError, PaypalCreateCoinOrderError, PaypalFeatureService,
 };
-use academy_models::paypal::PaypalOrderId;
+use academy_models::{paypal::PaypalOrderId, purchase::PurchaseAcceptance};
 use aide::{
     axum::{ApiRouter, routing},
     transform::TransformOperation,
@@ -23,7 +23,7 @@ use crate::{
     error_code,
     errors::{auth_error, auth_error_docs, internal_server_error, internal_server_error_docs},
     extractors::auth::ApiToken,
-    models::{coin::ApiBalance, withdrawal::ApiWithdrawalConsentDeclaration},
+    models::coin::ApiBalance,
 };
 
 pub const TAG: &str = "PayPal";
@@ -41,6 +41,10 @@ pub fn router(service: Arc<impl PaypalFeatureService>) -> ApiRouter<()> {
         .api_route(
             "/shop/coins/paypal/orders/{order_id}/capture",
             routing::post_with(capture_coin_order, capture_coin_order_docs),
+        )
+        .route(
+            "/shop/coins/paypal/offers/{coins}",
+            axum::routing::post(offer_coin_order),
         )
         .with_state(service)
         .with_path_items(|op| op.tag(TAG))
@@ -60,7 +64,7 @@ struct CreateCoinOrderRequest {
     /// The number of Morphcoins to buy.
     coins: u64,
     #[serde(flatten)]
-    declaration: ApiWithdrawalConsentDeclaration,
+    declaration: PurchaseAcceptance,
 }
 
 async fn create_coin_order(
@@ -69,10 +73,15 @@ async fn create_coin_order(
     Json(CreateCoinOrderRequest { coins, declaration }): Json<CreateCoinOrderRequest>,
 ) -> Response {
     match service
-        .create_coin_order(&token.0, coins, declaration.into())
+        .create_coin_order(&token.0, coins, declaration)
         .await
     {
         Ok(order_id) => Json(order_id).into_response(),
+        Err(PaypalCreateCoinOrderError::OfferChanged) => (
+            StatusCode::CONFLICT,
+            Json(serde_json::json!({"detail":"Exact offer required; retrieve the original order"})),
+        )
+            .into_response(),
         Err(PaypalCreateCoinOrderError::InvalidAmount(_)) => InvalidAmountError.into_response(),
         Err(PaypalCreateCoinOrderError::WithdrawalConsentMissing) => {
             WithdrawalConsentMissingError.into_response()
@@ -111,6 +120,7 @@ async fn capture_coin_order(
 ) -> Response {
     match service.capture_coin_order(&token.0, order_id).await {
         Ok(balance) => Json(ApiBalance::from(balance)).into_response(),
+        Err(PaypalCaptureCoinOrderError::Pending) => PaymentPendingError.into_response(),
         Err(PaypalCaptureCoinOrderError::NotFound) => OrderNotFoundError.into_response(),
         Err(PaypalCaptureCoinOrderError::IncompleteInvoiceInfo) => {
             UserInfoMissingError.into_response()
@@ -133,11 +143,14 @@ fn capture_coin_order_docs(op: TransformOperation) -> TransformOperation {
         .add_error::<OrderNotFoundError>()
         .add_error::<UserInfoMissingError>()
         .add_error::<CouldNotCaptureOrderError>()
+        .add_error::<PaymentPendingError>()
         .with(auth_error_docs)
         .with(internal_server_error_docs)
 }
 
 error_code! {
+    /// Payment is unresolved; retry the same order and do not place a second order.
+    PaymentPendingError(SERVICE_UNAVAILABLE, "Your payment is still being checked. Please retry this order later; do not place a second order.");
     /// The user cannot buy coins because some information about them is missing
     UserInfoMissingError(PRECONDITION_FAILED, "User Infos missing");
     /// The order could not be created.
@@ -148,4 +161,12 @@ error_code! {
     CouldNotCaptureOrderError(BAD_REQUEST, "Could not capture order");
     /// The specified number of Morphcoins is outside of the allowed range.
     InvalidAmountError(BAD_REQUEST, "Invalid amount");
+}
+
+async fn offer_coin_order(
+    service: State<Arc<impl PaypalFeatureService>>,
+    token: ApiToken,
+    Path(coins): Path<u64>,
+) -> Response {
+    match service.offer_coin_order(&token.0,coins).await {Ok(offer)=>Json(offer).into_response(),Err(PaypalCreateCoinOrderError::Auth(e))=>auth_error(e),Err(PaypalCreateCoinOrderError::Other(e))=>internal_server_error(e),Err(_)=>(StatusCode::PRECONDITION_FAILED,Json(serde_json::json!({"detail":"Verified invoice information and an available amount are required"}))).into_response()}
 }

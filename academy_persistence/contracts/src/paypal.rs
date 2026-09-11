@@ -1,7 +1,7 @@
 use std::future::Future;
 
 use academy_models::{
-    paypal::{PaypalCoinOrder, PaypalOrderId},
+    paypal::{PaypalCoinOrder, PaypalOrderId, PaypalPayment},
     user::UserId,
 };
 use chrono::{DateTime, Utc};
@@ -9,6 +9,40 @@ use futures::Stream;
 
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait PaypalRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
+    fn lock_contract_order(
+        &self,
+        txn: &mut Txn,
+        id: uuid::Uuid,
+    ) -> impl Future<Output = anyhow::Result<Option<PaypalOrderId>>> + Send;
+    /// Insert immutable payment facts. Conflict is rejected, never overwritten.
+    fn create_payment(
+        &self,
+        txn: &mut Txn,
+        payment: &PaypalPayment,
+    ) -> impl Future<Output = anyhow::Result<()>> + Send;
+    /// Lock the durable payment until this transaction ends.
+    fn get_payment(
+        &self,
+        txn: &mut Txn,
+        id: &PaypalOrderId,
+    ) -> impl Future<Output = anyhow::Result<Option<PaypalPayment>>> + Send;
+    fn get_payment_by_invoice(
+        &self,
+        txn: &mut Txn,
+        invoice: u64,
+    ) -> impl Future<Output = anyhow::Result<Option<PaypalPayment>>> + Send;
+    /// Persist only operational progress; commercial facts cannot be replaced.
+    fn update_payment(
+        &self,
+        txn: &mut Txn,
+        payment: &PaypalPayment,
+    ) -> impl Future<Output = anyhow::Result<()>> + Send;
+    /// Pending started payments and undelivered receipts. Unapproved orders are never captured by a sweep.
+    fn pending_payments(
+        &self,
+        txn: &mut Txn,
+    ) -> impl Future<Output = anyhow::Result<Vec<PaypalOrderId>>> + Send;
+
     /// Create a new coin order.
     fn create_coin_order(
         &self,
@@ -106,6 +140,8 @@ impl<Txn: Send + Sync + 'static> MockPaypalRepository<Txn> {
         invoice_number: u64,
         result: Option<PaypalCoinOrder>,
     ) -> Self {
+        self.expect_get_payment_by_invoice()
+            .returning(|_, _| Box::pin(std::future::ready(Ok(None))));
         self.expect_get_coin_order_by_invoice_number()
             .once()
             .with(

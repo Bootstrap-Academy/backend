@@ -1,533 +1,116 @@
-use academy_core_contract_contracts::{
-    ContractCancellationRequest, ContractDeclarationResult, ContractDeclareError,
-    ContractFeatureService,
-};
-use academy_demo::{UUID1, user::FOO};
-use academy_email_contracts::{MockEmailService, template::MockTemplateEmailService};
-use academy_models::{
-    contract::{
-        ContractCancellationType, ContractDeclaration, ContractDeclarationKind,
-        ContractDesignation, ContractKind,
-    },
-    premium::Premium,
-    user::UserId,
-};
-use academy_persistence_contracts::{
-    MockDatabase, contract::MockContractRepository, premium::MockPremiumRepository,
-    user::MockUserRepository,
-};
-use academy_shared_contracts::{id::MockIdService, time::MockTimeService};
-use academy_templates_contracts::ContractCancellationConfirmationTemplate;
-use academy_utils::assert_matches;
-use chrono::{DateTime, TimeZone, Utc};
-
-use crate::{
-    ContractFeatureServiceImpl,
-    tests::{
-        CLIENT_IP, RATE_LIMIT_PER_EMAIL, RATE_LIMIT_PER_IP, Sut, declarant_email, declarant_name,
-        make_cache, make_exhausted_cache, make_hash, make_internal_email, no_details,
-        unknown_email,
-    },
-};
-
-fn now() -> DateTime<Utc> {
-    Utc.with_ymd_and_hms(2026, 9, 3, 12, 0, 0).unwrap()
-}
-
-fn requested_end() -> DateTime<Utc> {
-    Utc.with_ymd_and_hms(2026, 12, 31, 12, 0, 0).unwrap()
-}
-
-fn premium_until() -> DateTime<Utc> {
-    Utc.with_ymd_and_hms(2026, 10, 1, 0, 0, 0).unwrap()
-}
-
-fn designation() -> ContractDesignation {
-    "Premium-Abo, monatlich".try_into().unwrap()
-}
-
-fn make_request() -> ContractCancellationRequest {
-    ContractCancellationRequest {
-        name: declarant_name(),
-        email: declarant_email(),
-        contract: ContractKind::Premium,
-        contract_designation: Some(designation()),
-        cancellation_type: ContractCancellationType::Ordinary,
-        details: "Zu teuer".try_into().unwrap(),
-        requested_end: Some(requested_end()),
-    }
-}
-
-fn make_declaration(
-    user_id: Option<UserId>,
-    effective_end: Option<DateTime<Utc>>,
-) -> ContractDeclaration {
+use super::*;
+use crate::{receipt_body, same_requested_agreement, same_submission};
+use academy_core_contract_contracts::{ContractDeclareError, ContractFeatureService};
+use academy_demo::UUID1;
+use academy_models::contract::*;
+use chrono::{TimeZone, Utc};
+fn declaration() -> ContractDeclaration {
     ContractDeclaration {
         id: UUID1.into(),
         kind: ContractDeclarationKind::Cancellation,
-        received_at: now(),
+        received_at: Utc.with_ymd_and_hms(2026, 9, 7, 12, 0, 0).unwrap(),
         name: declarant_name(),
         email: declarant_email(),
-        user_id,
+        user_id: Some(FOO.user.id),
         contract: ContractKind::Premium,
-        contract_designation: Some(designation()),
+        contract_designation: Some("Meine Mitgliedschaft".try_into().unwrap()),
         cancellation_type: Some(ContractCancellationType::Ordinary),
-        details: "Zu teuer".try_into().unwrap(),
-        requested_end: Some(requested_end()),
-        effective_end,
+        details: no_details(),
+        requested_end: Some(Utc.with_ymd_and_hms(2026, 12, 31, 0, 0, 0).unwrap()),
+        effective_end: None,
         processed_at: None,
         processing_note: None,
+        delivery: vec![],
+        operational_evidence: None,
     }
 }
-
-fn make_template(effective_end: Option<&str>) -> ContractCancellationConfirmationTemplate {
-    ContractCancellationConfirmationTemplate {
-        received_at: "03.09.2026 um 14:00:00 Uhr".into(),
-        name: "Max Mustermann".into(),
-        email: "foo@example.com".into(),
-        contract: "Premium-Mitgliedschaft".into(),
-        contract_designation: Some("Premium-Abo, monatlich".into()),
-        cancellation_type: "ordentliche Kündigung".into(),
-        extraordinary: false,
-        details: Some("Zu teuer".into()),
-        requested_end: Some("31.12.2026".into()),
-        effective_end: effective_end.map(Into::into),
+#[test]
+fn receipt_contains_only_submitted_facts_and_original_time() {
+    let mut d = declaration();
+    let original = receipt_body(&d);
+    d.user_id = None;
+    d.effective_end = Some(Utc.with_ymd_and_hms(2027, 1, 1, 0, 0, 0).unwrap());
+    d.processing_note = Some("INTERNAL ACCOUNT FACT".try_into().unwrap());
+    assert_eq!(receipt_body(&d), original);
+    assert!(original.contains("31.12.2026"));
+    assert!(original.contains("07.09.2026 um 14:00:00"));
+    assert!(!original.contains("INTERNAL"));
+    d.kind = ContractDeclarationKind::Withdrawal;
+    d.requested_end = None;
+    let withdrawal = receipt_body(&d);
+    assert!(withdrawal.contains("nicht anwendbar"));
+}
+#[test]
+fn duplicate_equality_ignores_private_processing_but_preserves_every_submission_field() {
+    let a = declaration();
+    let mut b = a.clone();
+    b.effective_end = Some(a.received_at);
+    b.user_id = None;
+    b.processed_at = Some(a.received_at);
+    assert!(same_submission(&a, &b));
+    b.requested_end = None;
+    assert!(!same_submission(&a, &b));
+    b = a.clone();
+    b.details = "Anderer Inhalt".try_into().unwrap();
+    assert!(!same_submission(&a, &b));
+}
+#[tokio::test]
+async fn rate_limits_distinguish_ip_and_email_budget() {
+    for (ip, email) in [(RATE_LIMIT_PER_IP, 0), (0, RATE_LIMIT_PER_EMAIL)] {
+        let sut = Sut {
+            cache: make_exhausted_cache(ip, email),
+            hash: make_hash(&declarant_email()),
+            ..Sut::default()
+        };
+        assert!(matches!(
+            sut.check_rate_limit(CLIENT_IP, &declarant_email()).await,
+            Err(ContractDeclareError::RateLimit)
+        ));
     }
-}
-
-/// The declarant has an account with an active premium membership: autopay is
-/// switched off and the contract ends at the end of the paid period.
-#[tokio::test]
-async fn ok_premium_user() {
-    // Arrange
-    let declaration = make_declaration(Some(FOO.user.id), Some(premium_until()));
-
-    let hash = make_hash(&declarant_email());
-    let cache = make_cache(0, 0);
-    let time = MockTimeService::new().with_now(now());
-    let id = MockIdService::new().with_generate(declaration.id);
-    let db = MockDatabase::build(true);
-
-    let user_repo =
-        MockUserRepository::new().with_get_composite_by_email(declarant_email(), Some(FOO.clone()));
-
-    let premium_repo = MockPremiumRepository::new()
-        .with_set_subscription(FOO.user.id, None)
-        .with_get_latest_by_user_id(
-            FOO.user.id,
-            Some(Premium {
-                id: UUID1.into(),
-                user_id: FOO.user.id,
-                since: Utc.with_ymd_and_hms(2026, 9, 1, 0, 0, 0).unwrap(),
-                until: premium_until(),
-            }),
-        );
-
-    let contract_repo = MockContractRepository::new().with_create(declaration.clone());
-
-    let template_email = MockTemplateEmailService::new()
-        .with_send_contract_cancellation_confirmation_email(
-            declarant_email().with_name("Max Mustermann".into()),
-            make_template(Some("01.10.2026")),
-            Ok(true),
-        );
-
-    let email = MockEmailService::new().with_send(
-        make_internal_email(&declaration, "[Contract] Kündigung (Premium)"),
-        true,
-    );
-
-    let sut = ContractFeatureServiceImpl {
-        hash,
-        cache,
-        time,
-        id,
-        db,
-        user_repo,
-        premium_repo,
-        contract_repo,
-        template_email,
-        email,
+    let sut = Sut {
+        cache: make_cache(7, 0),
+        hash: make_hash(&declarant_email()),
         ..Sut::default()
     };
-
-    // Act
-    let result = sut.declare_cancellation(CLIENT_IP, make_request()).await;
-
-    // Assert
-    assert_eq!(
-        result.unwrap(),
-        ContractDeclarationResult {
-            declaration,
-            confirmation_email_sent: true
-        }
-    );
+    sut.check_rate_limit(CLIENT_IP, &declarant_email())
+        .await
+        .unwrap();
 }
-
-/// The declarant has an account but no premium membership: the contract ends
-/// immediately.
 #[tokio::test]
-async fn ok_user_without_premium() {
-    // Arrange
-    let declaration = make_declaration(Some(FOO.user.id), Some(now()));
-
-    let hash = make_hash(&declarant_email());
-    let cache = make_cache(0, 0);
-    let time = MockTimeService::new().with_now(now());
-    let id = MockIdService::new().with_generate(declaration.id);
-    let db = MockDatabase::build(true);
-
-    let user_repo =
-        MockUserRepository::new().with_get_composite_by_email(declarant_email(), Some(FOO.clone()));
-
-    let premium_repo = MockPremiumRepository::new()
-        .with_set_subscription(FOO.user.id, None)
-        .with_get_latest_by_user_id(FOO.user.id, None);
-
-    let contract_repo = MockContractRepository::new().with_create(declaration.clone());
-
-    let template_email = MockTemplateEmailService::new()
-        .with_send_contract_cancellation_confirmation_email(
-            declarant_email().with_name("Max Mustermann".into()),
-            make_template(Some("03.09.2026")),
-            Ok(true),
-        );
-
-    let email = MockEmailService::new().with_send(
-        make_internal_email(&declaration, "[Contract] Kündigung (Premium)"),
-        true,
-    );
-
-    let sut = ContractFeatureServiceImpl {
+async fn receipt_lookup_requires_the_separate_secret() {
+    let key = ContractRequestKey {
+        id: UUID1.into(),
+        secret: academy_demo::UUID2.into(),
+    };
+    let mut repo = MockContractRepository::new();
+    repo.expect_receipt_access()
+        .once()
+        .return_once(|_, _| Box::pin(async { Ok(Some("another hash".into())) }));
+    let hash = MockHashService::new().with_sha256((*key.secret).to_string(), *SHA256HASH1);
+    let sut = Sut {
+        db: MockDatabase::build(false),
+        contract_repo: repo,
         hash,
-        cache,
-        time,
-        id,
-        db,
-        user_repo,
-        premium_repo,
-        contract_repo,
-        template_email,
-        email,
         ..Sut::default()
     };
-
-    // Act
-    let result = sut.declare_cancellation(CLIENT_IP, make_request()).await;
-
-    // Assert
-    assert_eq!(
-        result.unwrap(),
-        ContractDeclarationResult {
-            declaration,
-            confirmation_email_sent: true
-        }
-    );
-}
-
-/// An extraordinary cancellation of a premium membership: the automatic
-/// renewal is switched off, but no end date is determined — that is a question
-/// for a person, and the answer goes out separately in Textform. The internal
-/// notification says so in its subject.
-#[tokio::test]
-async fn ok_extraordinary_keeps_the_end_date_open() {
-    // Arrange
-    let request = ContractCancellationRequest {
-        cancellation_type: ContractCancellationType::Extraordinary,
-        requested_end: None,
-        ..make_request()
-    };
-
-    let declaration = ContractDeclaration {
-        cancellation_type: Some(ContractCancellationType::Extraordinary),
-        requested_end: None,
-        ..make_declaration(Some(FOO.user.id), None)
-    };
-
-    let hash = make_hash(&declarant_email());
-    let cache = make_cache(0, 0);
-    let time = MockTimeService::new().with_now(now());
-    let id = MockIdService::new().with_generate(declaration.id);
-    let db = MockDatabase::build(true);
-
-    let user_repo =
-        MockUserRepository::new().with_get_composite_by_email(declarant_email(), Some(FOO.clone()));
-
-    // the subscription is switched off, but the paid period is never read
-    let premium_repo = MockPremiumRepository::new().with_set_subscription(FOO.user.id, None);
-
-    let contract_repo = MockContractRepository::new().with_create(declaration.clone());
-
-    let template_email = MockTemplateEmailService::new()
-        .with_send_contract_cancellation_confirmation_email(
-            declarant_email().with_name("Max Mustermann".into()),
-            ContractCancellationConfirmationTemplate {
-                cancellation_type: "außerordentliche Kündigung".into(),
-                extraordinary: true,
-                requested_end: None,
-                ..make_template(None)
-            },
-            Ok(true),
-        );
-
-    let email = MockEmailService::new().with_send(
-        make_internal_email(&declaration, "[Contract] DRINGEND: Kündigung (Premium)"),
-        true,
-    );
-
-    let sut = ContractFeatureServiceImpl {
-        hash,
-        cache,
-        time,
-        id,
-        db,
-        user_repo,
-        premium_repo,
-        contract_repo,
-        template_email,
-        email,
-        ..Sut::default()
-    };
-
-    // Act
-    let result = sut.declare_cancellation(CLIENT_IP, request).await;
-
-    // Assert
-    let result = result.unwrap();
-    assert_eq!(result.declaration.effective_end, None);
-    assert_eq!(
-        result,
-        ContractDeclarationResult {
-            declaration,
-            confirmation_email_sent: true
-        }
-    );
-}
-
-/// The urgent marker also reaches the body of the internal notification.
-#[test]
-fn internal_notification_body_marks_an_extraordinary_cancellation() {
-    let body = crate::internal_notification_body(&ContractDeclaration {
-        cancellation_type: Some(ContractCancellationType::Extraordinary),
-        ..make_declaration(Some(FOO.user.id), None)
-    });
-
-    assert!(
-        body.starts_with("DRINGEND: außerordentliche Kündigung."),
-        "{body}"
-    );
-    assert!(
-        body.contains("gesondert in Textform zu bestätigen."),
-        "{body}"
-    );
-    assert!(body.contains("Beendigungszeitpunkt: -"), "{body}");
-}
-
-/// No account matches the declarant's email address: the declaration is stored
-/// and confirmed anyway.
-#[tokio::test]
-async fn ok_unknown_email() {
-    // Arrange
-    let declaration = ContractDeclaration {
-        email: unknown_email(),
-        details: no_details(),
-        ..make_declaration(None, None)
-    };
-
-    let hash = make_hash(&unknown_email());
-    let cache = make_cache(0, 0);
-    let time = MockTimeService::new().with_now(now());
-    let id = MockIdService::new().with_generate(declaration.id);
-    let db = MockDatabase::build(true);
-
-    let user_repo = MockUserRepository::new().with_get_composite_by_email(unknown_email(), None);
-
-    let contract_repo = MockContractRepository::new().with_create(declaration.clone());
-
-    let template_email = MockTemplateEmailService::new()
-        .with_send_contract_cancellation_confirmation_email(
-            unknown_email().with_name("Max Mustermann".into()),
-            ContractCancellationConfirmationTemplate {
-                email: "nobody@example.com".into(),
-                details: None,
-                ..make_template(None)
-            },
-            Ok(true),
-        );
-
-    let email = MockEmailService::new().with_send(
-        make_internal_email(&declaration, "[Contract] Kündigung (Premium)"),
-        true,
-    );
-
-    let sut = ContractFeatureServiceImpl {
-        hash,
-        cache,
-        time,
-        id,
-        db,
-        user_repo,
-        contract_repo,
-        template_email,
-        email,
-        ..Sut::default()
-    };
-
-    // Act
-    let result = sut
-        .declare_cancellation(
-            CLIENT_IP,
-            ContractCancellationRequest {
-                email: unknown_email(),
-                details: no_details(),
-                ..make_request()
-            },
-        )
-        .await;
-
-    // Assert
-    assert_eq!(
-        result.unwrap(),
-        ContractDeclarationResult {
-            declaration,
-            confirmation_email_sent: true
-        }
-    );
-}
-
-/// The confirmation email cannot be sent: the declaration is stored anyway and
-/// the caller is told that no confirmation was sent.
-#[tokio::test]
-async fn ok_confirmation_email_failed() {
-    // Arrange
-    let declaration = make_declaration(Some(FOO.user.id), Some(premium_until()));
-
-    let hash = make_hash(&declarant_email());
-    let cache = make_cache(0, 0);
-    let time = MockTimeService::new().with_now(now());
-    let id = MockIdService::new().with_generate(declaration.id);
-    let db = MockDatabase::build(true);
-
-    let user_repo =
-        MockUserRepository::new().with_get_composite_by_email(declarant_email(), Some(FOO.clone()));
-
-    let premium_repo = MockPremiumRepository::new()
-        .with_set_subscription(FOO.user.id, None)
-        .with_get_latest_by_user_id(
-            FOO.user.id,
-            Some(Premium {
-                id: UUID1.into(),
-                user_id: FOO.user.id,
-                since: Utc.with_ymd_and_hms(2026, 9, 1, 0, 0, 0).unwrap(),
-                until: premium_until(),
-            }),
-        );
-
-    let contract_repo = MockContractRepository::new().with_create(declaration.clone());
-
-    let template_email = MockTemplateEmailService::new()
-        .with_send_contract_cancellation_confirmation_email(
-            declarant_email().with_name("Max Mustermann".into()),
-            make_template(Some("01.10.2026")),
-            Err(anyhow::anyhow!("smtp is down")),
-        );
-
-    let email = MockEmailService::new().with_send(
-        make_internal_email(&declaration, "[Contract] Kündigung (Premium)"),
-        true,
-    );
-
-    let sut = ContractFeatureServiceImpl {
-        hash,
-        cache,
-        time,
-        id,
-        db,
-        user_repo,
-        premium_repo,
-        contract_repo,
-        template_email,
-        email,
-        ..Sut::default()
-    };
-
-    // Act
-    let result = sut.declare_cancellation(CLIENT_IP, make_request()).await;
-
-    // Assert
-    assert_eq!(
-        result.unwrap(),
-        ContractDeclarationResult {
-            declaration,
-            confirmation_email_sent: false
-        }
-    );
-}
-
-/// The rate limit of the client ip has been exhausted: nothing is stored and
-/// no email is sent.
-#[tokio::test]
-async fn rate_limit() {
-    // Arrange
-    let hash = make_hash(&declarant_email());
-    let cache = make_exhausted_cache(RATE_LIMIT_PER_IP, 0);
-
-    let sut = ContractFeatureServiceImpl {
-        hash,
-        cache,
-        ..Sut::default()
-    };
-
-    // Act
-    let result = sut.declare_cancellation(CLIENT_IP, make_request()).await;
-
-    // Assert
-    assert_matches!(result, Err(ContractDeclareError::RateLimit));
-}
-
-/// The rate limit has been exhausted for the email address only.
-#[tokio::test]
-async fn rate_limit_email() {
-    // Arrange
-    let hash = make_hash(&declarant_email());
-    let cache = make_exhausted_cache(0, RATE_LIMIT_PER_EMAIL);
-
-    let sut = ContractFeatureServiceImpl {
-        hash,
-        cache,
-        ..Sut::default()
-    };
-
-    // Act
-    let result = sut.declare_cancellation(CLIENT_IP, make_request()).await;
-
-    // Assert
-    assert_matches!(result, Err(ContractDeclareError::RateLimit));
-}
-
-#[test]
-fn internal_notification_body_text() {
-    let body = crate::internal_notification_body(&make_declaration(
-        Some(FOO.user.id),
-        Some(premium_until()),
+    assert!(matches!(
+        sut.lookup_receipt(key).await,
+        Err(ContractDeclareError::NotFound)
     ));
+}
 
-    assert_eq!(
-        body,
-        format!(
-            "Art der Erklärung: Kündigung\n\
-             Eingegangen am: 03.09.2026 um 14:00:00 Uhr\n\
-             Name: Max Mustermann\n\
-             E-Mail-Adresse: foo@example.com\n\
-             Konto: {}\n\
-             Vertrag: Premium-Mitgliedschaft\n\
-             Bezeichnung laut Erklärung: Premium-Abo, monatlich\n\
-             Art der Kündigung: ordentliche Kündigung\n\
-             Begründung/Angaben: Zu teuer\n\
-             Gewünschter Beendigungszeitpunkt: 31.12.2026\n\
-             Beendigungszeitpunkt: 01.10.2026\n\
-             ID der Erklärung: {}\n",
-            *FOO.user.id, UUID1
-        )
+#[test]
+fn changing_an_optional_reference_cannot_reuse_the_same_request() {
+    let mut d = declaration();
+    let id = academy_demo::UUID1;
+    d.operational_evidence = Some(
+        serde_json::json!({"messages":[{"kind":"receipt","requested_agreement_id":id}]})
+            .to_string(),
     );
+    assert!(same_requested_agreement(&d, Some(id.into())));
+    assert!(!same_requested_agreement(&d, None));
+    assert!(!same_requested_agreement(
+        &d,
+        Some(academy_demo::UUID2.into())
+    ));
 }

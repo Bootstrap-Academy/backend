@@ -34,6 +34,68 @@ use crate::PostgresTransaction;
 pub struct PostgresUserRepository;
 
 impl UserRepository<PostgresTransaction> for PostgresUserRepository {
+    async fn get_internal_composite(
+        &self,
+        txn: &mut PostgresTransaction,
+        user_id: UserId,
+    ) -> anyhow::Result<Option<UserComposite>> {
+        let Some(row) = txn
+            .txn()
+            .query_opt(
+                "SELECT c.* FROM commercial_service_composites c WHERE c.id=$1",
+                &[&*user_id],
+            )
+            .await?
+        else {
+            return Ok(None);
+        };
+        decode_composite(queries::user::UserComposite {
+            user_id: row.try_get("user_id")?,
+            id: row.try_get("id")?,
+            name: row.try_get("name")?,
+            email: row.try_get("email")?,
+            email_verified: row.try_get("email_verified")?,
+            created_at: row.try_get("created_at")?,
+            last_login: row.try_get("last_login")?,
+            last_name_change: row.try_get("last_name_change")?,
+            enabled: row.try_get("enabled")?,
+            admin: row.try_get("admin")?,
+            terms_version: row.try_get("terms_version")?,
+            terms_accepted_at: row.try_get("terms_accepted_at")?,
+            age_confirmed_at: row.try_get("age_confirmed_at")?,
+            terms_declined_at: row.try_get("terms_declined_at")?,
+            display_name: row.try_get("display_name")?,
+            bio: row.try_get("bio")?,
+            tags: row.try_get("tags")?,
+            leaderboard_opt_out: row.try_get("leaderboard_opt_out")?,
+            mfa_enabled: row.try_get("mfa_enabled")?,
+            password_login: row.try_get("password_login")?,
+            oauth2_login: row.try_get("oauth2_login")?,
+            business: row.try_get("business")?,
+            first_name: row.try_get("first_name")?,
+            last_name: row.try_get("last_name")?,
+            street: row.try_get("street")?,
+            zip_code: row.try_get("zip_code")?,
+            city: row.try_get("city")?,
+            country: row.try_get("country")?,
+            vat_id: row.try_get("vat_id")?,
+        })
+        .map(Some)
+    }
+    async fn get_purchase_composite(
+        &self,
+        txn: &mut PostgresTransaction,
+        user_id: UserId,
+    ) -> anyhow::Result<Option<UserComposite>> {
+        let Some(mut account) = self.get_internal_composite(txn, user_id).await? else {
+            return Ok(None);
+        };
+        if let Some(contact)=txn.txn().query_opt("SELECT c.contact,c.contact_verified FROM commercial_learning_subjects l JOIN commercial_cases c ON c.id=l.case_id WHERE l.subject=$1 AND l.erased_at IS NULL", &[&*user_id]).await? {
+            account.user.email=contact.get::<_,Option<String>>(0).as_deref().map(FromStr::from_str).transpose()?;
+            account.user.email_verified=contact.get(1);
+        }
+        Ok(Some(account))
+    }
     // The filter carries the name and email address search terms.
     #[trace_instrument(skip(self, txn, filter))]
     async fn count(
@@ -269,6 +331,9 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
             leaderboard_opt_out,
         }: UserProfilePatchRef<'a>,
     ) -> anyhow::Result<bool> {
+        txn.txn()
+            .query_opt("SELECT id FROM users WHERE id=$1 FOR UPDATE", &[&*user_id])
+            .await?;
         let params = UpdateProfileParams {
             user_id: *user_id,
             display_name: display_name.update().map(|x| &**x),
@@ -367,8 +432,61 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
             .map_err(Into::into)
     }
 
+    async fn record_deletion_request(
+        &self,
+        txn: &mut PostgresTransaction,
+        user_id: UserId,
+        received_at: chrono::DateTime<chrono::Utc>,
+    ) -> anyhow::Result<()> {
+        // No user/case FK or row lock: a queued erasure must not erase its own
+        // original request when the downstream transaction is cancelled.
+        txn.txn()
+            .execute(
+                "SELECT commercial_record_erasure_intake($1,$2)",
+                &[&*user_id, &received_at],
+            )
+            .await?;
+        Ok(())
+    }
+
     #[trace_instrument(skip(self, txn))]
+    async fn lock_for_deletion(
+        &self,
+        txn: &mut PostgresTransaction,
+        user_id: UserId,
+    ) -> anyhow::Result<bool> {
+        if txn
+            .txn()
+            .query_opt("SELECT id FROM users WHERE id=$1 FOR UPDATE", &[&*user_id])
+            .await?
+            .is_none()
+        {
+            return Ok(false);
+        }
+        txn.txn()
+            .execute(
+                "SELECT pg_advisory_xact_lock(hashtextextended('moderation:account:'||$1::uuid,0))",
+                &[&*user_id],
+            )
+            .await?;
+        // Existing coin writers must finish before the final balance is read. New
+        // coin rows are protected by their FK to the exclusively locked account.
+        txn.txn()
+            .query(
+                "SELECT user_id FROM coins WHERE user_id=$1 FOR UPDATE",
+                &[&*user_id],
+            )
+            .await?;
+        Ok(true)
+    }
+
     async fn delete(&self, txn: &mut PostgresTransaction, user_id: UserId) -> anyhow::Result<bool> {
+        txn.txn()
+            .execute(
+                "SELECT set_config('academy.moderation_erasure_subject',$1,true)",
+                &[&user_id.to_string()],
+            )
+            .await?;
         queries::user::delete()
             .bind(txn.txn(), &user_id)
             .await

@@ -14,6 +14,15 @@ pub mod login_throttle;
 pub mod session;
 
 pub trait SessionFeatureService: Send + Sync + 'static {
+    /// Verify existing password/MFA for retained rights access. This never
+    /// creates a normal session and works for an existing disabled account.
+    fn prove_recipient(
+        &self,
+        client_ip: IpAddr,
+        cmd: SessionCreateCommand,
+        recaptcha_response: Option<RecaptchaResponse>,
+    ) -> impl Future<Output = Result<UserId, SessionCreateError>> + Send;
+
     /// Return the currently authenticated session.
     fn get_current_session(
         &self,

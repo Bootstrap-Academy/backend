@@ -1,5 +1,5 @@
 use academy_core_finance_contracts::{
-    coin::{CoinPrices, FinanceCoinService},
+    coin::FinanceCoinService,
     invoice::{FinanceInvoiceService, PendingFinalStatement},
 };
 use academy_di::Build;
@@ -9,6 +9,7 @@ use academy_models::{
         FinancialDocument, FinancialDocumentKind, FinancialDocumentNumber, final_statement_number,
         unused_purchased_coins,
     },
+    paypal::PaypalPayment,
     retention::retention_cutoff,
     user::UserId,
 };
@@ -77,6 +78,137 @@ where
     DocumentRepo: FinancialDocumentRepository<Txn>,
     FinanceCoin: FinanceCoinService,
 {
+    async fn get_original_pdf(
+        &self,
+        txn: &mut Txn,
+        number: &FinancialDocumentNumber,
+        kind: FinancialDocumentKind,
+    ) -> anyhow::Result<Option<Vec<u8>>> {
+        if !self.document_repo.lock_archive(txn, number).await? {
+            return Ok(None);
+        }
+        let archive = match kind {
+            FinancialDocumentKind::Invoice => {
+                if let Some(pdf) = self.document_repo.original_invoice(txn, number).await? {
+                    return Ok(Some(pdf));
+                }
+                &self.config.invoices_archive
+            }
+            FinancialDocumentKind::CreditNote => &self.config.credit_notes_archive,
+            FinancialDocumentKind::FinalStatement => &self.config.final_statements_archive,
+        };
+        self.fs
+            .read_file(&archive.join(format!("{}.pdf", number.as_str())))
+            .await
+    }
+
+    async fn record_payment_invoice(
+        &self,
+        txn: &mut Txn,
+        payment: &PaypalPayment,
+    ) -> anyhow::Result<()> {
+        let snapshot = &payment.snapshot;
+        let capture = payment
+            .capture
+            .as_ref()
+            .context("Payment has no capture evidence")?;
+        self.document_repo
+            .record(
+                txn,
+                &FinancialDocument {
+                    number: format!("R{:07}", snapshot.order.invoice_number).try_into()?,
+                    kind: FinancialDocumentKind::Invoice,
+                    user_id: Some(snapshot.order.user_id),
+                    issued_at: capture.created_at,
+                    customer_details: Some(snapshot.customer_details.clone()),
+                    coins: Some(snapshot.order.coins),
+                    net_total_cents: to_cents(snapshot.net_total),
+                    vat_total_cents: to_cents(snapshot.vat_total),
+                    gross_total_cents: to_cents(snapshot.gross_total),
+                    settled_at: None,
+                    withdrawal_consent_at: snapshot.order.withdrawal_consent_at,
+                    withdrawal_text_version: snapshot.order.withdrawal_text_version.clone(),
+                },
+            )
+            .await
+    }
+
+    async fn render_payment_invoice(
+        &self,
+        txn: &mut Txn,
+        payment: &PaypalPayment,
+    ) -> anyhow::Result<Vec<u8>> {
+        let snapshot = &payment.snapshot;
+        let capture = payment
+            .capture
+            .as_ref()
+            .context("Payment has no capture evidence")?;
+        anyhow::ensure!(
+            payment.fulfilled_at.is_some(),
+            "Invoice has not been committed"
+        );
+        let cutoff = retention_cutoff(self.time.now(), self.config.retention_years)
+            .context("Failed to determine document retention cutoff")?;
+        anyhow::ensure!(
+            capture.created_at >= cutoff,
+            "Invoice retention period expired; unresolved delivery requires review"
+        );
+        let number = format!("R{:07}", snapshot.order.invoice_number);
+        let path = self.config.invoices_archive.join(format!("{number}.pdf"));
+        let document_number = FinancialDocumentNumber::try_new(number.clone())?;
+        anyhow::ensure!(
+            self.document_repo
+                .lock_archive(txn, &document_number)
+                .await?,
+            "Retired invoice requires independent review, not recreation"
+        );
+        if let Some(pdf) = self
+            .document_repo
+            .original_invoice(txn, &document_number)
+            .await?
+        {
+            return Ok(pdf);
+        }
+        if let Some(pdf) = self.fs.read_file(&path).await? {
+            self.document_repo
+                .record_original_invoice(
+                    txn,
+                    &document_number,
+                    &pdf,
+                    "existing_payment_invoice_archive",
+                )
+                .await?;
+            return Ok(pdf);
+        }
+        let html = self.template.render(&InvoiceTemplate {
+            title: "Rechnung",
+            customer_details: snapshot.customer_details.clone(),
+            timestamp: capture.created_at,
+            invoice_number: number,
+            items: vec![InvoiceItem {
+                description: "MorphCoins".into(),
+                net_unit: snapshot.net_unit,
+                count: snapshot.order.coins,
+                net_total: snapshot.net_total,
+            }],
+            vat_percent: snapshot.vat_percent,
+            net_total: snapshot.net_total,
+            vat_total: snapshot.vat_total,
+            gross_total: snapshot.gross_total,
+        })?;
+        let pdf = self.render_api.render_html_to_pdf(html).await?;
+        self.document_repo
+            .record_original_invoice(
+                txn,
+                &document_number,
+                &pdf,
+                "first_render_from_complete_immutable_payment_snapshot",
+            )
+            .await?;
+        self.fs.store_file(&path, &pdf).await?;
+        Ok(pdf)
+    }
+
     #[instrument(skip(self, txn))]
     async fn get_invoice_pdf(
         &self,
@@ -84,142 +216,67 @@ where
         user_id: Option<UserId>,
         invoice_number: u64,
     ) -> anyhow::Result<Option<Vec<u8>>> {
+        if let Some(payment) = self
+            .paypal_repo
+            .get_payment_by_invoice(txn, invoice_number)
+            .await?
+        {
+            if user_id.is_some_and(|id| id != payment.snapshot.order.user_id)
+                || payment.fulfilled_at.is_none()
+            {
+                return Ok(None);
+            }
+            return self.render_payment_invoice(txn, &payment).await.map(Some);
+        }
+
         let formatted_invoice_number = format!("R{invoice_number:07}");
         let archive_path = self
             .config
             .invoices_archive
             .join(format!("{formatted_invoice_number}.pdf"));
 
-        let cached = self.fs.read_file(&archive_path).await?;
-        if user_id.is_none()
-            && let Some(invoice) = cached
-        {
-            return Ok(Some(invoice));
-        }
-
-        let Some(coin_order) = self
+        let number = FinancialDocumentNumber::try_new(formatted_invoice_number.clone())?;
+        let coin_order = self
             .paypal_repo
             .get_coin_order_by_invoice_number(txn, invoice_number)
-            .await?
-            .filter(|order| user_id.is_none_or(|user_id| order.user_id == user_id))
-        else {
-            return Ok(None);
+            .await?;
+        // A live legacy order is authoritative for ownership. An orphan can
+        // instead retain its owner in the issued financial document.
+        let recorded = if coin_order.is_none() {
+            self.document_repo.get(txn, &number).await?
+        } else {
+            None
         };
-
-        if let Some(invoice) = cached {
+        if let Some(user) = user_id {
+            let owner = coin_order
+                .as_ref()
+                .map(|o| o.user_id)
+                .or_else(|| recorded.as_ref().and_then(|d| d.user_id));
+            if owner != Some(user) {
+                return Ok(None);
+            }
+        }
+        if !self.document_repo.lock_archive(txn, &number).await? {
+            return Ok(None);
+        }
+        // Authorization precedes archive access. The immutable original has the
+        // same authority for legacy and durable payments, including admin use.
+        if let Some(original) = self.document_repo.original_invoice(txn, &number).await? {
+            return Ok(Some(original));
+        }
+        if let Some(invoice) = self.fs.read_file(&archive_path).await? {
+            self.document_repo
+                .record_original_invoice(txn, &number, &invoice, "existing_legacy_invoice_archive")
+                .await?;
             return Ok(Some(invoice));
         }
-
-        let coins = coin_order.coins;
-        let number = FinancialDocumentNumber::try_new(formatted_invoice_number.clone())?;
-        let recorded = self.document_repo.get(txn, &number).await?;
-
-        // An invoice is issued for the payment, so it is dated with the time
-        // the order was captured and not with the time it was created: an
-        // order created on 31 December and paid on 2 January belongs to the
-        // new year's vat period. A document that has already been issued keeps
-        // the date it was recorded with, so neither the printed date nor the
-        // retention clock of an existing document ever moves.
-        let timestamp = match &recorded {
-            Some(recorded) => recorded.issued_at,
-            None => coin_order.captured_at.unwrap_or(coin_order.created_at),
-        };
-
-        // Documents whose retention period has expired have been removed by
-        // `academy task prune-documents` and are not created again.
-        let cutoff = retention_cutoff(self.time.now(), self.config.retention_years)
-            .context("Failed to determine the document retention cutoff")?;
-        if timestamp < cutoff {
-            return Ok(None);
-        }
-
-        let customer_details = match recorded.and_then(|document| document.customer_details) {
-            // An invoice keeps the address block it was issued with.
-            Some(customer_details) => customer_details,
-            None => {
-                let Some(user_composite) = self
-                    .user_repo
-                    .get_composite(txn, coin_order.user_id)
-                    .await?
-                else {
-                    return Ok(None);
-                };
-
-                user_composite.invoice_info.into_details(
-                    Some(user_composite.profile.display_name.clone().into_inner()),
-                    user_composite.user.email.as_ref().map(ToString::to_string),
-                )
-            }
-        };
-
-        let CoinPrices {
-            net_unit,
-            net_total,
-            gross_total,
-            ..
-        } = self.finance_coin.get_price(coins);
-
-        let items = vec![InvoiceItem {
-            description: "MorphCoins".into(),
-            net_unit,
-            count: coins,
-            net_total,
-        }];
-        let PrintedTotals {
-            net_total,
-            vat_total,
-        } = PrintedTotals::of(&items, gross_total);
-
-        let invoice_html = self
-            .template
-            .render(&InvoiceTemplate {
-                title: "Rechnung",
-                customer_details: customer_details.clone(),
-                timestamp,
-                invoice_number: formatted_invoice_number,
-                items,
-                vat_percent: self.config.vat_percent,
-                net_total,
-                vat_total,
-                gross_total,
-            })
-            .context("Failed to render invoice template")?;
-
-        let invoice_pdf = self
-            .render_api
-            .render_html_to_pdf(invoice_html)
-            .await
-            .context("Failed to render invoice pdf")?;
-
-        self.fs.store_file(&archive_path, &invoice_pdf).await?;
-
+        // Legacy records do not retain every original tax/price/capture fact.
+        // A missing capture timestamp is unknown, never order.created_at. Keep a
+        // repair obligation rather than issue a newly priced historical invoice.
         self.document_repo
-            .record(
-                txn,
-                &FinancialDocument {
-                    number,
-                    kind: FinancialDocumentKind::Invoice,
-                    user_id: Some(coin_order.user_id),
-                    issued_at: timestamp,
-                    customer_details: Some(customer_details),
-                    coins: Some(coins),
-                    net_total_cents: to_cents(net_total),
-                    vat_total_cents: to_cents(vat_total),
-                    gross_total_cents: to_cents(gross_total),
-                    // An invoice records no claim that could be settled.
-                    settled_at: None,
-                    // The consent on the order is deleted with the account,
-                    // while the invoice is kept: the evidence that the
-                    // declarations were given belongs to the document and is
-                    // copied onto it when it is issued.
-                    withdrawal_consent_at: coin_order.withdrawal_consent_at,
-                    withdrawal_text_version: coin_order.withdrawal_text_version.clone(),
-                },
-            )
-            .await
-            .context("Failed to record the invoice")?;
-
-        Ok(Some(invoice_pdf))
+            .flag_missing_invoice(txn, &number)
+            .await?;
+        Ok(None)
     }
 
     #[instrument(skip(self, txn))]
@@ -253,6 +310,10 @@ where
             .credit_notes_archive
             .join(format!("{credit_note_number}.pdf"));
 
+        let number = FinancialDocumentNumber::try_new(credit_note_number.clone())?;
+        if !self.document_repo.lock_archive(txn, &number).await? {
+            return Ok(None);
+        }
         if let Some(credit_note) = self.fs.read_file(&archive_path).await? {
             return Ok(Some(credit_note));
         }
@@ -390,9 +451,9 @@ where
             .map(|order| order.coins)
             .sum::<u64>();
 
-        // An account that never bought Morphcoins has nothing that could be
-        // refunded later, so no statement is issued and nothing about it is
-        // kept beyond the deletion.
+        // This legacy-format statement covers only an unused-purchase upper
+        // bound. The independent commercial envelope preserves other balances,
+        // service/instructor claims and unknown history even when this is zero.
         if purchased_coins == 0 {
             return Ok(None);
         }
@@ -439,8 +500,8 @@ where
                     net_total_cents: None,
                     vat_total_cents: None,
                     gross_total_cents: to_cents(refund_amount),
-                    // The refund is made by hand, so the claim is closed by
-                    // hand as well (`academy admin finance settle`).
+                    // Historical settlement stamps are not payment proof. New
+                    // dispositions use the independent reservation/outcome journal.
                     settled_at: None,
                     // A final statement is not an order either.
                     withdrawal_consent_at: None,
@@ -545,8 +606,6 @@ fn first_day_of_next_month(year: i32, month: u32) -> Option<NaiveDate> {
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
-
     use academy_core_finance_contracts::coin::MockFinanceCoinService;
     use academy_demo::{
         UUID1,
@@ -555,7 +614,6 @@ mod tests {
     use academy_extern_contracts::render::MockRenderApiService;
     use academy_models::{
         coin::{Balance, Transaction},
-        finance::RETENTION_MARKER,
         paypal::{PaypalCoinOrder, PaypalOrderId},
     };
     use academy_persistence_contracts::{
@@ -568,6 +626,23 @@ mod tests {
     use rust_decimal_macros::dec;
 
     use super::*;
+    use academy_core_finance_contracts::coin::CoinPrices;
+
+    // Existing nonretired fixtures permit the new archive serialization read.
+    // Real PostgreSQL/CLI controls cover retirement admission and conflicting imports.
+    fn existing_archive_documents() -> MockFinancialDocumentRepository<()> {
+        let mut repo = MockFinancialDocumentRepository::new();
+        repo.expect_lock_archive()
+            .returning(|_, _| Box::pin(async { Ok(true) }));
+        repo
+    }
+
+    fn legacy_paypal_repo() -> MockPaypalRepository<()> {
+        let mut repo = MockPaypalRepository::new();
+        repo.expect_get_payment_by_invoice()
+            .returning(|_, _| Box::pin(std::future::ready(Ok(None))));
+        repo
+    }
 
     type Sut = FinanceInvoiceServiceImpl<
         MockTimeService,
@@ -594,271 +669,135 @@ mod tests {
         Utc.with_ymd_and_hms(2033, 1, 1, 0, 0, 0).unwrap()
     }
 
-    #[tokio::test]
-    async fn get_invoice_ok() {
-        // Arrange
-        let order = PaypalCoinOrder {
-            id: PaypalOrderId::try_new("asdf1234").unwrap(),
+    fn legacy_order(captured: bool) -> PaypalCoinOrder {
+        PaypalCoinOrder {
+            id: PaypalOrderId::try_new("legacy42").unwrap(),
             user_id: FOO.user.id,
             created_at: FOO.user.created_at,
-            // The invoice is issued for the payment, so it is dated with the
-            // capture time and not with the time the order was created.
-            captured_at: Some(FOO.user.created_at + chrono::Duration::days(3)),
-            coins: 1337,
-            invoice_number: 42,
-            withdrawal_consent_at: Some(FOO.user.created_at),
-            withdrawal_text_version: Some("2026-09".try_into().unwrap()),
-        };
-        let captured_at = order.captured_at.unwrap();
-
-        let pdf = vec![1, 2, 3, 4];
-
-        let path = PathBuf::from("/invoices/R0000042.pdf");
-        let fs = MockFsService::new()
-            .with_read_file(path.clone(), None)
-            .with_store_file(path, pdf.clone());
-
-        let time = MockTimeService::new().with_now(within_retention());
-
-        let paypal_repo = MockPaypalRepository::new()
-            .with_get_coin_order_by_invoice_number(42, Some(order.clone()));
-
-        let user_repo =
-            MockUserRepository::new().with_get_composite(FOO.user.id, Some(FOO.clone()));
-
-        let customer_details = FOO.invoice_info.clone().into_details(
-            Some(FOO.profile.display_name.clone().into_inner()),
-            FOO.user.email.as_ref().map(ToString::to_string),
-        );
-
-        let document_repo = MockFinancialDocumentRepository::new()
-            .with_get("R0000042".try_into().unwrap(), None)
-            .with_record(FinancialDocument {
-                number: "R0000042".try_into().unwrap(),
-                kind: FinancialDocumentKind::Invoice,
-                user_id: Some(FOO.user.id),
-                issued_at: captured_at,
-                customer_details: Some(customer_details.clone()),
-                coins: Some(1337),
-                net_total_cents: Some(200),
-                // The document shows the gross total minus the net total as vat, so
-                // that the printed amounts add up (`PrintedTotals`).
-                vat_total_cents: Some(200),
-                gross_total_cents: Some(400),
-                settled_at: None,
-                // The declarations of the order are copied onto the
-                // record, which outlives the order.
-                withdrawal_consent_at: order.withdrawal_consent_at,
-                withdrawal_text_version: order.withdrawal_text_version.clone(),
-            });
-
-        let prices = CoinPrices {
-            net_unit: 1.into(),
-            net_total: 2.into(),
-            vat_total: 3.into(),
-            gross_total: 4.into(),
-        };
-        let finance_coin = MockFinanceCoinService::new().with_get_price(1337, prices);
-
-        let template = MockTemplateService::new().with_render(
-            InvoiceTemplate {
-                title: "Rechnung",
-                customer_details,
-                timestamp: captured_at,
-                invoice_number: "R0000042".into(),
-                items: vec![InvoiceItem {
-                    description: "MorphCoins".into(),
-                    net_unit: prices.net_unit,
-                    count: order.coins,
-                    net_total: prices.net_total,
-                }],
-                vat_percent: dec!(19),
-                net_total: prices.net_total,
-                vat_total: prices.gross_total - prices.net_total,
-                gross_total: prices.gross_total,
-            },
-            "invoice-template-html".into(),
-        );
-
-        let render_api = MockRenderApiService::new()
-            .with_render_html_to_pdf("invoice-template-html".into(), pdf.clone());
-
-        let sut = FinanceInvoiceServiceImpl {
-            time,
-            fs,
-            paypal_repo,
-            user_repo,
-            document_repo,
-            render_api,
-            finance_coin,
-            template,
-            ..Sut::default()
-        };
-
-        // Act
-        let result = sut
-            .get_invoice_pdf(&mut (), Some(FOO.user.id), 42)
-            .await
-            .unwrap();
-
-        // Assert
-        assert_eq!(result, Some(pdf));
-    }
-
-    /// An invoice keeps the address block and the date it was issued with, so
-    /// a pseudonymized record renders the retention marker instead of the
-    /// user's details, and a document that has already been issued is never
-    /// re-dated.
-    #[tokio::test]
-    async fn get_invoice_uses_the_recorded_customer_details() {
-        // Arrange
-        let order = PaypalCoinOrder {
-            id: PaypalOrderId::try_new("asdf1234").unwrap(),
-            user_id: FOO.user.id,
-            created_at: FOO.user.created_at,
-            // Later than the date on the record, which is what the document
-            // has to keep.
-            captured_at: Some(FOO.user.created_at + chrono::Duration::days(3)),
+            captured_at: captured.then_some(FOO.user.created_at + chrono::Duration::days(3)),
             coins: 1337,
             invoice_number: 42,
             withdrawal_consent_at: None,
             withdrawal_text_version: None,
+        }
+    }
+
+    fn legacy_cached_documents() -> MockFinancialDocumentRepository<()> {
+        let mut repo = existing_archive_documents();
+        repo.expect_original_invoice()
+            .once()
+            .returning(|_, _| Box::pin(async { Ok(None) }));
+        repo.expect_record_original_invoice()
+            .once()
+            .returning(|_, _, _, provenance| {
+                assert_eq!(provenance, "existing_legacy_invoice_archive");
+                Box::pin(async { Ok(()) })
+            });
+        repo
+    }
+
+    #[tokio::test]
+    async fn legacy_missing_pdf_does_not_invent_price_tax_customer_or_capture() {
+        // Even a known capture does not supply historical price/tax/customer
+        // facts. Both variants retain an unresolved repair obligation. All
+        // finance, user, renderer and money mocks have zero expectations.
+        for captured in [false, true] {
+            let mut documents = existing_archive_documents();
+            documents
+                .expect_original_invoice()
+                .once()
+                .returning(|_, _| Box::pin(async { Ok(None) }));
+            documents
+                .expect_flag_missing_invoice()
+                .once()
+                .returning(|_, _| Box::pin(async { Ok(()) }));
+            let sut = Sut {
+                fs: MockFsService::new().with_read_file("/invoices/R0000042.pdf".into(), None),
+                paypal_repo: legacy_paypal_repo()
+                    .with_get_coin_order_by_invoice_number(42, Some(legacy_order(captured))),
+                document_repo: documents,
+                ..Sut::default()
+            };
+            assert_eq!(
+                sut.get_invoice_pdf(&mut (), Some(FOO.user.id), 42)
+                    .await
+                    .unwrap(),
+                None
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn legacy_original_bytes_are_retrieved_without_reconstruction_or_payment_claim() {
+        // Original document existence is useful even with unknown capture.
+        // Neither lookup nor byte retrieval mutates money, customer or status.
+        let original = b"%PDF-original historical invoice with exact rounding".to_vec();
+        let expected = original.clone();
+        let mut documents = existing_archive_documents();
+        documents
+            .expect_original_invoice()
+            .once()
+            .returning(move |_, _| {
+                let pdf = original.clone();
+                Box::pin(async { Ok(Some(pdf)) })
+            });
+        let sut = Sut {
+            // Even a conflicting filesystem archive must not be consulted.
+            fs: MockFsService::new(),
+            paypal_repo: legacy_paypal_repo()
+                .with_get_coin_order_by_invoice_number(42, Some(legacy_order(false))),
+            document_repo: documents,
+            ..Sut::default()
         };
+        assert_eq!(
+            sut.get_invoice_pdf(&mut (), Some(FOO.user.id), 42)
+                .await
+                .unwrap(),
+            Some(expected)
+        );
+    }
 
-        let pdf = vec![1, 2, 3, 4];
-
-        let path = PathBuf::from("/invoices/R0000042.pdf");
-        let fs = MockFsService::new()
-            .with_read_file(path.clone(), None)
-            .with_store_file(path, pdf.clone());
-
-        let time = MockTimeService::new().with_now(within_retention());
-
-        let paypal_repo = MockPaypalRepository::new()
-            .with_get_coin_order_by_invoice_number(42, Some(order.clone()));
-
-        let customer_details = vec![RETENTION_MARKER.to_owned()];
-
-        let recorded = FinancialDocument {
+    #[tokio::test]
+    async fn orphan_original_requires_retained_owner_for_customer_access() {
+        let original = b"%PDF-orphan original".to_vec();
+        let record = FinancialDocument {
             number: "R0000042".try_into().unwrap(),
             kind: FinancialDocumentKind::Invoice,
-            user_id: None,
-            issued_at: order.created_at,
-            customer_details: Some(customer_details.clone()),
+            user_id: Some(FOO.user.id),
+            issued_at: FOO.user.created_at,
+            customer_details: Some(vec!["Historical recipient".into()]),
             coins: Some(1337),
-            net_total_cents: Some(200),
-            // The document shows the gross total minus the net total as vat, so
-            // that the printed amounts add up (`PrintedTotals`).
-            vat_total_cents: Some(200),
-            gross_total_cents: Some(400),
+            net_total_cents: Some(1124),
+            vat_total_cents: Some(213),
+            gross_total_cents: Some(1337),
             settled_at: None,
             withdrawal_consent_at: None,
             withdrawal_text_version: None,
         };
-
-        let document_repo = MockFinancialDocumentRepository::new()
-            .with_get("R0000042".try_into().unwrap(), Some(recorded.clone()))
-            .with_record(FinancialDocument {
-                user_id: Some(FOO.user.id),
-                ..recorded
-            });
-
-        let prices = CoinPrices {
-            net_unit: 1.into(),
-            net_total: 2.into(),
-            vat_total: 3.into(),
-            gross_total: 4.into(),
-        };
-        let finance_coin = MockFinanceCoinService::new().with_get_price(1337, prices);
-
-        let template = MockTemplateService::new().with_render(
-            InvoiceTemplate {
-                title: "Rechnung",
-                customer_details,
-                timestamp: order.created_at,
-                invoice_number: "R0000042".into(),
-                items: vec![InvoiceItem {
-                    description: "MorphCoins".into(),
-                    net_unit: prices.net_unit,
-                    count: order.coins,
-                    net_total: prices.net_total,
-                }],
-                vat_percent: dec!(19),
-                net_total: prices.net_total,
-                vat_total: prices.gross_total - prices.net_total,
-                gross_total: prices.gross_total,
-            },
-            "invoice-template-html".into(),
-        );
-
-        let render_api = MockRenderApiService::new()
-            .with_render_html_to_pdf("invoice-template-html".into(), pdf.clone());
-
-        // The user repository is never asked, so a deleted account is not needed
-        // to render the document.
-        let sut = FinanceInvoiceServiceImpl {
-            time,
-            fs,
-            paypal_repo,
-            document_repo,
-            render_api,
-            finance_coin,
-            template,
-            ..Sut::default()
-        };
-
-        // Act
-        let result = sut
-            .get_invoice_pdf(&mut (), Some(FOO.user.id), 42)
-            .await
-            .unwrap();
-
-        // Assert
-        assert_eq!(result, Some(pdf));
-    }
-
-    /// Once the retention period has expired the archived pdf has been deleted
-    /// and the document must not be created again.
-    #[tokio::test]
-    async fn get_invoice_retention_expired() {
-        // Arrange
-        let order = PaypalCoinOrder {
-            id: PaypalOrderId::try_new("asdf1234").unwrap(),
-            user_id: FOO.user.id,
-            created_at: FOO.user.created_at,
-            captured_at: None,
-            coins: 1337,
-            invoice_number: 42,
-            withdrawal_consent_at: None,
-            withdrawal_text_version: None,
-        };
-
-        let fs = MockFsService::new().with_read_file("/invoices/R0000042.pdf".into(), None);
-
-        let time = MockTimeService::new().with_now(after_retention());
-
-        let paypal_repo = MockPaypalRepository::new()
-            .with_get_coin_order_by_invoice_number(42, Some(order.clone()));
-
-        let document_repo =
-            MockFinancialDocumentRepository::new().with_get("R0000042".try_into().unwrap(), None);
-
-        let sut = FinanceInvoiceServiceImpl {
-            time,
-            fs,
-            paypal_repo,
-            document_repo,
-            ..Sut::default()
-        };
-
-        // Act
-        let result = sut
-            .get_invoice_pdf(&mut (), Some(FOO.user.id), 42)
-            .await
-            .unwrap();
-
-        // Assert
-        assert_eq!(result, None);
+        for (user, allowed) in [(FOO.user.id, true), (BAR.user.id, false)] {
+            let mut documents = existing_archive_documents()
+                .with_get("R0000042".try_into().unwrap(), Some(record.clone()));
+            if allowed {
+                let pdf = original.clone();
+                documents
+                    .expect_original_invoice()
+                    .once()
+                    .returning(move |_, _| {
+                        let pdf = pdf.clone();
+                        Box::pin(async { Ok(Some(pdf)) })
+                    });
+            }
+            let sut = Sut {
+                fs: MockFsService::new(),
+                paypal_repo: legacy_paypal_repo().with_get_coin_order_by_invoice_number(42, None),
+                document_repo: documents,
+                ..Sut::default()
+            };
+            assert_eq!(
+                sut.get_invoice_pdf(&mut (), Some(user), 42).await.unwrap(),
+                allowed.then(|| original.clone())
+            );
+        }
     }
 
     #[tokio::test]
@@ -870,6 +809,8 @@ mod tests {
             MockFsService::new().with_read_file("/invoices/R0000042.pdf".into(), Some(pdf.clone()));
 
         let sut = FinanceInvoiceServiceImpl {
+            paypal_repo: legacy_paypal_repo().with_get_coin_order_by_invoice_number(42, None),
+            document_repo: legacy_cached_documents().with_get("R0000042".try_into().unwrap(), None),
             fs,
             ..Sut::default()
         };
@@ -899,12 +840,13 @@ mod tests {
             withdrawal_consent_at: None,
             withdrawal_text_version: None,
         };
-        let paypal_repo = MockPaypalRepository::new()
-            .with_get_coin_order_by_invoice_number(42, Some(order.clone()));
+        let paypal_repo =
+            legacy_paypal_repo().with_get_coin_order_by_invoice_number(42, Some(order.clone()));
 
         let sut = FinanceInvoiceServiceImpl {
             fs,
             paypal_repo,
+            document_repo: legacy_cached_documents(),
             ..Sut::default()
         };
 
@@ -919,7 +861,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn get_invoice_cached_with_failing_user_id_check() {
+    async fn legacy_owner_without_capture_can_retrieve_existing_archive() {
         // Arrange
         let pdf = vec![1, 2, 3, 4];
 
@@ -936,12 +878,13 @@ mod tests {
             withdrawal_consent_at: None,
             withdrawal_text_version: None,
         };
-        let paypal_repo = MockPaypalRepository::new()
-            .with_get_coin_order_by_invoice_number(42, Some(order.clone()));
+        let paypal_repo =
+            legacy_paypal_repo().with_get_coin_order_by_invoice_number(42, Some(order.clone()));
 
         let sut = FinanceInvoiceServiceImpl {
             fs,
             paypal_repo,
+            document_repo: legacy_cached_documents(),
             ..Sut::default()
         };
 
@@ -958,14 +901,15 @@ mod tests {
     #[tokio::test]
     async fn get_invoice_not_found() {
         // Arrange
-        let fs = MockFsService::new().with_read_file("/invoices/R0000042.pdf".into(), None);
+        let fs = MockFsService::new();
 
-        let paypal_repo =
-            MockPaypalRepository::new().with_get_coin_order_by_invoice_number(42, None);
+        let paypal_repo = legacy_paypal_repo().with_get_coin_order_by_invoice_number(42, None);
 
         let sut = FinanceInvoiceServiceImpl {
             fs,
             paypal_repo,
+            document_repo: existing_archive_documents()
+                .with_get("R0000042".try_into().unwrap(), None),
             ..Sut::default()
         };
 
@@ -993,10 +937,10 @@ mod tests {
             withdrawal_text_version: None,
         };
 
-        let fs = MockFsService::new().with_read_file("/invoices/R0000042.pdf".into(), None);
+        let fs = MockFsService::new();
 
-        let paypal_repo = MockPaypalRepository::new()
-            .with_get_coin_order_by_invoice_number(42, Some(order.clone()));
+        let paypal_repo =
+            legacy_paypal_repo().with_get_coin_order_by_invoice_number(42, Some(order.clone()));
 
         let sut = FinanceInvoiceServiceImpl {
             fs,
@@ -1062,7 +1006,7 @@ mod tests {
             FOO.user.email.as_ref().map(ToString::to_string),
         );
 
-        let document_repo = MockFinancialDocumentRepository::new()
+        let document_repo = existing_archive_documents()
             .with_get("G202402-7".try_into().unwrap(), None)
             .with_record(FinancialDocument {
                 number: "G202402-7".try_into().unwrap(),
@@ -1149,7 +1093,7 @@ mod tests {
         );
 
         let document_repo =
-            MockFinancialDocumentRepository::new().with_get("G202402-7".try_into().unwrap(), None);
+            existing_archive_documents().with_get("G202402-7".try_into().unwrap(), None);
 
         let sut = FinanceInvoiceServiceImpl {
             time,
@@ -1230,6 +1174,7 @@ mod tests {
             time,
             user_repo,
             fs,
+            document_repo: existing_archive_documents(),
             ..Sut::default()
         };
 
@@ -1283,6 +1228,7 @@ mod tests {
             time,
             user_repo,
             fs,
+            document_repo: existing_archive_documents(),
             ..Sut::default()
         };
 
@@ -1337,7 +1283,7 @@ mod tests {
             .with_get_number(FOO.user.id, 7);
 
         // Only the captured orders were paid and invoiced.
-        let paypal_repo = MockPaypalRepository::new().with_list_coin_orders_by_user_id(
+        let paypal_repo = legacy_paypal_repo().with_list_coin_orders_by_user_id(
             FOO.user.id,
             vec![
                 captured_order(1000, 1),
@@ -1367,7 +1313,7 @@ mod tests {
 
         let customer_details = final_statement_customer_details();
 
-        let document_repo = MockFinancialDocumentRepository::new().with_record(FinancialDocument {
+        let document_repo = existing_archive_documents().with_record(FinancialDocument {
             number: "S7".try_into().unwrap(),
             kind: FinancialDocumentKind::FinalStatement,
             user_id: Some(FOO.user.id),
@@ -1436,7 +1382,7 @@ mod tests {
             .with_get_composite(FOO.user.id, Some(FOO.clone()))
             .with_get_number(FOO.user.id, 7);
 
-        let paypal_repo = MockPaypalRepository::new()
+        let paypal_repo = legacy_paypal_repo()
             .with_list_coin_orders_by_user_id(FOO.user.id, vec![captured_order(500, 1)]);
 
         // Far more coins than were bought, the rest are reward coins.
@@ -1458,7 +1404,7 @@ mod tests {
             .with_get_price(500, prices)
             .with_coins_per_euro(100);
 
-        let document_repo = MockFinancialDocumentRepository::new().with_record(FinancialDocument {
+        let document_repo = existing_archive_documents().with_record(FinancialDocument {
             number: "S7".try_into().unwrap(),
             kind: FinancialDocumentKind::FinalStatement,
             user_id: Some(FOO.user.id),
@@ -1520,7 +1466,7 @@ mod tests {
         let user_repo =
             MockUserRepository::new().with_get_composite(FOO.user.id, Some(FOO.clone()));
 
-        let paypal_repo = MockPaypalRepository::new()
+        let paypal_repo = legacy_paypal_repo()
             .with_list_coin_orders_by_user_id(FOO.user.id, vec![open_order(1000, 1)]);
 
         let sut = FinanceInvoiceServiceImpl {
@@ -1545,7 +1491,7 @@ mod tests {
         let user_repo =
             MockUserRepository::new().with_get_composite(FOO.user.id, Some(FOO.clone()));
 
-        let paypal_repo = MockPaypalRepository::new()
+        let paypal_repo = legacy_paypal_repo()
             .with_list_coin_orders_by_user_id(FOO.user.id, vec![captured_order(1000, 1)]);
 
         let coin_repo = MockCoinRepository::new().with_get_balance(
@@ -1641,5 +1587,182 @@ mod tests {
             html: "final-statement-html".into(),
         })
         .await;
+    }
+    #[tokio::test]
+    async fn retained_original_prefers_immutable_bytes_without_render_or_identity() {
+        let expected = b"%PDF-exact issued original".to_vec();
+        let pdf = expected.clone();
+        let mut document_repo = existing_archive_documents();
+        document_repo
+            .expect_original_invoice()
+            .once()
+            .return_once(|_, _| Box::pin(async move { Ok(Some(pdf)) }));
+        let sut = Sut {
+            document_repo,
+            ..Sut::default()
+        };
+        assert_eq!(
+            sut.get_original_pdf(
+                &mut (),
+                &"R0000042".try_into().unwrap(),
+                FinancialDocumentKind::Invoice
+            )
+            .await
+            .unwrap(),
+            Some(expected)
+        );
+        // All renderer, user, wallet, filesystem and record-write mocks have
+        // zero expectations, including if another cached version existed.
+    }
+
+    #[tokio::test]
+    async fn retained_archive_and_missing_bytes_never_generate_financial_facts() {
+        for (kind, number, path) in [
+            (
+                FinancialDocumentKind::Invoice,
+                "R0000042",
+                "/invoices/R0000042.pdf",
+            ),
+            (
+                FinancialDocumentKind::CreditNote,
+                "G202608-7",
+                "/credit_notes/G202608-7.pdf",
+            ),
+        ] {
+            for pdf in [None, Some(b"%PDF-existing archived bytes".to_vec())] {
+                let mut document_repo = existing_archive_documents();
+                if kind == FinancialDocumentKind::Invoice {
+                    document_repo
+                        .expect_original_invoice()
+                        .once()
+                        .returning(|_, _| Box::pin(async { Ok(None) }));
+                }
+                let sut = Sut {
+                    document_repo,
+                    fs: MockFsService::new().with_read_file(path.into(), pdf.clone()),
+                    ..Sut::default()
+                };
+                assert_eq!(
+                    sut.get_original_pdf(&mut (), &number.try_into().unwrap(), kind)
+                        .await
+                        .unwrap(),
+                    pdf
+                );
+                // Missing original is still missing: no render, user-number,
+                // record/adoption, reconciliation or settlement write occurs.
+            }
+        }
+    }
+
+    fn pending_identity_documents() -> MockFinancialDocumentRepository<()> {
+        let mut repo = MockFinancialDocumentRepository::new();
+        repo.expect_lock_archive().once().returning(|_, _| {
+            Box::pin(async {
+                anyhow::bail!("Original invoice identity is pending independent review")
+            })
+        });
+        repo
+    }
+
+    #[tokio::test]
+    async fn identity_pending_stops_original_before_database_or_archive_fallback() {
+        let sut = Sut {
+            document_repo: pending_identity_documents(),
+            ..Sut::default()
+        };
+        let error = sut
+            .get_original_pdf(
+                &mut (),
+                &"R1000000".try_into().unwrap(),
+                FinancialDocumentKind::Invoice,
+            )
+            .await
+            .unwrap_err();
+        assert!(error.to_string().contains("pending independent review"));
+        // All original, filesystem, adoption, renderer and user mocks have no
+        // expected call. Real SQL separately proves a nonempty stored PDF is fenced.
+    }
+
+    #[tokio::test]
+    async fn identity_pending_stops_legacy_fallback_after_owner_admission() {
+        let sut = Sut {
+            paypal_repo: legacy_paypal_repo()
+                .with_get_coin_order_by_invoice_number(42, Some(legacy_order(true))),
+            document_repo: pending_identity_documents(),
+            ..Sut::default()
+        };
+        assert!(
+            sut.get_invoice_pdf(&mut (), Some(FOO.user.id), 42)
+                .await
+                .unwrap_err()
+                .to_string()
+                .contains("pending independent review")
+        );
+        let foreign = Sut {
+            paypal_repo: legacy_paypal_repo()
+                .with_get_coin_order_by_invoice_number(42, Some(legacy_order(true))),
+            ..Sut::default()
+        };
+        assert_eq!(
+            foreign
+                .get_invoice_pdf(&mut (), Some(BAR.user.id), 42)
+                .await
+                .unwrap(),
+            None
+        );
+        // Foreign ownership is denied before archive/fence inspection. Owned
+        // pending cannot read files, flag absence, adopt or render an original.
+    }
+
+    #[tokio::test]
+    async fn identity_pending_stops_fulfilled_payment_before_first_render_or_archive() {
+        use academy_models::paypal::{PaypalCapture, PaypalPaymentSnapshot};
+        let at = FOO.user.created_at;
+        let payment = PaypalPayment {
+            snapshot: PaypalPaymentSnapshot {
+                order: legacy_order(true),
+                request_id: UUID1,
+                merchant_id: "synthetic".into(),
+                currency: "EUR".into(),
+                gross_total: dec!(1),
+                net_unit: dec!(1),
+                net_total: dec!(1),
+                vat_total: dec!(0),
+                vat_percent: dec!(0),
+                customer_details: vec!["Synthetic original".into()],
+                recipient: "Synthetic <synthetic@example.invalid>".parse().unwrap(),
+                consent_text: "Synthetic original".into(),
+                contract_order_id: None,
+                provision_deadline: None,
+            },
+            started_at: Some(at),
+            attempts: 1,
+            capture: Some(PaypalCapture {
+                id: "synthetic-capture".into(),
+                status: "COMPLETED".into(),
+                currency: "EUR".into(),
+                amount: dec!(1),
+                created_at: at,
+            }),
+            balance: None,
+            fulfilled_at: Some(at),
+            receipt_sent_at: None,
+            receipt_attempts: 0,
+            last_error: None,
+        };
+        let sut = Sut {
+            time: MockTimeService::new().with_now(at),
+            document_repo: pending_identity_documents(),
+            ..Sut::default()
+        };
+        assert!(
+            sut.render_payment_invoice(&mut (), &payment)
+                .await
+                .unwrap_err()
+                .to_string()
+                .contains("pending independent review")
+        );
+        // A real complete synthetic payment reaches the guard; no DB original,
+        // filesystem, template, renderer, adoption or storage effect follows.
     }
 }

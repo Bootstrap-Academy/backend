@@ -10,6 +10,8 @@ repository.workspace = true
 workspace = true
 
 [dependencies]
+academy_assets.workspace = true
+academy_email_contracts.workspace = true
 academy_auth_contracts.workspace = true
 academy_core_coin_contracts.workspace = true
 academy_core_premium_contracts.workspace = true
@@ -23,8 +25,10 @@ anyhow.workspace = true
 chrono.workspace = true
 chrono-tz.workspace = true
 tracing.workspace = true
+sha2.workspace = true
 
 [dev-dependencies]
+academy_email_contracts = { workspace = true, features = ["mock"] }
 academy_auth_contracts = { workspace = true, features = ["mock"] }
 academy_core_coin_contracts = { workspace = true, features = ["mock"] }
 academy_core_premium_contracts = { workspace = true, features = ["mock"] }

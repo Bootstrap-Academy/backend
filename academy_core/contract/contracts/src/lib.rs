@@ -5,7 +5,7 @@ use academy_models::{
     contract::{
         ContractCancellationType, ContractDeclarantName, ContractDeclaration,
         ContractDeclarationDetails, ContractDeclarationId, ContractDeclarationKind,
-        ContractDesignation, ContractKind, ContractProcessingNote,
+        ContractDesignation, ContractKind, ContractProcessingNote, ContractRequestKey,
     },
     email_address::EmailAddress,
     pagination::PaginationSlice,
@@ -14,6 +14,14 @@ use chrono::{DateTime, Utc};
 use thiserror::Error;
 
 pub trait ContractFeatureService: Send + Sync + 'static {
+    /// Capability-protected, read-only recovery of the original public receipt.
+    fn lookup_receipt(
+        &self,
+        key: ContractRequestKey,
+    ) -> impl Future<Output = Result<ContractDeclarationResult, ContractDeclareError>> + Send;
+    /// Attempt due durable confirmations; never applies financial effects.
+    fn retry_confirmations(&self) -> impl Future<Output = anyhow::Result<()>> + Send;
+
     /// Declare the cancellation of a contract (§ 312k BGB).
     ///
     /// Does not require authentication.
@@ -58,6 +66,13 @@ pub trait ContractFeatureService: Send + Sync + 'static {
 /// always set to the time of the request.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct ContractDeclarationProcessingUpdate {
+    pub identity_verified: bool,
+    /// Explicit operational action after identity and contract verification.
+    pub action: ContractProcessingAction,
+    pub verified_user_id: Option<academy_models::user::UserId>,
+    /// Fences changes against a replaced renewal agreement.
+    pub renewal_agreement_id: Option<academy_models::premium::PremiumRenewalId>,
+
     /// The end of the contract as it was confirmed to the declarant.
     pub effective_end: Option<DateTime<Utc>>,
     /// What was done.
@@ -66,6 +81,8 @@ pub struct ContractDeclarationProcessingUpdate {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ContractCancellationRequest {
+    pub request_key: Option<ContractRequestKey>,
+    pub renewal_agreement_id: Option<academy_models::premium::PremiumRenewalId>,
     pub name: ContractDeclarantName,
     pub email: EmailAddress,
     pub contract: ContractKind,
@@ -79,6 +96,7 @@ pub struct ContractCancellationRequest {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ContractWithdrawalRequest {
+    pub request_key: Option<ContractRequestKey>,
     pub name: ContractDeclarantName,
     pub email: EmailAddress,
     pub contract: ContractKind,
@@ -110,6 +128,10 @@ pub struct ContractDeclarationListResult {
 
 #[derive(Debug, Error)]
 pub enum ContractDeclareError {
+    #[error("Receipt not found")]
+    NotFound,
+    #[error("Request identifier already used")]
+    RequestConflict,
     #[error("Too many requests")]
     RateLimit,
     #[error(transparent)]
@@ -126,10 +148,24 @@ pub enum ContractListError {
 
 #[derive(Debug, Error)]
 pub enum ContractSetProcessedError {
+    #[error("A verified identity, action, date and resolution note are required")]
+    Invalid,
+    #[error("The identified agreement has changed or cannot be scheduled")]
+    Conflict,
     #[error("The declaration does not exist.")]
     NotFound,
     #[error(transparent)]
     Auth(#[from] AuthError),
     #[error(transparent)]
     Other(#[from] anyhow::Error),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, serde::Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum ContractProcessingAction {
+    /// Record completed external handling, including verified communication evidence.
+    #[default]
+    RecordExternalResolution,
+    /// Apply the declared ordinary date to a verified current Premium agreement.
+    SchedulePremiumCancellation,
 }

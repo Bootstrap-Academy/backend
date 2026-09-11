@@ -15,6 +15,36 @@ use thiserror::Error;
 
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait UserRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
+    /// Internal lifecycle identity; purpose subjects are physically present but
+    /// do not acquire ordinary authentication or public-profile authority.
+    fn get_internal_composite(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
+    ) -> impl Future<Output = anyhow::Result<Option<UserComposite>>> + Send;
+    /// New contract/reward recipient projection, with separately verified
+    /// commercial contact for a purpose subject. Never an ordinary identity lookup.
+    fn get_purchase_composite(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
+    ) -> impl Future<Output = anyhow::Result<Option<UserComposite>>> + Send;
+    /// Preserve authenticated erasure intake in its own committed transaction,
+    /// before waiting on the account/wallet. This is not completed erasure.
+    fn record_deletion_request(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
+        received_at: DateTime<Utc>,
+    ) -> impl Future<Output = anyhow::Result<()>> + Send;
+
+    /// Serialize erasure and freeze its balance before producing the final statement.
+    fn lock_for_deletion(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
+    ) -> impl Future<Output = anyhow::Result<bool>> + Send;
+
     /// Return the number of users matching the given filter.
     fn count(
         &self,
@@ -244,6 +274,34 @@ impl<Txn: Send + Sync + 'static> MockUserRepository<Txn> {
             .return_once(|_, _| Box::pin(std::future::ready(Ok(result))));
         self
     }
+    pub fn with_get_internal_composite(
+        mut self,
+        user_id: UserId,
+        result: Option<UserComposite>,
+    ) -> Self {
+        self.expect_get_internal_composite()
+            .once()
+            .with(
+                mockall::predicate::always(),
+                mockall::predicate::eq(user_id),
+            )
+            .return_once(|_, _| Box::pin(std::future::ready(Ok(result))));
+        self
+    }
+    pub fn with_get_purchase_composite(
+        mut self,
+        user_id: UserId,
+        result: Option<UserComposite>,
+    ) -> Self {
+        self.expect_get_purchase_composite()
+            .once()
+            .with(
+                mockall::predicate::always(),
+                mockall::predicate::eq(user_id),
+            )
+            .return_once(|_, _| Box::pin(std::future::ready(Ok(result))));
+        self
+    }
 
     pub fn with_get_composite_by_name(
         mut self,
@@ -394,6 +452,29 @@ impl<Txn: Send + Sync + 'static> MockUserRepository<Txn> {
                 mockall::predicate::eq(terms_declined_at),
             )
             .return_once(move |_, _, _| Box::pin(std::future::ready(Ok(result))));
+        self
+    }
+
+    pub fn with_record_deletion_request(mut self, user_id: UserId) -> Self {
+        self.expect_record_deletion_request()
+            .once()
+            .with(
+                mockall::predicate::always(),
+                mockall::predicate::eq(user_id),
+                mockall::predicate::always(),
+            )
+            .return_once(|_, _, _| Box::pin(async { Ok(()) }));
+        self
+    }
+
+    pub fn with_lock_for_deletion(mut self, user_id: UserId, result: bool) -> Self {
+        self.expect_lock_for_deletion()
+            .once()
+            .with(
+                mockall::predicate::always(),
+                mockall::predicate::eq(user_id),
+            )
+            .return_once(move |_, _| Box::pin(std::future::ready(Ok(result))));
         self
     }
 

@@ -566,7 +566,10 @@ async fn list_and_delete_issued_before() {
 /// An order that was never captured was never invoiced, so it gets no record.
 #[tokio::test]
 async fn migration_backfills_the_captured_coin_orders() {
-    let db = setup().await;
+    let db = crate::common::setup_through(Some(
+        "2026-09-07-100000_add_withdrawal_consent_to_financial_documents",
+    ))
+    .await;
 
     let captured = PaypalCoinOrder {
         id: "captured".try_into().unwrap(),
@@ -606,10 +609,16 @@ async fn migration_backfills_the_captured_coin_orders() {
         .iter()
         .position(|migration| migration.name.ends_with("_create_financial_documents"))
         .unwrap();
-    db.revert_migrations(Some(MIGRATIONS.len() - index))
-        .await
-        .unwrap();
-    db.run_migrations(None).await.unwrap();
+    db.revert_migrations(Some(
+        crate::repos::revert_through(&db, MIGRATIONS[index].name).await,
+    ))
+    .await
+    .unwrap();
+    crate::common::apply_through(
+        &db,
+        Some("2026-09-07-100000_add_withdrawal_consent_to_financial_documents"),
+    )
+    .await;
 
     let mut txn = db.begin_transaction().await.unwrap();
     assert_eq!(

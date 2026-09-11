@@ -15,6 +15,13 @@ use academy_models::{
 
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait UserExportService<Txn: Send + Sync + 'static>: Send + Sync + 'static {
+    /// Surviving owner-authorized evidence, independently of a live profile.
+    fn retained(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
+    ) -> impl Future<Output = anyhow::Result<serde_json::Value>> + Send;
+
     /// Collect everything the monolith stores about the given user.
     ///
     /// Returns [`None`] if the user does not exist.
@@ -71,6 +78,10 @@ impl From<Option<serde_json::Value>> for ServiceDataExport {
 /// Everything the monolith stores about a single user.
 #[derive(Debug, Clone, PartialEq)]
 pub struct AccountDataExport {
+    /// Independent requests, obligations, evidence and dispositions; no access keys.
+    pub commercial: serde_json::Value,
+    /// Recipient-safe owning-service decisions and complaints; no private notifier evidence.
+    pub moderation: serde_json::Value,
     /// The account itself, including the profile and the invoice information.
     pub user: UserComposite,
     /// The sessions of the user, without any tokens.
@@ -87,6 +98,8 @@ pub struct AccountDataExport {
     pub premium: Option<Premium>,
     /// The plan the premium membership is renewed with, if any.
     pub premium_subscription: Option<PremiumPlan>,
+    pub premium_renewal_evidence: serde_json::Value,
+    pub purchase_evidence: serde_json::Value,
     /// The coin orders of the user, which are the invoices issued to them.
     pub invoices: Vec<PaypalCoinOrder>,
     /// The invoices, credit notes and final statements that have been issued

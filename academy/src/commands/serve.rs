@@ -1,5 +1,7 @@
 use academy_cache_contracts::CacheService;
 use academy_config::{Config, MicroservicesConfig};
+use academy_core_contract_contracts::ContractFeatureService;
+use academy_core_paypal_contracts::PaypalFeatureService;
 use academy_di::Provide;
 use academy_email_contracts::EmailService;
 use academy_persistence_contracts::Database;
@@ -54,13 +56,78 @@ pub async fn serve(config: Config) -> anyhow::Result<()> {
 
     info!("Connecting to smtp server");
     let email = email::connect(&config.email).await?;
-    email.ping().await?;
+    if let Err(err) = email.ping().await {
+        warn!(error=%err, "SMTP unavailable; durable payment receipts will retry");
+    }
 
     let config_provider = ConfigProvider::new(&config)?;
-    let mut provider = Provider::new(config_provider, database, cache, email);
+    let mut provider = Provider::new(config_provider, database.clone(), cache, email);
 
+    let deletion_services: crate::environment::types::MicroservicesApi = provider.provide();
+    let deletion_recovery = tokio::spawn(async move {
+        let mut interval = tokio::time::interval(std::time::Duration::from_secs(60));
+        interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+        loop {
+            interval.tick().await;
+            if let Err(err) = crate::deletions::retry(&database, &deletion_services).await {
+                warn!(error=%err, "Account erasure recovery failed; durable work retained");
+            }
+        }
+    });
+    let contracts: crate::environment::types::ContractFeature = provider.provide();
+    let contract_recovery = tokio::spawn(async move {
+        let mut interval = tokio::time::interval(std::time::Duration::from_secs(30));
+        interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+        loop {
+            interval.tick().await;
+            if let Err(err) = contracts.retry_confirmations().await {
+                warn!(error=%err,"Declaration confirmation retry failed; durable work retained");
+            }
+        }
+    });
+    let purchases: crate::environment::types::PurchaseFeature = provider.provide();
+    let purchase_recovery = tokio::spawn(async move {
+        use academy_core_purchase_contracts::PurchaseFeatureService;
+        let mut interval = tokio::time::interval(std::time::Duration::from_secs(30));
+        interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+        loop {
+            interval.tick().await;
+            if let Err(error) = purchases.retry().await {
+                warn!(%error,"Purchase confirmation recovery remains pending");
+            }
+        }
+    });
+    let moderation: crate::environment::types::ModerationFeature = provider.provide();
+    let moderation_delivery = tokio::spawn(async move {
+        use academy_core_moderation_contracts::ModerationFeatureService;
+        let mut interval = tokio::time::interval(std::time::Duration::from_secs(30));
+        interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+        loop {
+            interval.tick().await;
+            if let Err(error) = moderation.retry().await {
+                warn!(%error,"Moderation delivery remains pending; owning statements retained");
+            }
+        }
+    });
     let server: RestServer = provider.provide();
-    server.serve().await
+    let payments: crate::environment::types::PaypalFeature = provider.provide();
+    let recovery = tokio::spawn(async move {
+        let mut interval = tokio::time::interval(std::time::Duration::from_secs(60));
+        interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+        loop {
+            interval.tick().await;
+            if let Err(err) = payments.retry_payments().await {
+                warn!(error=%err, "PayPal recovery unavailable; pending work retained");
+            }
+        }
+    });
+    let result = server.serve().await;
+    moderation_delivery.abort();
+    purchase_recovery.abort();
+    contract_recovery.abort();
+    recovery.abort();
+    deletion_recovery.abort();
+    result
 }
 
 /// Report which microservices this deployment talks to.

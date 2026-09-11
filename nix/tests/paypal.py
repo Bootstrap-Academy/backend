@@ -1,10 +1,21 @@
-import hashlib
 import re
 from io import BytesIO
 
 from pypdf import PdfReader
 
-from utils import c, create_verified_account, decode_mail_header, decode_mail_part, fetch_mail, get_mail_parts
+from utils import (
+    c,
+    create_verified_account,
+    decode_mail_header,
+    decode_mail_part,
+    fetch_mail,
+    get_mail_parts,
+    purchase_acceptance,
+)
+from utils import configure_purchases
+
+configure_purchases()
+
 
 login = create_verified_account("foobar", "foobar@example.com", "a")
 
@@ -16,24 +27,14 @@ assert resp.status_code == 200
 assert resp.json() == "test-client"
 
 
-# create order
-## withdrawal declarations missing
+# Missing typed acceptance cannot create an order.
 resp = c.post("/shop/coins/paypal/orders", json={"coins": 1337})
-assert resp.status_code == 412
-assert resp.json() == {"detail": "Withdrawal consent missing"}
+assert resp.status_code == 422
 
-resp = c.post(
-    "/shop/coins/paypal/orders", json={"coins": 1337, "withdrawal_consent": False, "withdrawal_text_version": "2026-09"}
-)
+# Offers require verified invoice information before acceptance is possible.
+resp = c.post("/shop/coins/paypal/offers/1337")
 assert resp.status_code == 412
-assert resp.json() == {"detail": "Withdrawal consent missing"}
-
-## invoice info missing
-resp = c.post(
-    "/shop/coins/paypal/orders", json={"coins": 1337, "withdrawal_consent": True, "withdrawal_text_version": "2026-09"}
-)
-assert resp.status_code == 412
-assert resp.json() == {"detail": "User Infos missing"}
+assert c.get("/shop/coins/me").json() == {"coins": 0, "withheld_coins": 0}
 
 resp = c.patch(
     "/auth/users/me", json={"business": False, "country": "Germany", "first_name": "Foo", "last_name": "Bar"}
@@ -41,62 +42,70 @@ resp = c.patch(
 assert resp.status_code == 200
 assert resp.json()["can_buy_coins"] is True
 
-## success
-resp = c.post(
-    "/shop/coins/paypal/orders", json={"coins": 1337, "withdrawal_consent": True, "withdrawal_text_version": "2026-09"}
-)
-assert resp.status_code == 200
-order_id = resp.json()
+offer_response = c.post("/shop/coins/paypal/offers/1337")
+assert offer_response.status_code == 200, offer_response.text
+offer = offer_response.json()
+acceptance = purchase_acceptance(offer)
+for field in ["accepted", "early_performance_requested"]:
+    resp = c.post("/shop/coins/paypal/orders", json={"coins": 1337, **acceptance, field: False})
+    assert resp.status_code == 409
+    assert c.get("/shop/coins/me").json() == {"coins": 0, "withheld_coins": 0}
 
-assert c.get(f"http://127.0.0.1:8103/v2/checkout/orders/{order_id}").json() == {"status": "Created", "coins": 1337}
+# Matching saved offer, explicit acceptance and exact replay use one provider order.
+resp = c.post("/shop/coins/paypal/orders", json={"coins": 1337, **acceptance})
+assert resp.status_code == 200, resp.text
+order_id = resp.json()
+assert c.post("/shop/coins/paypal/orders", json={"coins": 1337, **acceptance}).json() == order_id
+pending = c.get(f"/shop/purchases/{offer['offer']['id']}").json()
+assert pending["state"] == "awaiting_payment"
+assert pending["confirmation_smtp_accepted_at"] is None
+assert c.get("/shop/coins/me").json() == {"coins": 0, "withheld_coins": 0}
+
+assert c.get(f"http://127.0.0.1:8103/v2/checkout/orders/{order_id}").json()["status"] == "CREATED"
 
 # try to capture (not confirmed yet)
 resp = c.post(f"/shop/coins/paypal/orders/{order_id}/capture")
-assert resp.status_code == 400
-assert resp.json() == {"detail": "Could not capture order"}
+assert resp.status_code == 503
+assert "payment is still being checked" in resp.json()["detail"]
 assert c.get(f"/shop/coins/me").json() == {"coins": 0, "withheld_coins": 0}
-assert c.get(f"http://127.0.0.1:8103/v2/checkout/orders/{order_id}").json() == {"status": "Created", "coins": 1337}
+assert c.get(f"http://127.0.0.1:8103/v2/checkout/orders/{order_id}").json()["status"] == "CREATED"
 
 # confirm order (client)
-assert c.post(f"http://127.0.0.1:8103/v2/checkout/orders/{order_id}/confirm-payment-source").json() == {
-    "status": "Confirmed",
-    "coins": 1337,
-}
+assert (
+    c.post(f"http://127.0.0.1:8103/v2/checkout/orders/{order_id}/confirm-payment-source").json()["status"] == "APPROVED"
+)
 
 # capture order
 resp = c.post(f"/shop/coins/paypal/orders/{order_id}/capture")
 assert resp.status_code == 200
 assert resp.json() == {"coins": 1337, "withheld_coins": 0}
 assert c.get(f"/shop/coins/me").json() == {"coins": 1337, "withheld_coins": 0}
-assert c.get(f"http://127.0.0.1:8103/v2/checkout/orders/{order_id}").json() == {"status": "Captured"}
+assert c.get(f"http://127.0.0.1:8103/v2/checkout/orders/{order_id}").json()["status"] == "COMPLETED"
 
 # try to capture again
 resp = c.post(f"/shop/coins/paypal/orders/{order_id}/capture")
-assert resp.status_code == 404
-assert resp.json() == {"detail": "Order not found"}
+assert resp.status_code == 200
+assert resp.json() == {"coins": 1337, "withheld_coins": 0}
 assert c.get(f"/shop/coins/me").json() == {"coins": 1337, "withheld_coins": 0}
-assert c.get(f"http://127.0.0.1:8103/v2/checkout/orders/{order_id}").json() == {"status": "Captured"}
+assert c.get(f"http://127.0.0.1:8103/v2/checkout/orders/{order_id}").json()["status"] == "COMPLETED"
 
-# invoice email
-mail = fetch_mail()
+# Confirmation follows capture. Classify the two accepted SMTP messages by
+# their attachments, without assuming Maildir directory order.
+messages = [fetch_mail(), fetch_mail()]
+confirmation = next(m for m in messages if len(get_mail_parts(m)) == 3)
+mail = next(m for m in messages if len(get_mail_parts(m)) == 4)
+assert decode_mail_header(confirmation["Subject"]) == "Ihre Vertragsbestätigung – Bootstrap Academy"
+confirmation_body, confirmation_terms, confirmation_withdrawal = get_mail_parts(confirmation)
+assert offer["offer"]["id"] in decode_mail_part(confirmation_body).decode()
 assert mail["X-Original-To"] == "foobar@example.com"
-assert decode_mail_header(mail["Subject"]) == "Kaufbestätigung - Bootstrap Academy"
+assert decode_mail_header(mail["Subject"]) == "Ihre Vertragsbestätigung – Bootstrap Academy"
 payload, invoice, terms, revocation_policy = get_mail_parts(mail)
 content = decode_mail_part(payload).decode()
-assert (
-    "Du hast erfolgreich 1.337 MorphCoins gekauft! Das entspricht 13,37 € inklusive 19 % MwSt. von 2,13 €." in content
-)
-assert "Deine Erklärungen zum Widerrufsrecht bei dieser Bestellung" in content
-assert (
-    "Ich stimme ausdrücklich zu, dass Sie vor Ablauf der Widerrufsfrist mit der Ausführung des "
-    "Vertrags beginnen. Mir ist bekannt, dass mein Widerrufsrecht mit Beginn der Ausführung des "
-    "Vertrags erlischt." in content
-)
-assert "Fassung der Widerrufsbelehrung 2026-09" in content
-assert "https://bootstrap.academy/docs/right-of-withdrawal" in content
-assert "https://bootstrap.academy/docs/terms-and-conditions" in content
-
-assert invoice["Content-Disposition"] == 'attachment; filename="rechnung.pdf"'
+assert content == decode_mail_part(confirmation_body).decode()
+assert offer["offer"]["text"] in content
+assert offer["offer"]["declaration"] in content
+assert "13.37 EUR" in content
+assert invoice.get_filename() == "Rechnung-R0000001.pdf"
 assert invoice["Content-Type"] == "application/pdf"
 invoice_pdf = decode_mail_part(invoice)
 pdf = PdfReader(BytesIO(invoice_pdf))
@@ -117,17 +126,16 @@ assert "Foo Bar" in invoice_text
 assert "Germany" in invoice_text
 assert "foobar@example.com" in invoice_text
 
-# The file names carry the version of the documents, so a mail always says
-# which version was attached. `get_filename` is used instead of comparing the
-# raw header because long names are folded and continued over several lines.
-assert terms.get_filename() == "agb-2026-09.pdf"
+# Both deliveries attach the exact stored documents selected by this order.
+assert terms.get_filename() == "vereinbarte-agb.pdf"
 assert terms["Content-Type"] == "application/pdf"
-hash = hashlib.sha256(decode_mail_part(terms)).hexdigest()
-assert hash == "d418bcb88f935e70745932259071e6738835db9140d1451edbea4f21b3c6c94e"
-
-assert revocation_policy.get_filename() == "widerrufsbelehrung-2026-09.pdf"
+assert decode_mail_part(terms) == decode_mail_part(confirmation_terms)
+assert revocation_policy.get_filename() == "vereinbarte-widerrufsinformation.pdf"
 assert revocation_policy["Content-Type"] == "application/pdf"
-hash = hashlib.sha256(decode_mail_part(revocation_policy)).hexdigest()
-assert hash == "5b455a02e3bdcd1a6b83b17d4e87a94549f875d960f4a633705f1c655eb1b480"
+assert decode_mail_part(revocation_policy) == decode_mail_part(confirmation_withdrawal)
+for kind, attachment in [("terms", terms), ("withdrawal", revocation_policy)]:
+    original = c.get(f"/shop/purchases/{offer['offer']['id']}/documents/{kind}")
+    assert original.status_code == 200
+    assert original.content == decode_mail_part(attachment)
 
 assert open("/var/lib/academy/invoices/R0000001.pdf", "rb").read() == invoice_pdf

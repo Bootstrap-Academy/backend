@@ -1,4 +1,7 @@
 import os
+import subprocess
+from datetime import datetime, timedelta, timezone
+from uuid import uuid4
 
 from utils import assert_access_token_invalid, c, create_account, create_admin_account, get_self, make_client, save_auth
 
@@ -103,7 +106,47 @@ login = resp.json()
 sessions.append(login["session"])
 
 ## disabled
-os.system("academy admin user create --disabled b b@b b")
+# The legacy CLI shortcut cannot manufacture an unreasoned restriction.
+legacy = subprocess.run(
+    ["academy", "admin", "user", "create", "--disabled", "b", "b@b", "b"], capture_output=True, text=True
+)
+assert legacy.returncode != 0
+assert "complete moderation decision" in legacy.stderr
+restricted_client = make_client()
+restricted = create_account("b", "b@b", "b", restricted_client)
+moderator = make_client()
+create_admin_account("moderator", "moderator@example.com", "moderator", moderator)
+case_id = str(uuid4())
+opened = moderator.post(
+    "/auth/moderation/admin/open",
+    json={
+        "id": case_id,
+        "target_id": restricted["user"]["id"],
+        "source": "own_review",
+        "private_evidence": {"facts": "Synthetic account-security scenario in disposable VM"},
+    },
+)
+assert opened.status_code == 200, opened.text
+decided = moderator.post(
+    "/auth/moderation/admin/decide",
+    json={
+        "request_key": str(uuid4()),
+        "case_id": case_id,
+        "expected_revision": 0,
+        "outcome": "restrict",
+        "ends_at": (datetime.now(timezone.utc) + timedelta(days=1)).isoformat(),
+        "misconduct_facts": "Synthetic independently verified account-security finding",
+        "proportionality": "Synthetic limited restriction for this authentication test",
+        "hearing": "Synthetic immediate account-security urgency assessed",
+        "rationale": "Synthetic VM fixture only; no real-person determination",
+        "ground": "Independent account-security fixture",
+        "rule_version": "Synthetic security ground, not an AGB acceptance finding",
+        "automation": "Explicit test command, no automatic merits decision",
+        "scope": "Allgemeiner Kontozugang auf Bootstrap Academy; Rechtezugang bleibt erhalten",
+        "redress": "Human review and other available remedies",
+    },
+)
+assert decided.status_code == 200, decided.text
 resp = c.post("/auth/sessions", json={"name_or_email": "b", "password": "b"})
 assert resp.status_code == 403
 assert resp.json() == {"detail": "User disabled"}

@@ -138,3 +138,64 @@ async fn get_next_invoice_number() {
     assert_eq!(REPO.get_next_invoice_number(&mut txn).await.unwrap(), 3);
     assert_eq!(REPO.get_next_invoice_number(&mut txn).await.unwrap(), 4);
 }
+
+/// A local pending row is not proof that PayPal did not capture. Preserve the existing
+/// facts at cutover, independently of account deletion, without guessing payment or tax facts.
+#[tokio::test]
+async fn migration_retains_legacy_ambiguity_after_account_deletion() {
+    let migration = academy_persistence_postgres::MIGRATIONS
+        .iter()
+        .find(|migration| migration.name.ends_with("durable_paypal_payments"))
+        .unwrap();
+    let db = crate::common::setup_before(migration.name, true).await;
+    let order = PaypalCoinOrder {
+        id: "LEGACY".try_into().unwrap(),
+        user_id: FOO.user.id,
+        created_at: FOO.user.created_at,
+        captured_at: None,
+        coins: 1337,
+        invoice_number: 99,
+        withdrawal_consent_at: None,
+        withdrawal_text_version: None,
+    };
+    let mut txn = db.begin_transaction().await.unwrap();
+    REPO.create_coin_order(&mut txn, &order).await.unwrap();
+    txn.commit().await.unwrap();
+    crate::common::apply_through(&db, Some(migration.name)).await;
+    let txn = db.begin_transaction().await.unwrap();
+    let saved = txn
+        .txn()
+        .query_one(
+            "SELECT * FROM paypal_legacy_reconciliation WHERE order_id='LEGACY'",
+            &[],
+        )
+        .await
+        .unwrap();
+    assert_eq!(saved.get::<_, i64>("coins"), 1337);
+    assert_eq!(saved.get::<_, uuid::Uuid>("user_id"), *order.user_id);
+    let original = saved.get::<_, String>("order_snapshot");
+    assert!(original.contains("\"captured_at\":null"));
+    txn.txn()
+        .execute("DELETE FROM users WHERE id=$1", &[&*order.user_id])
+        .await
+        .unwrap();
+    txn.commit().await.unwrap();
+    let txn = db.begin_transaction().await.unwrap();
+    let after: String = txn
+        .txn()
+        .query_one(
+            "SELECT order_snapshot FROM paypal_legacy_reconciliation WHERE order_id='LEGACY'",
+            &[],
+        )
+        .await
+        .unwrap()
+        .get(0);
+    assert_eq!(original, after);
+    txn.commit().await.unwrap();
+    crate::repos::assert_down_refused(
+        &db,
+        migration.name,
+        "Refusing to remove PayPal payment evidence",
+    )
+    .await;
+}

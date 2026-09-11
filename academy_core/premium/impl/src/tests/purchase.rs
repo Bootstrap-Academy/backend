@@ -122,6 +122,7 @@ async fn no_subscribe() {
         since: Utc.with_ymd_and_hms(2025, 1, 1, 0, 0, 0).unwrap(),
         until: Utc.with_ymd_and_hms(2025, 2, 1, 0, 0, 0).unwrap(),
         subscription: None,
+        renewal: None,
     };
 
     let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
@@ -160,48 +161,15 @@ async fn no_subscribe() {
 }
 
 #[tokio::test]
-async fn subscribe() {
-    // Arrange
-    let expected = PremiumStatus {
-        since: Utc.with_ymd_and_hms(2025, 1, 1, 0, 0, 0).unwrap(),
-        until: Utc.with_ymd_and_hms(2025, 2, 1, 0, 0, 0).unwrap(),
-        subscription: Some(PremiumPlan::Monthly),
-    };
-
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
-
-    let db = MockDatabase::build(true);
-
-    let premium_purchase = MockPremiumPurchaseService::new().with_purchase(
-        FOO.user.id,
-        PremiumPlan::Monthly,
-        Ok(Premium {
-            id: UUID1.into(),
-            user_id: FOO.user.id,
-            since: expected.since,
-            until: expected.until,
-        }),
-    );
-
-    let premium_repo =
-        MockPremiumRepository::new().with_set_subscription(FOO.user.id, Some(PremiumPlan::Monthly));
-
-    let sut = PremiumFeatureServiceImpl {
-        auth,
-        db,
-        premium_purchase,
-        premium_repo,
-        withdrawal_consent: withdrawal_consent(),
-        ..Sut::default()
-    };
-
-    // Act
-    let result = sut
-        .purchase(&"token".into(), PremiumPlan::Monthly, true, declaration())
-        .await;
-
-    // Assert
-    assert_eq!(result.unwrap(), expected);
+async fn old_subscribe_shortcut_rejected_without_any_purchase() {
+    let sut = Sut::default();
+    for plan in [PremiumPlan::Monthly, PremiumPlan::Yearly] {
+        assert_matches!(
+            sut.purchase(&"token".into(), plan, true, declaration())
+                .await,
+            Err(PremiumPurchaseError::RenewalConsentRequired)
+        );
+    }
 }
 
 #[tokio::test]

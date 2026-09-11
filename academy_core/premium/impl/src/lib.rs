@@ -4,13 +4,15 @@ use academy_auth_contracts::{AuthResultExt, AuthService};
 use academy_core_premium_contracts::{
     PremiumFeatureService, PremiumGetStatusError, PremiumPurchaseError,
     PremiumUpdateSubscriptionError, plan::PremiumPlanService, premium::PremiumService,
-    purchase::PremiumPurchaseService,
+    purchase::PremiumPurchaseService, renewal::PremiumRenewalService,
 };
 use academy_core_withdrawal_contracts::consent::WithdrawalConsentService;
 use academy_di::Build;
 use academy_models::{
     auth::AccessToken,
-    premium::{PremiumPlan, PremiumPlanDetails, PremiumStatus},
+    premium::{
+        PremiumPlan, PremiumPlanDetails, PremiumRenewalConsent, PremiumRenewalOffer, PremiumStatus,
+    },
     user::UserIdOrSelf,
     withdrawal::{WithdrawalConsentDeclaration, WithdrawalSubject},
 };
@@ -23,6 +25,7 @@ pub mod period;
 pub mod plan;
 pub mod premium;
 pub mod purchase;
+pub mod renewal;
 
 #[cfg(test)]
 mod tests;
@@ -38,6 +41,7 @@ pub struct PremiumFeatureServiceImpl<
     UserRepo,
     PremiumRepo,
     WithdrawalConsentS,
+    RenewalS,
 > {
     db: Db,
     auth: Auth,
@@ -47,6 +51,7 @@ pub struct PremiumFeatureServiceImpl<
     user_repo: UserRepo,
     premium_repo: PremiumRepo,
     withdrawal_consent: WithdrawalConsentS,
+    renewal: RenewalS,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -55,8 +60,17 @@ pub struct PremiumFeatureConfig {
     pub yearly_price: u64,
 }
 
-impl<Db, Auth, PremiumPlanS, PremiumS, PremiumPurchase, UserRepo, PremiumRepo, WithdrawalConsentS>
-    PremiumFeatureService
+impl<
+    Db,
+    Auth,
+    PremiumPlanS,
+    PremiumS,
+    PremiumPurchase,
+    UserRepo,
+    PremiumRepo,
+    WithdrawalConsentS,
+    RenewalS,
+> PremiumFeatureService
     for PremiumFeatureServiceImpl<
         Db,
         Auth,
@@ -66,6 +80,7 @@ impl<Db, Auth, PremiumPlanS, PremiumS, PremiumPurchase, UserRepo, PremiumRepo, W
         UserRepo,
         PremiumRepo,
         WithdrawalConsentS,
+        RenewalS,
     >
 where
     Db: Database,
@@ -76,7 +91,16 @@ where
     UserRepo: UserRepository<Db::Transaction>,
     PremiumRepo: PremiumRepository<Db::Transaction>,
     WithdrawalConsentS: WithdrawalConsentService<Db::Transaction>,
+    RenewalS: PremiumRenewalService,
 {
+    fn get_renewal_offer(&self) -> PremiumRenewalOffer {
+        self.renewal.offer()
+    }
+
+    async fn retry_renewal_confirmations(&self) -> anyhow::Result<()> {
+        self.renewal.deliver_pending().await
+    }
+
     #[trace_instrument(skip(self))]
     fn get_plans(&self) -> HashMap<PremiumPlan, PremiumPlanDetails> {
         [PremiumPlan::Monthly, PremiumPlan::Yearly]
@@ -111,12 +135,18 @@ where
             .get_subscription(&mut txn, user_id)
             .await?;
 
+        let renewal = if subscription.is_some() {
+            self.premium_repo.get_renewal(&mut txn, user_id).await?
+        } else {
+            None
+        };
         txn.commit().await?;
 
         Ok(Some(PremiumStatus {
             since: premium.since,
             until: premium.until,
             subscription,
+            renewal,
         }))
     }
 
@@ -128,6 +158,9 @@ where
         subscribe: bool,
         declaration: WithdrawalConsentDeclaration,
     ) -> Result<PremiumStatus, PremiumPurchaseError> {
+        if subscribe {
+            return Err(PremiumPurchaseError::RenewalConsentRequired);
+        }
         // Premium is a service, so the order is only accepted if the consumer
         // gave the declarations under § 356 Abs. 5 Nr. 2 BGB.
         let withdrawal_text_version = declaration
@@ -163,15 +196,14 @@ where
             )
             .await?;
 
-        let subscription = if subscribe {
-            self.premium_repo
-                .set_subscription(&mut txn, user_id, Some(plan))
-                .await?;
-            Some(plan)
+        let subscription = self
+            .premium_repo
+            .get_subscription(&mut txn, user_id)
+            .await?;
+        let renewal = if subscription.is_some() {
+            self.premium_repo.get_renewal(&mut txn, user_id).await?
         } else {
-            self.premium_repo
-                .get_subscription(&mut txn, user_id)
-                .await?
+            None
         };
 
         txn.commit().await?;
@@ -180,6 +212,7 @@ where
             since: premium.since,
             until: premium.until,
             subscription,
+            renewal,
         })
     }
 
@@ -188,24 +221,31 @@ where
         &self,
         token: &AccessToken,
         plan: Option<PremiumPlan>,
+        consent: Option<PremiumRenewalConsent>,
     ) -> Result<(), PremiumUpdateSubscriptionError> {
         let auth = self.auth.authenticate(token).await.map_auth_err()?;
         let user_id = auth.user_id;
         auth.ensure_email_verified().map_auth_err()?;
 
-        let mut txn = self.db.begin_transaction().await?;
-
-        if self.premium.get_active(&mut txn, user_id).await?.is_none() {
-            txn.commit().await?;
-            return Err(PremiumUpdateSubscriptionError::NoPremium);
+        if let Some(plan) = plan {
+            if plan != PremiumPlan::Monthly {
+                return Err(PremiumUpdateSubscriptionError::RenewalConsentRequired);
+            }
+            return self
+                .renewal
+                .enable(
+                    user_id,
+                    consent.ok_or(PremiumUpdateSubscriptionError::RenewalConsentRequired)?,
+                )
+                .await;
         }
-
+        // Cancellation never invokes get_active: even at expiry it must not
+        // trigger a new debit before switching renewal off.
+        let mut txn = self.db.begin_transaction().await?;
         self.premium_repo
-            .set_subscription(&mut txn, user_id, plan)
+            .set_subscription(&mut txn, user_id, None)
             .await?;
-
         txn.commit().await?;
-
         Ok(())
     }
 }

@@ -58,6 +58,10 @@ async fn create(
     enabled: bool,
     email_verified: bool,
 ) -> anyhow::Result<()> {
+    anyhow::ensure!(
+        enabled,
+        "Create the account normally, then use a complete moderation decision for a restriction"
+    );
     let mut provider = Provider::from_config(&config).await?;
 
     let db: Database = provider.provide();

@@ -20,6 +20,21 @@ use crate::{PostgresTransaction, decode_sha256hash};
 #[derive(Debug, Clone, Build)]
 pub struct PostgresSessionRepository;
 
+impl PostgresSessionRepository {
+    async fn lock_owner(txn: &mut PostgresTransaction, user: UserId) -> anyhow::Result<()> {
+        txn.txn()
+            .query_opt("SELECT id FROM users WHERE id=$1 FOR UPDATE", &[&*user])
+            .await?;
+        Ok(())
+    }
+    async fn lock_session_owner(
+        txn: &mut PostgresTransaction,
+        session: SessionId,
+    ) -> anyhow::Result<bool> {
+        Ok(txn.txn().query_opt("SELECT id FROM users WHERE id=(SELECT user_id FROM sessions WHERE id=$1) FOR UPDATE", &[&*session]).await?.is_some())
+    }
+}
+
 impl SessionRepository<PostgresTransaction> for PostgresSessionRepository {
     #[trace_instrument(skip(self, txn))]
     async fn get(
@@ -66,6 +81,7 @@ impl SessionRepository<PostgresTransaction> for PostgresSessionRepository {
 
     #[trace_instrument(skip(self, txn))]
     async fn create(&self, txn: &mut PostgresTransaction, session: &Session) -> anyhow::Result<()> {
+        Self::lock_owner(txn, session.user_id).await?;
         let params = CreateParams {
             id: *session.id,
             user_id: *session.user_id,
@@ -92,6 +108,13 @@ impl SessionRepository<PostgresTransaction> for PostgresSessionRepository {
             updated_at,
         }: SessionPatchRef<'_>,
     ) -> anyhow::Result<bool> {
+        if !Self::lock_session_owner(txn, session_id).await? {
+            return Ok(false);
+        }
+        let enabled: bool = txn.txn().query_opt("SELECT enabled FROM user_composites WHERE id=(SELECT user_id FROM sessions WHERE id=$1)", &[&*session_id]).await?.is_some_and(|row| row.get(0));
+        if !enabled {
+            return Ok(false);
+        }
         let params = UpdateParams {
             id: *session_id,
             clear_device_name: device_name.is_update_and(|x| x.is_none()),
@@ -125,6 +148,7 @@ impl SessionRepository<PostgresTransaction> for PostgresSessionRepository {
         txn: &mut PostgresTransaction,
         user_id: UserId,
     ) -> anyhow::Result<()> {
+        Self::lock_owner(txn, user_id).await?;
         queries::session::clear_mfa_verified_by_user()
             .bind(txn.txn(), &user_id)
             .await
@@ -200,6 +224,7 @@ impl SessionRepository<PostgresTransaction> for PostgresSessionRepository {
         session_id: SessionId,
         refresh_token_hash: SessionRefreshTokenHash,
     ) -> anyhow::Result<()> {
+        Self::lock_session_owner(txn, session_id).await?;
         queries::session::set_refresh_token_hash()
             .bind(txn.txn(), &session_id, &refresh_token_hash.as_slice())
             .await

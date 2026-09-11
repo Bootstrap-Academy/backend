@@ -135,6 +135,8 @@ where
     ) -> anyhow::Result<bool> {
         self.email
             .send(Email {
+                sender: None,
+                message_id: None,
                 recipient,
                 subject: subject.into(),
                 body: self.template.render(data)?,

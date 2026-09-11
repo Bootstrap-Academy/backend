@@ -8,6 +8,14 @@ use thiserror::Error;
 
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait PremiumPurchaseService<Txn: Send + Sync + 'static>: Send + Sync + 'static {
+    /// Renew for one calendar month at the immutable agreed price.
+    fn renew(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
+        monthly_price: u64,
+    ) -> impl Future<Output = Result<Premium, PremiumPurchaseError>> + Send;
+
     /// Purchase premium for the given user.
     fn purchase(
         &self,

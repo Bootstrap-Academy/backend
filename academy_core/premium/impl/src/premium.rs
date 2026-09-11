@@ -3,10 +3,7 @@ use academy_core_premium_contracts::{
     purchase::{PremiumPurchaseError, PremiumPurchaseService},
 };
 use academy_di::Build;
-use academy_models::{
-    premium::{Premium, PremiumPlan},
-    user::UserId,
-};
+use academy_models::{premium::Premium, user::UserId};
 use academy_persistence_contracts::premium::PremiumRepository;
 use academy_shared_contracts::time::TimeService;
 use academy_utils::trace_instrument;
@@ -26,11 +23,8 @@ where
     PremiumPurchase: PremiumPurchaseService<Txn>,
     PremiumRepo: PremiumRepository<Txn>,
 {
-    /// Automatic renewals always use [`PremiumPlan::Monthly`], regardless of
-    /// the plan the subscription was booked with. A booked yearly period
-    /// therefore continues month by month at the monthly price instead of
-    /// being renewed as another full year. The stored subscription is updated
-    /// accordingly so that it matches what will actually be charged next time.
+    /// Paid periods are always retained. Only a separately recorded monthly
+    /// agreement with its durable confirmation sent can trigger a coin debit.
     #[trace_instrument(skip(self, txn))]
     async fn get_active(&self, txn: &mut Txn, user_id: UserId) -> anyhow::Result<Option<Premium>> {
         let now = self.time.now();
@@ -44,23 +38,30 @@ where
             return Ok(Some(active));
         }
 
-        let Some(plan) = self.premium_repo.get_subscription(txn, user_id).await? else {
+        // Existing paid access above survives restriction. A fresh renewal is
+        // serialized with the current account state and cannot debit while
+        // disabled, including internal entitlement reads and the renewal task.
+        if !self.premium_repo.renewal_allowed(txn, user_id).await? {
+            return Ok(None);
+        }
+        let Some(renewal) = self.premium_repo.get_renewal(txn, user_id).await? else {
             return Ok(None);
         };
+        if !renewal.confirmation_sent {
+            // Failed confirmation cannot create an invisible delayed charge
+            // after the paid membership has expired.
+            self.premium_repo
+                .set_subscription(txn, user_id, None)
+                .await?;
+            return Ok(None);
+        }
 
         match self
             .premium_purchase
-            .purchase(txn, user_id, PremiumPlan::Monthly)
+            .renew(txn, user_id, renewal.monthly_price)
             .await
         {
-            Ok(premium) => {
-                if plan != PremiumPlan::Monthly {
-                    self.premium_repo
-                        .set_subscription(txn, user_id, Some(PremiumPlan::Monthly))
-                        .await?;
-                }
-                Ok(Some(premium))
-            }
+            Ok(premium) => Ok(Some(premium)),
             Err(PremiumPurchaseError::NotEnoughCoins) => {
                 self.premium_repo
                     .set_subscription(txn, user_id, None)
@@ -74,13 +75,13 @@ where
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use academy_core_premium_contracts::purchase::MockPremiumPurchaseService;
     use academy_demo::{UUID1, user::FOO};
+    use academy_models::premium::PremiumRenewalStatus;
     use academy_persistence_contracts::premium::MockPremiumRepository;
     use academy_shared_contracts::time::MockTimeService;
     use chrono::{TimeZone, Utc};
-
-    use super::*;
 
     type Sut = PremiumServiceImpl<
         MockTimeService,
@@ -88,170 +89,131 @@ mod tests {
         MockPremiumRepository<()>,
     >;
 
-    #[tokio::test]
-    async fn ok_active() {
-        // Arrange
-        let expected = Premium {
+    fn paid() -> Premium {
+        Premium {
             id: UUID1.into(),
             user_id: FOO.user.id,
-            since: Utc.with_ymd_and_hms(2025, 1, 1, 0, 0, 0).unwrap(),
-            until: Utc.with_ymd_and_hms(2025, 2, 1, 0, 0, 0).unwrap(),
-        };
+            since: Utc.with_ymd_and_hms(2026, 1, 1, 0, 0, 0).unwrap(),
+            until: Utc.with_ymd_and_hms(2027, 1, 1, 0, 0, 0).unwrap(),
+        }
+    }
 
-        let now = Utc.with_ymd_and_hms(2025, 1, 15, 0, 0, 0).unwrap();
-
-        let time = MockTimeService::new().with_now(now);
-
-        let premium_repo =
-            MockPremiumRepository::new().with_get_latest_by_user_id(FOO.user.id, Some(expected));
-
-        let sut = PremiumServiceImpl {
-            time,
-            premium_repo,
+    #[tokio::test]
+    async fn paid_access_requires_neither_new_terms_nor_renewal_consent() {
+        let expected = paid();
+        let sut = Sut {
+            time: MockTimeService::new().with_now(expected.since),
+            premium_repo: MockPremiumRepository::new()
+                .with_get_latest_by_user_id(FOO.user.id, Some(expected)),
             ..Sut::default()
         };
-
-        // Act
-        let result = sut.get_active(&mut (), FOO.user.id).await;
-
-        // Assert
-        assert_eq!(result.unwrap(), Some(expected));
-    }
-
-    #[tokio::test]
-    async fn ok_subscription_purchase() {
-        // Arrange
-        let expected = Premium {
-            id: UUID1.into(),
-            user_id: FOO.user.id,
-            since: Utc.with_ymd_and_hms(2025, 1, 1, 0, 0, 0).unwrap(),
-            until: Utc.with_ymd_and_hms(2025, 2, 1, 0, 0, 0).unwrap(),
-        };
-
-        let now = Utc.with_ymd_and_hms(2025, 2, 15, 0, 0, 0).unwrap();
-
-        let time = MockTimeService::new().with_now(now);
-
-        let premium_repo = MockPremiumRepository::new()
-            .with_get_latest_by_user_id(FOO.user.id, None)
-            .with_get_subscription(FOO.user.id, Some(PremiumPlan::Monthly));
-
-        let premium_purchase = MockPremiumPurchaseService::new().with_purchase(
-            FOO.user.id,
-            PremiumPlan::Monthly,
-            Ok(expected),
+        assert_eq!(
+            sut.get_active(&mut (), FOO.user.id).await.unwrap(),
+            Some(expected)
         );
-
-        let sut = PremiumServiceImpl {
-            time,
-            premium_repo,
-            premium_purchase,
-        };
-
-        // Act
-        let result = sut.get_active(&mut (), FOO.user.id).await;
-
-        // Assert
-        assert_eq!(result.unwrap(), Some(expected));
     }
 
     #[tokio::test]
-    async fn expired_no_subscription() {
-        // Arrange
-        let expected = Premium {
-            id: UUID1.into(),
-            user_id: FOO.user.id,
-            since: Utc.with_ymd_and_hms(2025, 1, 1, 0, 0, 0).unwrap(),
-            until: Utc.with_ymd_and_hms(2025, 2, 1, 0, 0, 0).unwrap(),
-        };
-
-        let now = Utc.with_ymd_and_hms(2025, 2, 15, 0, 0, 0).unwrap();
-
-        let time = MockTimeService::new().with_now(now);
-
-        let premium_repo = MockPremiumRepository::new()
-            .with_get_latest_by_user_id(FOO.user.id, Some(expected))
-            .with_get_subscription(FOO.user.id, None);
-
-        let sut = PremiumServiceImpl {
-            time,
-            premium_repo,
+    async fn restriction_pauses_new_debit_without_cancelling_agreement() {
+        let mut repo =
+            MockPremiumRepository::new().with_get_latest_by_user_id(FOO.user.id, Some(paid()));
+        repo.expect_renewal_allowed()
+            .once()
+            .return_once(|_, _| Box::pin(async { Ok(false) }));
+        let sut = Sut {
+            time: MockTimeService::new().with_now(paid().until),
+            premium_repo: repo,
             ..Sut::default()
         };
-
-        // Act
-        let result = sut.get_active(&mut (), FOO.user.id).await;
-
-        // Assert
-        assert_eq!(result.unwrap(), None);
+        assert_eq!(sut.get_active(&mut (), FOO.user.id).await.unwrap(), None);
     }
 
     #[tokio::test]
-    async fn ok_yearly_subscription_renews_monthly() {
-        // Arrange
-        let expected = Premium {
-            id: UUID1.into(),
-            user_id: FOO.user.id,
-            since: Utc.with_ymd_and_hms(2025, 1, 1, 0, 0, 0).unwrap(),
-            until: Utc.with_ymd_and_hms(2025, 2, 1, 0, 0, 0).unwrap(),
+    async fn missing_agreement_never_debits_or_changes_legacy_plan() {
+        let mut repo =
+            MockPremiumRepository::new().with_get_latest_by_user_id(FOO.user.id, Some(paid()));
+        repo.expect_renewal_allowed()
+            .once()
+            .return_once(|_, _| Box::pin(async { Ok(true) }));
+        repo.expect_get_renewal()
+            .once()
+            .return_once(|_, _| Box::pin(async { Ok(None) }));
+        let sut = Sut {
+            time: MockTimeService::new().with_now(paid().until),
+            premium_repo: repo,
+            ..Sut::default()
         };
-
-        let now = Utc.with_ymd_and_hms(2025, 2, 15, 0, 0, 0).unwrap();
-
-        let time = MockTimeService::new().with_now(now);
-
-        let premium_repo = MockPremiumRepository::new()
-            .with_get_latest_by_user_id(FOO.user.id, None)
-            .with_get_subscription(FOO.user.id, Some(PremiumPlan::Yearly))
-            .with_set_subscription(FOO.user.id, Some(PremiumPlan::Monthly));
-
-        let premium_purchase = MockPremiumPurchaseService::new().with_purchase(
-            FOO.user.id,
-            PremiumPlan::Monthly,
-            Ok(expected),
-        );
-
-        let sut = PremiumServiceImpl {
-            time,
-            premium_repo,
-            premium_purchase,
-        };
-
-        // Act
-        let result = sut.get_active(&mut (), FOO.user.id).await;
-
-        // Assert
-        assert_eq!(result.unwrap(), Some(expected));
+        assert_eq!(sut.get_active(&mut (), FOO.user.id).await.unwrap(), None);
     }
 
     #[tokio::test]
-    async fn subscription_not_enough_coins() {
-        // Arrange
-        let now = Utc.with_ymd_and_hms(2025, 2, 15, 0, 0, 0).unwrap();
-
-        let time = MockTimeService::new().with_now(now);
-
-        let premium_repo = MockPremiumRepository::new()
-            .with_get_latest_by_user_id(FOO.user.id, None)
-            .with_get_subscription(FOO.user.id, Some(PremiumPlan::Monthly))
+    async fn confirmation_failure_at_expiry_disables_late_debits() {
+        let mut repo = MockPremiumRepository::new()
+            .with_get_latest_by_user_id(FOO.user.id, Some(paid()))
             .with_set_subscription(FOO.user.id, None);
-
-        let premium_purchase = MockPremiumPurchaseService::new().with_purchase(
-            FOO.user.id,
-            PremiumPlan::Monthly,
-            Err(PremiumPurchaseError::NotEnoughCoins),
-        );
-
-        let sut = PremiumServiceImpl {
-            time,
-            premium_repo,
-            premium_purchase,
+        repo.expect_renewal_allowed()
+            .once()
+            .return_once(|_, _| Box::pin(async { Ok(true) }));
+        repo.expect_get_renewal().once().return_once(|_, _| {
+            Box::pin(async {
+                Ok(Some(PremiumRenewalStatus {
+                    id: UUID1.into(),
+                    monthly_price: 750,
+                    confirmation_sent: false,
+                }))
+            })
+        });
+        let sut = Sut {
+            time: MockTimeService::new().with_now(paid().until),
+            premium_repo: repo,
+            ..Sut::default()
         };
+        assert_eq!(sut.get_active(&mut (), FOO.user.id).await.unwrap(), None);
+    }
 
-        // Act
-        let result = sut.get_active(&mut (), FOO.user.id).await;
-
-        // Assert
-        assert_eq!(result.unwrap(), None);
+    #[tokio::test]
+    async fn confirmed_renewal_uses_agreed_price_and_handles_insufficient_coins() {
+        for enough in [true, false] {
+            let mut repo =
+                MockPremiumRepository::new().with_get_latest_by_user_id(FOO.user.id, Some(paid()));
+            repo.expect_renewal_allowed()
+                .once()
+                .return_once(|_, _| Box::pin(async { Ok(true) }));
+            repo.expect_get_renewal().once().return_once(|_, _| {
+                Box::pin(async {
+                    Ok(Some(PremiumRenewalStatus {
+                        id: UUID1.into(),
+                        monthly_price: 750,
+                        confirmation_sent: true,
+                    }))
+                })
+            });
+            if !enough {
+                repo = repo.with_set_subscription(FOO.user.id, None);
+            }
+            let mut purchase = MockPremiumPurchaseService::new();
+            purchase
+                .expect_renew()
+                .once()
+                .withf(|_, user_id, price| *user_id == FOO.user.id && *price == 750)
+                .return_once(move |_, _, _| {
+                    Box::pin(async move {
+                        if enough {
+                            Ok(paid())
+                        } else {
+                            Err(PremiumPurchaseError::NotEnoughCoins)
+                        }
+                    })
+                });
+            let sut = Sut {
+                time: MockTimeService::new().with_now(paid().until),
+                premium_repo: repo,
+                premium_purchase: purchase,
+            };
+            assert_eq!(
+                sut.get_active(&mut (), FOO.user.id).await.unwrap(),
+                enough.then(paid)
+            );
+        }
     }
 }

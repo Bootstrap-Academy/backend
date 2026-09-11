@@ -1,7 +1,7 @@
 use std::{future::Future, ops::Range};
 
 use academy_models::{
-    coin::{Balance, Transaction},
+    coin::{Balance, CoinOperation, CoinOperationClaim, CoinOperationId, Transaction},
     user::UserId,
 };
 use chrono::{DateTime, Utc};
@@ -9,6 +9,21 @@ use thiserror::Error;
 
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait CoinRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
+    /// Reserve an operation inside the same transaction as its credit. Concurrent
+    /// claimants wait for commit/rollback and compare the complete immutable request.
+    fn claim_operation(
+        &self,
+        txn: &mut Txn,
+        operation: &CoinOperation,
+    ) -> impl Future<Output = anyhow::Result<CoinOperationClaim>> + Send;
+
+    fn complete_operation(
+        &self,
+        txn: &mut Txn,
+        id: CoinOperationId,
+        balance: Balance,
+    ) -> impl Future<Output = anyhow::Result<()>> + Send;
+
     /// Return the Morphcoin balance of the given user.
     fn get_balance(
         &self,

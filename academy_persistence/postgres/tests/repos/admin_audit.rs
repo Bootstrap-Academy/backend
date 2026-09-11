@@ -195,9 +195,15 @@ async fn survives_user_deletion() {
     let db = setup_with_entries().await;
     let filter = AdminAuditLogFilter::default();
 
-    db.execute(&format!("delete from users where id='{}';", *FOO.user.id))
-        .await
-        .unwrap();
+    use academy_persistence_contracts::user::UserRepository;
+    let mut deletion = db.begin_transaction().await.unwrap();
+    assert!(
+        academy_persistence_postgres::user::PostgresUserRepository
+            .delete(&mut deletion, FOO.user.id)
+            .await
+            .unwrap()
+    );
+    deletion.commit().await.unwrap();
 
     let mut txn = db.begin_transaction().await.unwrap();
     assert_eq!(REPO.count(&mut txn, filter).await.unwrap(), 3);

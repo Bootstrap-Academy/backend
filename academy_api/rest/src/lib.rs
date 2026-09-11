@@ -13,9 +13,11 @@ use academy_core_health_contracts::HealthFeatureService;
 use academy_core_heart_contracts::HeartFeatureService;
 use academy_core_internal_contracts::InternalService;
 use academy_core_mfa_contracts::MfaFeatureService;
+use academy_core_moderation_contracts::ModerationFeatureService;
 use academy_core_oauth2_contracts::OAuth2FeatureService;
 use academy_core_paypal_contracts::PaypalFeatureService;
 use academy_core_premium_contracts::PremiumFeatureService;
+use academy_core_purchase_contracts::PurchaseFeatureService;
 use academy_core_session_contracts::SessionFeatureService;
 use academy_core_user_contracts::UserFeatureService;
 use academy_core_withdrawal_contracts::WithdrawalFeatureService;
@@ -61,9 +63,11 @@ pub struct RestServer<
     Finance,
     Heart,
     Premium,
+    Purchase,
     Withdrawal,
     Internal,
     AdminAudit,
+    Moderation,
 > {
     _config: RestServerConfig,
     health: Health,
@@ -79,9 +83,11 @@ pub struct RestServer<
     finance: Finance,
     heart: Heart,
     premium: Premium,
+    purchase: Purchase,
     withdrawal: Withdrawal,
     internal: Internal,
     admin_audit: AdminAudit,
+    moderation: Moderation,
 }
 
 #[derive(Debug, Clone)]
@@ -112,9 +118,11 @@ impl<
     Finance,
     Heart,
     Premium,
+    Purchase,
     Withdrawal,
     Internal,
     AdminAudit,
+    Moderation,
 >
     RestServer<
         Health,
@@ -130,9 +138,11 @@ impl<
         Finance,
         Heart,
         Premium,
+        Purchase,
         Withdrawal,
         Internal,
         AdminAudit,
+        Moderation,
     >
 where
     Health: HealthFeatureService,
@@ -148,11 +158,15 @@ where
     Finance: FinanceFeatureService,
     Heart: HeartFeatureService,
     Premium: PremiumFeatureService,
+    Purchase: PurchaseFeatureService,
     Withdrawal: WithdrawalFeatureService,
     Internal: InternalService,
     // `Clone` so that the audit log middleware and the audit log route can
     // share the same service.
     AdminAudit: AdminAuditFeatureService + Clone,
+    Moderation: ModerationFeatureService
+        + academy_core_moderation_contracts::commercial::CommercialFeatureService
+        + Clone,
 {
     pub async fn serve(self) -> anyhow::Result<()> {
         let RestServerConfig {
@@ -274,7 +288,10 @@ where
             .merge(routes::heart::router(self.heart.into()))
             .merge(routes::premium::router(self.premium.into()))
             .merge(routes::withdrawal::router(self.withdrawal.into()))
+            .merge(routes::purchase::router(self.purchase.into()))
             .merge(routes::internal::router(self.internal.into()))
+            .merge(routes::commercial::router(self.moderation.clone().into()))
+            .merge(routes::moderation::router(self.moderation.into()))
             .merge(routes::admin_audit::router(self.admin_audit.into()))
     }
 }

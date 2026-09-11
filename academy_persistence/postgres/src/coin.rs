@@ -2,7 +2,7 @@ use std::ops::Range;
 
 use academy_di::Build;
 use academy_models::{
-    coin::{Balance, Transaction},
+    coin::{Balance, CoinOperation, CoinOperationClaim, CoinOperationId, Transaction},
     user::UserId,
 };
 use academy_persistence_contracts::coin::{CoinRepoAddCoinsError, CoinRepository};
@@ -24,6 +24,59 @@ use crate::PostgresTransaction;
 pub struct PostgresCoinRepository;
 
 impl CoinRepository<PostgresTransaction> for PostgresCoinRepository {
+    async fn claim_operation(
+        &self,
+        txn: &mut PostgresTransaction,
+        operation: &CoinOperation,
+    ) -> anyhow::Result<CoinOperationClaim> {
+        txn.txn()
+            .execute(
+                "SELECT pg_advisory_xact_lock(hashtextextended('coin-operation:'||$1::uuid,0))",
+                &[&*operation.id],
+            )
+            .await?;
+        // Exact completed legacy receipts are checked first and remain replayable
+        // after erasure. A newly claimed disposition must not be paid by an old
+        // wallet-only caller after the compatible worker activation boundary.
+        if txn.txn().query_opt("SELECT 1 FROM commercial_operation_aliases WHERE operation_id=$1", &[&*operation.id]).await?.is_some()
+            && txn.txn().query_opt("SELECT 1 FROM internal_coin_operations WHERE id=$1 AND completed_at IS NOT NULL", &[&*operation.id]).await?.is_none() {
+            return Ok(CoinOperationClaim::Conflict);
+        }
+        let inserted = txn.txn().execute(
+            "INSERT INTO internal_coin_operations (id, user_id, coins, description, credit_note) VALUES ($1,$2,$3,$4,$5) ON CONFLICT (id) DO NOTHING",
+            &[&*operation.id, &*operation.user_id, &operation.coins, &operation.description.as_deref(), &operation.include_in_credit_note],
+        ).await?;
+        if inserted == 1 {
+            return Ok(CoinOperationClaim::New);
+        }
+        let row = txn.txn().query_one(
+            "SELECT user_id = $2 AND coins = $3 AND description IS NOT DISTINCT FROM $4 AND credit_note = $5 AS matches, balance, withheld_balance FROM internal_coin_operations WHERE id = $1",
+            &[&*operation.id, &*operation.user_id, &operation.coins, &operation.description.as_deref(), &operation.include_in_credit_note],
+        ).await?;
+        if !row.get::<_, bool>("matches") {
+            return Ok(CoinOperationClaim::Conflict);
+        }
+        Ok(CoinOperationClaim::Completed(Balance {
+            coins: row.try_get::<_, i64>("balance")?.try_into()?,
+            withheld_coins: row.try_get::<_, i64>("withheld_balance")?.try_into()?,
+        }))
+    }
+
+    async fn complete_operation(
+        &self,
+        txn: &mut PostgresTransaction,
+        id: CoinOperationId,
+        balance: Balance,
+    ) -> anyhow::Result<()> {
+        let coins = i64::try_from(balance.coins)?;
+        let withheld = i64::try_from(balance.withheld_coins)?;
+        anyhow::ensure!(txn.txn().execute(
+            "UPDATE internal_coin_operations SET balance=$2, withheld_balance=$3, completed_at=now() WHERE id=$1 AND completed_at IS NULL",
+            &[&*id, &coins, &withheld],
+        ).await? == 1, "Coin operation was not reserved");
+        Ok(())
+    }
+
     #[trace_instrument(skip(self, txn))]
     async fn get_balance(
         &self,
@@ -46,6 +99,13 @@ impl CoinRepository<PostgresTransaction> for PostgresCoinRepository {
         coins: i64,
         withhold: bool,
     ) -> Result<Balance, CoinRepoAddCoinsError> {
+        // Existing-row MERGE does not acquire the FK parent first. Serialize all
+        // ordinary wallet writers with erasure and commercial disposition before
+        // taking the coin row, without changing T6's operation-first replay.
+        txn.txn()
+            .query_opt("SELECT id FROM users WHERE id=$1 FOR UPDATE", &[&*user_id])
+            .await
+            .map_err(anyhow::Error::from)?;
         let (coins, withheld_coins) = if withhold { (0, coins) } else { (coins, 0) };
 
         let params = AddCoinsParams {
@@ -71,6 +131,9 @@ impl CoinRepository<PostgresTransaction> for PostgresCoinRepository {
         txn: &mut PostgresTransaction,
         user_id: UserId,
     ) -> anyhow::Result<()> {
+        txn.txn()
+            .query_opt("SELECT id FROM users WHERE id=$1 FOR UPDATE", &[&*user_id])
+            .await?;
         queries::coin::release_coins()
             .bind(txn.txn(), &user_id)
             .await

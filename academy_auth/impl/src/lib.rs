@@ -10,7 +10,7 @@ use academy_models::{
     session::{SessionId, SessionRefreshTokenHash},
     user::{User, UserId, UserPassword},
 };
-use academy_persistence_contracts::{session::SessionRepository, user::UserRepository};
+use academy_persistence_contracts::{Database, session::SessionRepository, user::UserRepository};
 use academy_shared_contracts::{
     password::{PasswordService, PasswordVerifyError},
     time::TimeService,
@@ -28,8 +28,16 @@ mod tests;
 
 #[derive(Debug, Clone, Build)]
 #[cfg_attr(test, derive(Default))]
-pub struct AuthServiceImpl<Time, Password, UserRepo, SessionRepo, AuthAccessToken, AuthRefreshToken>
-{
+pub struct AuthServiceImpl<
+    Time,
+    Password,
+    UserRepo,
+    SessionRepo,
+    AuthAccessToken,
+    AuthRefreshToken,
+    Db,
+> {
+    db: Db,
     time: Time,
     password: Password,
     user_repo: UserRepo,
@@ -47,10 +55,20 @@ pub struct AuthServiceConfig {
     pub internal_token_ttl: Duration,
 }
 
-impl<Txn, Time, Password, UserRepo, SessionRepo, AuthAccessToken, AuthRefreshToken> AuthService<Txn>
-    for AuthServiceImpl<Time, Password, UserRepo, SessionRepo, AuthAccessToken, AuthRefreshToken>
+impl<Txn, Time, Password, UserRepo, SessionRepo, AuthAccessToken, AuthRefreshToken, Db>
+    AuthService<Txn>
+    for AuthServiceImpl<
+        Time,
+        Password,
+        UserRepo,
+        SessionRepo,
+        AuthAccessToken,
+        AuthRefreshToken,
+        Db,
+    >
 where
     Txn: Send + Sync + 'static,
+    Db: Database<Transaction = Txn>,
     Time: TimeService,
     Password: PasswordService,
     UserRepo: UserRepository<Txn>,
@@ -75,6 +93,28 @@ where
             return Err(AuthenticateError::InvalidToken);
         }
 
+        let mut txn = self.db.begin_transaction().await?;
+        // Ordinary authority requires a current live session and an enabled
+        // account. Redis invalidation is an early rejection optimization, never
+        // the sole source of authority (cache expiry/flush cannot revive it).
+        let user = self
+            .user_repo
+            .get_composite(&mut txn, auth.user_id)
+            .await?
+            .filter(|u| u.user.enabled)
+            .ok_or(AuthenticateError::InvalidToken)?;
+        let session = self
+            .session_repo
+            .get_by_refresh_token_hash(&mut txn, auth.refresh_token_hash)
+            .await?
+            .filter(|s| s.id == auth.session_id && s.user_id == auth.user_id)
+            .ok_or(AuthenticateError::InvalidToken)?;
+        let auth = Authentication {
+            admin: user.user.admin,
+            email_verified: user.user.email_verified,
+            mfa_verified: session.mfa_verified,
+            ..auth
+        };
         Ok(auth)
     }
 

@@ -24,7 +24,9 @@ anyhow.workspace = true
 chrono.workspace = true
 chrono-tz.workspace = true
 hex.workspace = true
+serde_json.workspace = true
 tracing.workspace = true
+tokio.workspace = true
 
 [dev-dependencies]
 academy_auth_contracts = { workspace = true, features = ["mock"] }

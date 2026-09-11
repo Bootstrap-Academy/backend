@@ -13,6 +13,8 @@ workspace = true
 mock = ["dep:mockall"]
 
 [dependencies]
+serde_json.workspace = true
+uuid.workspace = true
 academy_models.workspace = true
 anyhow.workspace = true
 chrono.workspace = true

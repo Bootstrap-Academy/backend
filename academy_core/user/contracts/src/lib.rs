@@ -100,11 +100,18 @@ pub trait UserFeatureService: Send + Sync + 'static {
 
     /// Delete a user.
     ///
-    /// Requires admin privileges if not used on the authenticated user.
+    /// Administrative moderation must use a reasoned case. This is self-erasure.
     fn delete_user(
         &self,
         token: &AccessToken,
         user_id: UserIdOrSelf,
+    ) -> impl Future<Output = Result<(), UserDeleteError>> + Send;
+
+    /// Internal caller must independently prove the recipient for retained
+    /// rights. Reuses the complete financial and distributed erasure workflow.
+    fn recipient_delete(
+        &self,
+        user_id: academy_models::user::UserId,
     ) -> impl Future<Output = Result<(), UserDeleteError>> + Send;
 
     /// Return everything the platform stores about a user.
@@ -228,6 +235,8 @@ pub enum PasswordUpdate {
 
 #[derive(Debug, Error)]
 pub enum UserUpdateError {
+    #[error("Use a complete moderation decision to restrict or restore an account.")]
+    ModerationRequired,
     #[error(transparent)]
     Auth(#[from] AuthError),
     #[error("The user does not exist.")]
@@ -288,6 +297,8 @@ pub enum UserDeclineTermsError {
 
 #[derive(Debug, Error)]
 pub enum UserDeleteError {
+    #[error("Use a complete moderation decision for administrative account restrictions.")]
+    ModerationRequired,
     #[error(transparent)]
     Auth(#[from] AuthError),
     #[error("The user does not exist.")]

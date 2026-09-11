@@ -7,20 +7,17 @@ use std::{
 use academy_auth_contracts::MockAuthService;
 use academy_cache_contracts::MockCacheService;
 use academy_demo::{SHA256HASH1, SHA256HASH1_HEX, SHA256HASH2, SHA256HASH2_HEX, user::FOO};
-use academy_email_contracts::{
-    ContentType, Email, MockEmailService, template::MockTemplateEmailService,
-};
+use academy_email_contracts::MockEmailService;
 use academy_models::{
-    contract::{ContractDeclarantName, ContractDeclaration, ContractDeclarationDetails},
+    contract::{ContractDeclarantName, ContractDeclarationDetails},
     email_address::EmailAddress,
 };
 use academy_persistence_contracts::{
-    MockDatabase, MockTransaction, contract::MockContractRepository,
-    premium::MockPremiumRepository, user::MockUserRepository,
+    MockDatabase, MockTransaction, contract::MockContractRepository, user::MockUserRepository,
 };
 use academy_shared_contracts::{hash::MockHashService, id::MockIdService, time::MockTimeService};
 
-use crate::{ContractFeatureConfig, ContractFeatureServiceImpl, internal_notification_body};
+use crate::{ContractFeatureConfig, ContractFeatureServiceImpl};
 
 mod declare_cancellation;
 mod declare_withdrawal;
@@ -34,10 +31,8 @@ type Sut = ContractFeatureServiceImpl<
     MockTimeService,
     MockCacheService,
     MockHashService,
-    MockTemplateEmailService,
     MockEmailService,
     MockUserRepository<MockTransaction>,
-    MockPremiumRepository<MockTransaction>,
     MockContractRepository<MockTransaction>,
 >;
 
@@ -102,20 +97,4 @@ fn make_exhausted_cache(ip_count: u64, email_count: u64) -> MockCacheService {
     MockCacheService::new()
         .with_get(ip_cache_key(), Some(ip_count))
         .with_get(email_cache_key(), Some(email_count))
-}
-
-fn make_internal_email(declaration: &ContractDeclaration, subject: &str) -> Email {
-    Email {
-        recipient: "contact@example.com".parse().unwrap(),
-        subject: subject.into(),
-        body: internal_notification_body(declaration),
-        content_type: ContentType::Text,
-        reply_to: Some(
-            declaration
-                .email
-                .clone()
-                .with_name(declaration.name.clone().into_inner()),
-        ),
-        attachments: Vec::new(),
-    }
 }

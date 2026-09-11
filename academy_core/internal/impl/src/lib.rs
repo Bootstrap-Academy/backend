@@ -9,12 +9,14 @@ use academy_core_premium_contracts::premium::PremiumService;
 use academy_di::Build;
 use academy_models::{
     auth::InternalToken,
-    coin::{Balance, TransactionDescription},
+    coin::{Balance, CoinOperation, CoinOperationClaim, TransactionDescription},
     email_address::EmailAddress,
     heart::Hearts,
     user::{UserComposite, UserId},
 };
-use academy_persistence_contracts::{Database, Transaction, user::UserRepository};
+use academy_persistence_contracts::{
+    Database, Transaction, coin::CoinRepository, user::UserRepository,
+};
 use academy_utils::trace_instrument;
 use anyhow::Context;
 
@@ -22,8 +24,9 @@ use anyhow::Context;
 mod tests;
 
 #[derive(Debug, Clone, Build, Default)]
-pub struct InternalServiceImpl<Db, AuthInternal, UserRepo, Coin, Heart, Premium> {
+pub struct InternalServiceImpl<Db, AuthInternal, UserRepo, Coin, Heart, Premium, CoinRepo> {
     db: Db,
+    coin_repo: CoinRepo,
     auth_internal: AuthInternal,
     user_repo: UserRepo,
     coin: Coin,
@@ -31,10 +34,11 @@ pub struct InternalServiceImpl<Db, AuthInternal, UserRepo, Coin, Heart, Premium>
     premium: Premium,
 }
 
-impl<Db, AuthInternal, UserRepo, Coin, Heart, Premium> InternalService
-    for InternalServiceImpl<Db, AuthInternal, UserRepo, Coin, Heart, Premium>
+impl<Db, AuthInternal, UserRepo, Coin, Heart, Premium, CoinRepo> InternalService
+    for InternalServiceImpl<Db, AuthInternal, UserRepo, Coin, Heart, Premium, CoinRepo>
 where
     Db: Database,
+    CoinRepo: CoinRepository<Db::Transaction>,
     AuthInternal: AuthInternalService,
     UserRepo: UserRepository<Db::Transaction>,
     Coin: CoinService<Db::Transaction>,
@@ -52,7 +56,7 @@ where
         let mut txn = self.db.begin_transaction().await?;
 
         self.user_repo
-            .get_composite(&mut txn, user_id)
+            .get_internal_composite(&mut txn, user_id)
             .await
             .context("Failed to get user from database")?
             .ok_or(InternalGetUserError::NotFound)
@@ -88,11 +92,16 @@ where
 
         let mut txn = self.db.begin_transaction().await?;
 
-        let user_composite = self
-            .user_repo
-            .get_composite(&mut txn, user_id)
-            .await?
-            .ok_or(InternalAddCoinsError::UserNotFound)?;
+        // New limited-subject purchases use exact-order acceptance. Generic
+        // credits still use the verified commercial recipient and withholding.
+        let user_composite = if coins < 0 {
+            self.user_repo.get_composite(&mut txn, user_id).await?
+        } else {
+            self.user_repo
+                .get_purchase_composite(&mut txn, user_id)
+                .await?
+        }
+        .ok_or(InternalAddCoinsError::UserNotFound)?;
 
         let withhold = coins >= 0 && !user_composite.can_receive_coins();
 
@@ -115,6 +124,53 @@ where
         txn.commit().await?;
 
         Ok(new_balance)
+    }
+
+    #[trace_instrument(skip(self))]
+    async fn apply_coin_operation(
+        &self,
+        token: &InternalToken,
+        operation: CoinOperation,
+    ) -> Result<Balance, InternalAddCoinsError> {
+        self.auth_internal.authenticate(token, "shop")?;
+        let mut txn = self.db.begin_transaction().await?;
+        match self.coin_repo.claim_operation(&mut txn, &operation).await? {
+            CoinOperationClaim::Completed(balance) => return Ok(balance),
+            CoinOperationClaim::Conflict => return Err(InternalAddCoinsError::OperationConflict),
+            CoinOperationClaim::New => (),
+        }
+        // Completed receipts above remain replayable without a current user.
+        // Only new ordinary recipients can use this generic debit interface.
+        let user = if operation.coins < 0 {
+            self.user_repo
+                .get_composite(&mut txn, operation.user_id)
+                .await?
+        } else {
+            self.user_repo
+                .get_purchase_composite(&mut txn, operation.user_id)
+                .await?
+        }
+        .ok_or(InternalAddCoinsError::UserNotFound)?;
+        let balance = self
+            .coin
+            .add_coins(
+                &mut txn,
+                operation.user_id,
+                operation.coins,
+                operation.coins >= 0 && !user.can_receive_coins(),
+                operation.description,
+                operation.include_in_credit_note,
+            )
+            .await
+            .map_err(|err| match err {
+                CoinAddCoinsError::NotEnoughCoins => InternalAddCoinsError::NotEnoughCoins,
+                CoinAddCoinsError::Other(err) => err.into(),
+            })?;
+        self.coin_repo
+            .complete_operation(&mut txn, operation.id, balance)
+            .await?;
+        txn.commit().await?;
+        Ok(balance)
     }
 
     #[trace_instrument(skip(self))]

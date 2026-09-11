@@ -1,10 +1,11 @@
-"""Run the ordinary Rust unit/doc checks with an owned PostgreSQL 18 fixture."""
+"""Run ordinary Rust checks with an owned PostgreSQL 18 fixture."""
 
 import argparse
 import json
 import os
 from pathlib import Path
 import shutil
+import signal
 import socket
 import subprocess
 import tempfile
@@ -14,6 +15,7 @@ import uuid
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--evidence-dir", type=Path, required=True)
+    parser.add_argument("--suite", choices=["unit", "postgres"], default="unit")
     args = parser.parse_args()
     if os.geteuid() == 0:
         parser.error("run as an unprivileged user")
@@ -39,6 +41,8 @@ def main() -> int:
         and key not in {"DATABASE_URL", "ACADEMY_CONFIG", "ACADEMY_UNIT_TEST_FIXTURE", "ACADEMY_UNIT_TEST_RUN_ID"}
     }
     env.update(SQLX_OFFLINE="true", RUST_TEST_THREADS="1")
+    if args.suite == "postgres" and any(key.startswith(("BOOTSTRAP_", "IF1_", "INVOICE_")) for key in env):
+        parser.error("historical private-fixture and baseline overrides are not CI inputs")
     root = Path(tempfile.mkdtemp(prefix="academy-unit-tests-", dir="/tmp")).resolve()
     data = root / "pgdata"
     (root / "evidence").mkdir(mode=0o700)
@@ -55,6 +59,7 @@ def main() -> int:
         "role": "academy_unit_tests",
         "database": "academy_unit_tests",
         "pg_bin": str(pg_bin),
+        "suite": args.suite,
     }
     marker_bytes = (json.dumps(marker, indent=2) + "\n").encode()
     owner = root / "OWNER.json"
@@ -72,10 +77,22 @@ def main() -> int:
     def run(name: str, argv: list[str]) -> int:
         print(f"RUN {name}", flush=True)
         with (evidence / f"{name}.log").open("wb") as log:
-            result = subprocess.run(argv, cwd=repo, env=env, stdout=log, stderr=subprocess.STDOUT)
-        steps.append({"name": name, "argv": argv, "exit": result.returncode})
+            process = subprocess.Popen(
+                argv, cwd=repo, env=env, stdout=log, stderr=subprocess.STDOUT, start_new_session=True
+            )
+            try:
+                code = process.wait(timeout=1800)
+            except subprocess.TimeoutExpired:
+                os.killpg(process.pid, signal.SIGTERM)
+                try:
+                    process.wait(timeout=10)
+                except subprocess.TimeoutExpired:
+                    os.killpg(process.pid, signal.SIGKILL)
+                    process.wait()
+                code = 124
+        steps.append({"name": name, "argv": argv, "exit": code})
         print((evidence / f"{name}.log").read_text(errors="replace"), end="", flush=True)
-        return result.returncode
+        return code
 
     start_attempted = False
     result = 1
@@ -91,6 +108,7 @@ def main() -> int:
                 "--auth=trust",
                 "--no-locale",
                 "--encoding=UTF8",
+                *(["--locale-provider=icu", "--icu-locale=de-DE"] if args.suite == "postgres" else []),
             ],
         ):
             return 1
@@ -98,6 +116,8 @@ def main() -> int:
             config_file.write(
                 f"\nlisten_addresses = '127.0.0.1'\nport = {port}\n" f"unix_socket_directories = '{root / 'socket'}'\n"
             )
+            if args.suite == "postgres":
+                config_file.write("statement_timeout = '60s'\n")
         start_attempted = True
         if run("start", [str(pg_bin / "pg_ctl"), "-D", str(data), "-l", str(root / "postgres.log"), "-w", "start"]):
             return 1
@@ -115,6 +135,23 @@ def main() -> int:
             ],
         ):
             return 1
+        if args.suite == "postgres":
+            result = run(
+                "postgres",
+                [
+                    "cargo",
+                    "test",
+                    "-p",
+                    "academy_persistence_postgres",
+                    "--no-fail-fast",
+                    "--all-features",
+                    "--test",
+                    "*",
+                    "--",
+                    "--nocapture",
+                ],
+            )
+            return result
         result = run("unit", ["cargo", "test", "--no-fail-fast", "--all-features", "--bins", "--lib"])
         if result == 0:
             result = run("doc", ["cargo", "test", "--no-fail-fast", "--all-features", "--doc"])
@@ -130,7 +167,9 @@ def main() -> int:
             raise RuntimeError(f"owned PostgreSQL PID file remains; fixture retained at {root}")
         for source in [owner, fixture, root / "postgres.log"]:
             if source.exists():
-                shutil.copyfile(source, evidence / source.name)
+                shutil.copyfile(
+                    source, evidence / ("postgres-server.log" if source.name == "postgres.log" else source.name)
+                )
         shutil.copytree(root / "evidence", evidence / "resets")
         shutil.rmtree(root)
         (evidence / "result.json").write_text(

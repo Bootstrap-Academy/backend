@@ -5,14 +5,10 @@ use academy_persistence_contracts::{
     moderation::{ModerationConflict, ModerationRepository},
 };
 use academy_persistence_postgres::{
-    PostgresDatabase, PostgresDatabaseConfig, PostgresTransaction,
-    moderation::PostgresModerationRepository as Repo,
+    PostgresDatabase, PostgresTransaction, moderation::PostgresModerationRepository as Repo,
 };
 use serde_json::{Value, json};
-use std::{
-    collections::BTreeMap,
-    path::{Path, PathBuf},
-};
+use std::{collections::BTreeMap, path::PathBuf};
 use uuid::Uuid;
 const FORWARD: &str = "2026-09-11-050000_wallet_restore_target";
 const CLAIM: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
@@ -20,148 +16,11 @@ fn owner() -> Uuid {
     *academy_demo::user::FOO.user.id
 }
 async fn setup(pre_wallet: bool) -> PostgresDatabase {
-    let root = PathBuf::from(std::env::var("BOOTSTRAP_WALLET_TARGET_FIXTURE").unwrap())
-        .canonicalize()
-        .unwrap();
-    assert_eq!(root.parent(), Some(Path::new("/tmp")));
-    assert!(
-        root.file_name()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .starts_with("bootstrap-wallet-target-")
-    );
-    let marker: Value =
-        serde_json::from_slice(&std::fs::read(root.join("OWNER.json")).unwrap()).unwrap();
-    assert_eq!(marker["canonical_root"], root.to_str().unwrap());
-    assert_eq!(marker["unit"], "L3-wallet-restore-target-backend-1");
-    assert_eq!(marker["owner"], "/root/learning_source_review");
-    assert_eq!(
-        std::env::var("ACADEMY_CONFIG").unwrap(),
-        root.join("fixture.toml").to_str().unwrap()
-    );
-    assert!(std::env::var_os("DATABASE_URL").is_none());
-    assert!(!std::env::vars_os().any(|(k, _)| k.to_string_lossy().starts_with("PG")));
-    assert_eq!(std::env::var("SQLX_OFFLINE").unwrap(), "true");
-    let config = academy_config::load().unwrap();
-    let parsed: bb8_postgres::tokio_postgres::Config = config.database.url.parse().unwrap();
-    assert_eq!(
-        parsed.get_hosts(),
-        &[bb8_postgres::tokio_postgres::config::Host::Tcp(
-            "127.0.0.1".into()
-        )]
-    );
-    assert!(
-        parsed.get_hostaddrs().is_empty()
-            && parsed.get_options().is_none()
-            && parsed.get_password().is_none()
-    );
-    let port = u16::try_from(marker["port"].as_u64().unwrap()).unwrap();
-    assert_eq!(port, 57040);
-    assert_eq!(parsed.get_ports(), &[port]);
-    assert_eq!(parsed.get_dbname(), marker["database"].as_str());
-    assert_eq!(parsed.get_user(), marker["role"].as_str());
-    let db = PostgresDatabase::connect(&PostgresDatabaseConfig {
-        url: config.database.url,
-        max_connections: 12,
-        min_connections: 0,
-        acquire_timeout: config.database.acquire_timeout.into(),
-        idle_timeout: None,
-        max_lifetime: None,
-    })
-    .await
-    .unwrap();
-    let txn = db.begin_transaction().await.unwrap();
-    let row=txn.txn().query_one("SELECT current_database()::text,current_user::text,inet_server_port(),current_setting('data_directory'),version()",&[]).await.unwrap();
-    assert_eq!(row.get::<_, &str>(0), marker["database"].as_str().unwrap());
-    assert_eq!(row.get::<_, &str>(1), marker["role"].as_str().unwrap());
-    assert_eq!(row.get::<_, i32>(2), i32::from(port));
-    assert_eq!(
-        PathBuf::from(row.get::<_, &str>(3)).canonicalize().unwrap(),
-        root.join("pgdata").canonicalize().unwrap()
-    );
-    assert!(row.get::<_, &str>(4).starts_with("PostgreSQL 18.6"));
-    println!(
-        "OWNED TARGET VERIFIED BEFORE common::setup RESET: {} / {} / {} / {}",
-        row.get::<_, &str>(0),
-        row.get::<_, &str>(1),
-        port,
-        row.get::<_, &str>(3)
-    );
-    let guard = json!({"marker":marker,"parsed_host":"127.0.0.1","parsed_port":port,"parsed_database":parsed.get_dbname(),"parsed_role":parsed.get_user(),"actual_database":row.get::<_,&str>(0),"actual_role":row.get::<_,&str>(1),"actual_port":row.get::<_,i32>(2),"actual_data_directory":row.get::<_,&str>(3),"actual_version":row.get::<_,&str>(4)});
-    let capture_id = Uuid::new_v4();
-    std::fs::write(
-        root.join("evidence")
-            .join(format!("reset-guard-{capture_id}.json")),
-        serde_json::to_vec_pretty(&guard).unwrap(),
-    )
-    .unwrap();
-    txn.commit().await.unwrap();
-    drop(db);
-    // Preserve the preceding full owned database state before the next reset.
-    let dump = root
-        .join("evidence")
-        .join(format!("pre-reset-{capture_id}.sql"));
-    let output = std::process::Command::new(
-        "/nix/store/qbfm4pm2smh5znpvvwwwg95d6njwl17w-postgresql-18.6/bin/pg_dump",
-    )
-    .env_clear()
-    .args([
-        "-h",
-        "127.0.0.1",
-        "-p",
-        "57040",
-        "-U",
-        marker["role"].as_str().unwrap(),
-        "-d",
-        marker["database"].as_str().unwrap(),
-        "--no-owner",
-        "--no-privileges",
-    ])
-    .output()
-    .unwrap();
-    assert!(
-        output.status.success(),
-        "{}",
-        String::from_utf8_lossy(&output.stderr)
-    );
-    std::fs::write(&dump, output.stdout).unwrap();
-    println!("PRESERVED_PRE_RESET {}", dump.display());
-    if std::env::var("BOOTSTRAP_WALLET_RED").as_deref() != Ok("1") {
-        let embedded = academy_persistence_postgres::MIGRATIONS
-            .iter()
-            .find(|m| m.name == FORWARD)
-            .expect("wallet forward embedded before reset");
-        assert_eq!(embedded.up, std::fs::read_to_string(root.join("source/backend/academy_persistence/postgres/migrations/2026-09-11-050000_wallet_restore_target/up.sql")).unwrap(), "exact current wallet migration embedded before reset");
+    if pre_wallet {
+        common::setup_before(FORWARD, true).await
     } else {
-        assert!(
-            !academy_persistence_postgres::MIGRATIONS
-                .iter()
-                .any(|m| m.name == FORWARD),
-            "genuine pre-fix binary only"
-        );
+        common::setup().await
     }
-    if !pre_wallet {
-        return common::setup().await;
-    }
-    let db = common::setup_clean().await;
-    let n = academy_persistence_postgres::MIGRATIONS
-        .iter()
-        .position(|m| m.name == FORWARD)
-        .unwrap();
-    assert_eq!(db.run_migrations(Some(n)).await.unwrap().len(), n);
-    let mut txn = db.begin_transaction().await.unwrap();
-    academy_demo::create(
-        &mut txn,
-        academy_persistence_postgres::user::PostgresUserRepository,
-        academy_persistence_postgres::session::PostgresSessionRepository,
-        academy_persistence_postgres::mfa::PostgresMfaRepository,
-        academy_persistence_postgres::oauth2::PostgresOAuth2Repository,
-    )
-    .await
-    .unwrap();
-    txn.commit().await.unwrap();
-    db
 }
 async fn sql(tx: &PostgresTransaction, q: &str) {
     tx.txn().batch_execute(q).await.unwrap();
@@ -345,7 +204,7 @@ async fn worker(
 async fn wait_for(db: &PostgresDatabase, waiter: i32, holder: i32, label: &str) {
     let observed=tokio::time::timeout(std::time::Duration::from_secs(5),async {loop {let tx=db.begin_transaction().await.unwrap();let r=tx.txn().query_one("SELECT coalesce(wait_event_type='Lock',false),pg_blocking_pids(pid),coalesce(wait_event,'') FROM pg_stat_activity WHERE pid=$1",&[&waiter]).await.unwrap();let blocking:Vec<i32>=r.get(1);if r.get::<_,bool>(0)&&blocking.contains(&holder){break json!({"label":label,"waiter_pid":waiter,"holder_pid":holder,"blocking_pids":blocking,"wait_event":r.get::<_,String>(2)});}drop(tx);tokio::time::sleep(std::time::Duration::from_millis(20)).await;}}).await.expect("actual expected owning waiter");
     println!("ACTUAL_WAIT {observed}");
-    let root = PathBuf::from(std::env::var("BOOTSTRAP_WALLET_TARGET_FIXTURE").unwrap());
+    let root = PathBuf::from(std::env::var("ACADEMY_UNIT_TEST_FIXTURE").unwrap());
     std::fs::write(
         root.join("evidence")
             .join(format!("wait-{}.json", Uuid::new_v4())),

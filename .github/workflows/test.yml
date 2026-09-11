@@ -27,6 +27,7 @@ jobs:
 
   postgres:
     runs-on: ubuntu-latest
+    timeout-minutes: 40
     if: ${{ !(github.event_name == 'push' && github.actor == 'github-merge-queue[bot]') }}
     steps:
       - uses: actions/checkout@v6
@@ -34,20 +35,16 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           cache-on-failure: true
-      - run: echo 'database.url = "postgres://academy@localhost/academy"' > config.extra.toml
-      - run: cargo test -p academy_persistence_postgres --no-fail-fast --all-features --test '*'
-        env:
-          ACADEMY_CONFIG: ${{ github.workspace }}/config.extra.toml:${{ github.workspace }}/config.dev.toml
-          RUST_TEST_THREADS: 1
-    services:
-      postgres:
-        image: postgres:18-alpine
-        ports:
-          - "5432:5432"
-        env:
-          POSTGRES_USER: academy
-          POSTGRES_DB: academy
-          POSTGRES_HOST_AUTH_METHOD: trust
+      - uses: cachix/install-nix-action@v31
+      - run: >-
+          nix shell --accept-flake-config --no-write-lock-file --inputs-from .
+          nixpkgs#postgresql_18 -c python3 scripts/test-unit.py --suite postgres
+          --evidence-dir "$RUNNER_TEMP/academy-postgres-test-evidence"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: postgres-test-evidence
+          path: ${{ runner.temp }}/academy-postgres-test-evidence
 
   valkey:
     runs-on: ubuntu-latest

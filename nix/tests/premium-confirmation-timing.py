@@ -1,55 +1,42 @@
-"""T3 confirmation-deadline regressions using actual HTTP, SQL and SMTP.
-
-Adapted from the independent review-1 reproductions; assertions require fixed behavior.
-
-Uses the committed debug backend executable, a fresh PostgreSQL data directory,
-local Valkey and a controlled SMTP sink. Never connects to production.
-"""
+"""Confirmation deadlines against the backend and database of the isolated Nix VM."""
 
 import datetime as dt
 import json
-import os
+from email import policy
+from email.parser import BytesParser
 from pathlib import Path
 import socketserver
 import subprocess
-import tempfile
 import threading
 import time
 import urllib.request
 import uuid
 
-ROOT = Path(__file__).resolve().parents[2]
-PG = Path(os.environ.get("T3_PG_BIN", "/nix/store/y37nxb0qmpjsqqh1mk5jbpl2h3f28qj9-postgresql-17.11/bin"))
-VALKEY = os.environ.get("T3_VALKEY", "/nix/store/36kb2d5zr490m6sjvax47npgcaj9liz2-valkey-9.1.1/bin/valkey-server")
-BASE = Path(tempfile.mkdtemp(prefix="bootstrap-t3-fix1-"))
-URL = f"postgresql:///postgres?host={BASE}/socket&port=55994"
-CONFIG = BASE / "http.toml"
-CONFIG.write_text(
-    f"""[database]
-url = "{URL}"
-[http]
-address = "127.0.0.1:55903"
-[cache]
-url = "redis://127.0.0.1:55901/0"
-[email]
-smtp_url = "smtp://127.0.0.1:55902"
-from = "test@example.com"
-[jwt]
-secret = "isolated-review-test-only"
-"""
-)
-ENV = os.environ | {"ACADEMY_CONFIG": f"{CONFIG}:{ROOT}/config.dev.toml", "RUST_LOG": "warn"}
-BINARY = str(ROOT / "target/debug/academy")
+from utils import configure_purchases
+
+# This file is copied and run only by nix/tests/default.nix in its disposable VM.
+# Reuse that VM's configured PostgreSQL, Valkey, backend and renderer. The SMTP
+# fault boundary applies only to renewal confirmations, not one-off purchases.
+assert Path(__file__).resolve().parent == Path("/root/tests")
+assert subprocess.check_output(["hostname"], text=True).strip() == "machine"
+configure_purchases()
+CONFIG = Path("/run/academy-backend/secrets.toml")
+ORIGINAL_CONFIG = CONFIG.read_bytes()
+BINARY = "academy"
 
 
 def run(args, **kw):
-    return subprocess.run(args, env=ENV, check=True, text=True, **kw)
+    return subprocess.run(args, check=True, text=True, **kw)
 
 
 def sql(statement):
     return run(
-        [str(PG / "psql"), URL, "-XqAt", "-v", "ON_ERROR_STOP=1", "-c", statement], capture_output=True
+        ["sudo", "-u", "postgres", "psql", "academy", "-XqAt", "-v", "ON_ERROR_STOP=1", "-c", statement],
+        capture_output=True,
     ).stdout.strip()
+
+
+assert sql("select current_database()") == "academy"
 
 
 def request(method, path, body=None, token=None):
@@ -57,10 +44,21 @@ def request(method, path, body=None, token=None):
     if token:
         headers["Authorization"] = "Bearer " + token
     req = urllib.request.Request(
-        "http://127.0.0.1:55903" + path, json.dumps(body).encode() if body is not None else None, headers, method=method
+        "http://127.0.0.1:8000" + path, json.dumps(body).encode() if body is not None else None, headers, method=method
     )
     with urllib.request.urlopen(req, timeout=30) as r:
         return json.load(r)
+
+
+def restart_backend():
+    run(["systemctl", "restart", "academy-backend.service"])
+    for _ in range(100):
+        try:
+            request("GET", "/health")
+            return
+        except Exception:
+            time.sleep(0.1)
+    raise AssertionError("VM backend did not become ready after restart")
 
 
 class SMTP(socketserver.StreamRequestHandler):
@@ -86,12 +84,16 @@ class SMTP(socketserver.StreamRequestHandler):
                     if not line:
                         return
                     message.append(line)
-                type(self).started.set()
-                time.sleep(type(self).delay)
-                if type(self).reject:
+                parsed = BytesParser(policy=policy.default).parsebytes(b"".join(message))
+                renewal = "monatliche Premium-Verlängerung" in str(parsed["Subject"])
+                if renewal:
+                    type(self).started.set()
+                    time.sleep(type(self).delay)
+                if renewal and type(self).reject:
                     self.write("451 Controlled rejection")
                 else:
-                    type(self).accepted.append(dt.datetime.now(dt.timezone.utc))
+                    if renewal:
+                        type(self).accepted.append(dt.datetime.now(dt.timezone.utc))
                     self.write("250 Accepted")
             elif command == "QUIT":
                 self.write("221 Bye")
@@ -113,13 +115,24 @@ def user(name):
     return user_id, token
 
 
-def purchase(token):
-    return request(
+def purchase(token, observe_status=True):
+    offer = request("POST", "/shop/purchases/offers/premium_monthly", token=token)
+    accepted = request(
         "POST",
-        "/shop/premium",
-        {"plan": "MONTHLY", "autopay": False, "withdrawal_consent": True, "withdrawal_text_version": "2026-09"},
+        "/shop/purchases/accept",
+        {
+            "order_id": offer["offer"]["id"],
+            "offer_hash": offer["offer"]["hash"],
+            "accepted": True,
+            "early_performance_requested": True,
+        },
         token,
     )
+    assert accepted["state"] == "fulfilled", accepted
+    assert accepted["confirmation_smtp_accepted_at"] is not None
+    if not observe_status:
+        return accepted
+    return request("GET", "/shop/premium/me", token=token)
 
 
 def enable(token, request_id=None):
@@ -150,50 +163,12 @@ class SMTPServer(socketserver.ThreadingTCPServer):
     allow_reuse_address = True
 
 
-smtp = SMTPServer(("127.0.0.1", 55902), SMTP)
+run(["systemctl", "stop", "postfix.service"])
+smtp = SMTPServer(("127.0.0.1", 25), SMTP)
 smtp.daemon_threads = True
 threading.Thread(target=smtp.serve_forever, daemon=True).start()
-processes = []
-pg_started = False
 try:
-    (BASE / "socket").mkdir()
-    run([str(PG / "initdb"), "-D", str(BASE / "data"), "--no-locale", "-A", "trust"], stdout=subprocess.DEVNULL)
-    run(
-        [
-            str(PG / "pg_ctl"),
-            "-D",
-            str(BASE / "data"),
-            "-l",
-            str(BASE / "postgres.log"),
-            "-o",
-            f"-k {BASE}/socket -p 55994 -h 127.0.0.1",
-            "-w",
-            "start",
-        ],
-        stdout=subprocess.DEVNULL,
-    )
-    pg_started = True
-    processes.append(
-        subprocess.Popen(
-            [VALKEY, "--bind", "127.0.0.1", "--port", "55901", "--save", "", "--appendonly", "no"],
-            stdout=(BASE / "valkey.log").open("w"),
-            stderr=subprocess.STDOUT,
-        )
-    )
-    run([BINARY, "migrate", "up"], stdout=subprocess.DEVNULL)
-    processes.append(
-        subprocess.Popen(
-            [BINARY, "serve"], env=ENV, cwd=ROOT, stdout=(BASE / "backend.log").open("w"), stderr=subprocess.STDOUT
-        )
-    )
-    for _ in range(100):
-        try:
-            request("GET", "/health")
-            break
-        except Exception:
-            time.sleep(0.1)
-    print("Isolated services:", BASE, flush=True)
-
+    restart_backend()  # discard connections to the stopped ordinary SMTP service
     # A: SMTP success occurs after expiry but the transaction timestamp predates it.
     first, token = user("reviewfirst")
     before = balance(token)
@@ -286,8 +261,9 @@ try:
     agreement4 = enable(token4)
     time.sleep(1.1)
     before4 = balance(token4)
-    manual4 = purchase(token4)
-    assert manual4["autopay"] is None and manual4["renewal"] is None
+    manual4 = purchase(token4, observe_status=False)
+    assert manual4["state"] == "fulfilled"
+    assert sql(f"select count(*) from premium_subscriptions where user_id='{fourth}'") == "0"
     SMTP.reject = False
     enable(token3)  # actual retry after the ordinary purchase
     assert sql(f"select sent_at is not null from premium_renewal_delivery where agreement_id='{agreement4}'") == "t"
@@ -405,25 +381,8 @@ try:
     original_deadline = sql(f"select confirmation_deadline from premium_renewal_agreements where id='{valid_id}'")
     isolated_status = request("GET", "/shop/premium/me", token=token3)
     isolated_balance = balance(token3)
-    backend = processes.pop()
-    backend.terminate()
-    backend.wait(timeout=20)
-    CONFIG.write_text(CONFIG.read_text() + "\n[premium]\nmonthly_price = 1500\n")
-    processes.append(
-        subprocess.Popen(
-            [BINARY, "serve"],
-            env=ENV,
-            cwd=ROOT,
-            stdout=(BASE / "backend-restarted.log").open("w"),
-            stderr=subprocess.STDOUT,
-        )
-    )
-    for _ in range(100):
-        try:
-            request("GET", "/health")
-            break
-        except Exception:
-            time.sleep(0.1)
+    CONFIG.write_bytes(ORIGINAL_CONFIG + b"\n[premium]\nmonthly_price = 1500\n")
+    restart_backend()
     assert request("GET", "/shop/premium/renewal-offer")["monthly_price"] == 1500
     before_valid = balance(valid_token)
     extension = purchase(valid_token)
@@ -455,33 +414,13 @@ try:
         flush=True,
     )
 
-    # A separate isolated database runs only Premium persistence regressions and
-    # migration round trips. These tests intentionally reset only that database.
-    run([str(PG / "createdb"), "-h", str(BASE / "socket"), "-p", "55994", "fixtests"])
-    test_config = BASE / "repos.toml"
-    test_config.write_text("[database]\nurl = " + json.dumps(URL.replace("/postgres?", "/fixtests?")) + "\n")
-    test_env = os.environ | {"ACADEMY_CONFIG": f"{test_config}:{ROOT}/config.dev.toml"}
-    for name, arguments in [
-        ("premium-repository-tests.log", ["--test", "repositories", "repos::premium::"]),
-        ("migration-tests.log", ["--test", "migrations"]),
-    ]:
-        with (BASE / name).open("w") as log:
-            subprocess.run(
-                ["cargo", "test", "-p", "academy_persistence_postgres", *arguments, "--", "--test-threads=1"],
-                cwd=ROOT,
-                env=test_env,
-                check=True,
-                stdout=log,
-                stderr=subprocess.STDOUT,
-            )
-        print("PASS focused database checks:", BASE / name, flush=True)
+    # Repository and migration tests are separate CI jobs; this VM owns the
+    # actual HTTP/SMTP deadline, extension, replay and isolation assertions.
     print("PASS all actual HTTP/SMTP deadline, extension, replay and isolation regressions", flush=True)
 
 finally:
-    for process in reversed(processes):
-        process.terminate()
-        process.wait(timeout=20)
+    CONFIG.write_bytes(ORIGINAL_CONFIG)
+    run(["systemctl", "restart", "academy-backend.service"])
     smtp.shutdown()
     smtp.server_close()
-    if pg_started:
-        run([str(PG / "pg_ctl"), "-D", str(BASE / "data"), "-m", "fast", "-w", "stop"], stdout=subprocess.DEVNULL)
+    run(["systemctl", "start", "postfix.service"])

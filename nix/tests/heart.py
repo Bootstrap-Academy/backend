@@ -1,7 +1,19 @@
 import os
 import subprocess
 
-from utils import c, create_verified_account, make_internal_client, refresh_session
+from utils import (
+    c,
+    create_verified_account,
+    make_internal_client,
+    refresh_session,
+    purchase,
+    purchase_offer,
+    purchase_acceptance,
+)
+from utils import configure_purchases
+
+configure_purchases()
+
 
 login = create_verified_account("a", "a@a", "a")
 
@@ -74,17 +86,18 @@ resp = c.get("/shop/hearts/me")
 assert resp.status_code == 200
 assert resp.json() == {"hearts": 2}
 
-## withdrawal declarations missing
-resp = c.put("/shop/hearts", json={})
-assert resp.status_code == 412
-assert resp.json() == {"detail": "Withdrawal consent missing"}
+offer = purchase_offer("hearts")
+for field in ["accepted", "early_performance_requested"]:
+    resp = c.post("/shop/purchases/accept", json={**purchase_acceptance(offer), field: False})
+    assert resp.status_code == 409
+    assert c.get("/shop/coins/me").json()["coins"] == 0
 
-## not enough coins
-assert c.get(f"/shop/coins/me").json()["coins"] == 0
-
-resp = c.put("/shop/hearts", json={"withdrawal_consent": True, "withdrawal_text_version": "2026-09"})
-assert resp.status_code == 412
-assert resp.json() == {"detail": "Not enough coins"}
+# Insufficient funds preserve the balance/hearts and the rejected original.
+resp = c.post("/shop/purchases/accept", json=purchase_acceptance(offer))
+assert resp.status_code == 200, resp.text
+assert resp.json()["state"] == "failed"
+assert resp.json()["review_reason"] == "Not enough coins; order rejected without charge"
+assert resp.json()["confirmation_smtp_accepted_at"] is None
 
 resp = c.get("/shop/hearts/me")
 assert resp.status_code == 200
@@ -94,9 +107,7 @@ assert resp.json() == {"hearts": 2}
 assert subprocess.getstatusoutput(f"academy admin coin add {login['user']['id']} 70")[0] == 0
 assert c.get(f"/shop/coins/me").json()["coins"] == 70
 
-resp = c.put("/shop/hearts", json={"withdrawal_consent": True, "withdrawal_text_version": "2026-09"})
-assert resp.status_code == 200
-assert resp.json() == {"hearts": 6}
+purchase("hearts")
 
 resp = c.get("/shop/hearts/me")
 assert resp.status_code == 200

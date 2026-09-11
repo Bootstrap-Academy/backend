@@ -78,10 +78,12 @@ async fn remove_coins_not_enough_coins() {
     let mut txn = db.begin_transaction().await.unwrap();
     let result = REPO.add_coins(&mut txn, FOO.user.id, -7, false).await;
     assert_matches!(result, Err(CoinRepoAddCoinsError::NotEnoughCoins));
+    txn.rollback().await.unwrap();
 
     let mut txn = db.begin_transaction().await.unwrap();
     let result = REPO.add_coins(&mut txn, FOO.user.id, -7, true).await;
     assert_matches!(result, Err(CoinRepoAddCoinsError::NotEnoughCoins));
+    txn.rollback().await.unwrap();
 
     let mut txn = db.begin_transaction().await.unwrap();
     let result = REPO
@@ -99,10 +101,12 @@ async fn remove_coins_not_enough_coins() {
     let mut txn = db.begin_transaction().await.unwrap();
     let result = REPO.add_coins(&mut txn, FOO.user.id, -7, false).await;
     assert_matches!(result, Err(CoinRepoAddCoinsError::NotEnoughCoins));
+    txn.rollback().await.unwrap();
 
     let mut txn = db.begin_transaction().await.unwrap();
     let result = REPO.add_coins(&mut txn, FOO.user.id, -7, true).await;
     assert_matches!(result, Err(CoinRepoAddCoinsError::NotEnoughCoins));
+    txn.rollback().await.unwrap();
 }
 
 #[tokio::test]
@@ -307,9 +311,10 @@ async fn durable_operation_rollback_replay_and_conflict() {
         .iter()
         .find(|migration| migration.name.ends_with("add_internal_coin_operations"))
         .unwrap();
-    let txn = db.begin_transaction().await.unwrap();
-    assert!(
-        txn.txn().batch_execute(migration.down).await.is_err(),
-        "used idempotency evidence must not be dropped"
-    );
+    crate::repos::assert_down_refused(
+        &db,
+        migration.name,
+        "Cannot remove nonempty coin operation evidence",
+    )
+    .await;
 }

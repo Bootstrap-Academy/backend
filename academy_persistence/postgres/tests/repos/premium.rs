@@ -240,12 +240,9 @@ async fn cancelling_a_non_subscriber_or_unknown_user_preserves_all_subscriptions
 #[tokio::test]
 async fn migration_archives_every_legacy_plan_and_response_then_defaults_off() {
     for plan in [PremiumPlan::Monthly, PremiumPlan::Yearly] {
-        let db = setup().await;
-        db.revert_migrations(Some(crate::repos::revert_through(
-            "2026-09-07-140000_require_explicit_premium_renewal",
-        )))
-        .await
-        .unwrap();
+        let db =
+            crate::common::setup_before("2026-09-07-140000_require_explicit_premium_renewal", true)
+                .await;
         let txn = db.begin_transaction().await.unwrap();
         for (idx, user) in [&FOO.user, &BAR.user, &ADMIN.user].into_iter().enumerate() {
             txn.txn().execute("insert into premium_subscriptions (user_id, plan) values ($1, $2::text::premium_plan)", &[&*user.id, &if plan == PremiumPlan::Monthly { "monthly" } else { "yearly" }]).await.unwrap();
@@ -262,7 +259,11 @@ async fn migration_archives_every_legacy_plan_and_response_then_defaults_off() {
             .map(|r| (r.get(0), r.get(1)))
             .collect();
         txn.commit().await.unwrap();
-        db.run_migrations(None).await.unwrap();
+        crate::common::apply_through(
+            &db,
+            Some("2026-09-07-160000_fix_premium_confirmation_deadline"),
+        )
+        .await;
         let mut txn = db.begin_transaction().await.unwrap();
         assert!(
             REPO.list_subscription_users(&mut txn)
@@ -305,14 +306,12 @@ async fn migration_archives_every_legacy_plan_and_response_then_defaults_off() {
             .collect();
         assert_eq!(before, after);
         txn.commit().await.unwrap();
-        assert!(
-            db.revert_migrations(Some(crate::repos::revert_through(
-                "2026-09-07-160000_fix_premium_confirmation_deadline"
-            )))
-            .await
-            .is_err(),
-            "Evidence must block destructive downgrade"
-        );
+        crate::repos::assert_down_refused(
+            &db,
+            "2026-09-07-160000_fix_premium_confirmation_deadline",
+            "Retained Premium evidence",
+        )
+        .await;
     }
 }
 
@@ -545,7 +544,7 @@ async fn renewal_export_deletion_and_retention_cover_the_new_personal_data() {
     );
     assert_eq!(
         REPO.get_renewal_agreement(&mut txn, a.id).await.unwrap(),
-        Some(a)
+        Some(a.clone())
     );
     assert_eq!(
         REPO.prune_renewal_evidence(&mut txn, Utc.with_ymd_and_hms(2000, 1, 1, 0, 0, 0).unwrap())
@@ -555,6 +554,30 @@ async fn renewal_export_deletion_and_retention_cover_the_new_personal_data() {
     );
     assert_eq!(
         REPO.prune_renewal_evidence(&mut txn, future).await.unwrap(),
+        0,
+        "The actual erasure producer placed a retained renewal hold"
+    );
+    let holds: i64 = txn
+        .txn()
+        .query_one(
+            "SELECT count(*) FROM commercial_renewal_holds WHERE agreement_id=$1",
+            &[&*a.id],
+        )
+        .await
+        .unwrap()
+        .get(0);
+    assert_eq!(holds, 1);
+    let eligible = PremiumRenewalAgreement {
+        id: uuid::Uuid::new_v4().into(),
+        user_id: BAR.user.id,
+        ..a.clone()
+    };
+    REPO.create_renewal(&mut txn, &eligible).await.unwrap();
+    REPO.set_subscription(&mut txn, eligible.user_id, None)
+        .await
+        .unwrap();
+    assert_eq!(
+        REPO.prune_renewal_evidence(&mut txn, future).await.unwrap(),
         1
     );
     for table in [
@@ -562,15 +585,35 @@ async fn renewal_export_deletion_and_retention_cover_the_new_personal_data() {
         "premium_renewal_delivery",
         "premium_renewal_cancellations",
     ] {
+        let key = if table == "premium_renewal_agreements" {
+            "id"
+        } else {
+            "agreement_id"
+        };
         assert_eq!(
             txn.txn()
-                .query_one(&format!("select count(*) from {table}"), &[])
+                .query_one(
+                    &format!("SELECT count(*) FROM {table} WHERE {key}=$1"),
+                    &[&*eligible.id]
+                )
                 .await
                 .unwrap()
                 .get::<_, i64>(0),
             0
         );
     }
+    assert_eq!(
+        REPO.get_renewal_agreement(&mut txn, a.id).await.unwrap(),
+        Some(a)
+    );
+    assert_eq!(
+        txn.txn()
+            .query_one("SELECT count(*) FROM commercial_renewal_holds", &[])
+            .await
+            .unwrap()
+            .get::<_, i64>(0),
+        holds
+    );
 }
 
 #[tokio::test]
@@ -780,12 +823,9 @@ async fn cancellation_during_locked_delivery_stays_terminal_and_workers_skip_loc
 
 #[tokio::test]
 async fn deadline_migration_retains_unproven_agreements_but_disables_their_debits() {
-    let db = setup().await;
-    db.revert_migrations(Some(crate::repos::revert_through(
-        "2026-09-07-160000_fix_premium_confirmation_deadline",
-    )))
-    .await
-    .unwrap();
+    let db =
+        crate::common::setup_before("2026-09-07-160000_fix_premium_confirmation_deadline", true)
+            .await;
     let txn = db.begin_transaction().await.unwrap();
     txn.txn()
         .execute(
@@ -798,7 +838,7 @@ async fn deadline_migration_retains_unproven_agreements_but_disables_their_debit
     txn.txn().execute("insert into premium_renewal_delivery (agreement_id,sent_at) values ($1,current_timestamp)", &[&UUID1]).await.unwrap();
     txn.txn().execute("insert into premium_subscriptions (user_id,plan,agreement_id) values ($1,'monthly',$2)", &[&*FOO.user.id,&UUID1]).await.unwrap();
     txn.commit().await.unwrap();
-    db.run_migrations(None).await.unwrap();
+    crate::common::apply_through(&db, Some("2026-09-08-010000_observe_committed_premium")).await;
     let mut txn = db.begin_transaction().await.unwrap();
     assert_eq!(
         REPO.get_subscription(&mut txn, FOO.user.id).await.unwrap(),
@@ -833,11 +873,10 @@ async fn deadline_migration_retains_unproven_agreements_but_disables_their_debit
         1
     );
     txn.commit().await.unwrap();
-    assert!(
-        db.revert_migrations(Some(crate::repos::revert_through(
-            "2026-09-07-160000_fix_premium_confirmation_deadline"
-        )))
-        .await
-        .is_err()
-    );
+    crate::repos::assert_down_refused(
+        &db,
+        "2026-09-07-160000_fix_premium_confirmation_deadline",
+        "Retained Premium evidence",
+    )
+    .await;
 }

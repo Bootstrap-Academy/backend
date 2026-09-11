@@ -2,13 +2,9 @@
 //! and live server identity checks against this unit's new marked fixture.
 mod common;
 use academy_persistence_contracts::{Database, Transaction};
-use academy_persistence_postgres::{PostgresDatabase, PostgresDatabaseConfig, PostgresTransaction};
+use academy_persistence_postgres::{PostgresDatabase, PostgresTransaction};
 use serde_json::{Value, json};
-use std::{
-    collections::BTreeMap,
-    path::{Path, PathBuf},
-    time::Duration,
-};
+use std::{collections::BTreeMap, time::Duration};
 use uuid::Uuid;
 const FORWARD: &str = "2026-09-11-010000_retained_hold_review";
 const TABLES: [&str; 4] = [
@@ -19,76 +15,6 @@ const TABLES: [&str; 4] = [
 ];
 const KEYS: [&str; 4] = ["number", "declaration_id", "agreement_id", "user_id"];
 async fn setup() -> PostgresDatabase {
-    let root = PathBuf::from(std::env::var("BOOTSTRAP_HOLD_REVIEW_FIXTURE").unwrap())
-        .canonicalize()
-        .unwrap();
-    assert_eq!(root.parent(), Some(Path::new("/tmp")));
-    assert!(
-        root.file_name()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .starts_with("bootstrap-hold-review-lc1-")
-    );
-    let marker: Value =
-        serde_json::from_slice(&std::fs::read(root.join("OWNER.json")).unwrap()).unwrap();
-    assert_eq!(marker["canonical_root"], root.to_str().unwrap());
-    assert_eq!(marker["unit"], "L3-retained-hold-review-backend-1");
-    assert_eq!(marker["owner"], "/root/learning_source_review");
-    assert_eq!(
-        std::env::var("ACADEMY_CONFIG").unwrap(),
-        root.join("fixture.toml").to_str().unwrap()
-    );
-    assert!(std::env::var_os("DATABASE_URL").is_none());
-    assert!(!std::env::vars_os().any(|(k, _)| k.to_string_lossy().starts_with("PG")));
-    assert_eq!(std::env::var("SQLX_OFFLINE").unwrap(), "true");
-    let config = academy_config::load().unwrap();
-    let parsed: bb8_postgres::tokio_postgres::Config = config.database.url.parse().unwrap();
-    assert_eq!(
-        parsed.get_hosts(),
-        &[bb8_postgres::tokio_postgres::config::Host::Tcp(
-            "127.0.0.1".into()
-        )]
-    );
-    assert!(
-        parsed.get_hostaddrs().is_empty()
-            && parsed.get_options().is_none()
-            && parsed.get_password().is_none()
-    );
-    let port = u16::try_from(marker["port"].as_u64().unwrap()).unwrap();
-    assert_eq!(port, 56940);
-    assert_eq!(parsed.get_ports(), &[port]);
-    assert_eq!(parsed.get_dbname(), marker["database"].as_str());
-    assert_eq!(parsed.get_user(), marker["role"].as_str());
-    let db = PostgresDatabase::connect(&PostgresDatabaseConfig {
-        url: config.database.url,
-        max_connections: 8,
-        min_connections: 0,
-        acquire_timeout: config.database.acquire_timeout.into(),
-        idle_timeout: None,
-        max_lifetime: None,
-    })
-    .await
-    .unwrap();
-    let txn = db.begin_transaction().await.unwrap();
-    let row=txn.txn().query_one("SELECT current_database()::text,current_user::text,inet_server_port(),current_setting('data_directory'),version()",&[]).await.unwrap();
-    assert_eq!(row.get::<_, &str>(0), marker["database"].as_str().unwrap());
-    assert_eq!(row.get::<_, &str>(1), marker["role"].as_str().unwrap());
-    assert_eq!(row.get::<_, i32>(2), i32::from(port));
-    assert_eq!(
-        PathBuf::from(row.get::<_, &str>(3)).canonicalize().unwrap(),
-        root.join("pgdata").canonicalize().unwrap()
-    );
-    assert!(row.get::<_, &str>(4).starts_with("PostgreSQL 18.6"));
-    println!(
-        "OWNED TARGET VERIFIED BEFORE common::setup RESET: {} / {} / {} / {}",
-        row.get::<_, &str>(0),
-        row.get::<_, &str>(1),
-        port,
-        row.get::<_, &str>(3)
-    );
-    txn.commit().await.unwrap();
-    drop(db);
     common::setup().await
 }
 
@@ -875,7 +801,7 @@ async fn hold_queue_full_ties_native_timestamps_readonly_and_live_cursor() {
 
 #[tokio::test]
 async fn hold_migration_backfill_insert_history_corruption_and_safe_down() {
-    let db = setup().await;
+    let db = common::setup_through(Some("2026-09-11-020000_pending_determination")).await;
     assert_eq!(
         db.revert_migrations(Some(1)).await.unwrap(),
         vec!["2026-09-11-020000_pending_determination"]
@@ -920,7 +846,7 @@ async fn hold_migration_backfill_insert_history_corruption_and_safe_down() {
     t.commit().await.unwrap();
     let before = original_only(fingerprint(&db).await);
     assert_eq!(
-        db.run_migrations(None).await.unwrap(),
+        common::apply_through(&db, Some("2026-09-11-020000_pending_determination")).await,
         vec![FORWARD, "2026-09-11-020000_pending_determination"]
     );
     let b = staff_body(&db, c, o).await;
@@ -977,7 +903,7 @@ async fn hold_migration_backfill_insert_history_corruption_and_safe_down() {
     // Raw privileged corruption is a negative fixture only, not a supported writer.
     sql(&db,"ALTER TABLE commercial_document_holds DISABLE TRIGGER commercial_hold_update; UPDATE commercial_document_holds SET review_version=review_version+1; ALTER TABLE commercial_document_holds ENABLE TRIGGER commercial_hold_update").await;
     assert_eq!(
-        db.run_migrations(None).await.unwrap(),
+        common::apply_through(&db, Some("2026-09-11-020000_pending_determination")).await,
         vec!["2026-09-11-020000_pending_determination"]
     );
     let request = json!({"version":1,"limit":100,"cursor":null,"_staff_session":b["_staff_session"],"_staff_refresh_hash":b["_staff_refresh_hash"]});

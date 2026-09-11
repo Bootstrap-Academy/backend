@@ -290,6 +290,7 @@ async fn update_user() {
     let expected = UserComposite {
         user: User {
             id: BAR.user.id,
+            enabled: BAR.user.enabled,
             name: "othername".try_into().unwrap(),
             email: Some("other@email".parse().unwrap()),
             created_at: BAR.user.created_at,
@@ -515,6 +516,7 @@ async fn update_user_name_conflict() {
     let expected = UserComposite {
         user: User {
             id: BAR.user.id,
+            enabled: BAR.user.enabled,
             email: Some("other@email".parse().unwrap()),
             ..FOO.user.clone()
         },
@@ -535,6 +537,7 @@ async fn update_user_email_conflict() {
     let expected = UserComposite {
         user: User {
             id: BAR.user.id,
+            enabled: BAR.user.enabled,
             name: "othername".try_into().unwrap(),
             ..FOO.user.clone()
         },

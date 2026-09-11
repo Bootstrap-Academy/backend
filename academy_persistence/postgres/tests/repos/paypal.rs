@@ -143,12 +143,11 @@ async fn get_next_invoice_number() {
 /// facts at cutover, independently of account deletion, without guessing payment or tax facts.
 #[tokio::test]
 async fn migration_retains_legacy_ambiguity_after_account_deletion() {
-    let db = setup().await;
     let migration = academy_persistence_postgres::MIGRATIONS
         .iter()
         .find(|migration| migration.name.ends_with("durable_paypal_payments"))
         .unwrap();
-    db.execute(migration.down).await.unwrap();
+    let db = crate::common::setup_before(migration.name, true).await;
     let order = PaypalCoinOrder {
         id: "LEGACY".try_into().unwrap(),
         user_id: FOO.user.id,
@@ -162,7 +161,7 @@ async fn migration_retains_legacy_ambiguity_after_account_deletion() {
     let mut txn = db.begin_transaction().await.unwrap();
     REPO.create_coin_order(&mut txn, &order).await.unwrap();
     txn.commit().await.unwrap();
-    db.execute(migration.up).await.unwrap();
+    crate::common::apply_through(&db, Some(migration.name)).await;
     let txn = db.begin_transaction().await.unwrap();
     let saved = txn
         .txn()
@@ -193,5 +192,10 @@ async fn migration_retains_legacy_ambiguity_after_account_deletion() {
         .get(0);
     assert_eq!(original, after);
     txn.commit().await.unwrap();
-    assert!(db.execute(migration.down).await.is_err());
+    crate::repos::assert_down_refused(
+        &db,
+        migration.name,
+        "Refusing to remove PayPal payment evidence",
+    )
+    .await;
 }

@@ -2,84 +2,12 @@
 mod common;
 use academy_persistence_contracts::{Database, Transaction, moderation::ModerationRepository};
 use academy_persistence_postgres::{
-    PostgresDatabase, PostgresDatabaseConfig, moderation::PostgresModerationRepository as Repo,
+    PostgresDatabase, moderation::PostgresModerationRepository as Repo,
 };
 use serde_json::{Value, json};
-use std::{
-    collections::BTreeMap,
-    path::{Path, PathBuf},
-};
+use std::collections::BTreeMap;
 use uuid::Uuid;
 async fn setup() -> PostgresDatabase {
-    let root = PathBuf::from(std::env::var("BOOTSTRAP_STAFF_READS_FIXTURE").unwrap())
-        .canonicalize()
-        .unwrap();
-    assert_eq!(root.parent(), Some(Path::new("/tmp")));
-    assert!(
-        root.file_name()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .starts_with("bootstrap-staff-reads-")
-    );
-    let marker: Value =
-        serde_json::from_slice(&std::fs::read(root.join("OWNER.json")).unwrap()).unwrap();
-    assert_eq!(marker["canonical_root"], root.to_str().unwrap());
-    assert_eq!(marker["unit"], "L3-staff-commercial-reads-backend-1");
-    assert_eq!(marker["owner"], "/root/learning_evidence_review");
-    assert_eq!(
-        std::env::var("ACADEMY_CONFIG").unwrap(),
-        root.join("fixture.toml").to_str().unwrap()
-    );
-    assert!(std::env::var_os("DATABASE_URL").is_none());
-    assert_eq!(std::env::var("SQLX_OFFLINE").unwrap(), "true");
-    let config = academy_config::load().unwrap();
-    let parsed: bb8_postgres::tokio_postgres::Config = config.database.url.parse().unwrap();
-    assert_eq!(
-        parsed.get_hosts(),
-        &[bb8_postgres::tokio_postgres::config::Host::Tcp(
-            "127.0.0.1".into()
-        )]
-    );
-    assert!(
-        parsed.get_hostaddrs().is_empty()
-            && parsed.get_options().is_none()
-            && parsed.get_password().is_none()
-    );
-    let port = u16::try_from(marker["port"].as_u64().unwrap()).unwrap();
-    assert_eq!(port, 56920);
-    assert_eq!(parsed.get_ports(), &[port]);
-    assert_eq!(parsed.get_dbname(), marker["database"].as_str());
-    assert_eq!(parsed.get_user(), marker["role"].as_str());
-    let db = PostgresDatabase::connect(&PostgresDatabaseConfig {
-        url: config.database.url,
-        max_connections: 4,
-        min_connections: 0,
-        acquire_timeout: config.database.acquire_timeout.into(),
-        idle_timeout: None,
-        max_lifetime: None,
-    })
-    .await
-    .unwrap();
-    let txn = db.begin_transaction().await.unwrap();
-    let row=txn.txn().query_one("SELECT current_database()::text,current_user::text,inet_server_port(),current_setting('data_directory'),version()",&[]).await.unwrap();
-    assert_eq!(row.get::<_, &str>(0), marker["database"].as_str().unwrap());
-    assert_eq!(row.get::<_, &str>(1), marker["role"].as_str().unwrap());
-    assert_eq!(row.get::<_, i32>(2), i32::from(port));
-    assert_eq!(
-        PathBuf::from(row.get::<_, &str>(3)).canonicalize().unwrap(),
-        root.join("pgdata").canonicalize().unwrap()
-    );
-    assert!(row.get::<_, &str>(4).starts_with("PostgreSQL 18.6"));
-    println!(
-        "OWNED TARGET VERIFIED BEFORE common::setup RESET: {} / {} / {} / {}",
-        row.get::<_, &str>(0),
-        row.get::<_, &str>(1),
-        port,
-        row.get::<_, &str>(3)
-    );
-    txn.commit().await.unwrap();
-    drop(db);
     common::setup().await
 }
 
@@ -215,41 +143,7 @@ fn find(value: &Value, id: Uuid) -> &Value {
         .find(|o| o["id"] == id.to_string())
         .unwrap()
 }
-fn preserve(name: &str) {
-    let root = PathBuf::from(std::env::var("BOOTSTRAP_STAFF_READS_FIXTURE").unwrap());
-    let owner: Value =
-        serde_json::from_slice(&std::fs::read(root.join("OWNER.json")).unwrap()).unwrap();
-    assert_eq!(owner["canonical_root"], root.to_str().unwrap());
-    let args = [
-        "-h",
-        "127.0.0.1",
-        "-p",
-        "56920",
-        "-U",
-        "staff_reads_fixture",
-        "-d",
-        "staff_reads_fixture",
-        "--no-owner",
-        "--no-privileges",
-    ];
-    let out = std::process::Command::new(
-        "/nix/store/qbfm4pm2smh5znpvvwwwg95d6njwl17w-postgresql-18.6/bin/pg_dump",
-    )
-    .args(args)
-    .output()
-    .unwrap();
-    assert!(
-        out.status.success(),
-        "{}",
-        String::from_utf8_lossy(&out.stderr)
-    );
-    std::fs::write(
-        root.join("evidence").join(format!("{name}.sql")),
-        out.stdout,
-    )
-    .unwrap();
-    println!("OWNED SYNTHETIC DUMP {name}: pg_dump {args:?}");
-}
+
 #[tokio::test]
 async fn staff_reads_exact_owner_nulls_and_fresh_observations_are_read_only() {
     let db = setup().await;
@@ -354,7 +248,7 @@ async fn staff_reads_exact_owner_nulls_and_fresh_observations_are_read_only() {
                 .is_err()
         );
     }
-    preserve("staff-null-owner-final");
+    common::fixture::preserve(&db, "staff-null-owner-final").await;
 }
 async fn split(
     db: &PostgresDatabase,
@@ -386,7 +280,7 @@ async fn split(
 }
 #[tokio::test]
 async fn staff_capacity_mixed_and_nested_split_totals_and_upgrade_history() {
-    let db = setup().await;
+    let db = common::setup_through(Some("2026-09-11-020000_pending_determination")).await;
     let a = *academy_demo::user::FOO.user.id;
     let c = case(&db, a).await;
     let body = staff_body(&db, c, a).await;
@@ -520,7 +414,7 @@ async fn staff_capacity_mixed_and_nested_split_totals_and_upgrade_history() {
     );
     tx.commit().await.unwrap();
     assert_eq!(
-        db.run_migrations(None).await.unwrap(),
+        common::apply_through(&db, Some("2026-09-11-020000_pending_determination")).await,
         vec![
             "2026-09-10-040000_staff_commercial_reads",
             "2026-09-11-010000_retained_hold_review",
@@ -535,5 +429,5 @@ async fn staff_capacity_mixed_and_nested_split_totals_and_upgrade_history() {
     y.as_object_mut().unwrap().remove("observed_at");
     assert_eq!(x, y);
     println!("AD1 UPGRADE/DOWNGRADE RESTORED EXACT IMMEDIATE IF1 WRAPPER AND DATA");
-    preserve("staff-mixed-history-final");
+    common::fixture::preserve(&db, "staff-mixed-history-final").await;
 }

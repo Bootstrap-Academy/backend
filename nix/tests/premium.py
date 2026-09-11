@@ -4,7 +4,19 @@ import subprocess
 import time
 from datetime import datetime, timezone
 
-from utils import c, create_verified_account, make_internal_client, save_auth, enable_premium_renewal
+from utils import (
+    c,
+    create_verified_account,
+    make_internal_client,
+    save_auth,
+    enable_premium_renewal,
+    purchase,
+    purchase_offer,
+    purchase_acceptance,
+)
+from utils import configure_purchases
+
+configure_purchases()
 
 
 def assert_one_month(status):
@@ -41,29 +53,27 @@ resp = ci.get(f"/shop/_internal/premium/{login['user']['id']}")
 assert resp.status_code == 200
 assert resp.json() is False
 
-# purchase
-## withdrawal declarations missing
-resp = c.post("/shop/premium", json={"plan": "MONTHLY"})
-assert resp.status_code == 412
-assert resp.json() == {"detail": "Withdrawal consent missing"}
+# Explicit acceptance is required before any coin debit.
+offer = purchase_offer("premium_monthly")
+for field in ["accepted", "early_performance_requested"]:
+    resp = c.post("/shop/purchases/accept", json={**purchase_acceptance(offer), field: False})
+    assert resp.status_code == 409
+    assert c.get("/shop/coins/me").json()["coins"] == 0
 
-## not enough coins
-resp = c.post(
-    "/shop/premium", json={"plan": "MONTHLY", "withdrawal_consent": True, "withdrawal_text_version": "2026-09"}
-)
-assert resp.status_code == 412
-assert resp.json() == {"detail": "Not enough coins"}
+# Insufficient funds are a terminal, saved rejection, not a successful purchase.
+resp = c.post("/shop/purchases/accept", json=purchase_acceptance(offer))
+assert resp.status_code == 200, resp.text
+assert resp.json()["state"] == "failed"
+assert resp.json()["review_reason"] == "Not enough coins; order rejected without charge"
+assert resp.json()["confirmation_smtp_accepted_at"] is None
 assert c.get("/shop/premium/me").json()["premium"] is False
 
 ## ok
 assert subprocess.getstatusoutput(f"academy admin coin add {login['user']['id']} 15000")[0] == 0
 start = time.time() - 1
-resp = c.post(
-    "/shop/premium", json={"plan": "MONTHLY", "withdrawal_consent": True, "withdrawal_text_version": "2026-09"}
-)
+purchase("premium_monthly")
 end = time.time() + 1
-assert resp.status_code == 200
-status = resp.json()
+status = c.get("/shop/premium/me").json()
 assert status["premium"] is True
 assert status["autopay"] is None
 assert start <= status["since"] <= end
@@ -73,8 +83,9 @@ assert c.get("/shop/coins/me").json()["coins"] == 14000
 
 # get internal
 resp = ci.get(f"/shop/_internal/premium/{login['user']['id']}")
-assert resp.status_code == 412
-assert c.get("/shop/premium/me").json()["autopay"] == "MONTHLY"
+assert resp.status_code == 200
+assert resp.json() is True
+assert c.get("/shop/premium/me").json()["autopay"] is None
 
 # premium expires
 os.system(f"date -s @{int(status["until"] + 2)}")
@@ -90,12 +101,8 @@ assert c.get("/shop/premium/me").json() == {
 
 # purchase with subscription
 start = time.time() - 1
-resp = c.post(
-    "/shop/premium",
-    json={"plan": "MONTHLY", "autopay": False, "withdrawal_consent": True, "withdrawal_text_version": "2026-09"},
-)
+purchase("premium_monthly")
 end = time.time() + 1
-assert resp.status_code == 200
 status = enable_premium_renewal(c)
 assert status["premium"] is True
 assert status["autopay"] == "MONTHLY"

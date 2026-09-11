@@ -5,7 +5,19 @@ import subprocess
 import time
 import uuid
 
-from utils import c, create_admin_account, create_verified_account, enable_premium_renewal, fetch_mail, make_client
+from utils import (
+    c,
+    create_admin_account,
+    create_verified_account,
+    enable_premium_renewal,
+    fetch_mail,
+    make_client,
+    purchase,
+)
+from utils import configure_purchases
+
+configure_purchases()
+
 
 PUBLIC_KEYS = {
     "id",
@@ -22,13 +34,8 @@ PUBLIC_KEYS = {
 login = create_verified_account("dieter", "dieter@example.com", "supersecurepassword")
 user_id = login["user"]["id"]
 subprocess.run(["academy", "admin", "coin", "add", user_id, "5000"], check=True)
-assert (
-    c.post(
-        "/shop/premium",
-        json={"plan": "MONTHLY", "autopay": False, "withdrawal_consent": True, "withdrawal_text_version": "2026-09"},
-    ).status_code
-    == 200
-)
+purchase("premium_monthly", c)
+fetch_mail()  # confirmation of the separate one-off purchase
 premium = enable_premium_renewal(c)
 fetch_mail()  # separate T3 agreement confirmation
 anonymous = make_client()

@@ -11,85 +11,14 @@ use academy_persistence_contracts::{
     purchase::PurchaseRepository,
 };
 use academy_persistence_postgres::{
-    PostgresDatabase, PostgresDatabaseConfig, PostgresTransaction,
-    moderation::PostgresModerationRepository as Repo,
+    PostgresDatabase, PostgresTransaction, moderation::PostgresModerationRepository as Repo,
     purchase::PostgresPurchaseRepository as Purchase,
 };
 use chrono::{DateTime, Utc};
 use serde_json::{Value, json};
-use std::path::{Path, PathBuf};
 use uuid::Uuid;
 
 async fn setup() -> PostgresDatabase {
-    let root = PathBuf::from(std::env::var("BOOTSTRAP_PERSONAL_PURCHASE_FIXTURE").unwrap())
-        .canonicalize()
-        .unwrap();
-    assert_eq!(root.parent(), Some(Path::new("/tmp")));
-    assert!(
-        root.file_name()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .starts_with("bootstrap-personal-purchase-read-")
-    );
-    let marker: Value =
-        serde_json::from_slice(&std::fs::read(root.join("OWNER.json")).unwrap()).unwrap();
-    assert_eq!(marker["root"], root.to_str().unwrap());
-    assert_eq!(marker["unit"], "L3-personal-purchase-read-backend-1");
-    assert_eq!(marker["owner"], "/root/learning_source_review");
-    assert_eq!(
-        std::env::var("ACADEMY_CONFIG").unwrap(),
-        root.join("fixture.toml").to_str().unwrap()
-    );
-    assert!(std::env::var_os("DATABASE_URL").is_none());
-    assert_eq!(std::env::var("SQLX_OFFLINE").unwrap(), "true");
-    let config = academy_config::load().unwrap();
-    let parsed: bb8_postgres::tokio_postgres::Config = config.database.url.parse().unwrap();
-    assert_eq!(
-        parsed.get_hosts(),
-        &[bb8_postgres::tokio_postgres::config::Host::Tcp(
-            "127.0.0.1".into()
-        )]
-    );
-    assert!(
-        parsed.get_hostaddrs().is_empty()
-            && parsed.get_options().is_none()
-            && parsed.get_password().is_none()
-    );
-    let port = u16::try_from(marker["port"].as_u64().unwrap()).unwrap();
-    assert_eq!(port, 56880);
-    assert_eq!(parsed.get_ports(), &[port]);
-    assert_eq!(parsed.get_dbname(), marker["database"].as_str());
-    assert_eq!(parsed.get_user(), marker["user"].as_str());
-    let db = PostgresDatabase::connect(&PostgresDatabaseConfig {
-        url: config.database.url,
-        max_connections: 4,
-        min_connections: 0,
-        acquire_timeout: config.database.acquire_timeout.into(),
-        idle_timeout: None,
-        max_lifetime: None,
-    })
-    .await
-    .unwrap();
-    let txn = db.begin_transaction().await.unwrap();
-    let row=txn.txn().query_one("SELECT current_database()::text,current_user::text,inet_server_port(),current_setting('data_directory'),version()",&[]).await.unwrap();
-    assert_eq!(row.get::<_, &str>(0), marker["database"].as_str().unwrap());
-    assert_eq!(row.get::<_, &str>(1), marker["user"].as_str().unwrap());
-    assert_eq!(row.get::<_, i32>(2), i32::from(port));
-    assert_eq!(
-        PathBuf::from(row.get::<_, &str>(3)).canonicalize().unwrap(),
-        root.join("pgdata").canonicalize().unwrap()
-    );
-    assert!(row.get::<_, &str>(4).starts_with("PostgreSQL 18.6"));
-    println!(
-        "OWNED TARGET VERIFIED BEFORE common::setup RESET: {} / {} / {} / {}",
-        row.get::<_, &str>(0),
-        row.get::<_, &str>(1),
-        port,
-        row.get::<_, &str>(3)
-    );
-    txn.commit().await.unwrap();
-    drop(db);
     common::setup().await
 }
 fn at() -> DateTime<Utc> {

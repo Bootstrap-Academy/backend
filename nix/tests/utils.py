@@ -93,7 +93,7 @@ def create_account(name, email, password, client=None):
             "display_name": name,
             "email": email,
             "password": password,
-            "terms_version": "2026-09",
+            "terms_version": "2026-09-r2",
             "age_confirmed": True,
             "recaptcha_response": "success-1.0",
         },
@@ -196,3 +196,74 @@ def enable_premium_renewal(client=None):
     assert status["autopay"] == "MONTHLY"
     assert status["renewal"]["confirmation_sent"] is True
     return status
+
+
+def purchase_offer(kind, client=None):
+    client = client or c
+    response = client.post(f"/shop/purchases/offers/{kind}")
+    assert response.status_code == 200, response.text
+    status = response.json()
+    assert status["state"] == "offered", status
+    return status
+
+
+def purchase_acceptance(status):
+    return {
+        "order_id": status["offer"]["id"],
+        "offer_hash": status["offer"]["hash"],
+        "accepted": True,
+        "early_performance_requested": True,
+    }
+
+
+def purchase(kind, client=None):
+    """One explicit offer/acceptance; recover only this order, never place another."""
+    client = client or c
+    offered = purchase_offer(kind, client)
+    response = client.post("/shop/purchases/accept", json=purchase_acceptance(offered))
+    assert response.status_code == 200, response.text
+    status = response.json()
+    deadline = time.monotonic() + 20
+    while status["state"] == "paid" and time.monotonic() < deadline:
+        time.sleep(0.2)
+        response = client.get(f"/shop/purchases/{offered['offer']['id']}")
+        assert response.status_code == 200, response.text
+        status = response.json()
+    assert status["offer"] == offered["offer"]
+    assert status["state"] == "fulfilled", status
+    assert status["confirmation_smtp_accepted_at"] is not None
+    assert status["fulfillment"] is not None
+    return status
+
+
+def paypal_order(coins, client=None):
+    client = client or c
+    response = client.post(f"/shop/coins/paypal/offers/{coins}")
+    assert response.status_code == 200, response.text
+    offered = response.json()
+    response = client.post("/shop/coins/paypal/orders", json={"coins": coins, **purchase_acceptance(offered)})
+    assert response.status_code == 200, response.text
+    return response.json()
+
+
+def configure_purchases():
+    """Explicit synthetic windows in this disposable VM; defaults stay closed."""
+    assert Path(__file__).resolve().parent == Path("/root/tests")
+    assert subprocess.check_output(["hostname"], text=True).strip() == "machine"
+    path = Path("/run/academy-backend/secrets.toml")
+    original = path.read_text()
+    assert "[purchase.provision_window_seconds]" not in original
+    path.write_text(
+        original + "\n[purchase.provision_window_seconds]\n"
+        "premium_monthly = 60\npremium_yearly = 60\nhearts = 60\ncoins = 60\n"
+    )
+    subprocess.run(["systemctl", "restart", "academy-backend.service"], check=True)
+    for _ in range(100):
+        try:
+            response = c.get("/health")
+            if response.status_code == 200:
+                return
+        except httpx.TransportError:
+            pass
+        time.sleep(0.1)
+    raise AssertionError("Disposable VM backend did not restart with explicit test windows")

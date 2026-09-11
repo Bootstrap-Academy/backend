@@ -1,6 +1,7 @@
 use crate::common::setup;
 use academy_demo::{UUID1, UUID2, user::FOO};
 use academy_models::{contract::*, premium::PremiumRenewalId};
+use academy_persistence_contracts::user::UserRepository;
 use academy_persistence_contracts::{
     Database, Transaction, contract::ContractRepository, premium::PremiumRepository,
 };
@@ -69,8 +70,7 @@ fn message(id: ContractDeclarationId) -> ContractDeliveryAttempt {
 
 #[tokio::test]
 async fn committed_period_upgrade_keeps_old_order_unknown_and_retains_new_witness() {
-    let db = setup().await;
-    db.revert_migrations(Some(1)).await.unwrap();
+    let db = crate::common::setup_before("2026-09-08-010000_observe_committed_premium", true).await;
     let mut txn = db.begin_transaction().await.unwrap();
     fixture(&mut txn).await;
     let old_operation: i64 = txn
@@ -80,7 +80,7 @@ async fn committed_period_upgrade_keeps_old_order_unknown_and_retains_new_witnes
         .unwrap()
         .get(0);
     txn.commit().await.unwrap();
-    db.run_migrations(None).await.unwrap();
+    crate::common::apply_through(&db, Some("2026-09-08-010000_observe_committed_premium")).await;
     let txn = db.begin_transaction().await.unwrap();
     assert_eq!(
         txn.txn()
@@ -96,7 +96,12 @@ async fn committed_period_upgrade_keeps_old_order_unknown_and_retains_new_witnes
     let observed: chrono::DateTime<Utc> = txn.txn().query_one("INSERT INTO premium_period_commit_observation(operation_id,observed_at) VALUES($1,'2000-01-01Z') RETURNING observed_at", &[&old_operation]).await.unwrap().get(0);
     assert!(observed > Utc::now() - TimeDelta::minutes(1));
     txn.commit().await.unwrap();
-    assert!(db.revert_migrations(Some(1)).await.is_err());
+    crate::repos::assert_down_refused(
+        &db,
+        "2026-09-08-010000_observe_committed_premium",
+        "Retained committed-period observations",
+    )
+    .await;
 }
 
 #[tokio::test]
@@ -354,10 +359,12 @@ async fn pending_and_future_evidence_is_retained_and_receipts_outlive_accounts()
     Repo.save_receipt_access(&mut txn, d.id, "secret".into())
         .await
         .unwrap();
-    txn.txn()
-        .execute("DELETE FROM users WHERE id=$1", &[&*FOO.user.id])
-        .await
-        .unwrap();
+    assert!(
+        academy_persistence_postgres::user::PostgresUserRepository
+            .delete(&mut txn, FOO.user.id)
+            .await
+            .unwrap()
+    );
     assert!(
         Repo.get(&mut txn, d.id)
             .await
@@ -651,10 +658,12 @@ async fn documented_scheduling_remains_automatic_and_operation_copies_survive_ac
         .unwrap()
         .get(0);
     assert!(copies > 0);
-    txn.txn()
-        .execute("DELETE FROM users WHERE id=$1", &[&*FOO.user.id])
-        .await
-        .unwrap();
+    assert!(
+        academy_persistence_postgres::user::PostgresUserRepository
+            .delete(&mut txn, FOO.user.id)
+            .await
+            .unwrap()
+    );
     let after: i64 = txn
         .txn()
         .query_one(
@@ -676,8 +685,10 @@ async fn documented_scheduling_remains_automatic_and_operation_copies_survive_ac
         .get(0);
     assert_eq!(journal, 0);
     txn.commit().await.unwrap();
-    assert!(
-        db.revert_migrations(Some(1)).await.is_err(),
-        "Retained operation/action evidence must require forward repair"
-    );
+    crate::repos::assert_down_refused(
+        &db,
+        "2026-09-07-220000_fence_declaration_resolution",
+        "Retained period/action/delivery evidence",
+    )
+    .await;
 }

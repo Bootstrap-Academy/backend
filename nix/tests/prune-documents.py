@@ -1,7 +1,13 @@
 import os
+import hashlib
+from pathlib import Path
 import subprocess
 
-from utils import c, create_admin_account, create_verified_account, make_client
+from utils import c, create_admin_account, create_verified_account, make_client, paypal_order
+from utils import configure_purchases
+
+configure_purchases()
+
 
 RETENTION_MARKER = "Gelöschtes Konto (Aufbewahrung nach § 147 Abs. 3 AO)"
 INVOICE = "/var/lib/academy/invoices/R0000001.pdf"
@@ -25,9 +31,7 @@ a = create_verified_account("a", "a@a", "a")
 resp = c.patch("/auth/users/me", json={"business": False, "country": "Germany"})
 assert resp.status_code == 200
 
-order_id = c.post(
-    "/shop/coins/paypal/orders", json={"coins": 1337, "withdrawal_consent": True, "withdrawal_text_version": "2026-09"}
-).json()
+order_id = paypal_order(1337, c)
 c.post(f"http://127.0.0.1:8103/v2/checkout/orders/{order_id}/confirm-payment-source")
 resp = c.post(f"/shop/coins/paypal/orders/{order_id}/capture")
 assert resp.status_code == 200
@@ -40,7 +44,7 @@ assert "a@a" in query("select customer_details from financial_documents")
 
 # It also records the declarations under § 356 Abs. 6 Nr. 2 BGB that were given
 # for the order, because the order itself goes with the account.
-assert query("select withdrawal_text_version from financial_documents") == "2026-09"
+assert query("select withdrawal_text_version from financial_documents") == "L1-request-2026-09"
 assert query("select withdrawal_consent_at is not null from financial_documents") == "t"
 
 # The issued documents are part of the data export.
@@ -49,27 +53,35 @@ assert resp.status_code == 200
 documents = resp.json()["account"]["financial_documents"]
 assert [(d["number"], d["kind"], d["coins"]) for d in documents] == [("R0000001", "INVOICE", 1337)]
 
-# Deleting the account keeps the document, but it no longer names the account.
+# Deleting the account removes its live link, preserving necessary original evidence.
+original_invoice = Path(INVOICE).read_bytes()
+original_archive = query("select encode(sha256(pdf), 'hex') from invoice_originals where invoice_number='R0000001'")
+assert original_archive == hashlib.sha256(original_invoice).hexdigest()
 resp = c.delete("/auth/users/me")
 assert resp.status_code == 200
 
 assert os.path.exists(INVOICE)
 assert query("select user_id from financial_documents where kind='invoice'") == ""
+# Search/list metadata is minimized independently of immutable original bytes.
 assert RETENTION_MARKER in query("select customer_details from financial_documents where kind='invoice'")
 assert "a@a" not in query("select customer_details from financial_documents where kind='invoice'")
+assert (
+    query("select encode(sha256(pdf), 'hex') from invoice_originals where invoice_number='R0000001'")
+    == original_archive
+)
+assert Path(INVOICE).read_bytes() == original_invoice
 assert (
     query("select number,kind,coins,gross_total_cents from financial_documents where kind='invoice'")
     == "R0000001,invoice,1337,1337"
 )
 assert query("select count(*) from paypal_coin_orders") == "0"
 
-# The order that carried the declarations is gone, but the evidence that they
-# were given stays with the invoice for as long as the invoice is kept.
-assert query("select withdrawal_text_version from financial_documents where kind='invoice'") == "2026-09"
+# The live order is gone; the exact acceptance revision stays with its invoice.
+assert query("select withdrawal_text_version from financial_documents where kind='invoice'") == "L1-request-2026-09"
 assert query("select withdrawal_consent_at is not null from financial_documents where kind='invoice'") == "t"
 
 # The final statement records the unused share of the purchased Morphcoins and
-# is the one document that keeps the name and the email address, so that the
+# preserves the name and email alongside other necessary originals, so that the
 # amount can still be refunded on request (AGB Ziffer 6.7).
 statement_number = query("select number from financial_documents where kind='final_statement'")
 assert statement_number == "S1"
@@ -79,7 +91,6 @@ assert query("select coins,gross_total_cents from financial_documents where kind
 assert query("select user_id from financial_documents where kind='final_statement'") == ""
 details = query("select customer_details from financial_documents where kind='final_statement'")
 assert "a@a" in details
-assert RETENTION_MARKER not in details
 
 # An administrator can find both documents, and the final statement by the
 # email address it still carries.
@@ -93,7 +104,7 @@ assert all(d["user_id"] is None for d in listing["documents"])
 # The listing shows the declarations of the invoiced order; a final statement
 # documents no order and carries none.
 invoice_entry = next(d for d in listing["documents"] if d["number"] == "R0000001")
-assert invoice_entry["withdrawal_text_version"] == "2026-09"
+assert invoice_entry["withdrawal_text_version"] == "L1-request-2026-09"
 assert invoice_entry["withdrawal_consent_at"] is not None
 statement_entry = next(d for d in listing["documents"] if d["number"] == statement_number)
 assert statement_entry["withdrawal_text_version"] is None
@@ -115,16 +126,15 @@ def statement():
     return resp.json()["documents"][0]
 
 
-# The refund itself is made by hand, so the claim is closed out by hand as
-# well; the listing then shows that the statement has been paid out and it
-# cannot be settled a second time.
-assert os.system(f"academy admin finance settle {statement_number}") == 0
-assert statement()["settled_at"] is not None
-assert os.system(f"academy admin finance settle {statement_number}") != 0
-
-# Only a final statement records a claim, and an unknown number is rejected.
-assert os.system("academy admin finance settle R0000001") != 0
-assert os.system("academy admin finance settle S999") != 0
+# Timestamp-only settlement is explicitly unavailable. A rejected command must
+# not change the statement or authorize disposal of either original.
+statement_before = statement()
+for number in [statement_number, "R0000001", "S999"]:
+    result = subprocess.run(["academy", "admin", "finance", "settle", number], capture_output=True, text=True)
+    assert result.returncode != 0
+    assert "Settlement execution is not available" in result.stderr
+    assert statement() == statement_before
+    assert Path(INVOICE).read_bytes() == original_invoice
 
 # The listing requires admin privileges.
 resp = c.get("/finance/documents")
@@ -138,9 +148,7 @@ b_login = create_verified_account("b", "b@b", "b", b)
 resp = b.patch("/auth/users/me", json={"business": False, "country": "Germany"})
 assert resp.status_code == 200
 
-order_id = b.post(
-    "/shop/coins/paypal/orders", json={"coins": 500, "withdrawal_consent": True, "withdrawal_text_version": "2026-09"}
-).json()
+order_id = paypal_order(500, b)
 b.post(f"http://127.0.0.1:8103/v2/checkout/orders/{order_id}/confirm-payment-source")
 resp = b.post(f"/shop/coins/paypal/orders/{order_id}/capture")
 assert resp.status_code == 200
@@ -152,26 +160,39 @@ assert resp.status_code == 200
 resp = b.delete("/auth/users/me")
 assert resp.status_code == 200
 
-# The invoice of the purchase is kept, pseudonymized like every other invoice,
-# and no second final statement was issued.
+# The second issued invoice remains necessary original evidence; there is no
+# second final statement because its purchased balance was spent.
 assert query("select count(*) from financial_documents where kind='final_statement'") == "1"
 assert query("select count(*) from financial_documents where kind='invoice'") == "2"
 assert "b@b" not in query("select array_to_string(customer_details, ' ') from financial_documents")
 
-# The retention period of a document issued in 2024 ends with 2032.
-os.system("date -s '2032-12-31 12:00:00'")
-prune()
-assert os.path.exists(INVOICE)
-assert os.path.exists(final_statement)
-assert query("select count(*) from financial_documents") == "3"
 
-os.system("date -s '2033-01-01 12:00:00'")
-prune()
-assert not os.path.exists(INVOICE)
-assert not os.path.exists(final_statement)
-assert query("select count(*) from financial_documents") == "0"
+# Calendar expiry alone cannot erase retained originals or settle remaining
+# claims. The installed forward guard is exercised, never removed for this test.
+def originals():
+    paths = [Path(INVOICE), Path(final_statement), Path("/var/lib/academy/invoices/R0000002.pdf")]
+    return {str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in paths}
 
-# Nothing is left behind that the orphan report could complain about.
+
+saved_files = originals()
+saved_archives = query(
+    "select jsonb_agg(jsonb_build_array(invoice_number, encode(sha256(pdf), 'hex')) order by invoice_number) from invoice_originals"
+)
+saved_documents = query("select jsonb_agg(to_jsonb(d) order by number) from financial_documents d")
+for at in ["2032-12-31 12:00:00", "2033-01-01 12:00:00"]:
+    subprocess.run(["date", "-s", at], check=True)
+    prune()
+    assert originals() == saved_files
+    assert (
+        query(
+            "select jsonb_agg(jsonb_build_array(invoice_number, encode(sha256(pdf), 'hex')) order by invoice_number) from invoice_originals"
+        )
+        == saved_archives
+    )
+    assert query("select jsonb_agg(to_jsonb(d) order by number) from financial_documents d") == saved_documents
+    assert query("select count(*) from financial_documents") == "3"
+
+# Kept files are accounted for, not orphaned merely because their users are gone.
 status, out = subprocess.getstatusoutput("academy task list-orphan-documents")
 assert status == 0, out
 assert "/var/lib/academy" not in out, out

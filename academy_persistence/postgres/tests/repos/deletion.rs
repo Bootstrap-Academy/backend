@@ -24,13 +24,12 @@ async fn deletion_work_is_atomic_durable_and_per_service() {
         .await
         .unwrap();
     txn.commit().await.unwrap();
-    assert!(
-        db.revert_migrations(Some(crate::repos::revert_through(
-            "2026-09-07-200000_durable_user_deletion"
-        )))
-        .await
-        .is_err()
-    );
+    crate::repos::assert_down_refused(
+        &db,
+        "2026-09-07-200000_durable_user_deletion",
+        "Cannot discard pending account erasure work",
+    )
+    .await;
     let mut txn = db.begin_transaction().await.unwrap();
     let first = deletion::claim(&mut txn, &[]).await.unwrap().unwrap();
     let mut other = db.begin_transaction().await.unwrap();

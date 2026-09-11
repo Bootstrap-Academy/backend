@@ -1,16 +1,14 @@
 //! Normal synthetic SQL validation only. Every reset requires parsed and actual
 //! ownership checks against a newly initialized, marked disposable server.
 use academy_models::finance::FinancialDocumentKind;
+mod common;
 use academy_persistence_contracts::{Database, Transaction, finance::FinancialDocumentRepository};
 use academy_persistence_postgres::{
-    MIGRATIONS, PostgresDatabase, PostgresDatabaseConfig, PostgresTransaction,
+    MIGRATIONS, PostgresDatabase, PostgresTransaction,
     finance::PostgresFinancialDocumentRepository as Finance,
 };
 use serde_json::Value;
-use std::{
-    path::{Path, PathBuf},
-    time::Duration,
-};
+use std::time::Duration;
 use uuid::Uuid;
 const FORWARD: &str = "2026-09-10-020000_invoice_identity";
 const CAPTURE: &str = "2026-09-03-200000_create_financial_documents";
@@ -18,79 +16,8 @@ const CONSENT: &str = "2026-09-07-100000_add_withdrawal_consent_to_financial_doc
 const A: Uuid = Uuid::from_u128(0x11111111111111111111111111111111);
 const B: Uuid = Uuid::from_u128(0x22222222222222222222222222222222);
 async fn setup(expected: &str) -> PostgresDatabase {
-    let root = PathBuf::from(std::env::var("BOOTSTRAP_IF1_FIXTURE").unwrap())
-        .canonicalize()
-        .unwrap();
-    assert_eq!(root.parent(), Some(Path::new("/tmp")));
-    assert!(
-        root.file_name()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .starts_with("bootstrap-if1-residual-")
-    );
-    let marker: Value =
-        serde_json::from_slice(&std::fs::read(root.join("OWNER.json")).unwrap()).unwrap();
-    assert_eq!(marker["root"], root.to_str().unwrap());
-    assert_eq!(marker["owner"], "/root/learning_source_review");
-    assert_eq!(marker["unit"], "L3-invoice-number-correction-2");
-    assert!(
-        marker["databases"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|v| v == expected)
-    );
-    assert_eq!(
-        std::env::var("ACADEMY_CONFIG").unwrap(),
-        root.join(format!("{expected}.toml")).to_str().unwrap()
-    );
-    assert!(std::env::var_os("DATABASE_URL").is_none());
-    assert!(!std::env::vars_os().any(|(k, _)| k.to_string_lossy().starts_with("PG")));
-    let config = academy_config::load().unwrap();
-    let parsed: bb8_postgres::tokio_postgres::Config = config.database.url.parse().unwrap();
-    assert_eq!(
-        parsed.get_hosts(),
-        &[bb8_postgres::tokio_postgres::config::Host::Tcp(
-            "127.0.0.1".into()
-        )]
-    );
-    assert!(
-        parsed.get_hostaddrs().is_empty()
-            && parsed.get_options().is_none()
-            && parsed.get_password().is_none()
-    );
-    assert_eq!(parsed.get_ports(), &[56900]);
-    assert_eq!(marker["port"], 56900);
-    assert_eq!(parsed.get_user(), Some("l3_if1_residual_owner"));
-    assert_eq!(parsed.get_dbname(), Some(expected));
-    let db = PostgresDatabase::connect(&PostgresDatabaseConfig {
-        url: config.database.url,
-        max_connections: 6,
-        min_connections: 0,
-        acquire_timeout: Duration::from_secs(10),
-        idle_timeout: None,
-        max_lifetime: None,
-    })
-    .await
-    .unwrap();
-    let tx = db.begin_transaction().await.unwrap();
-    let r=tx.txn().query_one("SELECT current_database()::text,current_user::text,inet_server_port(),current_setting('data_directory'),version()",&[]).await.unwrap();
-    assert_eq!(r.get::<_, &str>(0), expected);
-    assert_eq!(r.get::<_, &str>(1), "l3_if1_residual_owner");
-    assert_eq!(r.get::<_, i32>(2), 56900);
-    assert_eq!(
-        PathBuf::from(r.get::<_, &str>(3)).canonicalize().unwrap(),
-        root.join("pgdata").canonicalize().unwrap()
-    );
-    assert!(r.get::<_, &str>(4).starts_with("PostgreSQL 18.6"));
-    println!(
-        "OWNED RESET TARGET VERIFIED: {expected} / l3_if1_residual_owner / 56900 / {}",
-        r.get::<_, &str>(3)
-    );
-    tx.commit().await.unwrap();
-    db.reset().await.unwrap();
-    db
+    println!("HISTORICAL_CASE {expected}");
+    common::fixture::fresh_history().await
 }
 async fn before(db: &PostgresDatabase, name: &str) {
     let n = MIGRATIONS.iter().position(|m| m.name == name).unwrap();

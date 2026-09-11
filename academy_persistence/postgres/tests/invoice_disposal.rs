@@ -3,16 +3,11 @@ mod common;
 use academy_models::finance::{FinancialDocumentKind, FinancialDocumentNumber};
 use academy_persistence_contracts::{Database, Transaction, finance::FinancialDocumentRepository};
 use academy_persistence_postgres::{
-    PostgresDatabase, PostgresDatabaseConfig, PostgresTransaction,
-    finance::PostgresFinancialDocumentRepository as Finance,
+    PostgresDatabase, PostgresTransaction, finance::PostgresFinancialDocumentRepository as Finance,
 };
 use chrono::{DateTime, Utc};
 use serde_json::{Value, json};
-use std::{
-    collections::BTreeMap,
-    path::{Path, PathBuf},
-    time::Duration,
-};
+use std::{collections::BTreeMap, time::Duration};
 use uuid::Uuid;
 const FORWARD: &str = "2026-09-11-030000_invoice_disposal_preservation";
 const A: Uuid = Uuid::from_u128(0x11111111111111111111111111111111);
@@ -21,130 +16,8 @@ async fn setup() -> PostgresDatabase {
     setup_mode(false).await
 }
 async fn setup_mode(pre_forward: bool) -> PostgresDatabase {
-    let root = PathBuf::from(std::env::var("BOOTSTRAP_INVOICE_PRESERVATION_FIXTURE").unwrap())
-        .canonicalize()
-        .unwrap();
-    assert_eq!(root.parent(), Some(Path::new("/tmp")));
-    assert!(
-        root.file_name()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .starts_with("bootstrap-invoice-preservation-")
-    );
-    let marker: Value =
-        serde_json::from_slice(&std::fs::read(root.join("OWNER.json")).unwrap()).unwrap();
-    assert_eq!(marker["canonical_root"], root.to_str().unwrap());
-    assert_eq!(marker["unit"], "L3-invoice-disposal-preservation-backend-1");
-    assert_eq!(marker["owner"], "/root/learning_source_review");
-    assert_eq!(
-        std::env::var("ACADEMY_CONFIG").unwrap(),
-        root.join("fixture.toml").to_str().unwrap()
-    );
-    assert!(std::env::var_os("DATABASE_URL").is_none());
-    assert!(!std::env::vars_os().any(|(k, _)| k.to_string_lossy().starts_with("PG")));
-    assert_eq!(std::env::var("SQLX_OFFLINE").unwrap(), "true");
-    let config = academy_config::load().unwrap();
-    let parsed: bb8_postgres::tokio_postgres::Config = config.database.url.parse().unwrap();
-    assert_eq!(
-        parsed.get_hosts(),
-        &[bb8_postgres::tokio_postgres::config::Host::Tcp(
-            "127.0.0.1".into()
-        )]
-    );
-    assert!(
-        parsed.get_hostaddrs().is_empty()
-            && parsed.get_options().is_none()
-            && parsed.get_password().is_none()
-    );
-    let port = u16::try_from(marker["port"].as_u64().unwrap()).unwrap();
-    assert_eq!(port, 56980);
-    assert_eq!(parsed.get_ports(), &[port]);
-    assert_eq!(parsed.get_dbname(), marker["database"].as_str());
-    assert_eq!(parsed.get_user(), marker["role"].as_str());
-    let db = PostgresDatabase::connect(&PostgresDatabaseConfig {
-        url: config.database.url,
-        max_connections: 12,
-        min_connections: 0,
-        acquire_timeout: config.database.acquire_timeout.into(),
-        idle_timeout: None,
-        max_lifetime: None,
-    })
-    .await
-    .unwrap();
-    let txn = db.begin_transaction().await.unwrap();
-    let row=txn.txn().query_one("SELECT current_database()::text,current_user::text,inet_server_port(),current_setting('data_directory'),version()",&[]).await.unwrap();
-    assert_eq!(row.get::<_, &str>(0), marker["database"].as_str().unwrap());
-    assert_eq!(row.get::<_, &str>(1), marker["role"].as_str().unwrap());
-    assert_eq!(row.get::<_, i32>(2), i32::from(port));
-    assert_eq!(
-        PathBuf::from(row.get::<_, &str>(3)).canonicalize().unwrap(),
-        root.join("pgdata").canonicalize().unwrap()
-    );
-    assert!(row.get::<_, &str>(4).starts_with("PostgreSQL 18.6"));
-    println!(
-        "OWNED TARGET VERIFIED BEFORE common::setup RESET: {} / {} / {} / {}",
-        row.get::<_, &str>(0),
-        row.get::<_, &str>(1),
-        port,
-        row.get::<_, &str>(3)
-    );
-    let guard = json!({"marker":marker,"parsed_host":"127.0.0.1","parsed_port":port,"parsed_database":parsed.get_dbname(),"parsed_role":parsed.get_user(),"actual_database":row.get::<_,&str>(0),"actual_role":row.get::<_,&str>(1),"actual_port":row.get::<_,i32>(2),"actual_data_directory":row.get::<_,&str>(3),"actual_version":row.get::<_,&str>(4)});
-    let capture_id = Uuid::new_v4();
-    std::fs::write(
-        root.join("evidence")
-            .join(format!("reset-guard-{capture_id}.json")),
-        serde_json::to_vec_pretty(&guard).unwrap(),
-    )
-    .unwrap();
-    txn.commit().await.unwrap();
-    drop(db);
-    // Preserve the preceding full owned database state before the next reset.
-    let dump = root
-        .join("evidence")
-        .join(format!("pre-reset-{capture_id}.sql"));
-    let output = std::process::Command::new(
-        "/nix/store/qbfm4pm2smh5znpvvwwwg95d6njwl17w-postgresql-18.6/bin/pg_dump",
-    )
-    .env_clear()
-    .args([
-        "-h",
-        "127.0.0.1",
-        "-p",
-        "56980",
-        "-U",
-        marker["role"].as_str().unwrap(),
-        "-d",
-        marker["database"].as_str().unwrap(),
-        "--no-owner",
-        "--no-privileges",
-    ])
-    .output()
-    .unwrap();
-    assert!(
-        output.status.success(),
-        "{}",
-        String::from_utf8_lossy(&output.stderr)
-    );
-    std::fs::write(&dump, output.stdout).unwrap();
-    println!("PRESERVED_PRE_RESET {}", dump.display());
-    let baseline = std::env::var("INVOICE_SOURCE_BASELINE").as_deref() == Ok("1");
-    if !baseline {
-        assert!(
-            academy_persistence_postgres::MIGRATIONS
-                .iter()
-                .any(|m| m.name == FORWARD),
-            "current forward must be embedded before reset"
-        );
-    }
     if pre_forward {
-        let db = common::setup_clean().await;
-        let count = academy_persistence_postgres::MIGRATIONS
-            .iter()
-            .position(|m| m.name == FORWARD)
-            .unwrap();
-        assert_eq!(db.run_migrations(Some(count)).await.unwrap().len(), count);
-        db
+        common::setup_before(FORWARD, false).await
     } else {
         common::setup().await
     }
@@ -740,7 +613,23 @@ async fn isolation_entries_and_forward_only_downgrade_preserve_exact_state() {
     }
     assert_eq!(fingerprint(&db).await, old);
     let error = db.revert_migrations(Some(1)).await.unwrap_err();
-    assert!(format!("{error:#}").contains("forward-repair-only"));
+    assert!(format!("{error:#}").contains("Wallet restoration target and isolation protection"));
+    // Exercise this unit's guard as well; the newer wallet refusal is separate.
+    let tx = db.begin_transaction().await.unwrap();
+    let invoice = academy_persistence_postgres::MIGRATIONS
+        .iter()
+        .find(|m| m.name == FORWARD)
+        .unwrap();
+    let error = tx.txn().batch_execute(invoice.down).await.unwrap_err();
+    assert_eq!(error.code().unwrap().code(), "P0001");
+    assert!(
+        error
+            .as_db_error()
+            .unwrap()
+            .message()
+            .contains("Invoice disposal preservation is forward-repair-only")
+    );
+    tx.rollback().await.unwrap();
     assert_eq!(fingerprint(&db).await, old);
     println!(
         "GROUP all four RC boundaries including exact replay; full-forward down refused, {} public-table fingerprints unchanged",
@@ -762,7 +651,10 @@ async fn additive_migration_preserves_dispatch_and_safe_existing_conditions() {
         .unwrap()
         .get(0);
     tx.commit().await.unwrap();
-    assert_eq!(db.run_migrations(None).await.unwrap(), vec![FORWARD]);
+    assert_eq!(
+        common::apply_through(&db, Some(FORWARD)).await,
+        vec![FORWARD]
+    );
     let tx = db.begin_transaction().await.unwrap();
     assert_eq!(
         tx.txn()

@@ -2,7 +2,10 @@
 
 import subprocess
 
-from utils import create_verified_account, make_client, enable_premium_renewal
+from utils import create_verified_account, make_client, enable_premium_renewal, purchase
+from utils import configure_purchases
+
+configure_purchases()
 
 
 def coin_add(user_id, coins):
@@ -60,12 +63,8 @@ create_verified_account("free", "free@example.com", "password", non_subscriber)
 
 for client, login in [(first, first_login), (other, other_login)]:
     coin_add(login["user"]["id"], 50000)
-    response = client.post(
-        "/shop/premium",
-        json={"plan": "MONTHLY", "autopay": False, "withdrawal_consent": True, "withdrawal_text_version": "2026-09"},
-    )
-    assert response.status_code == 200
-    assert response.json()["autopay"] is None
+    purchase("premium_monthly", client)
+    assert status(client)["autopay"] is None
     enable_premium_renewal(client)
 
 first_paid = status(first)

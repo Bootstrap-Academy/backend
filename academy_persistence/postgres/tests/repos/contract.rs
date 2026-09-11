@@ -317,9 +317,15 @@ async fn survives_user_deletion() {
     REPO.create(&mut txn, cancellation()).await.unwrap();
     txn.commit().await.unwrap();
 
-    db.execute(&format!("delete from users where id='{}';", *FOO.user.id))
-        .await
-        .unwrap();
+    use academy_persistence_contracts::user::UserRepository;
+    let mut deletion = db.begin_transaction().await.unwrap();
+    assert!(
+        academy_persistence_postgres::user::PostgresUserRepository
+            .delete(&mut deletion, FOO.user.id)
+            .await
+            .unwrap()
+    );
+    deletion.commit().await.unwrap();
 
     let mut txn = db.begin_transaction().await.unwrap();
     assert_original_fields_eq!(REPO.count(&mut txn, None).await.unwrap(), 1);

@@ -94,11 +94,11 @@ assert c.get(f"http://127.0.0.1:8103/v2/checkout/orders/{order_id}").json()["sta
 messages = [fetch_mail(), fetch_mail()]
 confirmation = next(m for m in messages if len(get_mail_parts(m)) == 3)
 mail = next(m for m in messages if len(get_mail_parts(m)) == 4)
-assert decode_mail_header(confirmation["Subject"]) == "Ihre Vertragsbestätigung – Bootstrap Academy"
+assert decode_mail_header(confirmation["Subject"]) == "Deine Vertragsbestätigung – Bootstrap Academy"
 confirmation_body, confirmation_terms, confirmation_withdrawal = get_mail_parts(confirmation)
 assert offer["offer"]["id"] in decode_mail_part(confirmation_body).decode()
 assert mail["X-Original-To"] == "foobar@example.com"
-assert decode_mail_header(mail["Subject"]) == "Ihre Vertragsbestätigung – Bootstrap Academy"
+assert decode_mail_header(mail["Subject"]) == "Deine Vertragsbestätigung – Bootstrap Academy"
 payload, invoice, terms, revocation_policy = get_mail_parts(mail)
 content = decode_mail_part(payload).decode()
 assert content == decode_mail_part(confirmation_body).decode()

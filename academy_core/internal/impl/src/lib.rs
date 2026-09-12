@@ -103,11 +103,14 @@ where
         include_in_credit_note: bool,
     ) -> Result<Balance, InternalAddCoinsError> {
         self.auth_internal.authenticate(token, "shop")?;
+        if coins > 0 {
+            return Err(InternalAddCoinsError::CreditNotAuthorized);
+        }
 
         let mut txn = self.db.begin_transaction().await?;
 
         // New limited-subject purchases use exact-order acceptance. Generic
-        // credits still use the verified commercial recipient and withholding.
+        // zero-value compatibility requests keep their existing recipient semantics.
         let user_composite = if coins < 0 {
             self.user_repo.get_composite(&mut txn, user_id).await?
         } else {
@@ -151,6 +154,9 @@ where
         match self.coin_repo.claim_operation(&mut txn, &operation).await? {
             CoinOperationClaim::Completed(balance) => return Ok(balance),
             CoinOperationClaim::Conflict => return Err(InternalAddCoinsError::OperationConflict),
+            CoinOperationClaim::CreditNotAuthorized => {
+                return Err(InternalAddCoinsError::CreditNotAuthorized);
+            }
             CoinOperationClaim::New => (),
         }
         // Completed receipts above remain replayable without a current user.

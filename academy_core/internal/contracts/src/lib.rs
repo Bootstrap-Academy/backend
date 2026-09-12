@@ -26,10 +26,10 @@ pub trait InternalService: Send + Sync + 'static {
         email: EmailAddress,
     ) -> impl Future<Output = Result<UserComposite, InternalGetUserByEmailError>> + Send;
 
-    /// Add Morphcoins to the balance of the given user.
+    /// Apply a nonpositive adjustment to the given user's Morphcoins.
     /// New negative operations require an ordinary recipient. Limited-service
-    /// purchases use their owning exact-order acceptance; nonnegative credits
-    /// retain the recipient's applicable verification and withholding rules.
+    /// purchases use their owning exact-order acceptance. New positive credits
+    /// use the purchase or verified historical-recovery path instead.
     fn add_coins(
         &self,
         token: &InternalToken,
@@ -41,6 +41,7 @@ pub trait InternalService: Send + Sync + 'static {
 
     /// Apply or replay a durable, immutable internal coin operation.
     /// Exact completed receipts are returned before current recipient lookup.
+    /// Positive requests require an existing, exactly matching historical reservation.
     /// New negative operations have the same ordinary-recipient scope as add_coins.
     fn apply_coin_operation(
         &self,
@@ -100,6 +101,8 @@ pub enum InternalGetUserByEmailError {
 
 #[derive(Debug, Error)]
 pub enum InternalAddCoinsError {
+    #[error("Use the purchase or verified recovery path to credit coins.")]
+    CreditNotAuthorized,
     #[error("The operation id was already used with a different request.")]
     OperationConflict,
     #[error("The user does not exist.")]

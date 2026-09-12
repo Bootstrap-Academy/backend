@@ -24,6 +24,8 @@ pub enum CoinOperationClaim {
     New,
     Completed(Balance),
     Conflict,
+    /// A new positive generic operation has no reviewed historical reservation.
+    CreditNotAuthorized,
 }
 
 /// Public pricing information for Morphcoin purchases.

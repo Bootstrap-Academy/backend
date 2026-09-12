@@ -9,6 +9,7 @@ use crate::InternalServiceImpl;
 mod add_coins;
 mod add_hearts;
 mod apply_heart_operation;
+mod coin_operations;
 mod get_hearts;
 mod get_user;
 mod get_user_by_email;

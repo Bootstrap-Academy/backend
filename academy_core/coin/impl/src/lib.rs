@@ -80,6 +80,9 @@ where
         let auth = self.auth.authenticate(token).await.map_auth_err()?;
         let user_id = user_id.unwrap_or(auth.user_id);
         auth.ensure_admin().map_auth_err()?;
+        if coins > 0 {
+            return Err(CoinAddCoinsError::CreditNotAuthorized);
+        }
 
         let mut txn = self.db.begin_transaction().await?;
 

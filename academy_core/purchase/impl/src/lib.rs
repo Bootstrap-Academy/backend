@@ -1,4 +1,4 @@
-use academy_assets::email::{AGB_2026_09_R2_PDF, WIDERRUFSBELEHRUNG_2026_09_R1_PDF};
+use academy_assets::email::{AGB_2026_09_R4_PDF, WIDERRUFSBELEHRUNG_2026_09_R1_PDF};
 use academy_auth_contracts::{AuthService, internal::AuthInternalService};
 use academy_core_heart_contracts::heart::HeartService;
 use academy_core_heart_impl::HeartFeatureConfig;
@@ -69,7 +69,7 @@ pub struct PurchaseFeatureServiceImpl<
 
 fn docs_hash() -> String {
     let mut hash = Sha256::new();
-    for bytes in [AGB_2026_09_R2_PDF, WIDERRUFSBELEHRUNG_2026_09_R1_PDF] {
+    for bytes in [AGB_2026_09_R4_PDF, WIDERRUFSBELEHRUNG_2026_09_R1_PDF] {
         hash.update((bytes.len() as u64).to_be_bytes());
         hash.update(bytes);
     }
@@ -116,8 +116,8 @@ where
     }
     fn builtin(&self, kind: &str) -> Result<PurchaseProduct, PurchaseError> {
         let (title,description,coins,facts)=match kind {
-            "premium_monthly"=>("Premium für einen Kalendermonat",format!("Zugriff auf alle Kurse und Übungen ohne Verbrauch von Herzen; Webinare und Coachings sind nicht enthalten. {COMMENCEMENT}"),self.premium_config.monthly_price,json!({"months":1,"automatic_renewal":false})),
-            "premium_yearly"=>("Premium für zwölf Kalendermonate",format!("Zugriff auf alle Kurse und Übungen ohne Verbrauch von Herzen; Webinare und Coachings sind nicht enthalten. {COMMENCEMENT}"),self.premium_config.yearly_price,json!({"months":12,"automatic_renewal":false})),
+            "premium_monthly"=>("Premium für einen Kalendermonat",format!("Zugriff auf alle Kurse und Übungen ohne Verbrauch von Herzen. {COMMENCEMENT}"),self.premium_config.monthly_price,json!({"months":1,"automatic_renewal":false})),
+            "premium_yearly"=>("Premium für zwölf Kalendermonate",format!("Zugriff auf alle Kurse und Übungen ohne Verbrauch von Herzen. {COMMENCEMENT}"),self.premium_config.yearly_price,json!({"months":12,"automatic_renewal":false})),
             "hearts"=>("Herzen auffüllen","Du füllst deine Herzen einmalig bis zur angegebenen Höchstzahl auf. Kein Abo. Die tägliche kostenlose Auffüllung bleibt bestehen.".into(),self.heart_config.hearts_refill_price,json!({"maximum":self.heart_config.hearts_max,"unit":"half_heart"})),
             _=>return Err(PurchaseError::Unavailable),
         };
@@ -227,7 +227,7 @@ where
             }
             product.facts["refill_units"] = json!(units);
             product.description = format!(
-                "Du kaufst einmalig {} zusätzliche Herzen, höchstens {} Herzen insgesamt. Ein Lösungsversuch kostet je nach Aufgabentyp ein halbes oder ein ganzes Herz, auch bei richtiger Lösung. Wie viele Versuche du damit machen kannst, hängt deshalb von den Aufgaben ab. Du erhältst deine Herzen nach der Vertragsbestätigung. Falls durch die tägliche kostenlose Auffüllung nicht mehr genug Platz für die gekaufte Menge ist, bleibt deine bezahlte Bestellung in der Bestellübersicht. Kein Abo. Deine Herzen werden weiterhin täglich automatisch und kostenlos aufgefüllt.",
+                "Du kaufst einmalig {} zusätzliche Herzen, höchstens {} Herzen insgesamt. Nur eine falsche Lösung kostet ein ganzes Herz. Richtige Lösungen und technische Fehler sind kostenlos. Du erhältst deine Herzen nach der Vertragsbestätigung. Falls durch die tägliche kostenlose Auffüllung nicht mehr genug Platz für die gekaufte Menge ist, bleibt deine bezahlte Bestellung in der Bestellübersicht. Kein Abo. Deine Herzen werden weiterhin täglich automatisch und kostenlos aufgefüllt.",
                 display_hearts(units),
                 display_hearts(self.heart_config.hearts_max)
             );
@@ -304,7 +304,7 @@ where
                 provision_timing: None,
                 document_corrections: Vec::new(),
             },
-            terms_pdf: AGB_2026_09_R2_PDF.to_vec(),
+            terms_pdf: AGB_2026_09_R4_PDF.to_vec(),
             withdrawal_pdf: WIDERRUFSBELEHRUNG_2026_09_R1_PDF.to_vec(),
             confirmation_body: None,
             delivery_generation: 0,

@@ -22,9 +22,9 @@ pub trait CoinFeatureService: Send + Sync + 'static {
         user_id: UserIdOrSelf,
     ) -> impl Future<Output = Result<Balance, CoinGetBalanceError>> + Send;
 
-    /// Add Morphcoins to the balance of the given user.
+    /// Apply a nonpositive adjustment to the given user's Morphcoins.
     ///
-    /// Requires admin privileges.
+    /// Requires admin privileges. Positive credits use their owning purchase or recovery flow.
     fn add_coins(
         &self,
         token: &AccessToken,
@@ -47,6 +47,8 @@ pub enum CoinGetBalanceError {
 
 #[derive(Debug, Error)]
 pub enum CoinAddCoinsError {
+    #[error("Use the purchase or verified recovery path to credit coins.")]
+    CreditNotAuthorized,
     #[error(transparent)]
     Auth(#[from] AuthError),
     #[error("The user does not exist.")]

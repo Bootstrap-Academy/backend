@@ -115,11 +115,24 @@ async fn user_not_found() {
 
     // Act
     let result = sut
-        .add_coins(&"token".into(), FOO.user.id.into(), 42, None, false)
+        .add_coins(&"token".into(), FOO.user.id.into(), -42, None, false)
         .await;
 
     // Assert
     assert_matches!(result, Err(CoinAddCoinsError::UserNotFound));
+}
+
+#[tokio::test]
+async fn admin_cannot_mint_new_generic_credits() {
+    let sut = CoinFeatureServiceImpl {
+        auth: MockAuthService::new().with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone()))),
+        ..Sut::default()
+    };
+    assert_matches!(
+        sut.add_coins(&"token".into(), FOO.user.id.into(), 42, None, false)
+            .await,
+        Err(CoinAddCoinsError::CreditNotAuthorized)
+    );
 }
 
 #[tokio::test]

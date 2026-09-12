@@ -342,18 +342,29 @@ async fn offer_context_is_product_specific_without_changing_price_or_acceptance(
             assert_eq!(offer.product.facts["refill_units"], 7);
             assert!(offer.text.contains("3,5 zusätzliche Herzen"));
             assert!(offer.text.contains("5 Herzen insgesamt"));
+            assert!(
+                offer
+                    .text
+                    .contains("Nur eine falsche Lösung kostet ein ganzes Herz")
+            );
+            assert!(
+                offer
+                    .text
+                    .contains("Richtige Lösungen und technische Fehler sind kostenlos")
+            );
+            assert!(!offer.text.contains("auch bei richtiger Lösung"));
         }
     }
 }
 #[tokio::test]
-async fn closing_new_offer_binds_r2_terms_and_exact_r1_withdrawal_without_account_migration() {
+async fn closing_new_offer_binds_r4_terms_and_exact_r1_withdrawal_without_account_migration() {
     let r = issued().await;
-    assert_eq!(r.terms_pdf, AGB_2026_09_R2_PDF);
+    assert_eq!(r.terms_pdf, AGB_2026_09_R4_PDF);
     assert_ne!(r.terms_pdf, AGB_2026_09_R1_PDF);
     assert_eq!(r.withdrawal_pdf, WIDERRUFSBELEHRUNG_2026_09_R1_PDF);
     assert_eq!(
         r.status.offer.document_hash,
-        document_hash(AGB_2026_09_R2_PDF, WIDERRUFSBELEHRUNG_2026_09_R1_PDF)
+        document_hash(AGB_2026_09_R4_PDF, WIDERRUFSBELEHRUNG_2026_09_R1_PDF)
     );
     assert_eq!(r.status.state, "offered");
     assert!(r.submission.is_none());

@@ -52,7 +52,7 @@ email_cache_ttl = "10s"
 [user]
 # Version of the terms and conditions that is currently in force. Only this
 # version can be accepted, and it is the value that is recorded.
-terms_version = "2026-09-r3"
+terms_version = "2026-09-r4"
 name_change_rate_limit = "30d"
 export_rate_limit = "10m"
 verification_code_ttl = "4h"

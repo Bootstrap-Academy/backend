@@ -1,4 +1,4 @@
-use academy_assets::email::{AGB_2026_09_R3_PDF, WIDERRUFSBELEHRUNG_2026_09_R1_PDF};
+use academy_assets::email::{AGB_2026_09_R4_PDF, WIDERRUFSBELEHRUNG_2026_09_R1_PDF};
 use academy_core_premium_contracts::{
     PremiumUpdateSubscriptionError, renewal::PremiumRenewalService,
 };
@@ -18,8 +18,8 @@ use sha2::{Digest, Sha256};
 
 use crate::PremiumFeatureConfig;
 
-pub const RENEWAL_TERMS_VERSION: &str = "2026-09-r3";
-pub const RENEWAL_TEXT_VERSION: &str = "premium-renewal-2026-09-v2";
+pub const RENEWAL_TERMS_VERSION: &str = "2026-09-r4";
+pub const RENEWAL_TEXT_VERSION: &str = "premium-renewal-2026-09-v3";
 
 #[derive(Debug, Clone, Build)]
 #[cfg_attr(test, derive(Default))]
@@ -45,7 +45,7 @@ where
         let price = self.config.monthly_price;
         let euros = price as f64 / 100.0;
         let text = format!(
-            "Premium: Zugriff auf alle Kurse und Übungen ohne Verbrauch von Herzen; Webinare und Coachings sind nicht enthalten.\n\n\
+            "Premium: Zugriff auf alle Kurse und Übungen ohne Verbrauch von Herzen.\n\n\
              Monatliche automatische Verlängerung für {price} MorphCoins ({euros:.2} EUR einschließlich Umsatzsteuer) je Kalendermonat. \
              Die Verlängerung läuft auf unbestimmte Zeit. Du zahlst nur aus deinem vorhandenen MorphCoin-Guthaben. \
              Der Coin-Preis bleibt für diese Verlängerung fest. Es gibt keine automatische Zahlung über PayPal. Du musst keine Coins nachkaufen.\n\n\
@@ -69,7 +69,7 @@ where
         let mut hash = Sha256::new();
         for bytes in [
             text.as_bytes(),
-            AGB_2026_09_R3_PDF,
+            AGB_2026_09_R4_PDF,
             WIDERRUFSBELEHRUNG_2026_09_R1_PDF,
         ] {
             hash.update(bytes);
@@ -155,7 +155,7 @@ where
                     monthly_price: offer.monthly_price,
                     recipient,
                     document,
-                    terms_pdf: AGB_2026_09_R3_PDF.into(),
+                    terms_pdf: AGB_2026_09_R4_PDF.into(),
                     withdrawal_pdf: WIDERRUFSBELEHRUNG_2026_09_R1_PDF.into(),
                 },
             )
@@ -303,7 +303,7 @@ mod tests {
                             "Ich stimme dieser monatlichen kostenpflichtigen Verlängerung",
                         )
                         && a.document.contains("01.01.2027")
-                        && a.terms_pdf == AGB_2026_09_R3_PDF
+                        && a.terms_pdf == AGB_2026_09_R4_PDF
                         && a.withdrawal_pdf == WIDERRUFSBELEHRUNG_2026_09_R1_PDF
                 })
                 .return_once(|_, _| Box::pin(async { Ok(()) }));
@@ -446,15 +446,16 @@ mod tests {
         assert!(changed.text.contains("1500 MorphCoins (15.00 EUR"));
     }
     #[tokio::test]
-    async fn old_r1_and_r2_offers_cannot_be_reactivated_as_r3() {
+    async fn old_offers_cannot_be_reactivated_as_r4() {
         for (version, pdf) in [
             ("2026-09-r1", academy_assets::email::AGB_2026_09_R1_PDF),
             ("2026-09-r2", academy_assets::email::AGB_2026_09_R2_PDF),
+            ("2026-09-r3", academy_assets::email::AGB_2026_09_R3_PDF),
         ] {
             let sut = Sut::default();
             let current = sut.offer();
-            assert_eq!(current.terms_version, "2026-09-r3");
-            let old_text = current.text.replace("2026-09-r3", version);
+            assert_eq!(current.terms_version, "2026-09-r4");
+            let old_text = current.text.replace("2026-09-r4", version);
             let mut hash = Sha256::new();
             for bytes in [old_text.as_bytes(), pdf, WIDERRUFSBELEHRUNG_2026_09_R1_PDF] {
                 hash.update(bytes);

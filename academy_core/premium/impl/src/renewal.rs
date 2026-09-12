@@ -47,17 +47,17 @@ where
         let text = format!(
             "Premium: Zugriff auf alle Kurse und Übungen ohne Verbrauch von Herzen; Webinare und Coachings sind nicht enthalten.\n\n\
              Monatliche automatische Verlängerung für {price} MorphCoins ({euros:.2} EUR einschließlich Umsatzsteuer) je Kalendermonat. \
-             Die Vereinbarung läuft auf unbestimmte Zeit. Abbuchungen erfolgen ausschließlich aus Ihrem vorhandenen MorphCoin-Guthaben. \
-             Der vereinbarte Coin-Preis bleibt für diese Verlängerung fest. Es gibt keine automatische Zahlung über PayPal und keine Pflicht zum Nachkauf von Coins.\n\n\
-             Die erste Abbuchung erfolgt nach Ablauf Ihres bereits bezahlten Premium-Zeitraums und nach Versand dieser Vertragsbestätigung, \
-             spätestens am folgenden Tag oder bei Ihrer nächsten Nutzung. Jeder abgebuchte Monat beginnt mit der Abbuchung. \
-             Ein gesonderter manueller Nachkauf verlängert zunächst den bezahlten Zeitraum; er ändert diese Verlängerungsvereinbarung nicht. \
-             Die Vertragsbestätigung muss vor dem bei Ihrer Erklärung bestehenden Laufzeitende versandt sein. \
-             Diese Versandfrist wird durch einen Nachkauf nicht verlängert. Wird sie verpasst, endet die Verlängerungsvereinbarung ohne spätere Nachbelastung; eine neue ausdrückliche Bestellung ist erforderlich. \
-             Bei unzureichendem Guthaben endet Premium ohne weitere Kosten und die automatische Verlängerung wird ausgeschaltet.\n\n\
-             Sie können jederzeit zum Ende des bezahlten Zeitraums kündigen, nach einer automatischen Verlängerung zum Ende des laufenden Monats: \
+             Die Verlängerung läuft auf unbestimmte Zeit. Du zahlst nur aus deinem vorhandenen MorphCoin-Guthaben. \
+             Der Coin-Preis bleibt für diese Verlängerung fest. Es gibt keine automatische Zahlung über PayPal. Du musst keine Coins nachkaufen.\n\n\
+             Die erste Abbuchung erfolgt nach Ablauf deiner bereits bezahlten Premium-Zeit und nach Versand dieser Vertragsbestätigung, \
+             spätestens am folgenden Tag oder bei deiner nächsten Nutzung. Dein neuer Kalendermonat beginnt mit der Abbuchung. \
+             Wenn du Premium zusätzlich kaufst, läuft diese Zeit zuerst ab. Deine automatische Verlängerung bleibt bestehen. \
+             Die Vertragsbestätigung muss vor dem Ende deiner bei der Bestellung bereits bezahlten Premium-Zeit versandt sein. \
+             Ein zusätzlicher Premium-Kauf verlängert diese Frist nicht. Wird sie verpasst, endet die automatische Verlängerung. Es wird auch später nichts dafür abgebucht; dafür müsstest du die Verlängerung neu bestellen. \
+             Reicht dein Guthaben nicht aus, endet Premium ohne weitere Kosten und die automatische Verlängerung wird ausgeschaltet.\n\n\
+             Du kannst jederzeit zum Ende deiner bezahlten Laufzeit kündigen, nach einer automatischen Verlängerung zum Ende des laufenden Monats: \
              auf der Seite Abonnement durch Ausschalten, unter https://bootstrap.academy/vertrag-kuendigen oder per E-Mail an hallo@bootstrap.academy. \
-             Ein weiteres Jahr wird niemals automatisch gebucht. Gesetzliche Widerrufs- und Mängelrechte bleiben unberührt.\n\n\
+             Es wird immer nur ein Monat verlängert, kein ganzes Jahr. Deine gesetzlichen Widerrufs- und Mängelrechte bleiben bestehen.\n\n\
              Ich stimme dieser monatlichen kostenpflichtigen Verlängerung und den AGB {RENEWAL_TERMS_VERSION} für diese Vereinbarung ausdrücklich zu. \
              Meine übrigen bestehenden Verträge werden dadurch nicht geändert.\n\n\
              Ich verlange ausdrücklich und stimme zu, dass Sie vor Ablauf der Widerrufsfrist mit der Erbringung der Dienstleistung beginnen.\n\
@@ -131,12 +131,16 @@ where
             .0
             .to_string();
         let document = format!(
-            "Vertragsbestätigung – monatliche Premium-Verlängerung\nbootstrap academy GmbH\n\n\
-             Empfänger: {recipient}\nKonto: {}\nVereinbarung: {}\nErklärung eingegangen: {now}\n\
-             Bei Erklärung bereits bezahlter Premium-Zeitraum bis: {}. Dies ist zugleich die unveränderliche Versandfrist für diese Bestätigung.\n\n{}\n\n\
-             Die oben wiedergegebenen Zustimmungen wurden ausdrücklich erteilt. AGB und Widerrufsbelehrung sind in der vereinbarten Fassung beigefügt.\n\
-             Diese Bestätigung betrifft ausschließlich die neue Verlängerungsvereinbarung. Es wurde bei ihrer Einrichtung kein Guthaben abgebucht.",
-            *user_id, *consent.request_id, paid.until, offer.text,
+            "Hallo,\n\nhier ist die Vertragsbestätigung für deine monatliche Premium-Verlängerung. Bei der Einrichtung wurde kein Guthaben abgebucht.\n\n\
+             Dein vereinbartes Angebot und deine Erklärungen:\n{}\n\n\
+             Die vereinbarten AGB und die Widerrufsbelehrung findest du im Anhang.\n\n\
+             Viele Grüße\nDein Bootstrap Academy Team\nbootstrap academy GmbH\n\n\
+             Empfänger: {recipient}\nAbo-Nummer: {}\nBestellt am: {}\n\
+             Bereits bezahlter Premium-Zeitraum und Frist für diese Bestätigung: {}.",
+            offer.text,
+            *consent.request_id,
+            now.format("%d.%m.%Y um %H:%M Uhr (UTC)"),
+            paid.until.format("%d.%m.%Y um %H:%M Uhr (UTC)"),
         );
         self.premium_repo
             .create_renewal(
@@ -178,7 +182,7 @@ where
                     sender: None,
                     message_id: None,
                     recipient: agreement.recipient.parse()?,
-                    subject: "Ihre monatliche Premium-Verlängerung – Bootstrap Academy".into(),
+                    subject: "Deine monatliche Premium-Verlängerung – Bootstrap Academy".into(),
                     body: agreement.document,
                     content_type: ContentType::Text,
                     reply_to: None,
@@ -295,8 +299,10 @@ mod tests {
                         && a.paid_period_id == Some(paid().id)
                         && a.confirmation_deadline == Some(paid().until)
                         && a.monthly_price == 1000
-                        && a.document.contains("ausdrücklich erteilt")
-                        && a.document.contains("2027-01-01")
+                        && a.document.contains(
+                            "Ich stimme dieser monatlichen kostenpflichtigen Verlängerung",
+                        )
+                        && a.document.contains("01.01.2027")
                         && a.terms_pdf == AGB_2026_09_R2_PDF
                         && a.withdrawal_pdf == WIDERRUFSBELEHRUNG_2026_09_R1_PDF
                 })

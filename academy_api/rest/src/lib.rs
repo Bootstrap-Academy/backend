@@ -43,6 +43,7 @@ use tracing::{debug, info};
 mod docs;
 mod errors;
 mod extractors;
+mod feedback;
 mod macros;
 mod middlewares;
 mod models;
@@ -95,6 +96,7 @@ pub struct RestServerConfig {
     pub addr: SocketAddr,
     pub real_ip_config: Option<Arc<RestServerRealIpConfig>>,
     pub allowed_origins: Arc<RegexSet>,
+    pub feedback: academy_config::FeedbackConfig,
 }
 
 #[derive(Debug, Clone)]
@@ -173,7 +175,9 @@ where
             addr,
             ref real_ip_config,
             ref allowed_origins,
+            ref feedback,
         } = self._config;
+        let feedback_router = feedback::router(feedback).await?;
         let real_ip_config = real_ip_config.as_ref().map(Arc::clone);
         let allowed_origins = Arc::clone(allowed_origins);
 
@@ -245,6 +249,7 @@ where
 
         let router = self
             .router()
+            .merge(feedback_router)
             .route("/openapi.json", axum::routing::get(serve_api))
             .merge(docs::router())
             .apply(middlewares::admin_audit::add(admin_audit))

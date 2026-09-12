@@ -41,7 +41,11 @@ async fn current_refusal(db: &common::Db) {
         .get(0);
     tx.commit().await.unwrap();
     let error = db.revert_migrations(Some(1)).await.unwrap_err();
-    assert!(format!("{error:#}").contains("Wallet restoration target and isolation protection"));
+    assert!(
+        format!("{error:#}").contains(
+            "Historical moderation email protection requires a reviewed forward migration"
+        )
+    );
     let tx = db.begin_transaction().await.unwrap();
     let after: String = tx
         .txn()

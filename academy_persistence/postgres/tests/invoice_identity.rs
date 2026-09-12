@@ -137,7 +137,8 @@ async fn invoice_identity_forward_controls() {
                 "2026-09-11-020000_pending_determination",
                 "2026-09-11-030000_invoice_disposal_preservation",
                 "2026-09-11-040000_retention_family_paging",
-                "2026-09-11-050000_wallet_restore_target"
+                "2026-09-11-050000_wallet_restore_target",
+                "2026-09-12-070000_legacy_moderation_email"
             ]
         );
     }
@@ -542,7 +543,8 @@ async fn pending_invoice_rich_export_controls() {
                 "2026-09-11-020000_pending_determination",
                 "2026-09-11-030000_invoice_disposal_preservation",
                 "2026-09-11-040000_retention_family_paging",
-                "2026-09-11-050000_wallet_restore_target"
+                "2026-09-11-050000_wallet_restore_target",
+                "2026-09-12-070000_legacy_moderation_email"
             ]
         );
     }
@@ -690,7 +692,8 @@ async fn erased_owner_identity_conflict_controls() {
                 "2026-09-11-020000_pending_determination",
                 "2026-09-11-030000_invoice_disposal_preservation",
                 "2026-09-11-040000_retention_family_paging",
-                "2026-09-11-050000_wallet_restore_target"
+                "2026-09-11-050000_wallet_restore_target",
+                "2026-09-12-070000_legacy_moderation_email"
             ]
         );
     }

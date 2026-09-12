@@ -149,6 +149,7 @@ impl ConfigProvider {
                 })
             }),
             allowed_origins: Arc::new(config.http.allowed_origins.clone()),
+            feedback: config.feedback.clone(),
         };
 
         // Extern

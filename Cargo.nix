@@ -1020,6 +1020,10 @@ rec {
             packageId = "academy_auth_contracts";
           }
           {
+            name = "academy_config";
+            packageId = "academy_config";
+          }
+          {
             name = "academy_core_admin_audit_contracts";
             packageId = "academy_core_admin_audit_contracts";
           }
@@ -1145,6 +1149,12 @@ rec {
             features = [ "std" ];
           }
           {
+            name = "image";
+            packageId = "image";
+            usesDefaultFeatures = false;
+            features = [ "png" "jpeg" ];
+          }
+          {
             name = "mime";
             packageId = "mime";
             usesDefaultFeatures = false;
@@ -1153,6 +1163,12 @@ rec {
             name = "regex";
             packageId = "regex";
             usesDefaultFeatures = false;
+          }
+          {
+            name = "reqwest";
+            packageId = "reqwest 0.13.4";
+            usesDefaultFeatures = false;
+            features = [ "http2" "rustls" "json" "form" ];
           }
           {
             name = "rust_decimal";
@@ -1179,6 +1195,11 @@ rec {
             features = [ "std" ];
           }
           {
+            name = "sha2";
+            packageId = "sha2 0.10.9";
+            usesDefaultFeatures = false;
+          }
+          {
             name = "tokio";
             packageId = "tokio";
             usesDefaultFeatures = false;
@@ -1200,7 +1221,7 @@ rec {
             name = "uuid";
             packageId = "uuid";
             usesDefaultFeatures = false;
-            features = [ "v4" "v7" "serde" ];
+            features = [ "v4" "v7" "serde" "std" ];
           }
         ];
         devDependencies = [
@@ -1209,6 +1230,11 @@ rec {
             packageId = "serde_json";
             usesDefaultFeatures = false;
             features = [ "std" ];
+          }
+          {
+            name = "tempfile";
+            packageId = "tempfile";
+            usesDefaultFeatures = false;
           }
           {
             name = "tower";
@@ -5585,7 +5611,7 @@ rec {
         dependencies = [
           {
             name = "windows-sys";
-            packageId = "windows-sys 0.60.2";
+            packageId = "windows-sys 0.61.2";
             target = { target, features }: (target."windows" or false);
             features = [ "Win32_System_Console" "Win32_Foundation" ];
           }
@@ -5610,7 +5636,7 @@ rec {
           }
           {
             name = "windows-sys";
-            packageId = "windows-sys 0.60.2";
+            packageId = "windows-sys 0.61.2";
             target = { target, features }: (target."windows" or false);
             features = [ "Win32_System_Console" "Win32_Foundation" ];
           }
@@ -6306,7 +6332,7 @@ rec {
           }
           {
             name = "miniz_oxide";
-            packageId = "miniz_oxide";
+            packageId = "miniz_oxide 0.8.9";
             usesDefaultFeatures = false;
             target = { target, features }: (!((target."windows" or false) && ("msvc" == target."env" or null) && (!("uwp" == target."vendor" or null))));
           }
@@ -6840,6 +6866,25 @@ rec {
         };
         resolvedDefaultFeatures = [ "std" ];
       };
+      "bytemuck" = rec {
+        crateName = "bytemuck";
+        version = "1.25.2";
+        edition = "2018";
+        sha256 = "15rp2m7j7kq22s76cbjwmrkd5r8lvacnm0mnrj013cnzka22x0wm";
+        authors = [
+          "Lokathor <zefria@gmail.com>"
+        ];
+        features = {
+          "bytemuck_derive" = [ "dep:bytemuck_derive" ];
+          "derive" = [ "bytemuck_derive" ];
+          "extern_crate_std" = [ "extern_crate_alloc" ];
+          "latest_stable_rust" = [ "aarch64_simd" "avx512_simd" "align_offset" "alloc_uninit" "const_zeroed" "derive" "impl_core_error" "min_const_generics" "must_cast" "must_cast_extra" "pod_saturating" "track_caller" "transparentwrapper_extra" "wasm_simd" "zeroable_atomics" "zeroable_maybe_uninit" "zeroable_unwind_fn" ];
+          "must_cast_extra" = [ "must_cast" ];
+          "nightly_portable_simd" = [ "rustversion" ];
+          "rustversion" = [ "dep:rustversion" ];
+        };
+        resolvedDefaultFeatures = [ "extern_crate_alloc" ];
+      };
       "byteorder" = rec {
         crateName = "byteorder";
         version = "1.5.0";
@@ -6848,6 +6893,17 @@ rec {
         authors = [
           "Andrew Gallant <jamslam@gmail.com>"
         ];
+        features = {
+          "default" = [ "std" ];
+        };
+        resolvedDefaultFeatures = [ "default" "std" ];
+      };
+      "byteorder-lite" = rec {
+        crateName = "byteorder-lite";
+        version = "0.1.0";
+        edition = "2021";
+        sha256 = "15alafmz4b9az56z6x7glcbcb6a8bfgyd109qc3bvx07zx4fj7wg";
+        libName = "byteorder_lite";
         features = {
           "default" = [ "std" ];
         };
@@ -7685,6 +7741,26 @@ rec {
         ];
 
       };
+      "crc32fast" = rec {
+        crateName = "crc32fast";
+        version = "1.5.1";
+        edition = "2021";
+        sha256 = "0l75bfakpwr86wz45gm38lylrpgbssr529fmm6m445qy2rqwi644";
+        authors = [
+          "Sam Rijs <srijs@airpost.net>"
+          "Alex Crichton <alex@alexcrichton.com>"
+        ];
+        dependencies = [
+          {
+            name = "cfg-if";
+            packageId = "cfg-if";
+          }
+        ];
+        features = {
+          "default" = [ "std" ];
+        };
+        resolvedDefaultFeatures = [ "default" "std" ];
+      };
       "crossbeam-deque" = rec {
         crateName = "crossbeam-deque";
         version = "0.8.6";
@@ -8241,7 +8317,7 @@ rec {
           }
           {
             name = "windows-sys";
-            packageId = "windows-sys 0.52.0";
+            packageId = "windows-sys 0.61.2";
             target = { target, features }: (target."windows" or false);
             features = [ "Win32_Foundation" "Win32_System_Diagnostics_Debug" ];
           }
@@ -8349,6 +8425,22 @@ rec {
         };
         resolvedDefaultFeatures = [ "alloc" "default" "std" ];
       };
+      "fdeflate" = rec {
+        crateName = "fdeflate";
+        version = "0.3.7";
+        edition = "2021";
+        sha256 = "130ga18vyxbb5idbgi07njymdaavvk6j08yh1dfarm294ssm6s0y";
+        authors = [
+          "The image-rs Developers"
+        ];
+        dependencies = [
+          {
+            name = "simd-adler32";
+            packageId = "simd-adler32";
+          }
+        ];
+
+      };
       "find-msvc-tools" = rec {
         crateName = "find-msvc-tools";
         version = "0.1.9";
@@ -8386,6 +8478,56 @@ rec {
           }
         ];
 
+      };
+      "flate2" = rec {
+        crateName = "flate2";
+        version = "1.1.10";
+        edition = "2018";
+        sha256 = "1jvd2cl8j5hyf8imi62y1x7gwzz1hajirni0801yxhds1qp4wqvf";
+        authors = [
+          "Alex Crichton <alex@alexcrichton.com>"
+          "Josh Triplett <josh@joshtriplett.org>"
+        ];
+        dependencies = [
+          {
+            name = "crc32fast";
+            packageId = "crc32fast";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "miniz_oxide";
+            packageId = "miniz_oxide 0.9.1";
+            optional = true;
+            features = [ "simd" ];
+          }
+          {
+            name = "zlib-rs";
+            packageId = "zlib-rs";
+            optional = true;
+            usesDefaultFeatures = false;
+            features = [ "rust-allocator" ];
+          }
+        ];
+        features = {
+          "any_c_zlib" = [ "any_zlib" ];
+          "any_zlib" = [ "any_impl" ];
+          "cloudflare_zlib" = [ "zlib" ];
+          "default" = [ "rust_backend" "runtime_detection" ];
+          "document-features" = [ "dep:document-features" ];
+          "libz-ng-sys" = [ "dep:libz-ng-sys" ];
+          "libz-sys" = [ "dep:libz-sys" ];
+          "miniz-sys" = [ "rust_backend" ];
+          "miniz_oxide" = [ "any_impl" "dep:miniz_oxide" "dep:crc32fast" ];
+          "runtime_detection" = [ "zlib-rs?/std" "crc32fast?/std" ];
+          "rust_backend" = [ "miniz_oxide" "any_impl" ];
+          "zlib" = [ "any_c_zlib" "libz-sys" "dep:crc32fast" ];
+          "zlib-default" = [ "any_c_zlib" "libz-sys/default" "dep:crc32fast" ];
+          "zlib-ng" = [ "any_c_zlib" "libz-ng-sys" "dep:crc32fast" ];
+          "zlib-ng-compat" = [ "zlib" "libz-sys/zlib-ng" "dep:crc32fast" ];
+          "zlib-rs" = [ "any_zlib" "dep:zlib-rs" ];
+        };
+        resolvedDefaultFeatures = [ "any_impl" "default" "miniz_oxide" "runtime_detection" "rust_backend" ];
       };
       "fnv" = rec {
         crateName = "fnv";
@@ -10389,6 +10531,69 @@ rec {
         features = {
         };
       };
+      "image" = rec {
+        crateName = "image";
+        version = "0.25.10";
+        edition = "2021";
+        sha256 = "0131b9fsd5grxf3lchfs2ci0rg8ga2mh1ygai7k2zh1k8cwq1aw5";
+        authors = [
+          "The image-rs Developers"
+        ];
+        dependencies = [
+          {
+            name = "bytemuck";
+            packageId = "bytemuck";
+            features = [ "extern_crate_alloc" ];
+          }
+          {
+            name = "byteorder-lite";
+            packageId = "byteorder-lite";
+          }
+          {
+            name = "moxcms";
+            packageId = "moxcms";
+          }
+          {
+            name = "num-traits";
+            packageId = "num-traits";
+          }
+          {
+            name = "png";
+            packageId = "png";
+            optional = true;
+          }
+          {
+            name = "zune-core";
+            packageId = "zune-core";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "zune-jpeg";
+            packageId = "zune-jpeg";
+            optional = true;
+          }
+        ];
+        features = {
+          "avif" = [ "dep:ravif" "dep:rgb" ];
+          "avif-native" = [ "dep:mp4parse" "dep:dav1d" ];
+          "color_quant" = [ "dep:color_quant" ];
+          "default" = [ "rayon" "default-formats" ];
+          "default-formats" = [ "avif" "bmp" "dds" "exr" "ff" "gif" "hdr" "ico" "jpeg" "png" "pnm" "qoi" "tga" "tiff" "webp" ];
+          "exr" = [ "dep:exr" ];
+          "gif" = [ "dep:gif" "dep:color_quant" ];
+          "ico" = [ "bmp" "png" ];
+          "jpeg" = [ "dep:zune-core" "dep:zune-jpeg" ];
+          "nasm" = [ "ravif?/asm" ];
+          "png" = [ "dep:png" ];
+          "qoi" = [ "dep:qoi" ];
+          "rayon" = [ "dep:rayon" "ravif?/threading" "exr?/rayon" ];
+          "serde" = [ "dep:serde" ];
+          "tiff" = [ "dep:tiff" ];
+          "webp" = [ "dep:image-webp" ];
+        };
+        resolvedDefaultFeatures = [ "jpeg" "png" ];
+      };
       "indexmap" = rec {
         crateName = "indexmap";
         version = "2.14.0";
@@ -11274,7 +11479,7 @@ rec {
         ];
 
       };
-      "miniz_oxide" = rec {
+      "miniz_oxide 0.8.9" = rec {
         crateName = "miniz_oxide";
         version = "0.8.9";
         edition = "2021";
@@ -11290,6 +11495,12 @@ rec {
             packageId = "adler2";
             usesDefaultFeatures = false;
           }
+          {
+            name = "simd-adler32";
+            packageId = "simd-adler32";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
         ];
         features = {
           "alloc" = [ "dep:alloc" ];
@@ -11300,6 +11511,42 @@ rec {
           "simd" = [ "simd-adler32" ];
           "simd-adler32" = [ "dep:simd-adler32" ];
         };
+        resolvedDefaultFeatures = [ "default" "simd" "simd-adler32" "with-alloc" ];
+      };
+      "miniz_oxide 0.9.1" = rec {
+        crateName = "miniz_oxide";
+        version = "0.9.1";
+        edition = "2021";
+        sha256 = "0k2bgjzk2sbsynpsv4wizwxbqp6vs7g08y5anbkrh3l6a15bqgxn";
+        authors = [
+          "Frommi <daniil.liferenko@gmail.com>"
+          "oyvindln <oyvindln@users.noreply.github.com>"
+          "Rich Geldreich richgel99@gmail.com"
+        ];
+        dependencies = [
+          {
+            name = "adler2";
+            packageId = "adler2";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "simd-adler32";
+            packageId = "simd-adler32";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+        ];
+        features = {
+          "alloc" = [ "dep:alloc" ];
+          "core" = [ "dep:core" ];
+          "default" = [ "with-alloc" ];
+          "rustc-dep-of-std" = [ "core" "alloc" "adler2/rustc-dep-of-std" ];
+          "serde" = [ "dep:serde" ];
+          "simd" = [ "simd-adler32" ];
+          "simd-adler32" = [ "dep:simd-adler32" ];
+          "std" = [ "serde?/std" ];
+        };
+        resolvedDefaultFeatures = [ "default" "simd" "simd-adler32" "with-alloc" ];
       };
       "mio" = rec {
         crateName = "mio";
@@ -11407,6 +11654,45 @@ rec {
           "nightly_derive" = [ "proc-macro2/nightly" ];
         };
       };
+      "moxcms" = rec {
+        crateName = "moxcms";
+        version = "0.8.1";
+        edition = "2024";
+        sha256 = "0jz4fd5f7pdn1rngqc96lxriqjkym1lswdhdbjr037s8p9ac31dv";
+        authors = [
+          "Radzivon Bartoshyk"
+        ];
+        dependencies = [
+          {
+            name = "num-traits";
+            packageId = "num-traits";
+          }
+          {
+            name = "pxfm";
+            packageId = "pxfm";
+          }
+        ];
+        features = {
+          "any_to_any" = [ "lut" ];
+          "avx512_shaper_fixed_point_paths" = [ "avx512" ];
+          "avx512_shaper_optimized_paths" = [ "avx512" ];
+          "avx_luts" = [ "lut" "avx" ];
+          "avx_shaper_fixed_point_paths" = [ "avx" ];
+          "avx_shaper_optimized_paths" = [ "avx" ];
+          "avx_shaper_paths" = [ "avx" ];
+          "default" = [ "avx_shaper_paths" "sse_shaper_paths" "neon_shaper_paths" "avx_shaper_fixed_point_paths" "avx_luts" "sse_shaper_fixed_point_paths" "sse_luts" "neon_shaper_fixed_point_paths" "neon_luts" "lut" ];
+          "neon_luts" = [ "lut" "neon" ];
+          "neon_shaper_fixed_point_paths" = [ "neon" ];
+          "neon_shaper_optimized_paths" = [ "neon" ];
+          "neon_shaper_paths" = [ "neon" ];
+          "options" = [ "lut" ];
+          "sse_luts" = [ "lut" "sse" ];
+          "sse_shaper_fixed_point_paths" = [ "sse" ];
+          "sse_shaper_optimized_paths" = [ "sse" ];
+          "sse_shaper_paths" = [ "sse" ];
+        };
+        resolvedDefaultFeatures = [ "avx" "avx_luts" "avx_shaper_fixed_point_paths" "avx_shaper_paths" "default" "lut" "neon" "neon_luts" "neon_shaper_fixed_point_paths" "neon_shaper_paths" "sse" "sse_luts" "sse_shaper_fixed_point_paths" "sse_shaper_paths" ];
+      };
       "nix" = rec {
         crateName = "nix";
         version = "0.31.3";
@@ -11488,7 +11774,7 @@ rec {
         dependencies = [
           {
             name = "windows-sys";
-            packageId = "windows-sys 0.60.2";
+            packageId = "windows-sys 0.61.2";
             rename = "windows";
             target = { target, features }: (target."windows" or false);
             features = [ "Win32_Foundation" "Win32_System_Console" "Win32_Storage_FileSystem" "Win32_Security" ];
@@ -11531,7 +11817,7 @@ rec {
           "default" = [ "std" ];
           "libm" = [ "dep:libm" ];
         };
-        resolvedDefaultFeatures = [ "i128" "std" ];
+        resolvedDefaultFeatures = [ "default" "i128" "std" ];
       };
       "nutype" = rec {
         crateName = "nutype";
@@ -13644,6 +13930,42 @@ rec {
         libName = "pin_project_lite";
 
       };
+      "png" = rec {
+        crateName = "png";
+        version = "0.18.1";
+        edition = "2021";
+        sha256 = "0qca282xp8a6d7mikxrwji3f52mjn4vnqxz2v9iz5adj665rnxk0";
+        authors = [
+          "The image-rs Developers"
+        ];
+        dependencies = [
+          {
+            name = "bitflags";
+            packageId = "bitflags";
+          }
+          {
+            name = "crc32fast";
+            packageId = "crc32fast";
+          }
+          {
+            name = "fdeflate";
+            packageId = "fdeflate";
+          }
+          {
+            name = "flate2";
+            packageId = "flate2";
+          }
+          {
+            name = "miniz_oxide";
+            packageId = "miniz_oxide 0.8.9";
+            features = [ "simd" ];
+          }
+        ];
+        features = {
+          "unstable" = [ "crc32fast/nightly" ];
+          "zlib-rs" = [ "flate2/zlib-rs" ];
+        };
+      };
       "portable-atomic" = rec {
         crateName = "portable-atomic";
         version = "1.13.1";
@@ -14194,6 +14516,16 @@ rec {
             packageId = "syn 1.0.109";
             features = [ "full" ];
           }
+        ];
+
+      };
+      "pxfm" = rec {
+        crateName = "pxfm";
+        version = "0.1.30";
+        edition = "2024";
+        sha256 = "1slrnbxd0nc96sny6x50ss1sm9ci0gig0fp1w8mw0pkgm5prapfm";
+        authors = [
+          "Radzivon Bartoshyk"
         ];
 
       };
@@ -16133,7 +16465,7 @@ rec {
           }
           {
             name = "windows-sys";
-            packageId = "windows-sys 0.52.0";
+            packageId = "windows-sys 0.61.2";
             target = { target, features }: (target."windows" or false);
             features = [ "Win32_Foundation" "Win32_Networking_WinSock" ];
           }
@@ -16405,7 +16737,7 @@ rec {
           }
           {
             name = "windows-sys";
-            packageId = "windows-sys 0.52.0";
+            packageId = "windows-sys 0.61.2";
             usesDefaultFeatures = false;
             target = { target, features }: (target."windows" or false);
             features = [ "Win32_Foundation" "Win32_Security_Cryptography" ];
@@ -17715,6 +18047,20 @@ rec {
         ];
 
       };
+      "simd-adler32" = rec {
+        crateName = "simd-adler32";
+        version = "0.3.10";
+        edition = "2018";
+        sha256 = "1sny4y2qa5mwyxx5x59ln2p02vsdh92004njlslnx98imjc9489s";
+        libName = "simd_adler32";
+        authors = [
+          "Marvin Countryman <me@maar.vin>"
+        ];
+        features = {
+          "default" = [ "std" "const-generics" ];
+        };
+        resolvedDefaultFeatures = [ "const-generics" "default" "std" ];
+      };
       "simd_cesu8" = rec {
         crateName = "simd_cesu8";
         version = "1.1.1";
@@ -17844,7 +18190,7 @@ rec {
           }
           {
             name = "windows-sys";
-            packageId = "windows-sys 0.60.2";
+            packageId = "windows-sys 0.61.2";
             target = { target, features }: (target."windows" or false);
             features = [ "Win32_Foundation" "Win32_Networking_WinSock" "Win32_System_IO" "Win32_System_Threading" "Win32_System_WindowsProgramming" ];
           }
@@ -18120,7 +18466,7 @@ rec {
           }
           {
             name = "windows-sys";
-            packageId = "windows-sys 0.52.0";
+            packageId = "windows-sys 0.61.2";
             target = { target, features }: (target."windows" or false);
             features = [ "Win32_Storage_FileSystem" "Win32_Foundation" ];
           }
@@ -21047,7 +21393,7 @@ rec {
         dependencies = [
           {
             name = "windows-sys";
-            packageId = "windows-sys 0.52.0";
+            packageId = "windows-sys 0.61.2";
             target = { target, features }: (target."windows" or false);
             features = [ "Win32_Foundation" "Win32_Storage_FileSystem" "Win32_System_Console" "Win32_System_SystemInformation" ];
           }
@@ -21448,7 +21794,7 @@ rec {
           "Win32_Web" = [ "Win32" ];
           "Win32_Web_InternetExplorer" = [ "Win32_Web" ];
         };
-        resolvedDefaultFeatures = [ "Win32" "Win32_Foundation" "Win32_Networking" "Win32_Networking_WinSock" "Win32_Security" "Win32_Security_Cryptography" "Win32_Storage" "Win32_Storage_FileSystem" "Win32_System" "Win32_System_Console" "Win32_System_Diagnostics" "Win32_System_Diagnostics_Debug" "Win32_System_SystemInformation" "Win32_System_Threading" "default" ];
+        resolvedDefaultFeatures = [ "Win32" "Win32_Foundation" "Win32_System" "Win32_System_Threading" "default" ];
       };
       "windows-sys 0.60.2" = rec {
         crateName = "windows-sys";
@@ -21713,7 +22059,7 @@ rec {
           "Win32_Web" = [ "Win32" ];
           "Win32_Web_InternetExplorer" = [ "Win32_Web" ];
         };
-        resolvedDefaultFeatures = [ "Win32" "Win32_Foundation" "Win32_Networking" "Win32_Networking_WinSock" "Win32_Security" "Win32_Storage" "Win32_Storage_FileSystem" "Win32_System" "Win32_System_Console" "Win32_System_IO" "Win32_System_Threading" "Win32_System_WindowsProgramming" "default" ];
+        resolvedDefaultFeatures = [ "Win32" "Win32_Foundation" "Win32_Networking" "Win32_Networking_WinSock" "Win32_Storage" "Win32_Storage_FileSystem" "Win32_System" "Win32_System_IO" "default" ];
       };
       "windows-sys 0.61.2" = rec {
         crateName = "windows-sys";
@@ -21975,7 +22321,7 @@ rec {
           "Win32_Web" = [ "Win32" ];
           "Win32_Web_InternetExplorer" = [ "Win32_Web" ];
         };
-        resolvedDefaultFeatures = [ "Wdk" "Wdk_Foundation" "Wdk_Storage" "Wdk_Storage_FileSystem" "Wdk_System" "Wdk_System_IO" "Win32" "Win32_Foundation" "Win32_Networking" "Win32_Networking_WinSock" "Win32_Security" "Win32_Security_Authentication" "Win32_Security_Authentication_Identity" "Win32_Security_Credentials" "Win32_Security_Cryptography" "Win32_Storage" "Win32_Storage_FileSystem" "Win32_System" "Win32_System_Console" "Win32_System_IO" "Win32_System_LibraryLoader" "Win32_System_Memory" "Win32_System_Pipes" "Win32_System_Registry" "Win32_System_SystemInformation" "Win32_System_SystemServices" "Win32_System_Threading" "Win32_System_WindowsProgramming" "Win32_UI" "Win32_UI_Input" "Win32_UI_Input_KeyboardAndMouse" "Win32_UI_WindowsAndMessaging" "default" ];
+        resolvedDefaultFeatures = [ "Wdk" "Wdk_Foundation" "Wdk_Storage" "Wdk_Storage_FileSystem" "Wdk_System" "Wdk_System_IO" "Win32" "Win32_Foundation" "Win32_Networking" "Win32_Networking_WinSock" "Win32_Security" "Win32_Security_Authentication" "Win32_Security_Authentication_Identity" "Win32_Security_Credentials" "Win32_Security_Cryptography" "Win32_Storage" "Win32_Storage_FileSystem" "Win32_System" "Win32_System_Console" "Win32_System_Diagnostics" "Win32_System_Diagnostics_Debug" "Win32_System_IO" "Win32_System_LibraryLoader" "Win32_System_Memory" "Win32_System_Pipes" "Win32_System_Registry" "Win32_System_SystemInformation" "Win32_System_SystemServices" "Win32_System_Threading" "Win32_System_WindowsProgramming" "Win32_UI" "Win32_UI_Input" "Win32_UI_Input_KeyboardAndMouse" "Win32_UI_WindowsAndMessaging" "default" ];
       };
       "windows-targets 0.52.6" = rec {
         crateName = "windows-targets";
@@ -22964,6 +23310,23 @@ rec {
         ];
 
       };
+      "zlib-rs" = rec {
+        crateName = "zlib-rs";
+        version = "0.6.7";
+        edition = "2021";
+        sha256 = "04mz6314vrfwg8k91qfgs9c71c1icvixcikvki7mls4xilc1vcrl";
+        libName = "zlib_rs";
+        features = {
+          "__internal-fuzz" = [ "arbitrary" ];
+          "__internal-test" = [ "quickcheck" ];
+          "arbitrary" = [ "dep:arbitrary" ];
+          "avx512" = [ "vpclmulqdq" ];
+          "default" = [ "std" "c-allocator" ];
+          "quickcheck" = [ "dep:quickcheck" ];
+          "std" = [ "rust-allocator" ];
+        };
+        resolvedDefaultFeatures = [ "rust-allocator" "std" ];
+      };
       "zmij" = rec {
         crateName = "zmij";
         version = "1.0.21";
@@ -22975,6 +23338,40 @@ rec {
         features = {
           "no-panic" = [ "dep:no-panic" ];
         };
+      };
+      "zune-core" = rec {
+        crateName = "zune-core";
+        version = "0.5.3";
+        edition = "2021";
+        sha256 = "12v5zdwcmjwzlfz61ajchzdaab75cxasqnmwf2hq929n8vypfqym";
+        libName = "zune_core";
+        features = {
+          "log" = [ "dep:log" ];
+          "serde" = [ "dep:serde" ];
+        };
+        resolvedDefaultFeatures = [ "std" ];
+      };
+      "zune-jpeg" = rec {
+        crateName = "zune-jpeg";
+        version = "0.5.15";
+        edition = "2021";
+        sha256 = "15kjpn6pywxlwb8w5irfd68x31wi3mb4y1da8bqh7havh5drvg17";
+        libName = "zune_jpeg";
+        authors = [
+          "caleb <etemesicaleb@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "zune-core";
+            packageId = "zune-core";
+          }
+        ];
+        features = {
+          "default" = [ "x86" "neon" "std" ];
+          "log" = [ "zune-core/log" ];
+          "std" = [ "zune-core/std" ];
+        };
+        resolvedDefaultFeatures = [ "default" "neon" "std" "x86" ];
       };
     };
 

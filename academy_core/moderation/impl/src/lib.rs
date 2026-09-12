@@ -11,7 +11,7 @@ use academy_core_session_contracts::{
 use academy_core_user_contracts::UserFeatureService;
 use academy_core_user_contracts::export::UserExportService;
 use academy_di::Build;
-use academy_email_contracts::{Email, EmailService};
+use academy_email_contracts::EmailService;
 use academy_extern_contracts::microservices::MicroservicesApiService;
 use academy_models::{
     RecaptchaResponse,
@@ -26,6 +26,7 @@ use serde_json::{Value, json};
 use std::net::IpAddr;
 
 mod commercial;
+mod email;
 
 #[derive(Debug, Clone, Build)]
 pub struct ModerationFeatureServiceImpl<
@@ -576,31 +577,8 @@ where
             let status = if let Some(contact) = message["contact"].as_str() {
                 match contact.parse::<EmailAddressWithName>() {
                     Ok(recipient) => {
-                        let statement = &message["body"];
-                        let mut email=Email{sender:self.email.sender().clone(),recipient,subject:"Bootstrap Academy: Meldung oder Moderationsentscheidung".into(),
-       body:format!("Information zu deinem Vorgang {}\n\n{}\n\nAutomatisierung: {}\nRechtsbehelfe: {}\n\nDer Vorgang und menschliche Beschwerden sind unter https://bootstrap.academy/moderation erreichbar, auch bei gesperrtem Konto. Kontakt: hallo@bootstrap.academy.",message["case_id"].as_str().unwrap_or_default(),statement["rationale"].as_str().or_else(||statement["text"].as_str()).unwrap_or("Neue Nachricht in deinem Vorgang."),statement["automation"].as_str().unwrap_or("Keine zusätzliche automatische Entscheidung durch den Versand."),statement["redress"].as_str().unwrap_or("Menschliche Überprüfung kostenlos über den Vorgang oder hallo@bootstrap.academy; gesetzliche Rechte bleiben unberührt.")),
-       message_id:format!("moderation-{}-{}@bootstrap.academy",message["source"].as_str().unwrap_or_default(),message["id"].as_str().unwrap_or_default()).into(),
-       content_type:academy_email_contracts::ContentType::Text,reply_to:None,attachments:vec![]};
-                        for (label, key) in [
-                            ("Maßnahme", "outcome"),
-                            ("Grundlage", "ground"),
-                            ("Regelfassung", "rule_version"),
-                            ("Umfang", "scope"),
-                            ("Ende", "ends_at"),
-                            ("Menschliche Prüfung", "review_assessment"),
-                        ] {
-                            if !statement[key].is_null() {
-                                email.body.push_str(&format!(
-                                    "\n{label}: {}",
-                                    statement[key].as_str().unwrap_or_default()
-                                ));
-                            }
-                        }
-                        if let Some(link) = statement["recovery_link"].as_str() {
-                            email
-                                .body
-                                .push_str(&format!("\n\nZugang zu diesem Vorgang: {link}"));
-                        }
+                        let email =
+                            email::compose(&message, self.email.sender().clone(), recipient);
                         match tokio::time::timeout(
                             std::time::Duration::from_secs(30),
                             self.email.send(email),

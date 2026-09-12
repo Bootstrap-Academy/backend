@@ -262,24 +262,88 @@ async fn issued() -> PurchaseRecord {
     issued_with_window(600).await
 }
 async fn issued_with_window(seconds: u64) -> PurchaseRecord {
+    issued_kind_with_window("premium_monthly", seconds).await
+}
+async fn issued_kind_with_window(kind: &str, seconds: u64) -> PurchaseRecord {
     let saved = Arc::new(Mutex::new(Saved::default()));
     let mut s = sut(Arc::clone(&saved), true, true, true);
     s.purchase_config
         .provision_window_seconds
-        .insert("premium_monthly".into(), seconds);
+        .insert(kind.into(), seconds);
     s.user_repo = MockUserRepository::new().with_get_purchase_composite(subject(), Some(account()));
-    let result = s
-        .issue(subject(), "backend", s.builtin("premium_monthly").unwrap())
-        .await
-        .unwrap();
+    if kind == "hearts" {
+        s.heart = MockHeartService::new().with_get(
+            subject(),
+            academy_models::heart::Hearts {
+                hearts: 3,
+                last_refill: Utc::now(),
+            },
+        );
+    }
+    let (source, product) = match kind {
+        "course" | "coins" => (
+            if kind == "course" { "skills" } else { "paypal" },
+            PurchaseProduct {
+                kind: kind.into(),
+                reference: "synthetic".into(),
+                title: "Synthetic product".into(),
+                description: "Synthetic product description".into(),
+                coins: 1337,
+                facts: serde_json::json!({"gross_total":"13.37","vat_total":"2.13"}),
+                revision: "synthetic".into(),
+                service_starts_at: None,
+            },
+        ),
+        _ => ("backend", s.builtin(kind).unwrap()),
+    };
+    let result = s.issue(subject(), source, product).await.unwrap();
     let saved = saved.lock().unwrap();
     let record = saved.record.clone().unwrap();
-    assert_eq!(saved.calls, ["lock_user", "list", "create"]);
+    assert_eq!(
+        saved.calls,
+        if source == "backend" {
+            vec!["lock_user", "list", "create"]
+        } else {
+            vec!["lock_user", "create"]
+        }
+    );
     assert_eq!(
         serde_json::to_value(result).unwrap(),
         serde_json::to_value(&record.status).unwrap()
     );
     record
+}
+#[tokio::test]
+async fn offer_context_is_product_specific_without_changing_price_or_acceptance() {
+    for (kind, price, premium) in [
+        ("premium_monthly", 1000, true),
+        ("premium_yearly", 10000, true),
+        ("hearts", 100, false),
+        ("course", 1337, false),
+        ("coins", 1337, false),
+    ] {
+        let record = issued_kind_with_window(kind, 86400).await;
+        let offer = record.status.offer;
+        assert_eq!(record.status.state, "offered");
+        assert!(record.status.accepted_at.is_none());
+        assert!(record.submission.is_none());
+        assert_eq!(offer.product.coins, price);
+        assert_eq!(offer.provision_window_seconds, Some(86400));
+        assert_eq!(offer.declaration, DECLARATION);
+        assert!(offer.text.contains("24 Stunden"));
+        assert_eq!(offer.text.contains("Premium-Zeitraum"), premium);
+        if kind == "coins" {
+            assert!(offer.text.contains("13.37 EUR"));
+            assert!(offer.text.contains("2.13 EUR"));
+        } else {
+            assert!(offer.text.contains(&format!("{price} MorphCoins")));
+        }
+        if kind == "hearts" {
+            assert_eq!(offer.product.facts["refill_units"], 7);
+            assert!(offer.text.contains("3,5 zusätzliche Herzen"));
+            assert!(offer.text.contains("5 Herzen insgesamt"));
+        }
+    }
 }
 #[tokio::test]
 async fn closing_new_offer_binds_r2_terms_and_exact_r1_withdrawal_without_account_migration() {
@@ -306,7 +370,7 @@ async fn closing_offer_displays_exact_whole_hours_and_hashes_the_stored_text() {
         let mut offer = r.status.offer;
         assert_eq!(offer.provision_window_seconds, Some(seconds));
         assert!(offer.text.contains(&format!(
-            "Vertragsbestätigung und Bereitstellung innerhalb von {duration} ab Eingang Ihrer wirksamen Bestellung."
+            "Vertragsbestätigung innerhalb von {duration} nach Eingang deiner Bestellung."
         )));
         let hash = std::mem::take(&mut offer.hash);
         assert_eq!(
@@ -317,6 +381,9 @@ async fn closing_offer_displays_exact_whole_hours_and_hashes_the_stored_text() {
 }
 async fn historical() -> PurchaseRecord {
     let mut r = issued().await;
+    r.status.offer.text = "Original offer from before the copy change".into();
+    r.status.offer.product.description = "Original product description".into();
+    r.status.offer.declaration = "Original explicit request".into();
     r.terms_pdf = AGB_2026_09_R1_PDF.to_vec();
     r.status.offer.document_hash = document_hash(&r.terms_pdf, &r.withdrawal_pdf);
     r.status.offer.hash.clear();

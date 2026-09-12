@@ -12,7 +12,7 @@ import time
 import urllib.request
 import uuid
 
-from utils import configure_purchases
+from utils import configure_purchases, seed_existing_coin_balance
 
 # This file is copied and run only by nix/tests/default.nix in its disposable VM.
 # Reuse that VM's configured PostgreSQL, Valkey, backend and renderer. The SMTP
@@ -110,7 +110,7 @@ def user(name):
     login = request("POST", "/auth/sessions", {"name_or_email": name, "password": "test-password"})
     user_id = login["user"]["id"]
     token = login["access_token"]
-    run([BINARY, "admin", "coin", "add", user_id, "--", "50000"], stdout=subprocess.DEVNULL)
+    seed_existing_coin_balance(user_id, 50000)
     purchase(token)
     return user_id, token
 

@@ -3,7 +3,7 @@
 import subprocess
 
 from utils import create_verified_account, make_client, enable_premium_renewal, purchase
-from utils import configure_purchases
+from utils import configure_purchases, seed_existing_coin_balance
 
 configure_purchases()
 
@@ -62,7 +62,7 @@ other_login = create_verified_account("other", "other@example.com", "password", 
 create_verified_account("free", "free@example.com", "password", non_subscriber)
 
 for client, login in [(first, first_login), (other, other_login)]:
-    coin_add(login["user"]["id"], 50000)
+    seed_existing_coin_balance(login["user"]["id"], 50000)
     purchase("premium_monthly", client)
     assert status(client)["autopay"] is None
     enable_premium_renewal(client)

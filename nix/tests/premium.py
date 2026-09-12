@@ -14,7 +14,7 @@ from utils import (
     purchase_offer,
     purchase_acceptance,
 )
-from utils import configure_purchases
+from utils import configure_purchases, seed_existing_coin_balance
 
 configure_purchases()
 
@@ -69,7 +69,7 @@ assert resp.json()["confirmation_smtp_accepted_at"] is None
 assert c.get("/shop/premium/me").json()["premium"] is False
 
 ## ok
-assert subprocess.getstatusoutput(f"academy admin coin add {login['user']['id']} 15000")[0] == 0
+seed_existing_coin_balance(login["user"]["id"], 15000)
 start = time.time() - 1
 purchase("premium_monthly")
 end = time.time() + 1

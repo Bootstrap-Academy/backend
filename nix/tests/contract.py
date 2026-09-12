@@ -14,7 +14,7 @@ from utils import (
     make_client,
     purchase,
 )
-from utils import configure_purchases
+from utils import configure_purchases, seed_existing_coin_balance
 
 configure_purchases()
 
@@ -33,7 +33,7 @@ PUBLIC_KEYS = {
 }
 login = create_verified_account("dieter", "dieter@example.com", "supersecurepassword")
 user_id = login["user"]["id"]
-subprocess.run(["academy", "admin", "coin", "add", user_id, "5000"], check=True)
+seed_existing_coin_balance(user_id, 5000)
 purchase("premium_monthly", c)
 fetch_mail()  # confirmation of the separate one-off purchase
 premium = enable_premium_renewal(c)

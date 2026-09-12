@@ -267,3 +267,54 @@ def configure_purchases():
             pass
         time.sleep(0.1)
     raise AssertionError("Disposable VM backend did not restart with explicit test windows")
+
+
+def vm_sql(statement):
+    """Fixture setup only in the disposable Nix VM, never an application write path."""
+    assert Path(__file__).resolve().parent == Path("/root/tests")
+    assert subprocess.check_output(["hostname"], text=True).strip() == "machine"
+    return subprocess.run(
+        ["sudo", "-u", "postgres", "psql", "academy", "-XqAt", "-v", "ON_ERROR_STOP=1"],
+        input=statement,
+        text=True,
+        capture_output=True,
+        check=True,
+    ).stdout.strip()
+
+
+def seed_existing_coin_balance(user_id, coins):
+    """Model an existing wallet for unrelated purchase/renewal tests without minting via API."""
+    from uuid import UUID
+
+    user_id = str(UUID(user_id))
+    assert type(coins) is int and coins > 0
+    # No overwriting a funded wallet; the seed has no transaction or mail side effect.
+    assert (
+        vm_sql(
+            f"INSERT INTO coins(user_id, coins, withheld_coins) VALUES ('{user_id}', {coins}, 0) "
+            f"ON CONFLICT(user_id) DO UPDATE SET coins=EXCLUDED.coins "
+            f"WHERE coins.coins=0 AND coins.withheld_coins=0 RETURNING user_id;"
+        )
+        == user_id
+    )
+
+
+def reserve_earned_coin_operation(user_id, coins, description, credit_note=True):
+    """Synthetic pre-existing earned claim: prepare only its exact pending recovery row."""
+    from uuid import UUID, uuid4
+
+    user_id = str(UUID(user_id))
+    operation_id = str(uuid4())
+    assert type(coins) is int and coins > 0
+    assert type(credit_note) is bool and isinstance(description, str)
+    description_sql = "'" + description.replace("'", "''") + "'"
+    assert (
+        vm_sql(
+            "SET standard_conforming_strings=on; "
+            "INSERT INTO internal_coin_operations(id,user_id,coins,description,credit_note) "
+            f"VALUES ('{operation_id}','{user_id}',{coins},{description_sql},{str(credit_note).lower()}) "
+            "RETURNING id;"
+        )
+        == operation_id
+    )
+    return operation_id

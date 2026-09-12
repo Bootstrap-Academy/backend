@@ -35,10 +35,17 @@ fn receipt_contains_only_submitted_facts_and_original_time() {
     assert!(original.contains("31.12.2026"));
     assert!(original.contains("07.09.2026 um 14:00:00"));
     assert!(!original.contains("INTERNAL"));
+    assert!(original.starts_with("Hallo,\n\ndeine Kündigung ist am"));
+    assert!(original.contains("Meine Mitgliedschaft"));
+    assert!(!original.contains("Bestätigtes Vertragsende"));
+    assert!(!original.contains("Ihrer"));
+    assert!(original.find(&UUID1.to_string()).unwrap() > original.find("Vertrag:").unwrap());
     d.kind = ContractDeclarationKind::Withdrawal;
     d.requested_end = None;
     let withdrawal = receipt_body(&d);
-    assert!(withdrawal.contains("nicht anwendbar"));
+    assert!(withdrawal.starts_with("Hallo,\n\ndein Widerruf ist am"));
+    assert!(!withdrawal.contains("Art der Kündigung"));
+    assert!(!withdrawal.contains("Gewünschtes Vertragsende"));
 }
 #[test]
 fn duplicate_equality_ignores_private_processing_but_preserves_every_submission_field() {

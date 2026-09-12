@@ -41,7 +41,7 @@ fn report_receipt_has_real_context_without_claiming_a_human_started_work() {
     assert!(!email.body.contains("Rechtsbehelfe"));
     assert!(!email.subject.contains(CASE));
     assert!(email.body.find(CASE).unwrap() > email.body.find(INBOX).unwrap());
-    assert!(email.body.contains("Bereich Inhalte, Vorgangsnummer"));
+    assert!(email.body.contains("Bereich Inhalte, Referenz"));
 }
 
 #[test]
@@ -76,10 +76,12 @@ fn provisional_content_notice_has_title_and_exact_reason_without_a_final_finding
             .contains("deine Aufgabe aus „Addition in Python“ wurde vorläufig ausgeblendet.")
     );
     assert!(email.body.contains(reason));
-    assert!(
+    assert_eq!(
         email
             .body
-            .contains("Damit ist noch kein Regelverstoß festgestellt.")
+            .matches("kein festgestellter Regelverstoß")
+            .count(),
+        1
     );
     assert!(
         email
@@ -107,9 +109,9 @@ fn account_restriction_explains_effect_reason_end_and_available_access() {
     assert!(email.body.contains("dein Kontozugang wurde eingeschränkt."));
     assert!(email.body.contains("wiederholt beleidigende Beiträge"));
     assert!(email.body.contains("04.10.2026 um 12:30 Uhr (UTC)"));
-    assert!(email.body.contains("kostenlos eine Überprüfung anfordern"));
+    assert!(email.body.contains("Details und kostenlose Überprüfung:"));
     assert!(email.body.contains(ACCESS));
-    assert!(email.body.contains("Bereich Konto, Vorgangsnummer"));
+    assert!(email.body.contains("Bereich Konto, Referenz"));
 }
 
 #[test]
@@ -196,11 +198,7 @@ fn requested_recovery_keeps_exact_capability_and_scope_without_decision_boilerpl
     assert_eq!(email.subject, "Bootstrap Academy: Dein Zugangslink");
     assert!(email.body.contains(link));
     assert!(email.body.contains("12.09.2026 um 09:00 Uhr (UTC)"));
-    assert!(
-        email
-            .body
-            .contains("Damit kannst du diesen Vorgang lesen und eine Überprüfung anfordern.")
-    );
+    assert_eq!(email.body.matches(link).count(), 1);
     assert!(
         email
             .body
@@ -209,6 +207,27 @@ fn requested_recovery_keeps_exact_capability_and_scope_without_decision_boilerpl
     assert!(!email.body.contains("Rechtsbehelfe"));
     assert!(!email.body.contains("Mensch"));
     assert!(!email.body.contains(CASE));
+}
+
+#[test]
+fn native_automatic_expiry_is_brief_but_keeps_other_restrictions_possible() {
+    let mut m = message(json!({"target_kind":"subtask", "outcome":"restore",
+        "rationale":AUTOMATIC_EXPIRY_REASON, "ground":AUTOMATIC_EXPIRY_GROUND,
+        "effective":{"enabled":false}}));
+    m["email_context"] = json!({"decision_automatic":true, "target_title":"Python"});
+    let original = m.clone();
+    let email = render(&m);
+    assert!(email.body.contains("Die festgelegte Dauer ist abgelaufen."));
+    assert!(email.body.contains("aus diesem Vorgang ist beendet"));
+    assert!(!email.body.contains("wieder verfügbar"));
+    assert!(!email.body.contains(AUTOMATIC_EXPIRY_GROUND));
+    assert_eq!(m, original);
+    m["email_context"]["decision_automatic"] = json!(false);
+    assert!(render(&m).body.contains(AUTOMATIC_EXPIRY_REASON));
+    m["email_context"]["decision_automatic"] = json!(true);
+    m["body"]["rationale"] =
+        json!("Die Einschränkung endet wegen einer korrigierten Aufgabenlösung.");
+    assert!(render(&m).body.contains("korrigierten Aufgabenlösung"));
 }
 
 #[test]

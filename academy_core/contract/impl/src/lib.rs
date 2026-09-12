@@ -333,18 +333,19 @@ where
                     declaration_id: declaration.id,
                     kind: "receipt".into(),
                     recipient: declaration.email.clone(),
-                    subject: format!(
-                        "Eingangsbestätigung Ihrer {} – {}",
-                        kind_label(declaration.kind),
-                        *declaration.id
-                    ),
-                    body: format!(
-                        "{}\nAngegebene Verlängerungsvereinbarung (optional): {}\n",
-                        receipt_body(&declaration),
-                        agreement_id
-                            .map(|id| id.to_string())
-                            .unwrap_or_else(|| "nicht angegeben".into())
-                    ),
+                    subject: match declaration.kind {
+                        ContractDeclarationKind::Cancellation => "Deine Kündigung ist angekommen",
+                        ContractDeclarationKind::Withdrawal => "Dein Widerruf ist angekommen",
+                    }
+                    .into(),
+                    body: match agreement_id {
+                        Some(id) => format!(
+                            "{}\nVon dir angegebene Abo-Nummer: {}\n",
+                            receipt_body(&declaration),
+                            *id
+                        ),
+                        None => receipt_body(&declaration),
+                    },
                     generation: 0,
                 },
             )
@@ -555,27 +556,36 @@ fn same_requested_agreement(
     original == agreement.as_ref().map(|id| id.to_string()).as_deref()
 }
 fn receipt_body(d: &ContractDeclaration) -> String {
-    format!(
-        "Bootstrap Academy GmbH\nEingangsbestätigung: {}\nDurch Betätigung der Bestätigungsschaltfläche abgegeben und eingegangen am: {} (Europe/Berlin)\nReferenz: {}\nName: {}\nE-Mail: {}\nVertrag: {}\nBezeichnung: {}\nArt der Kündigung: {}\nAngaben/Begründung: {}\nGewünschter Beendigungszeitpunkt: {}\n\nDies bestätigt den Eingang und Inhalt Ihrer Erklärung. Ihre Rechte richten sich nach der Erklärung und ihrem ursprünglichen Eingang, nicht nach einer späteren Bearbeitung oder dieser E-Mail. Die Vertragszuordnung und gegebenenfalls der rechtlich maßgebliche Beendigungszeitpunkt werden gesondert geprüft und über den verifizierten Kontakt bestätigt. Bei ordentlicher Premium-Kündigung gilt die vereinbarte Beendigung zum maßgeblichen bezahlten Periodenende; ein ausdrücklich späterer Termin wird berücksichtigt. Es entsteht durch diese Erklärung keine neue Verlängerungsvereinbarung.\n",
-        kind_label(d.kind),
+    let declaration = match d.kind {
+        ContractDeclarationKind::Cancellation => "deine Kündigung",
+        ContractDeclarationKind::Withdrawal => "dein Widerruf",
+    };
+    let mut body = format!(
+        "Hallo,\n\n{declaration} ist am {} (Europe/Berlin) angekommen. Hier sind deine Angaben:\n\nVertrag: {}\nName: {}\nE-Mail: {}\n",
         format_datetime(d.received_at),
-        *d.id,
+        contract_label(d.contract),
         *d.name,
         d.email.as_str(),
-        contract_label(d.contract),
-        designation(d).unwrap_or_default(),
-        d.cancellation_type
-            .map(cancellation_type_label)
-            .unwrap_or("–"),
-        *d.details,
-        d.requested_end.map(format_datetime).unwrap_or_else(|| {
-            if d.kind == ContractDeclarationKind::Cancellation {
-                "zum frühestmöglichen Zeitpunkt".into()
-            } else {
-                "nicht anwendbar (Widerruf)".into()
-            }
-        })
-    )
+    );
+    if let Some(designation) = designation(d) {
+        body.push_str(&format!("Deine Vertragsbezeichnung: {designation}\n"));
+    }
+    if let Some(details) = details(d) {
+        body.push_str(&format!("Deine Angaben oder Begründung: {details}\n"));
+    }
+    if d.kind == ContractDeclarationKind::Cancellation {
+        body.push_str(&format!(
+            "Art der Kündigung: {}\nGewünschtes Vertragsende: {}\n",
+            d.cancellation_type
+                .map(cancellation_type_label)
+                .unwrap_or("–"),
+            d.requested_end
+                .map(format_datetime)
+                .unwrap_or_else(|| "zum frühestmöglichen Zeitpunkt".into()),
+        ));
+    }
+    body.push_str(&format!("\nDiese Mail bestätigt den Eingang deiner Erklärung.\n\nViele Grüße\nDein Bootstrap Academy Team\n\nReferenz für Rückfragen: {}\n", *d.id));
+    body
 }
 fn details(declaration: &ContractDeclaration) -> Option<String> {
     Some(declaration.details.clone().into_inner()).filter(|details| !details.trim().is_empty())

@@ -357,7 +357,7 @@ where
             reference: coins.to_string(),
             title: format!("{coins} MorphCoins"),
             description: format!(
-                "Einmaliger Kauf von {coins} Einheiten Plattformguthaben zur Nutzung der in den beigefügten AGB beschriebenen Angebote. Kein Abonnement. Die gesetzlichen Rechte und die vereinbarten Guthabenbedingungen bleiben maßgeblich.\nRechnungsangaben: {}",
+                "Du kaufst einmalig {coins} MorphCoins für Angebote auf Bootstrap Academy. Kein Abo.\nRechnungsangaben: {}",
                 facts["customer_details"]
                     .as_array()
                     .map(|a| a

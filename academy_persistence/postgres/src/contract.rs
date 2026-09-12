@@ -270,16 +270,16 @@ impl ContractRepository<PostgresTransaction> for PostgresContractRepository {
             // An earlier automatic message may have reached SMTP even without
             // acknowledgement. Preserve it and issue a distinct explicit correction.
             let body = format!(
-                "Bootstrap Academy GmbH\nBestätigung der individuell dokumentierten Erledigung\nReferenz: {}\nBestätigter Beendigungszeitpunkt: {}\nDiese Bestätigung ersetzt eine zuvor versandte automatische Bestimmung des Beendigungszeitpunkts. Die individuell geprüfte Erledigung und die gesondert dokumentierte Kommunikation sind maßgeblich. Bereits bezahlter Zugang bleibt erhalten.\n",
-                *id,
+                "Hallo,\n\nhier ist dein korrigiertes Vertragsende. Es ersetzt den zuvor automatisch genannten Termin.\n\nBestätigtes Vertragsende: {}\nBereits bezahlten Zugang kannst du weiter nutzen.\n\nViele Grüße\nDein Bootstrap Academy Team\nbootstrap academy GmbH\n\nReferenz für Rückfragen: {}\n",
                 effective_end
                     .map(|end| end
                         .with_timezone(&chrono_tz::Europe::Berlin)
                         .format("%d.%m.%Y %H:%M:%S %Z")
                         .to_string())
-                    .unwrap_or_else(|| "gesondert dokumentiert".into())
+                    .unwrap_or_else(|| "wie in unserer gesonderten Antwort angegeben".into()),
+                *id,
             );
-            txn.txn().execute("INSERT INTO contract_delivery(declaration_id,kind,recipient,subject,body) SELECT declaration_id,'external_resolution',recipient,'Bestätigung der individuell dokumentierten Erledigung',$2 FROM contract_delivery WHERE declaration_id=$1 AND kind='resolution' AND attempts>0 ON CONFLICT DO NOTHING", &[&*id,&body]).await?;
+            txn.txn().execute("INSERT INTO contract_delivery(declaration_id,kind,recipient,subject,body) SELECT declaration_id,'external_resolution',recipient,'Korrektur zu deinem Vertragsende',$2 FROM contract_delivery WHERE declaration_id=$1 AND kind='resolution' AND attempts>0 ON CONFLICT DO NOTHING", &[&*id,&body]).await?;
         }
         let params = SetProcessedParams {
             processed_at: processed_at.into(),
@@ -496,7 +496,7 @@ pub async fn reconcile_cancellations(
             txn.txn().execute("UPDATE contract_declarations SET processing_note=concat_ws(E'\\n',processing_note,'Zeitliche Zuordnung unklar: Für einen Kauf/eine Periodenänderung ist ein Abschluss vor Erklärungseingang nicht belegt oder eine Überschneidung dokumentiert. Verfügbare ursprüngliche Grenzen, beide Periodenstände und tatsächliche Transaktionsbelege sind erhalten; zeitnahe rechtliche/finanzielle Prüfung erforderlich, keine automatische Erstattung oder Rückabwicklung.') WHERE id=$1", &[&id]).await?;
         }
         let body = format!(
-            "Bootstrap Academy GmbH\nErgänzende Kündigungsbestätigung\nReferenz: {id}\nGewünschter Zeitpunkt: {}\nBeendigungszeitpunkt der zugeordneten Verlängerungsvereinbarung: {}\nDie automatische Verlängerung dieser Vereinbarung ist ausgeschaltet. Bereits bezahlter Zugang bleibt erhalten. Eine zuvor beendete Vereinbarung wird nicht reaktiviert. Bei Abweichungen oder weitergehenden Rechten prüfen wir Ihre Erklärung gesondert; der ursprüngliche Eingangszeitpunkt bleibt maßgeblich.\n",
+            "Hallo,\n\ndie automatische Verlängerung deines Premium-Abos ist ausgeschaltet. Bereits bezahlten Zugang kannst du weiter nutzen.\n\nVon dir gewünschtes Ende: {}\nBestätigtes Vertragsende: {}\n\nViele Grüße\nDein Bootstrap Academy Team\nbootstrap academy GmbH\n\nReferenz für Rückfragen: {id}\n",
             declared_target
                 .with_timezone(&chrono_tz::Europe::Berlin)
                 .format("%d.%m.%Y %H:%M:%S %Z"),
@@ -506,12 +506,12 @@ pub async fn reconcile_cancellations(
         );
         let body = if overlap {
             format!(
-                "{body}Die zeitliche Zuordnung eines Kaufs/einer Periodenänderung zu Ihrem Erklärungseingang ist nicht abschließend belegt oder es ist eine Überschneidung dokumentiert. Die verfügbaren ursprünglichen Grenzen und Kaufbelege bleiben erhalten. Deren rechtliche/finanzielle Behandlung prüfen wir zeitnah gesondert; eine Erstattung oder Rückabwicklung ist damit nicht festgestellt.\n"
+                "{body}\nEin Kauf oder eine Änderung deiner Premium-Laufzeit lässt sich deiner Kündigung zeitlich noch nicht eindeutig zuordnen. Die Klärung und eine mögliche Erstattung sind noch offen. Deine Kaufbelege und dein bereits bezahlter Zugang bleiben erhalten.\n"
             )
         } else {
             body
         };
-        txn.txn().execute("INSERT INTO contract_delivery(declaration_id,kind,recipient,subject,body) VALUES ($1,'resolution',$2,'Ergänzende Kündigungsbestätigung',$3) ON CONFLICT DO NOTHING", &[&id,&row.get::<_,String>("established_recipient"),&body]).await?;
+        txn.txn().execute("INSERT INTO contract_delivery(declaration_id,kind,recipient,subject,body) VALUES ($1,'resolution',$2,'Dein Premium-Abo verlängert sich nicht mehr',$3) ON CONFLICT DO NOTHING", &[&id,&row.get::<_,String>("established_recipient"),&body]).await?;
     }
     Ok(())
 }

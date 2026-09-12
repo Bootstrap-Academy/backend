@@ -37,7 +37,7 @@ pub struct PurchaseFeatureConfig {
 // An early-performance request is recorded; this release does not assert that
 // unresolved product classification or a checkbox extinguishes withdrawal rights.
 const DECLARATION: &str = "Ich verlange ausdrücklich, dass mit der bestellten Leistung vor Ablauf der Widerrufsfrist begonnen wird. Meine gesetzlichen Widerrufs- und Mängelrechte bleiben unberührt.";
-const COMMENCEMENT: &str = "Premium beginnt erst nach Bereitstellung der Vertragsbestätigung, frühestens nach Ende eines bereits bezahlten Premium-Zeitraums. Der vollständig gekaufte Kalenderzeitraum wird ab diesem Beginn berechnet. Bestehender Zugang und eine gesonderte Verlängerungsvereinbarung bleiben erhalten. Bei ausstehender Bestätigung wird keine neue Leistung begonnen und keine Laufzeit verbraucht; die Bestellung und Ihre Ansprüche bleiben in der Bestellübersicht erhalten.";
+const COMMENCEMENT: &str = "Dein neuer Premium-Zeitraum beginnt nach der Vertragsbestätigung. Bereits bezahlte Premium-Zeit läuft zuerst ab. Du erhältst den gesamten gekauften Kalenderzeitraum; bis zum Beginn wird davon keine Zeit abgezogen. Dein bestehender Zugang und eine bestehende automatische Verlängerung bleiben unverändert.";
 
 #[derive(Debug, Clone, Build)]
 pub struct PurchaseFeatureServiceImpl<
@@ -118,7 +118,7 @@ where
         let (title,description,coins,facts)=match kind {
             "premium_monthly"=>("Premium für einen Kalendermonat",format!("Zugriff auf alle Kurse und Übungen ohne Verbrauch von Herzen; Webinare und Coachings sind nicht enthalten. {COMMENCEMENT}"),self.premium_config.monthly_price,json!({"months":1,"automatic_renewal":false})),
             "premium_yearly"=>("Premium für zwölf Kalendermonate",format!("Zugriff auf alle Kurse und Übungen ohne Verbrauch von Herzen; Webinare und Coachings sind nicht enthalten. {COMMENCEMENT}"),self.premium_config.yearly_price,json!({"months":12,"automatic_renewal":false})),
-            "hearts"=>("Herzen auffüllen","Einmaliges Auffüllen des Herzbestands bis zur angegebenen Höchstzahl. Kein Abonnement; der automatische kostenlose tägliche Refill bleibt bestehen.".into(),self.heart_config.hearts_refill_price,json!({"maximum":self.heart_config.hearts_max,"unit":"half_heart"})),
+            "hearts"=>("Herzen auffüllen","Du füllst deine Herzen einmalig bis zur angegebenen Höchstzahl auf. Kein Abo. Die tägliche kostenlose Auffüllung bleibt bestehen.".into(),self.heart_config.hearts_refill_price,json!({"maximum":self.heart_config.hearts_max,"unit":"half_heart"})),
             _=>return Err(PurchaseError::Unavailable),
         };
         Ok(PurchaseProduct {
@@ -227,7 +227,7 @@ where
             }
             product.facts["refill_units"] = json!(units);
             product.description = format!(
-                "Einmaliger Kauf von {} zusätzlichen Herzen, höchstens {} Herzen insgesamt. Ein Lösungsversuch kostet je nach Aufgabentyp ein halbes oder ein ganzes Herz, auch bei richtiger Lösung; die bestellte Menge ist keine feste Anzahl von Versuchen. Bereitstellung erst nach Vertragsbestätigung. Falls die automatische kostenlose Auffüllung die bestellte Menge inzwischen unmöglich macht, bleibt die bezahlte Bestellung zur Klärung offen. Kein Abonnement. Der automatische kostenlose tägliche Refill bleibt bestehen.",
+                "Du kaufst einmalig {} zusätzliche Herzen, höchstens {} Herzen insgesamt. Ein Lösungsversuch kostet je nach Aufgabentyp ein halbes oder ein ganzes Herz, auch bei richtiger Lösung. Wie viele Versuche du damit machen kannst, hängt deshalb von den Aufgaben ab. Du erhältst deine Herzen nach der Vertragsbestätigung. Falls durch die tägliche kostenlose Auffüllung nicht mehr genug Platz für die gekaufte Menge ist, bleibt deine bezahlte Bestellung in der Bestellübersicht. Kein Abo. Deine Herzen werden weiterhin täglich automatisch und kostenlos aufgefüllt.",
                 display_hearts(units),
                 display_hearts(self.heart_config.hearts_max)
             );
@@ -243,7 +243,7 @@ where
         }
         let mut text = if source == "paypal" {
             format!(
-                "Anbieter: bootstrap academy GmbH.\n{}\n{}\nGesamtpreis: {} EUR einschließlich Umsatzsteuer ({} EUR). Zahlung mit PayPal. Keine weiteren Bestellkosten. Guthaben wird erst nach nachgewiesenem Zahlungseingang und Vertragsbestätigung bereitgestellt.\nVertragssprache: Deutsch. Die beigefügten konkreten AGB und Widerrufsinformationen gelten für diese Bestellung.",
+                "Anbieter: bootstrap academy GmbH.\n{}\n{}\nGesamtpreis: {} EUR einschließlich Umsatzsteuer ({} EUR). Du zahlst mit PayPal. Es gibt keine weiteren Bestellkosten. Du erhältst dein Guthaben nach Zahlungseingang und Vertragsbestätigung.\nSprache: Deutsch. Die beigefügten AGB und Widerrufsinformationen gelten für diese Bestellung.",
                 product.title,
                 product.description,
                 product.facts["gross_total"].as_str().unwrap_or(""),
@@ -251,7 +251,7 @@ where
             )
         } else {
             format!(
-                "Anbieter: bootstrap academy GmbH. Vertragspartner und Beschwerdekontakt wie in den beigefügten AGB.\nBestellte Leistung: {}\n{}\nPreis: {} MorphCoins ({:.2} EUR einschließlich Umsatzsteuer zum Verhältnis 100 MorphCoins = 1 EUR); keine weiteren Bestellkosten. Zahlung ausschließlich aus vorhandenem MorphCoin-Guthaben.\nVertrags- und Erklärungssprache: Deutsch. Die angehängten AGB und Widerrufsinformationen gehören zu diesem konkreten Angebot; andere bestehende Verträge werden nicht geändert.\nWiderruf: https://bootstrap.academy/vertrag-widerrufen. Kündigung: https://bootstrap.academy/vertrag-kuendigen. E-Mail für beide Erklärungen: hallo@bootstrap.academy.\n",
+                "Anbieter: bootstrap academy GmbH.\nDein Kauf: {}\n{}\nPreis: {} MorphCoins ({:.2} EUR einschließlich Umsatzsteuer; 100 MorphCoins = 1 EUR). Es gibt keine weiteren Bestellkosten. Du zahlst nur aus deinem vorhandenen MorphCoin-Guthaben.\nSprache: Deutsch. Die beigefügten AGB und Widerrufsinformationen gelten für diese Bestellung.\nWiderruf: https://bootstrap.academy/vertrag-widerrufen. Kündigung: https://bootstrap.academy/vertrag-kuendigen. Beides geht auch per E-Mail an hallo@bootstrap.academy.\n",
                 product.title,
                 product.description,
                 product.coins,
@@ -266,7 +266,12 @@ where
             } else {
                 format!("{seconds} Sekunden")
             };
-            text.push_str(&format!("\nVertragsbestätigung und Bereitstellung innerhalb von {duration} ab Eingang Ihrer wirksamen Bestellung. Bei Premium wird innerhalb dieser Frist der volle gekaufte Zeitraum zugeordnet; ein bereits bezahlter Zeitraum bleibt davor erhalten. Nach Fristablauf wird eine noch ausstehende Bereitstellung nicht automatisch nachgeholt; die Bestellung, tatsächliche Zahlung und Ihre Ansprüche bleiben zur Klärung in der Bestellübersicht erhalten. Für Fragen: hallo@bootstrap.academy. Ein ausstehender Zahlungseingang verlängert diese Frist nicht."));
+            if matches!(product.kind.as_str(), "premium_monthly" | "premium_yearly") {
+                text.push_str(&format!("\nDu erhältst die Vertragsbestätigung innerhalb von {duration} nach Eingang deiner Bestellung. In dieser Frist wird auch dein gesamter gekaufter Premium-Zeitraum für dich gebucht."));
+            } else {
+                text.push_str(&format!("\nDu erhältst die Vertragsbestätigung und deine Leistung innerhalb von {duration} nach Eingang deiner Bestellung."));
+            }
+            text.push_str(" Nach Ablauf der Frist wird eine noch ausstehende Bereitstellung nicht automatisch nachgeholt. Deine Bestellung und Zahlung bleiben in der Bestellübersicht; deine Ansprüche bleiben bestehen. Bei Fragen: hallo@bootstrap.academy. Die Frist gilt auch, wenn deine Zahlung noch aussteht.");
         }
         let mut offer = PurchaseOffer {
             id: Uuid::new_v4(),
@@ -471,10 +476,8 @@ where
             .and_then(|s| accepted_at.checked_add_signed(TimeDelta::seconds(s as i64)))
             .or(o.product.service_starts_at);
         let body = format!(
-            "Vertragsbestätigung – Bootstrap Academy\nBestellung: {}\nEmpfänger: {}\nErklärung eingegangen: {}\n\n{}\nAusdrücklich erklärte Anforderung:\n{}\n\nDer Zahlungsweg und Preis sind oben festgehalten. Die Leistungsbereitstellung ist in der Bestellübersicht dokumentiert. Diese Bestätigung behauptet keine bereits vollständige Leistung und kein vorzeitiges Erlöschen des Widerrufsrechts.\nDie vereinbarten AGB und Widerrufsinformationen sind als unveränderliche PDF-Kopien beigefügt.",
-            o.id,
-            o.recipient,
-            accepted_at,
+            "Hallo,\n\nhier ist die Vertragsbestätigung für deine Bestellung „{}“. Den Stand findest du unter https://bootstrap.academy/orders.\n\nDein vereinbartes Angebot:\n{}\n\nDeine Erklärung zum vorzeitigen Beginn:\n{}\n\nDie vereinbarten AGB und Widerrufsinformationen findest du als PDF im Anhang.\n\nViele Grüße\nDein Bootstrap Academy Team\n\nBestellnummer: {}\nEmpfänger: {}\nBestellt am: {}",
+            o.product.title,
             if source == "paypal" {
                 format!(
                     "{}\nZahlungsweg: PayPal; keine Abbuchung vorhandener MorphCoins.",
@@ -486,17 +489,21 @@ where
             if a.early_performance_requested {
                 &o.declaration
             } else {
-                "Keine Anforderung vorzeitiger Leistung erklärt (kostenfreie Bestellung)."
-            }
+                "Für diese kostenlose Bestellung hast du keinen vorzeitigen Beginn angefordert."
+            },
+            o.id,
+            o.recipient,
+            accepted_at.format("%d.%m.%Y um %H:%M Uhr (UTC)"),
         );
         let body = if let Some(deadline) = deadline {
             format!(
-                "{body}\nVereinbarte Frist für Vertragsbestätigung und Bereitstellung: {deadline} (UTC). Bei einer noch nicht erbrachten Bestellung bleiben nach Fristablauf Zahlung und Ansprüche zur Klärung erhalten; es erfolgt keine automatische verspätete Bereitstellung."
+                "{body}\nVereinbarte Frist für Bestätigung und Bereitstellung: {}.",
+                deadline.format("%d.%m.%Y um %H:%M Uhr (UTC)"),
             )
         } else {
             body
         };
-        let metadata = json!({"sender":self.mail.sender().map(|v|v.0.to_string()),"message_id":format!("purchase-{}@bootstrap.academy",o.id),"subject":"Ihre Vertragsbestätigung – Bootstrap Academy","content_type":"text/plain; charset=utf-8","terms_filename":"vereinbarte-agb.pdf","withdrawal_filename":"vereinbarte-widerrufsinformation.pdf","attachment_content_type":"application/pdf"});
+        let metadata = json!({"sender":self.mail.sender().map(|v|v.0.to_string()),"message_id":format!("purchase-{}@bootstrap.academy",o.id),"subject":"Deine Vertragsbestätigung – Bootstrap Academy","content_type":"text/plain; charset=utf-8","terms_filename":"vereinbarte-agb.pdf","withdrawal_filename":"vereinbarte-widerrufsinformation.pdf","attachment_content_type":"application/pdf"});
         if o.product.coins > 0 && source != "paypal" {
             match self
                 .coin_repo
@@ -869,11 +876,11 @@ where
         } else {
             (
                 format!(
-                    "Anbei die Rechnung R{:07} zu PayPal-Bestellung {}. Diese Übersendung belegt keine historischen Vertragserklärungen oder damaligen Dokumentversionen. Es werden keine aktuellen Rechtstexte als früher vereinbart dargestellt.",
+                    "Hallo,\n\nim Anhang findest du deine Rechnung R{:07}.\n\nViele Grüße\nDein Bootstrap Academy Team\n\nPayPal-Bestellnummer: {}",
                     payment.snapshot.order.invoice_number,
                     payment.snapshot.order.id.as_str()
                 ),
-                json!({"sender":self.mail.sender().map(|s|s.0.to_string()),"subject":"Ihre Rechnung – Bootstrap Academy","content_type":"text/plain; charset=utf-8","attachment_content_type":"application/pdf"}),
+                json!({"sender":self.mail.sender().map(|s|s.0.to_string()),"subject":"Deine Rechnung – Bootstrap Academy","content_type":"text/plain; charset=utf-8","attachment_content_type":"application/pdf"}),
             )
         };
         let candidate = json!({"body":body,"metadata":metadata,"recipient":payment.snapshot.recipient.0.to_string(),"message_id":format!("invoice-{}@bootstrap.academy",payment.snapshot.order.id.as_str()),"attachments":attachments});

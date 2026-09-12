@@ -4,6 +4,8 @@ use serde_json::Value;
 
 const INBOX: &str = "https://bootstrap.academy/moderation";
 const ACCESS: &str = "https://bootstrap.academy/moderation/access";
+const AUTOMATIC_EXPIRY_REASON: &str = "Das gespeicherte Ende dieser Einschränkung ist erreicht. Diese Einschränkung wird beendet. Andere Einschränkungen und ein Rückzug durch den Autor bleiben maßgeblich.";
+const AUTOMATIC_EXPIRY_GROUND: &str = "Ablauf der zuvor ausdrücklich festgelegten Dauer; keine neue Prüfung des ursprünglichen Vorwurfs";
 
 /// Presentation only. The owner and the email admission gate decide whether a
 /// message may be sent. Do not interpret free-text automation as actor evidence.
@@ -39,7 +41,9 @@ pub(super) fn compose(
                 || "30 Minuten nach der Anforderung".into(),
                 |date| format!("bis {date}"),
             );
-        paragraphs.push(format!("Der Link gilt {expiry}. Damit kannst du diesen Vorgang lesen und eine Überprüfung anfordern. Wenn du ihn nicht angefordert hast, musst du nichts tun."));
+        paragraphs.push(format!(
+            "Der Link gilt {expiry}. Wenn du ihn nicht angefordert hast, musst du nichts tun."
+        ));
     } else if statement["status"] == "received" {
         subject = "Deine Meldung ist angekommen".into();
         paragraphs.push(format!(
@@ -64,12 +68,22 @@ pub(super) fn compose(
         };
         paragraphs.push(decision_change(statement, kind, context, notifier));
 
+        // Shorten only this exact native automatic-expiry wording. Original
+        // statements and any individual reason remain unchanged in the inbox.
+        let automatic_expiry = context["decision_automatic"] == true
+            && matches!(outcome, "restore" | "authority_end")
+            && text(statement, "rationale") == Some(AUTOMATIC_EXPIRY_REASON);
         if let Some(reason) = text(statement, "rationale").or_else(|| text(statement, "text")) {
-            paragraphs.push(reason.to_owned());
+            paragraphs.push(if automatic_expiry {
+                "Die festgelegte Dauer ist abgelaufen.".to_owned()
+            } else {
+                reason.to_owned()
+            });
         }
-        if let Some(ground) =
-            text(statement, "ground").filter(|ground| Some(*ground) != text(statement, "rationale"))
-        {
+        if let Some(ground) = text(statement, "ground").filter(|ground| {
+            Some(*ground) != text(statement, "rationale")
+                && !(automatic_expiry && *ground == AUTOMATIC_EXPIRY_GROUND)
+        }) {
             paragraphs.push(format!("Grundlage: {ground}"));
         }
         if !matches!(outcome, "restore" | "authority_end" | "warn")
@@ -85,7 +99,7 @@ pub(super) fn compose(
         {
             paragraphs.push(format!("Ergebnis der Überprüfung: {assessment}"));
         }
-        paragraphs.push(format!("Die vollständige Entscheidung und den aktuellen Stand findest du hier. Dort kannst du auch kostenlos eine Überprüfung anfordern:\n{INBOX}"));
+        paragraphs.push(format!("Details und kostenlose Überprüfung:\n{INBOX}"));
         // An authority decision may carry a specific appeal route or deadline.
         // Routine receipts above deliberately omit the old legal boilerplate.
         if outcome.starts_with("authority_")
@@ -106,7 +120,9 @@ pub(super) fn compose(
         if let Some(case) =
             text(message, "case_id").filter(|case| uuid::Uuid::parse_str(case).is_ok())
         {
-            paragraphs.push(format!("Falls du dich nicht anmelden kannst: {ACCESS}\nFür den Zugang ohne Konto: Bereich {area}, Vorgangsnummer {case}."));
+            paragraphs.push(format!(
+                "Ohne Anmeldung: {ACCESS}\nZugangsdaten: Bereich {area}, Referenz {case}."
+            ));
         }
     }
     paragraphs.push("Viele Grüße\nDein Bootstrap Academy Team".into());
@@ -251,7 +267,7 @@ fn decision_change(statement: &Value, kind: &str, context: &Value, notifier: boo
     let object = topic(kind, context, notifier, true);
     match statement["outcome"].as_str().unwrap_or("") {
         "provisional" => format!(
-            "{subject} wurde {}vorläufig ausgeblendet. Damit ist noch kein Regelverstoß festgestellt.",
+            "{subject} wurde {}vorläufig ausgeblendet.",
             if context["decision_automatic"] == true {
                 "automatisch "
             } else {

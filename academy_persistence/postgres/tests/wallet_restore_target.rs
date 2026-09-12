@@ -225,7 +225,10 @@ async fn wallet_legacy_real_receipts_survive_upgrade_erasure_replacement_and_iso
     let r1 = call(&db, "restore_credit", &old).await.unwrap();
     let r2 = call(&db, "restore_credit", &extra).await.unwrap();
     let before = fingerprint(&db).await;
-    assert_eq!(db.run_migrations(None).await.unwrap(), vec![FORWARD]);
+    assert_eq!(
+        db.run_migrations(None).await.unwrap(),
+        vec![FORWARD, "2026-09-12-070000_legacy_moderation_email"]
+    );
     let after = fingerprint(&db).await;
     for (k, v) in &before {
         if k != "_migrations" {
@@ -512,7 +515,10 @@ async fn wallet_cash_branch_upgrade_replay_and_split_remaining_preserve_all_valu
     let old = call(&db, "cash_basis_review", &body).await.unwrap();
     assert_eq!(old["cash_capacity"], 2000);
     let before = fingerprint(&db).await;
-    assert_eq!(db.run_migrations(None).await.unwrap(), vec![FORWARD]);
+    assert_eq!(
+        db.run_migrations(None).await.unwrap(),
+        vec![FORWARD, "2026-09-12-070000_legacy_moderation_email"]
+    );
     let after = fingerprint(&db).await;
     for (k, v) in &before {
         if k != "_migrations" {
@@ -636,7 +642,28 @@ async fn wallet_foreign_lock_avoidance_and_forward_only_preserve_immediate_guard
     drop(holder);
     let before = fingerprint(&db).await;
     let e = db.revert_migrations(Some(1)).await.unwrap_err();
-    assert!(format!("{e:#}").contains("forward repair"));
+    assert!(
+        format!("{e:#}").contains(
+            "Historical moderation email protection requires a reviewed forward migration"
+        )
+    );
+    assert_eq!(fingerprint(&db).await, before);
+    // The newest migration refuses first; the wallet's own protection must also remain intact.
+    let tx = db.begin_transaction().await.unwrap();
+    let wallet = academy_persistence_postgres::MIGRATIONS
+        .iter()
+        .find(|m| m.name == FORWARD)
+        .unwrap();
+    let error = tx.txn().batch_execute(wallet.down).await.unwrap_err();
+    assert_eq!(error.code().unwrap().code(), "P0001");
+    assert!(
+        error
+            .as_db_error()
+            .unwrap()
+            .message()
+            .contains("forward repair")
+    );
+    tx.rollback().await.unwrap();
     assert_eq!(fingerprint(&db).await, before);
     let tx = db.begin_transaction().await.unwrap();
     let r=tx.txn().query_one("SELECT pg_get_functiondef('commercial_operation(text,uuid,jsonb)'::regprocedure),pg_get_functiondef('commercial_retention_operation(text,uuid,jsonb)'::regprocedure),pg_get_functiondef('commercial_learning_operation(text,uuid,jsonb)'::regprocedure)",&[]).await.unwrap();

@@ -613,8 +613,12 @@ async fn isolation_entries_and_forward_only_downgrade_preserve_exact_state() {
     }
     assert_eq!(fingerprint(&db).await, old);
     let error = db.revert_migrations(Some(1)).await.unwrap_err();
-    assert!(format!("{error:#}").contains("Wallet restoration target and isolation protection"));
-    // Exercise this unit's guard as well; the newer wallet refusal is separate.
+    assert!(
+        format!("{error:#}").contains(
+            "Historical moderation email protection requires a reviewed forward migration"
+        )
+    );
+    // Exercise this unit's guard as well; the newest mail-policy refusal is separate.
     let tx = db.begin_transaction().await.unwrap();
     let invoice = academy_persistence_postgres::MIGRATIONS
         .iter()

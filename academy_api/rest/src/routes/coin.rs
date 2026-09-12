@@ -111,6 +111,7 @@ async fn add_coins(
         .await
     {
         Ok(_balance) => Json(OkResponse).into_response(),
+        Err(CoinAddCoinsError::CreditNotAuthorized) => CoinCreditNotAuthorizedError.into_response(),
         Err(CoinAddCoinsError::UserNotFound) => UserNotFoundError.into_response(),
         Err(CoinAddCoinsError::NotEnoughCoins) => NotEnoughCoinsError.into_response(),
         Err(CoinAddCoinsError::Auth(err)) => auth_error(err),
@@ -119,22 +120,22 @@ async fn add_coins(
 }
 
 fn add_coins_docs(op: TransformOperation) -> TransformOperation {
-    op.summary("Add Morphcoins to the balance of the given user.")
+    op.summary("Apply a nonpositive adjustment to the given user's Morphcoins.")
         .description(
-            "If a negative amount of coins is given, coins are removed from the user's balance. \
+            "Requires admin access. Positive credits use the purchase or verified recovery path. \
              An error is returned if the new balance would be negative.",
         )
-        .add_response::<OkResponse>(
-            StatusCode::OK,
-            "The given number of coins have been added to the user's balance.",
-        )
+        .add_response::<OkResponse>(StatusCode::OK, "The balance adjustment has been applied.")
         .add_error::<UserNotFoundError>()
         .add_error::<NotEnoughCoinsError>()
+        .add_error::<CoinCreditNotAuthorizedError>()
         .with(auth_error_docs)
         .with(internal_server_error_docs)
 }
 
 error_code! {
+    /// Coin credit requires its purchase or verified historical-recovery authority.
+    pub CoinCreditNotAuthorizedError(FORBIDDEN, "Use the purchase or recovery path to credit coins");
     /// The user does not have enough coins to perform this action.
     pub NotEnoughCoinsError(PRECONDITION_FAILED, "Not enough coins");
 }

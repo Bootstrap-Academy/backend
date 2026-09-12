@@ -59,6 +59,10 @@ async fn add(
     description: Option<String>,
     no_credit_note: bool,
 ) -> anyhow::Result<()> {
+    anyhow::ensure!(
+        coins <= 0,
+        "Use the purchase or verified recovery path to credit coins"
+    );
     let mut provider = Provider::from_config(&config).await?;
 
     let db: types::Database = provider.provide();

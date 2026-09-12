@@ -26,7 +26,10 @@ use axum::{
 use schemars::JsonSchema;
 use serde::Deserialize;
 
-use super::{coin::NotEnoughCoinsError, user::UserNotFoundError};
+use super::{
+    coin::{CoinCreditNotAuthorizedError, NotEnoughCoinsError},
+    user::UserNotFoundError,
+};
 use crate::{
     docs::TransformOperationExt,
     error_code,
@@ -157,6 +160,9 @@ async fn add_coins(
         .await
     {
         Ok(balance) => Json(ApiBalance::from(balance)).into_response(),
+        Err(InternalAddCoinsError::CreditNotAuthorized) => {
+            CoinCreditNotAuthorizedError.into_response()
+        }
         Err(InternalAddCoinsError::OperationConflict) => CoinOperationConflictError.into_response(),
         Err(InternalAddCoinsError::UserNotFound) => UserNotFoundError.into_response(),
         Err(InternalAddCoinsError::NotEnoughCoins) => NotEnoughCoinsError.into_response(),
@@ -189,6 +195,9 @@ async fn apply_coin_operation(
     };
     match service.apply_coin_operation(&token.0, operation).await {
         Ok(balance) => Json(ApiBalance::from(balance)).into_response(),
+        Err(InternalAddCoinsError::CreditNotAuthorized) => {
+            CoinCreditNotAuthorizedError.into_response()
+        }
         Err(InternalAddCoinsError::OperationConflict) => CoinOperationConflictError.into_response(),
         Err(InternalAddCoinsError::UserNotFound) => UserNotFoundError.into_response(),
         Err(InternalAddCoinsError::NotEnoughCoins) => NotEnoughCoinsError.into_response(),
@@ -198,14 +207,16 @@ async fn apply_coin_operation(
 }
 
 fn add_coins_docs(op: TransformOperation) -> TransformOperation {
-    op.summary("Add Morphcoins to the balance of the given user.")
+    op.summary("Apply an authorized Morphcoin operation.")
+        .description("New positive credits require an exact, prepared historical reservation on the durable operation route. Unkeyed positive requests are rejected. Purchases use their owning purchase flow.")
         .add_response::<ApiBalance>(
             StatusCode::OK,
-            "The given number of coins have been added to the user's balance.",
+            "The operation has been applied, or its exact completed receipt replayed.",
         )
         .add_error::<UserNotFoundError>()
         .add_error::<NotEnoughCoinsError>()
         .add_error::<CoinOperationConflictError>()
+        .add_error::<CoinCreditNotAuthorizedError>()
         .with(internal_auth_error_docs)
         .with(internal_server_error_docs)
 }

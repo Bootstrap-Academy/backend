@@ -1,4 +1,6 @@
-from utils import c, create_account, create_admin_account, make_client
+import subprocess
+
+from utils import c, create_account, create_admin_account, make_client, seed_existing_coin_balance
 
 # config (public)
 resp = c.get("/shop/coins/config")
@@ -25,9 +27,20 @@ adm = make_client()
 adm_login = create_admin_account("admin", "admin@admin", "admin", adm)
 
 resp = adm.post(f"/shop/coins/{login['user']['id']}", json={"coins": 1337, "description": "test", "credit_note": True})
-assert resp.status_code == 200
-assert resp.json() == True
+assert resp.status_code == 403
+assert resp.json() == {"detail": "Use the purchase or recovery path to credit coins"}
+assert c.get("/shop/coins/me").json() == {"coins": 0, "withheld_coins": 0}
 
+# The CLI cannot turn an administrator into a new source of free coins either.
+result = subprocess.run(
+    ["academy", "admin", "coin", "add", login["user"]["id"], "1337"], capture_output=True, text=True
+)
+assert result.returncode != 0
+assert "Use the purchase or verified recovery path" in result.stderr
+assert c.get("/shop/coins/me").json() == {"coins": 0, "withheld_coins": 0}
+
+# Existing balances remain usable for legitimate nonpositive adjustments.
+seed_existing_coin_balance(login["user"]["id"], 1337)
 resp = c.get(f"/shop/coins/me")
 assert resp.status_code == 200
 assert resp.json() == {"coins": 1337, "withheld_coins": 0}

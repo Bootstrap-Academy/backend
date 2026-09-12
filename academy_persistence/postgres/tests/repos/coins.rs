@@ -262,7 +262,31 @@ async fn durable_operation_rollback_replay_and_conflict() {
         description: Some("Synthetic immutable operation".try_into().unwrap()),
         include_in_credit_note: false,
     };
-    // A rolled-back reservation and balance change must leave the key reusable.
+    let mut txn = db.begin_transaction().await.unwrap();
+    assert_eq!(
+        REPO.claim_operation(&mut txn, &operation).await.unwrap(),
+        CoinOperationClaim::CreditNotAuthorized
+    );
+    assert_eq!(
+        REPO.get_balance(&mut txn, FOO.user.id).await.unwrap(),
+        balance(0, 0)
+    );
+    assert!(
+        txn.txn()
+            .query_opt(
+                "SELECT 1 FROM internal_coin_operations WHERE id=$1",
+                &[&*operation.id]
+            )
+            .await
+            .unwrap()
+            .is_none()
+    );
+    // Offline cutover preparation reserves the exact earned historical credit
+    // without paying it or inventing a committed balance.
+    txn.txn().execute("INSERT INTO internal_coin_operations(id,user_id,coins,description,credit_note) VALUES($1,$2,$3,$4,$5)",
+        &[&*operation.id,&*operation.user_id,&operation.coins,&operation.description.as_deref(),&operation.include_in_credit_note]).await.unwrap();
+    txn.commit().await.unwrap();
+    // A rolled-back fulfillment keeps the pending historical reservation reusable.
     let mut txn = db.begin_transaction().await.unwrap();
     assert_eq!(
         REPO.claim_operation(&mut txn, &operation).await.unwrap(),

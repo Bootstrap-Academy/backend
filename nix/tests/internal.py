@@ -1,6 +1,6 @@
 import subprocess
 
-from utils import c, make_internal_client
+from utils import c, make_internal_client, reserve_earned_coin_operation, vm_sql
 
 assert subprocess.getstatusoutput("academy migrate demo --force")[0] == 0
 
@@ -68,8 +68,25 @@ c = make_internal_client("shop")
 
 ## add coins
 resp = c.post(f"/shop/_internal/coins/{FOO['id']}", json={"coins": 1337, "description": "test", "credit_note": True})
+assert resp.status_code == 403
+assert resp.json() == {"detail": "Use the purchase or recovery path to credit coins"}
+
+# A new arbitrary operation ID must not create its own positive pending authority.
+from uuid import uuid4
+
+unknown = str(uuid4())
+payload = {"coins": 1337, "description": "test", "credit_note": True}
+assert c.put(f"/shop/_internal/coin-operations/{unknown}/{FOO['id']}", json=payload).status_code == 403
+assert vm_sql(f"SELECT count(*) FROM internal_coin_operations WHERE id='{unknown}';") == "0"
+
+# Exact prepared historical authority remains payable once and replayable.
+operation_id = reserve_earned_coin_operation(FOO["id"], 1337, "test")
+endpoint = f"/shop/_internal/coin-operations/{operation_id}/{FOO['id']}"
+resp = c.put(endpoint, json=payload)
 assert resp.status_code == 200
 assert resp.json() == {"coins": 1337, "withheld_coins": 0}
+assert c.put(endpoint, json=payload).json() == resp.json()
+assert c.put(endpoint, json={**payload, "coins": 1338}).status_code == 409
 
 ## remove coins
 resp = c.post(f"/shop/_internal/coins/{FOO['id']}", json={"coins": -42, "description": "test2"})
@@ -87,5 +104,11 @@ assert resp.json() == {"detail": "Not enough coins"}
 
 ## add withhold
 resp = c.post("/shop/_internal/coins/94d0e3ca-bf16-486b-a172-b87f4bcbd039", json={"coins": 42, "description": "test"})
+assert resp.status_code == 403
+withheld_user = "94d0e3ca-bf16-486b-a172-b87f4bcbd039"
+operation_id = reserve_earned_coin_operation(withheld_user, 42, "test")
+endpoint = f"/shop/_internal/coin-operations/{operation_id}/{withheld_user}"
+resp = c.put(endpoint, json={"coins": 42, "description": "test", "credit_note": True})
 assert resp.status_code == 200
 assert resp.json() == {"coins": 0, "withheld_coins": 42}
+assert c.put(endpoint, json={"coins": 42, "description": "test", "credit_note": True}).json() == resp.json()

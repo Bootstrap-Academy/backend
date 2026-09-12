@@ -10,13 +10,9 @@ use crate::{InternalServiceImpl, tests::Sut};
 
 #[tokio::test]
 async fn ok() {
-    for (coins, can_receive_coins, withhold, include_in_credit_note) in [
-        (42, true, false, false),
-        (42, false, true, false),
-        (-42, true, false, false),
-        (-42, false, false, false),
-        (42, true, false, true),
-    ] {
+    for (coins, can_receive_coins, withhold, include_in_credit_note) in
+        [(-42, true, false, false), (-42, false, false, false)]
+    {
         // Arrange
         let expected = Balance {
             coins: 1234,
@@ -103,7 +99,7 @@ async fn user_not_found() {
 
     let db = MockDatabase::build(false);
 
-    let user_repo = MockUserRepository::new().with_get_purchase_composite(FOO.user.id, None);
+    let user_repo = MockUserRepository::new().with_get_composite(FOO.user.id, None);
 
     let sut = InternalServiceImpl {
         auth_internal,
@@ -114,11 +110,26 @@ async fn user_not_found() {
 
     // Act
     let result = sut
-        .add_coins(&"internal token".into(), FOO.user.id, 42, None, false)
+        .add_coins(&"internal token".into(), FOO.user.id, -42, None, false)
         .await;
 
     // Assert
     assert_matches!(result, Err(InternalAddCoinsError::UserNotFound));
+}
+
+#[tokio::test]
+async fn new_generic_credits_are_rejected_before_any_ledger_write() {
+    for credit_note in [false, true] {
+        let sut = InternalServiceImpl {
+            auth_internal: MockAuthInternalService::new().with_authenticate("shop", true),
+            ..Sut::default()
+        };
+        assert_matches!(
+            sut.add_coins(&"internal token".into(), FOO.user.id, 42, None, credit_note)
+                .await,
+            Err(InternalAddCoinsError::CreditNotAuthorized)
+        );
+    }
 }
 
 #[tokio::test]

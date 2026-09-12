@@ -42,19 +42,30 @@ impl CoinRepository<PostgresTransaction> for PostgresCoinRepository {
             && txn.txn().query_opt("SELECT 1 FROM internal_coin_operations WHERE id=$1 AND completed_at IS NOT NULL", &[&*operation.id]).await?.is_none() {
             return Ok(CoinOperationClaim::Conflict);
         }
-        let inserted = txn.txn().execute(
+        // New acquisitions enter through the actual purchase service. Positive
+        // generic requests can only complete a reviewed, exact reservation that
+        // was imported from an already-earned outbox during the held cutover.
+        // Existing completed receipts still replay without current user access.
+        let inserted = if operation.coins <= 0 {
+            txn.txn().execute(
             "INSERT INTO internal_coin_operations (id, user_id, coins, description, credit_note) VALUES ($1,$2,$3,$4,$5) ON CONFLICT (id) DO NOTHING",
             &[&*operation.id, &*operation.user_id, &operation.coins, &operation.description.as_deref(), &operation.include_in_credit_note],
-        ).await?;
+        ).await?
+        } else {
+            0
+        };
         if inserted == 1 {
             return Ok(CoinOperationClaim::New);
         }
-        let row = txn.txn().query_one(
-            "SELECT user_id = $2 AND coins = $3 AND description IS NOT DISTINCT FROM $4 AND credit_note = $5 AS matches, balance, withheld_balance FROM internal_coin_operations WHERE id = $1",
+        let Some(row) = txn.txn().query_opt(
+            "SELECT user_id = $2 AND coins = $3 AND description IS NOT DISTINCT FROM $4 AND credit_note = $5 AS matches, balance, withheld_balance, completed_at IS NOT NULL AS completed FROM internal_coin_operations WHERE id = $1",
             &[&*operation.id, &*operation.user_id, &operation.coins, &operation.description.as_deref(), &operation.include_in_credit_note],
-        ).await?;
+        ).await? else { return Ok(CoinOperationClaim::CreditNotAuthorized); };
         if !row.get::<_, bool>("matches") {
             return Ok(CoinOperationClaim::Conflict);
+        }
+        if !row.get::<_, bool>("completed") {
+            return Ok(CoinOperationClaim::New);
         }
         Ok(CoinOperationClaim::Completed(Balance {
             coins: row.try_get::<_, i64>("balance")?.try_into()?,

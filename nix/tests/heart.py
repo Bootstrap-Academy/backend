@@ -10,7 +10,7 @@ from utils import (
     purchase_offer,
     purchase_acceptance,
 )
-from utils import configure_purchases
+from utils import configure_purchases, seed_existing_coin_balance
 
 configure_purchases()
 
@@ -104,7 +104,7 @@ assert resp.status_code == 200
 assert resp.json() == {"hearts": 2}
 
 ## ok
-assert subprocess.getstatusoutput(f"academy admin coin add {login['user']['id']} 70")[0] == 0
+seed_existing_coin_balance(login["user"]["id"], 70)
 assert c.get(f"/shop/coins/me").json()["coins"] == 70
 
 purchase("hearts")

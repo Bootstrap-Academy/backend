@@ -32,6 +32,7 @@ fn account() -> AccountDataExport {
         oauth2_links: Vec::new(),
         balance: Default::default(),
         hearts: None,
+        heart_operations: json!([]),
         transactions: Vec::new(),
         premium: None,
         premium_subscription: None,

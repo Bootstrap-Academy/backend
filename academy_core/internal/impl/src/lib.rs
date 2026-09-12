@@ -3,7 +3,8 @@ use academy_core_coin_contracts::coin::{CoinAddCoinsError, CoinService};
 use academy_core_heart_contracts::heart::{HeartAddError, HeartService};
 use academy_core_internal_contracts::{
     InternalAddCoinsError, InternalAddHeartsError, InternalGetHeartsError,
-    InternalGetUserByEmailError, InternalGetUserError, InternalHasPremiumError, InternalService,
+    InternalGetUserByEmailError, InternalGetUserError, InternalHasPremiumError,
+    InternalHeartOperationError, InternalService,
 };
 use academy_core_premium_contracts::premium::PremiumService;
 use academy_di::Build;
@@ -11,11 +12,13 @@ use academy_models::{
     auth::InternalToken,
     coin::{Balance, CoinOperation, CoinOperationClaim, TransactionDescription},
     email_address::EmailAddress,
-    heart::Hearts,
+    heart::{
+        HeartOperation, HeartOperationClaim, HeartOperationOutcome, HeartOperationReceipt, Hearts,
+    },
     user::{UserComposite, UserId},
 };
 use academy_persistence_contracts::{
-    Database, Transaction, coin::CoinRepository, user::UserRepository,
+    Database, Transaction, coin::CoinRepository, heart::HeartRepository, user::UserRepository,
 };
 use academy_utils::trace_instrument;
 use anyhow::Context;
@@ -24,9 +27,19 @@ use anyhow::Context;
 mod tests;
 
 #[derive(Debug, Clone, Build, Default)]
-pub struct InternalServiceImpl<Db, AuthInternal, UserRepo, Coin, Heart, Premium, CoinRepo> {
+pub struct InternalServiceImpl<
+    Db,
+    AuthInternal,
+    UserRepo,
+    Coin,
+    Heart,
+    Premium,
+    CoinRepo,
+    HeartRepo,
+> {
     db: Db,
     coin_repo: CoinRepo,
+    heart_repo: HeartRepo,
     auth_internal: AuthInternal,
     user_repo: UserRepo,
     coin: Coin,
@@ -34,11 +47,12 @@ pub struct InternalServiceImpl<Db, AuthInternal, UserRepo, Coin, Heart, Premium,
     premium: Premium,
 }
 
-impl<Db, AuthInternal, UserRepo, Coin, Heart, Premium, CoinRepo> InternalService
-    for InternalServiceImpl<Db, AuthInternal, UserRepo, Coin, Heart, Premium, CoinRepo>
+impl<Db, AuthInternal, UserRepo, Coin, Heart, Premium, CoinRepo, HeartRepo> InternalService
+    for InternalServiceImpl<Db, AuthInternal, UserRepo, Coin, Heart, Premium, CoinRepo, HeartRepo>
 where
     Db: Database,
     CoinRepo: CoinRepository<Db::Transaction>,
+    HeartRepo: HeartRepository<Db::Transaction>,
     AuthInternal: AuthInternalService,
     UserRepo: UserRepository<Db::Transaction>,
     Coin: CoinService<Db::Transaction>,
@@ -217,6 +231,73 @@ where
         txn.commit().await?;
 
         Ok(result)
+    }
+
+    #[tracing::instrument(skip(self, token, operation))]
+    async fn apply_heart_operation(
+        &self,
+        token: &InternalToken,
+        operation: HeartOperation,
+    ) -> Result<HeartOperationReceipt, InternalHeartOperationError> {
+        self.auth_internal.authenticate(token, "shop")?;
+        let mut txn = self.db.begin_transaction().await?;
+        match self
+            .heart_repo
+            .claim_operation(&mut txn, &operation)
+            .await?
+        {
+            HeartOperationClaim::Completed(receipt) => return Ok(receipt),
+            HeartOperationClaim::Conflict => {
+                return Err(InternalHeartOperationError::OperationConflict);
+            }
+            HeartOperationClaim::New => (),
+        }
+        if operation.half_hearts != 2 || operation.reason != "incorrect_challenge_attempt" {
+            return Err(InternalHeartOperationError::InvalidRequest);
+        }
+        if !self
+            .heart_repo
+            .lock_user(&mut txn, operation.user_id)
+            .await?
+        {
+            return Err(InternalHeartOperationError::UserNotFound);
+        }
+
+        // The shared user lock also serializes premium changes, paid refills,
+        // ordinary consumption and erasure. Refill is evaluated exactly once.
+        let premium = self
+            .premium
+            .get_active(&mut txn, operation.user_id)
+            .await?
+            .is_some();
+        let current = self.heart.get(&mut txn, operation.user_id).await?;
+        let (outcome, charged_half_hearts) = if premium {
+            (HeartOperationOutcome::Premium, 0)
+        } else if current.hearts < 2 {
+            // A concurrent attempt may have used the last heart. No partial
+            // half-heart debit and no debt payable by a later refill.
+            (HeartOperationOutcome::Insufficient, 0)
+        } else {
+            (HeartOperationOutcome::Charged, 2)
+        };
+        let hearts = current.hearts - charged_half_hearts;
+        if charged_half_hearts != 0 {
+            self.heart_repo
+                .set(&mut txn, operation.user_id, Hearts { hearts, ..current })
+                .await?;
+        }
+        let receipt = HeartOperationReceipt {
+            operation_id: operation.id,
+            user_id: operation.user_id,
+            charged_half_hearts,
+            hearts,
+            outcome,
+        };
+        self.heart_repo
+            .complete_operation(&mut txn, &operation, receipt)
+            .await?;
+        txn.commit().await?;
+        Ok(receipt)
     }
 
     #[trace_instrument(skip(self))]

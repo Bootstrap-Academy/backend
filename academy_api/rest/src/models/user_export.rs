@@ -63,6 +63,7 @@ pub struct ApiAccountDataExport {
     pub balance: ApiBalance,
     /// The hearts of the user, null if they never spent one
     pub hearts: Option<ApiExportHearts>,
+    pub heart_operations: serde_json::Value,
     /// The Morphcoin transactions of the user, oldest first
     pub transactions: Vec<ApiExportTransaction>,
     /// The premium membership of the user, if any
@@ -237,6 +238,7 @@ impl From<AccountDataExport> for ApiAccountDataExport {
             oauth2_links: value.oauth2_links.into_iter().map(Into::into).collect(),
             balance: value.balance.into(),
             hearts: value.hearts.map(Into::into),
+            heart_operations: value.heart_operations,
             transactions: value.transactions.into_iter().map(Into::into).collect(),
             premium: value.premium.map(|premium| ApiExportPremium {
                 since: premium.since.into(),

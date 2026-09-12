@@ -301,8 +301,16 @@ pub type PremiumPurchase = PremiumPurchaseServiceImpl<Id, Time, Coin, PremiumPla
 pub type WithdrawalFeature = WithdrawalFeatureServiceImpl<Database, Auth, WithdrawalConsent>;
 pub type WithdrawalConsent = WithdrawalConsentServiceImpl<Id, Time, WithdrawalRepo>;
 
-pub type Internal =
-    InternalServiceImpl<Database, AuthInternal, UserRepo, Coin, Heart, Premium, CoinRepo>;
+pub type Internal = InternalServiceImpl<
+    Database,
+    AuthInternal,
+    UserRepo,
+    Coin,
+    Heart,
+    Premium,
+    CoinRepo,
+    HeartRepo,
+>;
 
 pub type AdminAuditFeature = AdminAuditFeatureServiceImpl<Database, Auth, Id, Time, AdminAuditRepo>;
 

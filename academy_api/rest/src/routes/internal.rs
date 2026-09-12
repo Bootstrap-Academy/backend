@@ -3,12 +3,14 @@ use std::sync::Arc;
 use academy_auth_contracts::internal::AuthInternalAuthenticateError;
 use academy_core_internal_contracts::{
     InternalAddCoinsError, InternalAddHeartsError, InternalGetHeartsError,
-    InternalGetUserByEmailError, InternalGetUserError, InternalHasPremiumError, InternalService,
+    InternalGetUserByEmailError, InternalGetUserError, InternalHasPremiumError,
+    InternalHeartOperationError, InternalService,
 };
 use academy_models::{
     auth::InternalToken,
     coin::{CoinOperation, CoinOperationId, TransactionDescription},
     email_address::EmailAddress,
+    heart::{HeartOperation, HeartOperationId},
     user::UserId,
 };
 use aide::{
@@ -32,12 +34,15 @@ use crate::{
     extractors::auth::ApiToken,
     models::{
         coin::ApiBalance,
-        heart::ApiHearts,
+        heart::{ApiHeartOperationReceipt, ApiHearts},
         user::{ApiUser, PathUserId},
     },
 };
 
 pub const TAG: &str = "Internal";
+
+#[cfg(test)]
+mod heart_operation_tests;
 
 pub fn router(service: Arc<impl InternalService>) -> ApiRouter<()> {
     ApiRouter::new()
@@ -64,6 +69,10 @@ pub fn router(service: Arc<impl InternalService>) -> ApiRouter<()> {
         .api_route(
             "/shop/_internal/coin-operations/{operation_id}/{user_id}",
             routing::put_with(apply_coin_operation, add_coins_docs),
+        )
+        .api_route(
+            "/shop/_internal/heart-operations/{operation_id}/{user_id}",
+            routing::put_with(apply_heart_operation, heart_operation_docs),
         )
         .with_state(service)
         .with_path_items(|op| op.tag(TAG))
@@ -254,6 +263,58 @@ fn add_hearts_docs(op: TransformOperation) -> TransformOperation {
         .with(internal_server_error_docs)
 }
 
+#[derive(Deserialize, JsonSchema)]
+struct HeartOperationPath {
+    operation_id: HeartOperationId,
+    user_id: UserId,
+}
+
+#[derive(Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+struct HeartOperationRequest {
+    half_hearts: u64,
+    reason: String,
+}
+
+async fn apply_heart_operation(
+    service: State<Arc<impl InternalService>>,
+    token: ApiToken<InternalToken>,
+    Path(HeartOperationPath {
+        operation_id,
+        user_id,
+    }): Path<HeartOperationPath>,
+    Json(request): Json<HeartOperationRequest>,
+) -> Response {
+    let operation = HeartOperation {
+        id: operation_id,
+        user_id,
+        half_hearts: request.half_hearts,
+        reason: request.reason,
+    };
+    match service.apply_heart_operation(&token.0, operation).await {
+        Ok(receipt) => Json(ApiHeartOperationReceipt::from(receipt)).into_response(),
+        Err(InternalHeartOperationError::OperationConflict) => {
+            HeartOperationConflictError.into_response()
+        }
+        Err(InternalHeartOperationError::InvalidRequest) => {
+            InvalidHeartOperationError.into_response()
+        }
+        Err(InternalHeartOperationError::UserNotFound) => UserNotFoundError.into_response(),
+        Err(InternalHeartOperationError::Auth(err)) => internal_auth_error(err),
+        Err(InternalHeartOperationError::Other(err)) => internal_server_error(err),
+    }
+}
+
+fn heart_operation_docs(op: TransformOperation) -> TransformOperation {
+    op.summary("Apply or replay one final incorrect-attempt heart debit.")
+        .add_response::<ApiHeartOperationReceipt>(StatusCode::OK, None)
+        .add_error::<HeartOperationConflictError>()
+        .add_error::<InvalidHeartOperationError>()
+        .add_error::<UserNotFoundError>()
+        .with(internal_auth_error_docs)
+        .with(internal_server_error_docs)
+}
+
 async fn has_premium(
     service: State<Arc<impl InternalService>>,
     token: ApiToken<InternalToken>,
@@ -286,6 +347,10 @@ fn internal_auth_error_docs(op: TransformOperation) -> TransformOperation {
 }
 
 error_code! {
+    /// The operation id was used for a different heart request.
+    HeartOperationConflictError(CONFLICT, "Heart operation conflict");
+    /// Only two half-hearts for an incorrect challenge attempt are supported.
+    InvalidHeartOperationError(UNPROCESSABLE_ENTITY, "Invalid heart operation");
     /// The operation id has already been used for a different request.
     CoinOperationConflictError(CONFLICT, "Coin operation conflict");
     /// The internal authentication token is invalid or has expired.

@@ -92,6 +92,8 @@ pub struct AccountDataExport {
     pub balance: Balance,
     /// The hearts of the user, unset if they never spent one.
     pub hearts: Option<Hearts>,
+    /// Idempotent heart operations belonging to this account.
+    pub heart_operations: serde_json::Value,
     /// The Morphcoin transactions of the user, oldest first.
     pub transactions: Vec<Transaction>,
     /// The most recent premium membership of the user, if any.

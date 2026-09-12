@@ -163,6 +163,9 @@ where
                 .get(txn, user_id)
                 .await
                 .context("Failed to get hearts from database")?,
+            heart_operations: serde_json::from_str(
+                &self.heart_repo.export_operations(txn, user_id).await?,
+            )?,
             premium: self
                 .premium_repo
                 .get_latest_by_user_id(txn, user_id)

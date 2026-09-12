@@ -1,4 +1,4 @@
-use academy_assets::email::{AGB_2026_09_R2_PDF, WIDERRUFSBELEHRUNG_2026_09_R1_PDF};
+use academy_assets::email::{AGB_2026_09_R3_PDF, WIDERRUFSBELEHRUNG_2026_09_R1_PDF};
 use academy_core_premium_contracts::{
     PremiumUpdateSubscriptionError, renewal::PremiumRenewalService,
 };
@@ -18,7 +18,7 @@ use sha2::{Digest, Sha256};
 
 use crate::PremiumFeatureConfig;
 
-pub const RENEWAL_TERMS_VERSION: &str = "2026-09-r2";
+pub const RENEWAL_TERMS_VERSION: &str = "2026-09-r3";
 pub const RENEWAL_TEXT_VERSION: &str = "premium-renewal-2026-09-v2";
 
 #[derive(Debug, Clone, Build)]
@@ -69,7 +69,7 @@ where
         let mut hash = Sha256::new();
         for bytes in [
             text.as_bytes(),
-            AGB_2026_09_R2_PDF,
+            AGB_2026_09_R3_PDF,
             WIDERRUFSBELEHRUNG_2026_09_R1_PDF,
         ] {
             hash.update(bytes);
@@ -155,7 +155,7 @@ where
                     monthly_price: offer.monthly_price,
                     recipient,
                     document,
-                    terms_pdf: AGB_2026_09_R2_PDF.into(),
+                    terms_pdf: AGB_2026_09_R3_PDF.into(),
                     withdrawal_pdf: WIDERRUFSBELEHRUNG_2026_09_R1_PDF.into(),
                 },
             )
@@ -303,7 +303,7 @@ mod tests {
                             "Ich stimme dieser monatlichen kostenpflichtigen Verlängerung",
                         )
                         && a.document.contains("01.01.2027")
-                        && a.terms_pdf == AGB_2026_09_R2_PDF
+                        && a.terms_pdf == AGB_2026_09_R3_PDF
                         && a.withdrawal_pdf == WIDERRUFSBELEHRUNG_2026_09_R1_PDF
                 })
                 .return_once(|_, _| Box::pin(async { Ok(()) }));
@@ -446,28 +446,29 @@ mod tests {
         assert!(changed.text.contains("1500 MorphCoins (15.00 EUR"));
     }
     #[tokio::test]
-    async fn closing_old_r1_activation_is_not_adopted_as_r2_or_replayed_through_new_offer() {
-        let sut = Sut::default();
-        let current = sut.offer();
-        assert_eq!(current.terms_version, "2026-09-r2");
-        let old_text = current.text.replace("2026-09-r2", "2026-09-r1");
-        let mut hash = Sha256::new();
-        for bytes in [
-            old_text.as_bytes(),
-            academy_assets::email::AGB_2026_09_R1_PDF,
-            WIDERRUFSBELEHRUNG_2026_09_R1_PDF,
+    async fn old_r1_and_r2_offers_cannot_be_reactivated_as_r3() {
+        for (version, pdf) in [
+            ("2026-09-r1", academy_assets::email::AGB_2026_09_R1_PDF),
+            ("2026-09-r2", academy_assets::email::AGB_2026_09_R2_PDF),
         ] {
-            hash.update(bytes);
+            let sut = Sut::default();
+            let current = sut.offer();
+            assert_eq!(current.terms_version, "2026-09-r3");
+            let old_text = current.text.replace("2026-09-r3", version);
+            let mut hash = Sha256::new();
+            for bytes in [old_text.as_bytes(), pdf, WIDERRUFSBELEHRUNG_2026_09_R1_PDF] {
+                hash.update(bytes);
+            }
+            let old_id = format!("{:x}", hash.finalize());
+            assert_ne!(current.id, old_id);
+            let mut old_consent = consent(&sut);
+            old_consent.offer_id = old_id;
+            assert!(matches!(
+                sut.enable(FOO.user.id, old_consent).await,
+                Err(PremiumUpdateSubscriptionError::RenewalConsentRequired)
+            ));
+            // All mocks have zero allowed calls: this rejection neither loads nor
+            // changes a historical agreement and cannot reactivate its renewal.
         }
-        let old_id = format!("{:x}", hash.finalize());
-        assert_ne!(current.id, old_id);
-        let mut old_consent = consent(&sut);
-        old_consent.offer_id = old_id;
-        assert!(matches!(
-            sut.enable(FOO.user.id, old_consent).await,
-            Err(PremiumUpdateSubscriptionError::RenewalConsentRequired)
-        ));
-        // All mocks have zero allowed calls: this rejection neither loads nor
-        // changes a historical agreement and cannot reactivate its renewal.
     }
 }

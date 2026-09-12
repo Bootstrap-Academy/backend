@@ -5,7 +5,7 @@ use academy_models::{
     auth::InternalToken,
     coin::{Balance, CoinOperation, TransactionDescription},
     email_address::EmailAddress,
-    heart::Hearts,
+    heart::{HeartOperation, HeartOperationReceipt, Hearts},
     user::{UserComposite, UserId},
 };
 use thiserror::Error;
@@ -62,6 +62,13 @@ pub trait InternalService: Send + Sync + 'static {
         user_id: UserId,
         hearts: i64,
     ) -> impl Future<Output = Result<Hearts, InternalAddHeartsError>> + Send;
+
+    /// Apply one final incorrect attempt or replay its immutable receipt.
+    fn apply_heart_operation(
+        &self,
+        token: &InternalToken,
+        operation: HeartOperation,
+    ) -> impl Future<Output = Result<HeartOperationReceipt, InternalHeartOperationError>> + Send;
 
     /// Return whether the given user is a premium member.
     fn has_premium(
@@ -121,6 +128,20 @@ pub enum InternalAddHeartsError {
     UserNotFound,
     #[error("The user does not have enough hearts.")]
     NotEnoughHearts,
+    #[error(transparent)]
+    Auth(#[from] AuthInternalAuthenticateError),
+    #[error(transparent)]
+    Other(#[from] anyhow::Error),
+}
+
+#[derive(Debug, Error)]
+pub enum InternalHeartOperationError {
+    #[error("The operation id was already used with a different request.")]
+    OperationConflict,
+    #[error("Only a two-half-heart debit for an incorrect attempt is supported.")]
+    InvalidRequest,
+    #[error("The user does not exist.")]
+    UserNotFound,
     #[error(transparent)]
     Auth(#[from] AuthInternalAuthenticateError),
     #[error(transparent)]

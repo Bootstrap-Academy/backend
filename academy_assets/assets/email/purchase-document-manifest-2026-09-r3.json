@@ -1,0 +1,25 @@
+{
+  "release": "2026-09-r3",
+  "rendering": "local static HTML, A4",
+  "documents": [
+    {
+      "document_release": "2026-09-r3",
+      "source": "frontend/pages/docs/terms-and-conditions.vue",
+      "source_sha256": "ad3aa6d4e37199900dbf2c9254619f93cab0389995486dedde8875cc4e3c4dba",
+      "pdf": "backend/academy_assets/assets/email/agb-2026-09-r3.pdf",
+      "pdf_sha256": "002a9d493b9a3f61cf9007abad5e54f6acefeb1dfeb88424d446b6a68ae4dd19",
+      "verified_sections": 22,
+      "title": "Allgemeine Geschäftsbedingungen – Fassung 2026-09-r3"
+    },
+    {
+      "source": "frontend/pages/docs/right-of-withdrawal.vue",
+      "source_sha256": "f36954a645731d9da17809e7aa3a39f5d54cb13c64341c3ff7b49710df2adc36",
+      "pdf": "backend/academy_assets/assets/email/widerrufsbelehrung-2026-09-r1.pdf",
+      "pdf_sha256": "b0f5d66725e6eda1f7710b833190597c6fa7491c003cd29334e93fe0088d73d6",
+      "verified_blocks": 49,
+      "title": "Widerrufsbelehrung – Fassung 2026-09-r1",
+      "document_release": "2026-09-r1",
+      "reused_unchanged": true
+    }
+  ]
+}

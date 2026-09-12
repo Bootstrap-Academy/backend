@@ -8,6 +8,7 @@ use crate::InternalServiceImpl;
 
 mod add_coins;
 mod add_hearts;
+mod apply_heart_operation;
 mod get_hearts;
 mod get_user;
 mod get_user_by_email;
@@ -21,4 +22,5 @@ type Sut = InternalServiceImpl<
     MockHeartService<MockTransaction>,
     MockPremiumService<MockTransaction>,
     academy_persistence_contracts::coin::MockCoinRepository<MockTransaction>,
+    academy_persistence_contracts::heart::MockHeartRepository<MockTransaction>,
 >;

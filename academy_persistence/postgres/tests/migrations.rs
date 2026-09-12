@@ -42,9 +42,8 @@ async fn current_refusal(db: &common::Db) {
     tx.commit().await.unwrap();
     let error = db.revert_migrations(Some(1)).await.unwrap_err();
     assert!(
-        format!("{error:#}").contains(
-            "Historical moderation email protection requires a reviewed forward migration"
-        )
+        format!("{error:#}")
+            .contains("Heart operation replay receipts must not be removed by a downgrade")
     );
     let tx = db.begin_transaction().await.unwrap();
     let after: String = tx

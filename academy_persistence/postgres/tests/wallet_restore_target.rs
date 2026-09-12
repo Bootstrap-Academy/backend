@@ -227,7 +227,11 @@ async fn wallet_legacy_real_receipts_survive_upgrade_erasure_replacement_and_iso
     let before = fingerprint(&db).await;
     assert_eq!(
         db.run_migrations(None).await.unwrap(),
-        vec![FORWARD, "2026-09-12-070000_legacy_moderation_email"]
+        vec![
+            FORWARD,
+            "2026-09-12-070000_legacy_moderation_email",
+            "2026-09-12-170000_internal_heart_operations"
+        ]
     );
     let after = fingerprint(&db).await;
     for (k, v) in &before {
@@ -517,7 +521,11 @@ async fn wallet_cash_branch_upgrade_replay_and_split_remaining_preserve_all_valu
     let before = fingerprint(&db).await;
     assert_eq!(
         db.run_migrations(None).await.unwrap(),
-        vec![FORWARD, "2026-09-12-070000_legacy_moderation_email"]
+        vec![
+            FORWARD,
+            "2026-09-12-070000_legacy_moderation_email",
+            "2026-09-12-170000_internal_heart_operations"
+        ]
     );
     let after = fingerprint(&db).await;
     for (k, v) in &before {
@@ -643,9 +651,8 @@ async fn wallet_foreign_lock_avoidance_and_forward_only_preserve_immediate_guard
     let before = fingerprint(&db).await;
     let e = db.revert_migrations(Some(1)).await.unwrap_err();
     assert!(
-        format!("{e:#}").contains(
-            "Historical moderation email protection requires a reviewed forward migration"
-        )
+        format!("{e:#}")
+            .contains("Heart operation replay receipts must not be removed by a downgrade")
     );
     assert_eq!(fingerprint(&db).await, before);
     // The newest migration refuses first; the wallet's own protection must also remain intact.

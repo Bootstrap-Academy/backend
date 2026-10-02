@@ -157,7 +157,7 @@ where
 
         let session = self
             .session_repo
-            .get_by_refresh_token_hash(txn, refresh_token_hash)
+            .get_by_refresh_token_hash_for_update(txn, refresh_token_hash)
             .await
             .context("Failed to get session from database")?
             .ok_or(AuthenticateByRefreshTokenError::Invalid)

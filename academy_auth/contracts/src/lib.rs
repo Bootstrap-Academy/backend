@@ -28,6 +28,10 @@ pub trait AuthService<Txn: Send + Sync + 'static>: Send + Sync + 'static {
     ) -> impl Future<Output = Result<(), AuthenticateByPasswordError>> + Send;
 
     /// Authenticates a user using a refresh token.
+    ///
+    /// Lock the enabled owner and current session/token until `txn` ends.
+    /// Recheck the submitted hash and TTL after waiting, before issuing tokens
+    /// or invalidating their predecessors. Refresh must use this same txn.
     fn authenticate_by_refresh_token(
         &self,
         txn: &mut Txn,

@@ -272,3 +272,308 @@ async fn refresh_token_hash() {
         .unwrap();
     assert_eq!(result, None);
 }
+
+async fn refresh_fixture() -> academy_persistence_postgres::PostgresDatabase {
+    let db = setup().await;
+    let mut txn = db.begin_transaction().await.unwrap();
+    REPO.save_refresh_token_hash(&mut txn, FOO_1.id, (*SHA256HASH1).into())
+        .await
+        .unwrap();
+    txn.commit().await.unwrap();
+    db
+}
+
+async fn backend_pid(txn: &academy_persistence_postgres::PostgresTransaction) -> i32 {
+    txn.txn()
+        .query_one("SELECT pg_backend_pid()", &[])
+        .await
+        .unwrap()
+        .get(0)
+}
+
+async fn wait_for_owner_lock(
+    db: &academy_persistence_postgres::PostgresDatabase,
+    waiter: i32,
+    holder: i32,
+) {
+    tokio::time::timeout(Duration::from_secs(5), async {
+        loop {
+            let observer = db.begin_transaction().await.unwrap();
+            let row = observer.txn().query_one(
+                "SELECT pg_blocking_pids(pid), coalesce(wait_event_type='Lock', false) FROM pg_stat_activity WHERE pid=$1",
+                &[&waiter],
+            ).await.unwrap();
+            if row.get::<_, Vec<i32>>(0).contains(&holder) && row.get::<_, bool>(1) {
+                break;
+            }
+            tokio::time::sleep(Duration::from_millis(10)).await;
+        }
+    })
+    .await
+    .expect("refresh must actually wait for the owning transaction");
+}
+
+#[tokio::test]
+async fn refresh_rotation_has_one_winner_and_preserves_winning_hash() {
+    let db = refresh_fixture().await;
+    let mut winner = db.begin_transaction().await.unwrap();
+    assert_eq!(
+        winner
+            .txn()
+            .query_one("SHOW transaction_isolation", &[])
+            .await
+            .unwrap()
+            .get::<_, &str>(0),
+        "read committed"
+    );
+    let session = REPO
+        .get_by_refresh_token_hash_for_update(&mut winner, (*SHA256HASH1).into())
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(session, *FOO_1);
+    let holder = backend_pid(&winner).await;
+
+    let mut loser = db.begin_transaction().await.unwrap();
+    let waiter = backend_pid(&loser).await;
+    let loser = tokio::spawn(async move {
+        let result = REPO
+            .get_by_refresh_token_hash_for_update(&mut loser, (*SHA256HASH1).into())
+            .await
+            .unwrap();
+        loser.commit().await.unwrap();
+        result
+    });
+    wait_for_owner_lock(&db, waiter, holder).await;
+
+    // Ordinary access lookups remain reads, even while the refresh owns locks.
+    let mut reader = db.begin_transaction().await.unwrap();
+    assert!(
+        tokio::time::timeout(
+            Duration::from_secs(1),
+            REPO.get_by_refresh_token_hash(&mut reader, (*SHA256HASH1).into())
+        )
+        .await
+        .unwrap()
+        .unwrap()
+        .is_some()
+    );
+    reader.commit().await.unwrap();
+    REPO.save_refresh_token_hash(&mut winner, FOO_1.id, (*SHA256HASH2).into())
+        .await
+        .unwrap();
+    winner.commit().await.unwrap();
+    assert_eq!(
+        tokio::time::timeout(Duration::from_secs(5), loser)
+            .await
+            .unwrap()
+            .unwrap(),
+        None
+    );
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    assert_eq!(
+        REPO.get_by_refresh_token_hash_for_update(&mut txn, (*SHA256HASH1).into())
+            .await
+            .unwrap(),
+        None
+    );
+    // This is the same live session/hash authority check used by Access auth.
+    assert_eq!(
+        REPO.get_by_refresh_token_hash(&mut txn, (*SHA256HASH2).into())
+            .await
+            .unwrap(),
+        Some(FOO_1.clone())
+    );
+    assert_eq!(
+        REPO.get_refresh_token_hash(&mut txn, FOO_1.id)
+            .await
+            .unwrap(),
+        Some((*SHA256HASH2).into())
+    );
+}
+
+#[tokio::test]
+async fn refresh_rechecks_session_revocation_while_waiting() {
+    let db = refresh_fixture().await;
+    let owner = db.begin_transaction().await.unwrap();
+    owner
+        .txn()
+        .query_one(
+            "SELECT id FROM users WHERE id=$1 FOR UPDATE",
+            &[&*FOO.user.id],
+        )
+        .await
+        .unwrap();
+    let holder = backend_pid(&owner).await;
+    let mut refresh = db.begin_transaction().await.unwrap();
+    let waiter = backend_pid(&refresh).await;
+    let refresh = tokio::spawn(async move {
+        REPO.get_by_refresh_token_hash_for_update(&mut refresh, (*SHA256HASH1).into())
+            .await
+            .unwrap()
+    });
+    wait_for_owner_lock(&db, waiter, holder).await;
+    owner
+        .txn()
+        .execute("DELETE FROM sessions WHERE id=$1", &[&*FOO_1.id])
+        .await
+        .unwrap();
+    owner.commit().await.unwrap();
+    assert_eq!(
+        tokio::time::timeout(Duration::from_secs(5), refresh)
+            .await
+            .unwrap()
+            .unwrap(),
+        None
+    );
+}
+
+#[tokio::test]
+async fn refresh_rechecks_disabled_owner_while_waiting() {
+    let db = refresh_fixture().await;
+    let owner = db.begin_transaction().await.unwrap();
+    owner
+        .txn()
+        .query_one(
+            "SELECT id FROM users WHERE id=$1 FOR UPDATE",
+            &[&*FOO.user.id],
+        )
+        .await
+        .unwrap();
+    let holder = backend_pid(&owner).await;
+    let mut refresh = db.begin_transaction().await.unwrap();
+    let waiter = backend_pid(&refresh).await;
+    let refresh = tokio::spawn(async move {
+        REPO.get_by_refresh_token_hash_for_update(&mut refresh, (*SHA256HASH1).into())
+            .await
+            .unwrap()
+    });
+    wait_for_owner_lock(&db, waiter, holder).await;
+    owner
+        .txn()
+        .batch_execute("SET LOCAL academy.moderation_write='authorized'")
+        .await
+        .unwrap();
+    owner
+        .txn()
+        .execute(
+            "UPDATE users SET enabled=false WHERE id=$1",
+            &[&*FOO.user.id],
+        )
+        .await
+        .unwrap();
+    owner.commit().await.unwrap();
+    assert_eq!(
+        tokio::time::timeout(Duration::from_secs(5), refresh)
+            .await
+            .unwrap()
+            .unwrap(),
+        None
+    );
+}
+
+#[tokio::test]
+async fn refresh_reads_fresh_expiry_and_mfa_after_waiting() {
+    let db = refresh_fixture().await;
+    let owner = db.begin_transaction().await.unwrap();
+    owner
+        .txn()
+        .query_one(
+            "SELECT id FROM users WHERE id=$1 FOR UPDATE",
+            &[&*FOO.user.id],
+        )
+        .await
+        .unwrap();
+    let holder = backend_pid(&owner).await;
+    let mut refresh = db.begin_transaction().await.unwrap();
+    let waiter = backend_pid(&refresh).await;
+    let refresh = tokio::spawn(async move {
+        REPO.get_by_refresh_token_hash_for_update(&mut refresh, (*SHA256HASH1).into())
+            .await
+            .unwrap()
+    });
+    wait_for_owner_lock(&db, waiter, holder).await;
+    let expired = FOO_1.updated_at - Duration::from_secs(3600);
+    owner
+        .txn()
+        .execute(
+            "UPDATE sessions SET updated_at=$1,mfa_verified=false WHERE id=$2",
+            &[&expired, &*FOO_1.id],
+        )
+        .await
+        .unwrap();
+    owner.commit().await.unwrap();
+    let session = tokio::time::timeout(Duration::from_secs(5), refresh)
+        .await
+        .unwrap()
+        .unwrap()
+        .unwrap();
+    assert_eq!(session.updated_at, expired);
+    assert!(!session.mfa_verified);
+}
+
+#[tokio::test]
+async fn refresh_holds_session_lock_against_direct_revocation() {
+    let db = refresh_fixture().await;
+    let mut refresh = db.begin_transaction().await.unwrap();
+    REPO.get_by_refresh_token_hash_for_update(&mut refresh, (*SHA256HASH1).into())
+        .await
+        .unwrap()
+        .unwrap();
+    let holder = backend_pid(&refresh).await;
+    let mut deletion = db.begin_transaction().await.unwrap();
+    let waiter = backend_pid(&deletion).await;
+    let deletion = tokio::spawn(async move {
+        let removed = REPO.delete(&mut deletion, FOO_1.id).await.unwrap();
+        deletion.commit().await.unwrap();
+        removed
+    });
+    wait_for_owner_lock(&db, waiter, holder).await;
+    refresh.commit().await.unwrap();
+    assert!(
+        tokio::time::timeout(Duration::from_secs(5), deletion)
+            .await
+            .unwrap()
+            .unwrap()
+    );
+    let mut txn = db.begin_transaction().await.unwrap();
+    assert_eq!(
+        REPO.get_by_refresh_token_hash_for_update(&mut txn, (*SHA256HASH1).into())
+            .await
+            .unwrap(),
+        None
+    );
+}
+
+#[tokio::test]
+async fn refreshes_of_distinct_sessions_share_owner_order() {
+    let db = refresh_fixture().await;
+    let mut seed = db.begin_transaction().await.unwrap();
+    REPO.save_refresh_token_hash(&mut seed, FOO_2.id, (*SHA256HASH2).into())
+        .await
+        .unwrap();
+    seed.commit().await.unwrap();
+    let mut first = db.begin_transaction().await.unwrap();
+    REPO.get_by_refresh_token_hash_for_update(&mut first, (*SHA256HASH1).into())
+        .await
+        .unwrap()
+        .unwrap();
+    let holder = backend_pid(&first).await;
+    let mut second = db.begin_transaction().await.unwrap();
+    let waiter = backend_pid(&second).await;
+    let second = tokio::spawn(async move {
+        REPO.get_by_refresh_token_hash_for_update(&mut second, (*SHA256HASH2).into())
+            .await
+            .unwrap()
+    });
+    wait_for_owner_lock(&db, waiter, holder).await;
+    first.commit().await.unwrap();
+    assert_eq!(
+        tokio::time::timeout(Duration::from_secs(5), second)
+            .await
+            .unwrap()
+            .unwrap(),
+        Some(FOO_2.clone())
+    );
+}

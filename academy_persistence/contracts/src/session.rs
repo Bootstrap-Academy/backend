@@ -22,6 +22,18 @@ pub trait SessionRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
         refresh_token_hash: SessionRefreshTokenHash,
     ) -> impl Future<Output = anyhow::Result<Option<Session>>> + Send;
 
+    /// Return the current session for a refresh, with its enabled owner and
+    /// session/token rows locked until the transaction ends.
+    ///
+    /// Acquire the owner lock before the session lock and recheck the original
+    /// hash after waiting. Ordinary access authentication uses the unlocked
+    /// lookup above. Check the returned session's TTL before any side effects.
+    fn get_by_refresh_token_hash_for_update(
+        &self,
+        txn: &mut Txn,
+        refresh_token_hash: SessionRefreshTokenHash,
+    ) -> impl Future<Output = anyhow::Result<Option<Session>>> + Send;
+
     /// Return all sessions of a given user.
     fn list_by_user(
         &self,
@@ -121,6 +133,21 @@ impl<Txn: Send + Sync + 'static> MockSessionRepository<Txn> {
         result: Option<Session>,
     ) -> Self {
         self.expect_get_by_refresh_token_hash()
+            .once()
+            .with(
+                mockall::predicate::always(),
+                mockall::predicate::eq(refresh_token_hash),
+            )
+            .return_once(|_, _| Box::pin(std::future::ready(Ok(result))));
+        self
+    }
+
+    pub fn with_get_by_refresh_token_hash_for_update(
+        mut self,
+        refresh_token_hash: SessionRefreshTokenHash,
+        result: Option<Session>,
+    ) -> Self {
+        self.expect_get_by_refresh_token_hash_for_update()
             .once()
             .with(
                 mockall::predicate::always(),

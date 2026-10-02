@@ -55,9 +55,16 @@ async fn invalid_token() {
         Err(AuthenticateByRefreshTokenError::Invalid),
     );
 
+    // A rejected concurrent refresh never enters token issuance or cache
+    // invalidation and cannot delete the winning session.
+    let mut session = MockSessionService::new();
+    session.expect_refresh().never();
+    session.expect_delete().never();
+
     let sut = SessionFeatureServiceImpl {
         db,
         auth,
+        session,
         ..Sut::default()
     };
 

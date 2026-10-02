@@ -25,6 +25,10 @@ pub trait SessionService<Txn: Send + Sync + 'static>: Send + Sync + 'static {
 
     /// Refresh the given session by invalidating the current access/refresh
     /// token pair and generating a new one.
+    ///
+    /// The caller must have authenticated the original refresh token through
+    /// `AuthService::authenticate_by_refresh_token` in this same transaction,
+    /// retaining the owner/session/token locks until commit.
     fn refresh(
         &self,
         txn: &mut Txn,

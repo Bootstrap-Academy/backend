@@ -9,6 +9,13 @@ select s.* from sessions s
   on s.id=rt.session_id
   where rt.refresh_token_hash=:refresh_token_hash;
 
+--! get_by_refresh_token_hash_for_update : Session
+select s.* from sessions s
+  inner join session_refresh_tokens rt
+  on s.id=rt.session_id
+  where rt.refresh_token_hash=:refresh_token_hash
+  for update of s, rt;
+
 --! list_by_user : Session
 select * from sessions where user_id=:user_id;
 

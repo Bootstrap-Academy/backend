@@ -266,6 +266,46 @@ impl GetByRefreshTokenHashStmt {
         }
     }
 }
+pub struct GetByRefreshTokenHashForUpdateStmt(&'static str, Option<tokio_postgres::Statement>);
+pub fn get_by_refresh_token_hash_for_update() -> GetByRefreshTokenHashForUpdateStmt {
+    GetByRefreshTokenHashForUpdateStmt(
+        "select s.* from sessions s inner join session_refresh_tokens rt on s.id=rt.session_id where rt.refresh_token_hash=$1 for update of s, rt",
+        None,
+    )
+}
+impl GetByRefreshTokenHashForUpdateStmt {
+    pub async fn prepare<'a, C: GenericClient>(
+        mut self,
+        client: &'a C,
+    ) -> Result<Self, tokio_postgres::Error> {
+        self.1 = Some(client.prepare(self.0).await?);
+        Ok(self)
+    }
+    pub fn bind<'c, 'a, 's, C: GenericClient, T1: crate::BytesSql>(
+        &'s self,
+        client: &'c C,
+        refresh_token_hash: &'a T1,
+    ) -> SessionQuery<'c, 'a, 's, C, Session, 1> {
+        SessionQuery {
+            client,
+            params: [refresh_token_hash],
+            query: self.0,
+            cached: self.1.as_ref(),
+            extractor:
+                |row: &tokio_postgres::Row| -> Result<SessionBorrowed, tokio_postgres::Error> {
+                    Ok(SessionBorrowed {
+                        id: row.try_get(0)?,
+                        user_id: row.try_get(1)?,
+                        device_name: row.try_get(2)?,
+                        created_at: row.try_get(3)?,
+                        updated_at: row.try_get(4)?,
+                        mfa_verified: row.try_get(5)?,
+                    })
+                },
+            mapper: |it| Session::from(it),
+        }
+    }
+}
 pub struct ListByUserStmt(&'static str, Option<tokio_postgres::Statement>);
 pub fn list_by_user() -> ListByUserStmt {
     ListByUserStmt("select * from sessions where user_id=$1", None)

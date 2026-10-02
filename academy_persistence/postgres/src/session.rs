@@ -65,6 +65,51 @@ impl SessionRepository<PostgresTransaction> for PostgresSessionRepository {
     }
 
     #[trace_instrument(skip(self, txn))]
+    async fn get_by_refresh_token_hash_for_update(
+        &self,
+        txn: &mut PostgresTransaction,
+        refresh_token_hash: SessionRefreshTokenHash,
+    ) -> anyhow::Result<Option<Session>> {
+        // The first lookup only discovers the owner; it grants no authority.
+        let Some(session) = self
+            .get_by_refresh_token_hash(txn, refresh_token_hash)
+            .await?
+        else {
+            return Ok(None);
+        };
+        let owner = txn
+            .txn()
+            .query_opt(
+                "SELECT id FROM users WHERE id=$1 FOR UPDATE",
+                &[&*session.user_id],
+            )
+            .await?;
+        if owner.is_none() {
+            return Ok(None);
+        }
+        let enabled = txn
+            .txn()
+            .query_opt(
+                "SELECT enabled FROM user_composites WHERE id=$1",
+                &[&*session.user_id],
+            )
+            .await?
+            .is_some_and(|row| row.get::<_, bool>(0));
+        if !enabled {
+            return Ok(None);
+        }
+        // A fresh statement after the owner lock rejects an already rotated
+        // hash. Lock both rows as well so session/token deletion cannot race
+        // the subsequent TTL check and token issuance.
+        queries::session::get_by_refresh_token_hash_for_update()
+            .bind(txn.txn(), &refresh_token_hash.as_slice())
+            .opt()
+            .await
+            .map_err(Into::into)
+            .and_then(|row| row.map(decode_session).transpose())
+    }
+
+    #[trace_instrument(skip(self, txn))]
     async fn list_by_user(
         &self,
         txn: &mut PostgresTransaction,

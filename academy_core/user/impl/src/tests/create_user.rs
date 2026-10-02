@@ -13,7 +13,7 @@ use academy_models::{
     auth::Login,
     oauth2::{OAuth2Registration, OAuth2RegistrationToken},
 };
-use academy_persistence_contracts::MockDatabase;
+use academy_persistence_contracts::{MockDatabase, MockTransaction};
 use academy_shared_contracts::captcha::{CaptchaCheckError, MockCaptchaService};
 use academy_utils::assert_matches;
 
@@ -75,6 +75,97 @@ async fn ok() {
 
     // Assert
     assert_eq!(result.unwrap(), expected);
+}
+
+#[tokio::test]
+async fn database_unavailable_returns_error_before_creating_user() {
+    let request = UserCreateRequest {
+        name: FOO.user.name.clone(),
+        display_name: FOO.profile.display_name.clone(),
+        email: FOO.user.email.clone().unwrap(),
+        password: Some("secure password".try_into().unwrap()),
+        oauth2_registration_token: None,
+        terms_version: TERMS_VERSION.clone(),
+        age_confirmed: true,
+    };
+
+    let mut db = MockDatabase::new();
+    db.expect_begin_transaction().once().return_once(|| {
+        Box::pin(std::future::ready(Err(anyhow::anyhow!(
+            "database is in recovery mode"
+        ))))
+    });
+
+    let sut = UserFeatureServiceImpl {
+        db,
+        captcha: MockCaptchaService::new().with_check(None, Ok(())),
+        // These mocks have no expectations: creating a user or session before
+        // acquiring a transaction would fail this test.
+        ..Sut::default()
+    };
+
+    let result = sut.create_user(request, None, None).await;
+
+    let Err(UserCreateError::Other(error)) = result else {
+        panic!("registration must return a database error");
+    };
+    assert_eq!(
+        error.root_cause().to_string(),
+        "database is in recovery mode"
+    );
+}
+
+#[tokio::test]
+async fn failed_commit_returns_error_instead_of_login() {
+    let request = UserCreateRequest {
+        name: FOO.user.name.clone(),
+        display_name: FOO.profile.display_name.clone(),
+        email: FOO.user.email.clone().unwrap(),
+        password: Some("secure password".try_into().unwrap()),
+        oauth2_registration_token: None,
+        terms_version: TERMS_VERSION.clone(),
+        age_confirmed: true,
+    };
+
+    let mut txn = MockTransaction::new();
+    txn.expect_commit().once().return_once(|| {
+        Box::pin(std::future::ready(Err(anyhow::anyhow!(
+            "connection lost during commit"
+        ))))
+    });
+    let mut db = MockDatabase::new();
+    db.expect_begin_transaction()
+        .once()
+        .return_once(|| Box::pin(std::future::ready(Ok(txn))));
+
+    let sut = UserFeatureServiceImpl {
+        db,
+        captcha: MockCaptchaService::new().with_check(None, Ok(())),
+        user: MockUserService::new().with_create(req_to_cmd(&request), Ok(FOO.clone())),
+        session: MockSessionService::new().with_create(
+            FOO.clone(),
+            None,
+            true,
+            false,
+            Login {
+                user_composite: FOO.clone(),
+                session: FOO_1.clone(),
+                access_token: "the access token".into(),
+                refresh_token: "some refresh token".into(),
+            },
+        ),
+        ..Sut::default()
+    };
+
+    let result = sut.create_user(request, None, None).await;
+
+    let Err(UserCreateError::Other(error)) = result else {
+        panic!("registration must not return a login before a successful commit");
+    };
+    assert_eq!(
+        error.root_cause().to_string(),
+        "connection lost during commit"
+    );
 }
 
 #[tokio::test]

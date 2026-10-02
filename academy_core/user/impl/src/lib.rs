@@ -238,7 +238,11 @@ where
             None => None,
         };
 
-        let mut txn = self.db.begin_transaction().await.unwrap();
+        let mut txn = self
+            .db
+            .begin_transaction()
+            .await
+            .context("Failed to begin user registration transaction")?;
 
         let cmd = UserCreateCommand {
             name: request.name,
@@ -285,7 +289,9 @@ where
             }
         }
 
-        txn.commit().await.unwrap();
+        txn.commit()
+            .await
+            .context("Failed to commit user registration transaction")?;
 
         Ok(result)
     }

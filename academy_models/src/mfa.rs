@@ -24,7 +24,24 @@ pub struct TotpDevice {
     pub created_at: DateTime<Utc>,
 }
 
-nutype_string!(TotpCode(validate(regex = TOTP_CODE_REGEX)));
+#[nutype(
+    validate(regex = TOTP_CODE_REGEX),
+    derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, AsRef, Deref, TryFrom, Serialize, Deserialize, JsonSchema)
+)]
+pub struct TotpCode(String);
+
+// Second-factor credentials remain redacted in both debug and release builds.
+impl std::fmt::Debug for TotpCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("TotpCode([REDACTED])")
+    }
+}
+
+impl AsRef<[u8]> for TotpCode {
+    fn as_ref(&self) -> &[u8] {
+        self.as_bytes()
+    }
+}
 pub static TOTP_CODE_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^[0-9]{6}$").unwrap());
 
 #[nutype(validate(predicate = |x| x.len() >= 16), derive(Clone, PartialEq, Eq, Deref, TryFrom))]

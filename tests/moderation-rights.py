@@ -59,28 +59,18 @@ async def main():
         threading.Thread(target=smtp.serve_forever, daemon=True).start()
         servers.append(smtp)
         f.start(
-            [
-                "/nix/store/d4lznfvcd8zqxn4hc9lpw0dvfri8p4c0-valkey-9.1.1/bin/valkey-server",
-                "--port",
-                "55902",
-                "--bind",
-                "127.0.0.1",
-                "--save",
-                "",
-                "--appendonly",
-                "no",
-            ],
+            [f.VALKEY, "--port", "55902", "--bind", "127.0.0.1", "--save", "", "--appendonly", "no"],
             "rights-valkey.log",
         )
         await f.wait_port(55902)
-        f.start([str(f.ROOT / "target/debug/academy"), "serve"], "rights-backend.log")
+        f.start([str(f.BINARY), "serve"], "rights-backend.log")
         await f.wait_port(55901)
         db = await asyncpg.connect("postgresql://l2test@127.0.0.1:55900/l2backend")
         async with httpx.AsyncClient(base_url="http://127.0.0.1:55901", timeout=25) as c:
 
             async def cli(*args):
                 p = await asyncio.create_subprocess_exec(
-                    str(f.ROOT / "target/debug/academy"),
+                    str(f.BINARY),
                     *args,
                     cwd=f.ROOT,
                     env=f.ENV,
@@ -96,7 +86,11 @@ async def main():
             assert login.status_code == 200, login.text
             uid = UUID(login.json()["user"]["id"])
             user = {"Authorization": "Bearer " + login.json()["access_token"]}
-            await cli("admin", "coin", "add", str(uid), "--", "50000")
+            # Synthetic fixture funding; ordinary admin grants are disabled.
+            await db.execute(
+                "INSERT INTO coins(user_id,coins,withheld_coins) VALUES($1,50000,0) ON CONFLICT(user_id) DO UPDATE SET coins=50000",
+                uid,
+            )
             r = await c.post("/shop/purchases/offers/premium_monthly", headers=user)
             assert r.status_code == 200, r.text
             offer = r.json()["offer"]
@@ -112,6 +106,7 @@ async def main():
                 },
             )
             assert r.status_code == 200, r.text
+            assert r.json()["state"] == "fulfilled", r.text
             originals = {}
             for kind in [
                 "terms",
@@ -125,7 +120,11 @@ async def main():
                 response = await c.get(f"/shop/purchases/{oid}/documents/{kind}", headers=user)
                 assert response.status_code == 200, (kind, response.status_code, response.text)
                 originals[kind] = response.content
-            assert originals["terms"] == (f.ROOT / "academy_assets/assets/email/agb-2026-09-r2.pdf").read_bytes()
+            assert originals["terms"] == (f.ROOT / "academy_assets/assets/email/agb-2026-09-r4.pdf").read_bytes()
+            assert (
+                originals["withdrawal"]
+                == (f.ROOT / "academy_assets/assets/email/widerrufsbelehrung-2026-09-r1.pdf").read_bytes()
+            )
             # Archive-only invoice control retains unknown capture, exactly as recorded.
             number = await db.fetchval("SELECT nextval('invoice_number')")
             order = "L2" + uuid4().hex[:16]

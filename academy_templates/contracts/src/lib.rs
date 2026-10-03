@@ -57,7 +57,6 @@ macro_rules! templates {
 templates! {
     ResetPasswordTemplate(templates::RESET_PASSWORD_HTML),
     VerifyEmailTemplate(templates::VERIFY_EMAIL_HTML),
-    PurchaseConfirmationTemplate(templates::PURCHASE_CONFIRMATION_HTML),
     InvoiceTemplate(templates::INVOICE_HTML),
     FinalStatementTemplate(templates::FINAL_STATEMENT_HTML),
     ContractCancellationConfirmationTemplate(templates::CONTRACT_CANCELLATION_CONFIRMATION_HTML),
@@ -108,37 +107,6 @@ pub struct ContractWithdrawalConfirmationTemplate {
     /// The contract or order as the declarant named it, if they named it.
     pub contract_designation: Option<String>,
     pub details: Option<String>,
-}
-
-/// Confirmation of a Morphcoin purchase.
-///
-/// Every number is serialized as an already formatted German string (see
-/// [`format`]), so the mail reads the way the checkout does.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub struct PurchaseConfirmationTemplate {
-    #[serde(serialize_with = "format::serialize_count")]
-    pub coins: u64,
-    #[serde(serialize_with = "format::serialize_percent")]
-    pub vat_percent: Decimal,
-    #[serde(serialize_with = "format::serialize_amount")]
-    pub vat_total: Decimal,
-    #[serde(serialize_with = "format::serialize_amount")]
-    pub gross_total: Decimal,
-    /// The declarations the consumer gave at checkout, repeated in the
-    /// confirmation of the contract (§ 312f Abs. 3 BGB).
-    pub withdrawal_consent: Option<WithdrawalConsentConfirmation>,
-}
-
-/// The declarations under § 356 Abs. 5 Nr. 2 / Abs. 6 Nr. 2 BGB as they are
-/// repeated in a confirmation email.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub struct WithdrawalConsentConfirmation {
-    /// Wording of the declarations, verbatim.
-    pub text: String,
-    /// Version of the withdrawal instruction the wording was taken from.
-    pub version: String,
-    /// Time at which the declarations were given, already formatted.
-    pub timestamp: String,
 }
 
 /// An invoice or, with a different title, a credit note.

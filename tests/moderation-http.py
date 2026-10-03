@@ -8,6 +8,8 @@ from uuid import UUID, uuid4
 import asyncpg, httpx
 
 ROOT = Path(__file__).resolve().parents[1]
+BINARY = Path(os.environ.get("L2_BINARY", ROOT / "target/debug/academy")).resolve()
+VALKEY = os.environ.get("L2_VALKEY", "valkey-server")
 BASE = Path(os.environ["L2_BASE"]).resolve()
 assert str(BASE) == "/tmp/bootstrap-l2-implementation"
 ENV = os.environ | {"ACADEMY_CONFIG": f"{BASE}/backend.toml:{ROOT}/config.dev.toml", "RUST_LOG": "warn"}
@@ -66,22 +68,9 @@ async def main():
     smtp = SMTP(("127.0.0.1", 55903), SMTPHandler)
     threading.Thread(target=smtp.serve_forever, daemon=True).start()
     try:
-        start(
-            [
-                "/nix/store/d4lznfvcd8zqxn4hc9lpw0dvfri8p4c0-valkey-9.1.1/bin/valkey-server",
-                "--port",
-                "55902",
-                "--bind",
-                "127.0.0.1",
-                "--save",
-                "",
-                "--appendonly",
-                "no",
-            ],
-            "valkey.log",
-        )
+        start([VALKEY, "--port", "55902", "--bind", "127.0.0.1", "--save", "", "--appendonly", "no"], "valkey.log")
         await wait_port(55902)
-        start([str(ROOT / "target/debug/academy"), "serve"], "backend-http.log")
+        start([str(BINARY), "serve"], "backend-http.log")
         await wait_port(55901)
         db = await asyncpg.connect("postgresql://l2test@127.0.0.1:55900/l2backend")
         async with httpx.AsyncClient(base_url="http://127.0.0.1:55901", timeout=20) as client:

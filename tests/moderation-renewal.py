@@ -37,21 +37,11 @@ async def main():
     db = monitor = None
     try:
         f.start(
-            [
-                "/nix/store/d4lznfvcd8zqxn4hc9lpw0dvfri8p4c0-valkey-9.1.1/bin/valkey-server",
-                "--port",
-                "55902",
-                "--bind",
-                "127.0.0.1",
-                "--save",
-                "",
-                "--appendonly",
-                "no",
-            ],
+            [f.VALKEY, "--port", "55902", "--bind", "127.0.0.1", "--save", "", "--appendonly", "no"],
             "renewal-valkey.log",
         )
         await f.wait_port(55902)
-        f.start([str(f.ROOT / "target/debug/academy"), "serve"], "renewal-backend.log")
+        f.start([str(f.BINARY), "serve"], "renewal-backend.log")
         await f.wait_port(55901)
         db = await asyncpg.connect("postgresql://l2test@127.0.0.1:55900/l2backend")
         monitor = await asyncpg.connect("postgresql://l2test@127.0.0.1:55900/l2backend")
@@ -59,7 +49,7 @@ async def main():
 
             async def cli(*args):
                 process = await asyncio.create_subprocess_exec(
-                    str(f.ROOT / "target/debug/academy"),
+                    str(f.BINARY),
                     *args,
                     cwd=f.ROOT,
                     env=f.ENV,
@@ -75,7 +65,11 @@ async def main():
             assert login.status_code == 200, login.text
             uid = UUID(login.json()["user"]["id"])
             user = {"Authorization": "Bearer " + login.json()["access_token"]}
-            await cli("admin", "coin", "add", str(uid), "--", "50000")
+            # Synthetic fixture funding; ordinary admin grants are disabled.
+            await db.execute(
+                "INSERT INTO coins(user_id,coins,withheld_coins) VALUES($1,50000,0) ON CONFLICT(user_id) DO UPDATE SET coins=50000",
+                uid,
+            )
             # Existing paid period fixture, not a new sale through the retired pre-L1 route.
             await db.execute(
                 "INSERT INTO premium(id,user_id,since,until) VALUES($1,$2,clock_timestamp(),clock_timestamp()+interval '1 month')",
@@ -83,7 +77,7 @@ async def main():
                 uid,
             )
             offer = (await c.get("/shop/premium/renewal-offer")).json()
-            assert offer["terms_version"] == "2026-09-r2"
+            assert offer["terms_version"] == "2026-09-r4"
             ordered = await c.put(
                 "/shop/premium/autopay",
                 headers=user,

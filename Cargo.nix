@@ -4229,10 +4229,6 @@ rec {
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./academy_email/impl; };
         dependencies = [
           {
-            name = "academy_assets";
-            packageId = "academy_assets";
-          }
-          {
             name = "academy_di";
             packageId = "academy_di";
           }

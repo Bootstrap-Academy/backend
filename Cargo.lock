@@ -806,7 +806,6 @@ dependencies = [
 name = "academy_email_impl"
 version = "0.0.0"
 dependencies = [
- "academy_assets",
  "academy_config",
  "academy_di",
  "academy_email_contracts",

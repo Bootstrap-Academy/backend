@@ -1,9 +1,14 @@
 """Local immutable-original and prospective HTML/draft/PDF parity checks."""
 
-import hashlib, html, json, re, subprocess
+import argparse, hashlib, html, json, re, subprocess
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+BACKEND = Path(__file__).resolve().parents[1]
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--documents-only", action="store_true", help="Check all embedded original PDF bundles")
+parser.add_argument("--workspace-root", type=Path, default=BACKEND.parent)
+args = parser.parse_args()
+ROOT = args.workspace_root.resolve()
 PDFTEXT = "/nix/store/qkfcppix6b8jzga6y76yblpvkhvpnhzz-poppler-utils-26.06.0/bin/pdftotext"
 
 
@@ -18,6 +23,22 @@ def plain(value):
 def normal(value):
     return re.sub(r"\s+", "", plain(value)).replace("ﬁ", "fi").replace("ﬂ", "fl")
 
+
+# Original manifest hashes are independent of today's account or legal page.
+manifests = sorted((BACKEND / "academy_assets/assets/email").glob("purchase-document-manifest*.json"))
+expected_releases = {"2026-09", "2026-09-r1", "2026-09-r2", "2026-09-r3", "2026-09-r4"}
+assert {json.loads(path.read_text())["release"] for path in manifests} == expected_releases
+assert len(manifests) == len(expected_releases)
+for manifest_path in manifests:
+    manifest = json.loads(manifest_path.read_text())
+    assert len(manifest["documents"]) == 2
+    for doc in manifest["documents"]:
+        path = BACKEND / Path(doc["pdf"]).relative_to("backend")
+        data = path.read_bytes()
+        assert data.startswith(b"%PDF-") and sha(data) == doc["pdf_sha256"], path
+    print("PASS immutable PDF bundle:", manifest["release"], [Path(d["pdf"]).name for d in manifest["documents"]])
+if args.documents_only:
+    raise SystemExit(0)
 
 for release in ["2026-09-r1", "2026-09-r2"]:
     manifest = json.loads(

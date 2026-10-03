@@ -1,14 +1,11 @@
-use academy_assets::email::{AGB_2026_09_PDF, WIDERRUFSBELEHRUNG_2026_09_PDF};
 use academy_di::Build;
 use academy_email_contracts::{
-    AttachmentContentType, ContentType, Email, EmailAttachment, EmailService,
-    template::TemplateEmailService,
+    ContentType, Email, EmailAttachment, EmailService, template::TemplateEmailService,
 };
 use academy_models::email_address::EmailAddressWithName;
 use academy_templates_contracts::{
     ContractCancellationConfirmationTemplate, ContractWithdrawalConfirmationTemplate,
-    PurchaseConfirmationTemplate, ResetPasswordTemplate, Template, TemplateService,
-    VerifyEmailTemplate,
+    ResetPasswordTemplate, Template, TemplateService, VerifyEmailTemplate,
 };
 use academy_utils::trace_instrument;
 
@@ -49,43 +46,6 @@ where
             data,
             "Willkommen bei der Bootstrap Academy!",
             Vec::new(),
-        )
-        .await
-    }
-
-    #[trace_instrument(skip(self, recipient, data, invoice))]
-    async fn send_purchase_confirmation_email(
-        &self,
-        recipient: EmailAddressWithName,
-        data: &PurchaseConfirmationTemplate,
-        invoice: Vec<u8>,
-    ) -> anyhow::Result<bool> {
-        let invoice = EmailAttachment {
-            filename: "rechnung.pdf".into(),
-            content_type: AttachmentContentType::Pdf,
-            content: invoice,
-        };
-
-        // § 312f Abs. 2 BGB requires the contract content including the terms
-        // and conditions on a durable medium, so both documents are attached in
-        // the version that was in force. The file names carry that version.
-        let terms = EmailAttachment {
-            filename: "agb-2026-09.pdf".into(),
-            content_type: AttachmentContentType::Pdf,
-            content: AGB_2026_09_PDF.into(),
-        };
-
-        let revocation_policy = EmailAttachment {
-            filename: "widerrufsbelehrung-2026-09.pdf".into(),
-            content_type: AttachmentContentType::Pdf,
-            content: WIDERRUFSBELEHRUNG_2026_09_PDF.into(),
-        };
-
-        self.send_email(
-            recipient,
-            data,
-            "Kaufbestätigung - Bootstrap Academy",
-            vec![invoice, terms, revocation_policy],
         )
         .await
     }

@@ -51,8 +51,8 @@ impl TemplateService for TemplateServiceImpl {
 mod tests {
     use academy_templates_contracts::{
         ContractCancellationConfirmationTemplate, ContractWithdrawalConfirmationTemplate,
-        FinalStatementTemplate, InvoiceItem, InvoiceTemplate, PurchaseConfirmationTemplate,
-        ResetPasswordTemplate, VerifyEmailTemplate, WithdrawalConsentConfirmation,
+        FinalStatementTemplate, InvoiceItem, InvoiceTemplate, ResetPasswordTemplate,
+        VerifyEmailTemplate,
     };
     use chrono::{TimeZone, Utc};
     use rust_decimal_macros::dec;
@@ -73,57 +73,6 @@ mod tests {
             code: "code".into(),
             url: "https://bootstrap.academy/".into(),
         });
-    }
-
-    #[test]
-    fn purchase_confirmation() {
-        let rendered = render_template(PurchaseConfirmationTemplate {
-            coins: 4207,
-            vat_percent: 19.into(),
-            vat_total: dec!(7.9832),
-            gross_total: 49.into(),
-            withdrawal_consent: None,
-        });
-
-        // Every number is printed the way the checkout prints it.
-        assert!(rendered.contains(
-            "Du hast erfolgreich 4.207 MorphCoins gekauft! Das entspricht 49,00 € inklusive 19 % \
-             MwSt. von 7,98 €."
-        ));
-
-        // The attached documents are the version in force at the time of the
-        // order, so the mail also has to point at the current online version.
-        assert!(rendered.contains("https://bootstrap.academy/docs/terms-and-conditions"));
-        assert!(rendered.contains("https://bootstrap.academy/docs/right-of-withdrawal"));
-    }
-
-    #[test]
-    fn purchase_confirmation_with_withdrawal_consent() {
-        // Arrange
-        let template = PurchaseConfirmationTemplate {
-            coins: 4207,
-            vat_percent: 19.into(),
-            vat_total: 7.into(),
-            gross_total: 49.into(),
-            withdrawal_consent: Some(WithdrawalConsentConfirmation {
-                text: "Ich stimme ausdrücklich zu, ...".into(),
-                version: "2026-09".into(),
-                timestamp: "03.09.2026, 14:23 Uhr (UTC)".into(),
-            }),
-        };
-
-        let sut = TemplateServiceImpl {
-            state: Default::default(),
-        };
-
-        // Act
-        let result = sut.render(&template).unwrap();
-
-        // Assert
-        assert!(result.contains("Ich stimme ausdrücklich zu, ..."));
-        assert!(result.contains("2026-09"));
-        assert!(result.contains("03.09.2026, 14:23 Uhr (UTC)"));
-        assert!(result.contains("https://bootstrap.academy/docs/right-of-withdrawal"));
     }
 
     #[test]

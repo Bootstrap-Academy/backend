@@ -229,6 +229,133 @@ def race_replay_and_legacy_clients(f):
     return a
 
 
+RESET_CODE = "ABCD-EFGH-IJKL-MNOP"
+RESET_PASSWORD = "synthetic publication reset password"
+ACCOUNT_LOCK = "SELECT id FROM users WHERE id=$1 FOR UPDATE"
+
+
+def seed_password_reset(f, owner):
+    # Seed the real ephemeral rmp-serde cache entry without sending reset mail.
+    def pack_string(value):
+        data = value.encode()
+        return (bytes([0xA0 + len(data)]) if len(data) < 32 else b"\xd9" + bytes([len(data)])) + data
+
+    payload = b"\x92" + pack_string(owner["name"] + "@example.com") + pack_string(RESET_CODE)
+    parts = [b"SET", ("reset_password_code:v2:" + owner["id"]).encode(), payload, b"EX", b"60"]
+    wire = b"*5\r\n" + b"".join(b"$" + str(len(part)).encode() + b"\r\n" + part + b"\r\n" for part in parts)
+    with socket.create_connection(("127.0.0.1", f.ports["cache"])) as cache:
+        cache.sendall(wire)
+        assert cache.recv(1024) == b"+OK\r\n"
+
+
+def reset_password(f, owner):
+    return f.request(
+        "/auth/password_reset",
+        "PUT",
+        {"email": owner["name"] + "@example.com", "code": RESET_CODE, "password": RESET_PASSWORD},
+        expected=None,
+    )
+
+
+def wait_for_account_locks(f, count):
+    deadline = time.monotonic() + 8
+    while time.monotonic() < deadline:
+        waiting = int(
+            f.sql(
+                "SELECT count(*) FROM pg_stat_activity WHERE datname=current_database() "
+                "AND wait_event_type='Lock' AND query LIKE '%" + ACCOUNT_LOCK + "%'"
+            )
+        )
+        if waiting >= count:
+            return waiting
+        time.sleep(0.02)
+    raise RuntimeError("controlled HTTP requests did not reach their account locks")
+
+
+def reset_preserves_consent_and_revokes_publication_authority(f):
+    owner = f.account()
+    _, choice = f.preview_choice(owner)
+    shared = f.publication(method="PUT", body=choice, token=f.token(owner))
+    seed_password_reset(f, owner)
+    status, _ = reset_password(f, owner)
+    assert status == 200
+    f.publication(token=f.token(owner), expected=401)
+    f.publication(OWNER + "-preview", token=f.token(owner), expected=401)
+    f.publication(method="PUT", body=choice, token=f.token(owner), expected=401)
+    f.publication(
+        method="PUT",
+        body={
+            "profile_visibility": "private",
+            "expected_revision": shared["current"]["visibility_revision"],
+            "request_id": str(uuid4()),
+        },
+        token=f.token(owner),
+        expected=401,
+    )
+    f.request("/auth/session", "PUT", {"refresh_token": owner["refresh_token"]}, expected=401)
+    assert f.sql(f"SELECT count(*) FROM sessions WHERE user_id='{owner['id']}'") == "0"
+    owner.update(f.login(owner["name"], RESET_PASSWORD))
+    assert f.publication(token=f.token(owner)) == shared["current"]
+    assert owner["id"] in [p["user_id"] for p in f.publication(ROOT + "snapshot", token=f.auth)["participants"]]
+
+
+def queued_publication_cannot_gain_authority_after_reset(f):
+    owner = f.account()
+    _, choice = f.preview_choice(owner)
+    seed_password_reset(f, owner)
+    profile_before = f.sql(f"SELECT row_to_json(p)::text FROM user_profiles p WHERE user_id='{owner['id']}'")
+    blocker = subprocess.Popen(
+        [
+            str(f.args.pg_bin / "psql"),
+            "-X",
+            "-qAt",
+            "-v",
+            "ON_ERROR_STOP=1",
+            "-h",
+            "127.0.0.1",
+            "-p",
+            str(f.ports["pg"]),
+            "-U",
+            "safety",
+            "-d",
+            f.database,
+        ],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        text=True,
+        env=f.env,
+    )
+    try:
+        blocker.stdin.write(f"BEGIN;\nSELECT id FROM users WHERE id='{owner['id']}' FOR UPDATE;\nSELECT 'locked';\n")
+        blocker.stdin.flush()
+        assert blocker.stdout.readline().strip() == owner["id"]
+        assert blocker.stdout.readline().strip() == "locked"
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            recovery = pool.submit(reset_password, f, owner)
+            wait_for_account_locks(f, 1)
+            consent = pool.submit(f.request, OWNER, "PUT", choice, f.token(owner), None)
+            # Both requests must actually be waiting; reset reached the lock first.
+            wait_for_account_locks(f, 2)
+            blocker.stdin.write("COMMIT;\n")
+            blocker.stdin.flush()
+            reset_status, _ = recovery.result(timeout=15)
+            choice_status, _ = consent.result(timeout=15)
+        assert reset_status == 200 and choice_status == 401
+        f.request("/auth/session", token=f.token(owner), expected=401)
+        assert f.sql(f"SELECT count(*) FROM sessions WHERE user_id='{owner['id']}'") == "0"
+        assert (
+            f.sql(f"SELECT row_to_json(p)::text FROM user_profiles p WHERE user_id='{owner['id']}'") == profile_before
+        )
+        assert f.sql(f"SELECT profile_visibility FROM user_profiles WHERE user_id='{owner['id']}'") == "private"
+        assert owner["id"] not in [p["user_id"] for p in f.publication(ROOT + "snapshot", token=f.auth)["participants"]]
+    finally:
+        if blocker.poll() is None:
+            blocker.stdin.write("ROLLBACK;\n\\q\n")
+            blocker.stdin.flush()
+            blocker.communicate(timeout=10)
+
+
 def current_verification_withdrawal_and_export(f):
     a = f.account()
     _, body = f.preview_choice(a)
@@ -368,6 +495,8 @@ CASES = [
     disabled_contract_and_service_auth,
     owner_preview_and_exact_projection,
     race_replay_and_legacy_clients,
+    reset_preserves_consent_and_revokes_publication_authority,
+    queued_publication_cannot_gain_authority_after_reset,
     current_verification_withdrawal_and_export,
     moderation_boundaries_invalidate_cached_membership,
     erasure_removes_receipts_and_membership,

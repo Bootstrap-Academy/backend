@@ -18,11 +18,18 @@ nix shell --accept-flake-config --no-write-lock-file --inputs-from . \
     --valkey "$(command -v valkey-server)" --output /tmp/publication-evidence'
 ```
 
-Nine scenarios cover disabled compatibility, internal token audiences, actual
+Eleven scenarios cover disabled compatibility, internal token audiences, actual
 password/OAuth registration, preview/owner/scope boundaries, CAS races, delayed
 replays, legacy opt-out, current email verification, receipts in export/erasure,
 timed moderation changes, dump/restore, disabled recovery and authority outage,
 including loss of the live owner authentication database on all three owner routes.
+The password-reset regressions check revoked access/refresh tokens without
+withdrawing existing consent, and a publication request queued behind reset on
+the account lock. Both real PostgreSQL lock waits are observed before releasing
+the blocker; the queued choice must return 401 with the entire publication row
+unchanged and the owner absent from the snapshot. Choices, withdrawals and
+receipt replays require a current session. Session authority is rechecked inside
+the write transaction after taking the same account lock as password reset.
 The OAuth fixture seeds the same ephemeral registration cache consumed by the
 normal API; no OAuth provider is contacted. Snapshot identities contain exactly
 user ID, display name, standard-avatar null and visibility revision; XP and

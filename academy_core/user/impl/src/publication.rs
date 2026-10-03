@@ -117,6 +117,17 @@ where
         choice: PublicationChoice,
     ) -> Result<PublicationChoiceResult, PublicationError> {
         let auth = self.auth.authenticate(token).await.map_auth_err()?;
+        let mut txn = self.db.begin_transaction().await?;
+        if !self.user_repo.lock_account(&mut txn, auth.user_id).await? {
+            return Err(PublicationError::NotFound);
+        }
+        // Reset may have revoked this session while the request waited for the
+        // account lock. Recheck durable authority before any choice or replay.
+        let auth = self
+            .auth
+            .authenticate_in_transaction(&mut txn, token)
+            .await
+            .map_auth_err()?;
         let preview_valid = choice
             .preview_token
             .as_deref()
@@ -128,7 +139,6 @@ where
                     && claims.scope_version == SCOPE_VERSION
                     && claims.notice_hash == NOTICE_HASH
             });
-        let mut txn = self.db.begin_transaction().await?;
         let result = self
             .repo
             .choose(

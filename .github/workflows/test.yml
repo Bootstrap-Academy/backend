@@ -10,6 +10,21 @@ permissions:
   contents: read
 
 jobs:
+  auth:
+    runs-on: ubuntu-latest
+    if: ${{ !(github.event_name == 'push' && github.actor == 'github-merge-queue[bot]') }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+      - uses: cachix/install-nix-action@v31
+      - run: >-
+          nix shell --accept-flake-config --no-write-lock-file --inputs-from .
+          nixpkgs#postgresql_18 nixpkgs#valkey -c python3 scripts/test-auth.py
+          --evidence-dir "$RUNNER_TEMP/academy-auth-test-evidence"
+
   unit:
     runs-on: ubuntu-latest
     if: ${{ !(github.event_name == 'push' && github.actor == 'github-merge-queue[bot]') }}

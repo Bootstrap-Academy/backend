@@ -32,7 +32,9 @@ impl DeviceName {
     const MAX_LEN: usize = 256;
 
     pub fn from_string_truncated(mut s: String) -> Self {
-        s.truncate(Self::MAX_LEN);
+        if let Some((end, _)) = s.char_indices().nth(Self::MAX_LEN) {
+            s.truncate(end);
+        }
         Self::try_new(s).unwrap()
     }
 }
@@ -60,5 +62,20 @@ mod tests {
 
         // Assert
         assert_eq!(result.into_inner(), expected);
+    }
+
+    #[test]
+    fn device_name_truncation_preserves_unicode_characters() {
+        for input in [
+            format!("{}é", "A".repeat(255)),
+            "ä".repeat(DeviceName::MAX_LEN + 20),
+            "🙂".repeat(DeviceName::MAX_LEN + 20),
+        ] {
+            let expected = input.chars().take(DeviceName::MAX_LEN).collect::<String>();
+            assert_eq!(
+                DeviceName::from_string_truncated(input).into_inner(),
+                expected
+            );
+        }
     }
 }

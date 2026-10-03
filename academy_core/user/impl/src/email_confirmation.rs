@@ -1,4 +1,3 @@
-use academy_auth_contracts::AuthService;
 use academy_cache_contracts::CacheService;
 use academy_core_user_contracts::email_confirmation::{
     UserEmailConfirmationResetPasswordError, UserEmailConfirmationService,
@@ -8,7 +7,7 @@ use academy_di::Build;
 use academy_email_contracts::template::TemplateEmailService;
 use academy_models::{
     VerificationCode,
-    email_address::EmailAddressWithName,
+    email_address::{EmailAddress, EmailAddressWithName},
     user::{UserComposite, UserId, UserPassword, UserPatchRef},
 };
 use academy_persistence_contracts::user::UserRepository;
@@ -19,11 +18,13 @@ use anyhow::{Context, anyhow};
 
 use crate::UserFeatureConfig;
 
+// Versioned keys reject unbound codes issued by the previous implementation.
+type VerificationTarget = (UserId, EmailAddress);
+type ResetAuthorization = (EmailAddress, VerificationCode);
+
 #[derive(Debug, Clone, Build)]
 #[cfg_attr(test, derive(Default))]
-pub struct UserEmailConfirmationServiceImpl<Auth, Secret, TemplateEmail, Cache, Password, UserRepo>
-{
-    auth: Auth,
+pub struct UserEmailConfirmationServiceImpl<Secret, TemplateEmail, Cache, Password, UserRepo> {
     secret: Secret,
     template_email: TemplateEmail,
     cache: Cache,
@@ -32,11 +33,10 @@ pub struct UserEmailConfirmationServiceImpl<Auth, Secret, TemplateEmail, Cache, 
     config: UserFeatureConfig,
 }
 
-impl<Txn, Auth, Secret, TemplateEmail, Cache, Password, UserRepo> UserEmailConfirmationService<Txn>
-    for UserEmailConfirmationServiceImpl<Auth, Secret, TemplateEmail, Cache, Password, UserRepo>
+impl<Txn, Secret, TemplateEmail, Cache, Password, UserRepo> UserEmailConfirmationService<Txn>
+    for UserEmailConfirmationServiceImpl<Secret, TemplateEmail, Cache, Password, UserRepo>
 where
     Txn: Send + Sync + 'static,
-    Auth: AuthService<Txn>,
     Secret: SecretService,
     TemplateEmail: TemplateEmailService,
     Cache: CacheService,
@@ -44,13 +44,17 @@ where
     UserRepo: UserRepository<Txn>,
 {
     #[trace_instrument(skip(self, email))]
-    async fn request_verification(&self, email: EmailAddressWithName) -> anyhow::Result<()> {
+    async fn request_verification(
+        &self,
+        user_id: UserId,
+        email: EmailAddressWithName,
+    ) -> anyhow::Result<()> {
         let code = self.secret.generate_verification_code();
 
         self.cache
             .set(
                 &verification_cache_key(&code),
-                &email.clone().into_email_address(),
+                &(user_id, email.clone().into_email_address()),
                 Some(self.config.verification_verification_code_ttl),
             )
             .await
@@ -70,32 +74,31 @@ where
         Ok(())
     }
 
-    #[trace_instrument(skip(self, txn))]
+    #[trace_instrument(skip(self, txn, verification_code))]
     async fn verify_email(
         &self,
         txn: &mut Txn,
         verification_code: &VerificationCode,
     ) -> Result<UserComposite, UserEmailConfirmationVerifyEmailError> {
         let cache_key = verification_cache_key(verification_code);
-        let email = self
+        let (user_id, email): VerificationTarget = self
             .cache
-            .get(&cache_key)
+            .pop(&cache_key)
             .await
-            .context("Failed to get email from cache")?
+            .context("Failed to consume verification code")?
             .ok_or(UserEmailConfirmationVerifyEmailError::InvalidCode)?;
 
+        if !self.user_repo.lock_account(txn, user_id).await? {
+            return Err(UserEmailConfirmationVerifyEmailError::InvalidCode);
+        }
         let mut user_composite = self
             .user_repo
-            .get_composite_by_email(txn, &email)
-            .await
-            .context("Failed to get user from database")?
+            .get_composite(txn, user_id)
+            .await?
+            .filter(|user| user.user.email.as_ref() == Some(&email))
             .ok_or(UserEmailConfirmationVerifyEmailError::InvalidCode)?;
 
         if user_composite.user.email_verified {
-            self.cache
-                .remove(&cache_key)
-                .await
-                .context("Failed to remove code from cache")?;
             return Err(UserEmailConfirmationVerifyEmailError::AlreadyVerified);
         }
 
@@ -108,18 +111,6 @@ where
             )
             .await
             .map_err(|err| anyhow!(err).context("Failed to update user in database"))?;
-
-        // access tokens contain the `email_verified` field, so we need to invalidate
-        // them when changing this value
-        self.auth
-            .invalidate_access_tokens(txn, user_composite.user.id)
-            .await
-            .context("Failed to invalidate access token")?;
-
-        self.cache
-            .remove(&cache_key)
-            .await
-            .context("Failed to remove code from cache")?;
 
         Ok(user_composite)
     }
@@ -135,7 +126,7 @@ where
         self.cache
             .set(
                 &reset_password_cache_key(user_id),
-                &code,
+                &(email.clone().into_email_address(), code.clone()),
                 Some(self.config.password_reset_verification_code_ttl),
             )
             .await
@@ -165,12 +156,25 @@ where
     ) -> Result<(), UserEmailConfirmationResetPasswordError> {
         let cache_key = reset_password_cache_key(user_id);
 
-        let expected_code = self
+        if !self.user_repo.lock_account(txn, user_id).await? {
+            return Err(UserEmailConfirmationResetPasswordError::InvalidCode);
+        }
+        let user = self
+            .user_repo
+            .get_composite(txn, user_id)
+            .await?
+            .ok_or(UserEmailConfirmationResetPasswordError::InvalidCode)?;
+        let authorization: ResetAuthorization = self
             .cache
             .get(&cache_key)
-            .await
-            .context("Failed to get expected code from cache")?;
-        if expected_code != Some(code) {
+            .await?
+            .filter(|(email, expected_code)| {
+                user.user.email.as_ref() == Some(email) && expected_code == &code
+            })
+            .ok_or(UserEmailConfirmationResetPasswordError::InvalidCode)?;
+        // GETDEL is atomic; expiry or replacement between checking and consuming
+        // fails closed. An incorrect code does not consume a valid one.
+        if self.cache.pop::<ResetAuthorization>(&cache_key).await? != Some(authorization) {
             return Err(UserEmailConfirmationResetPasswordError::InvalidCode);
         }
 
@@ -185,33 +189,27 @@ where
             .await
             .context("Failed to save password hash in database")?;
 
-        self.cache
-            .remove(&cache_key)
-            .await
-            .context("Failed to remove code from cache")?;
-
         Ok(())
     }
 }
 
 fn verification_cache_key(verification_code: &VerificationCode) -> String {
-    format!("verification:{}", **verification_code)
+    format!("verification:v2:{}", **verification_code)
 }
 
-fn reset_password_cache_key(user_id: UserId) -> String {
-    format!("reset_password_code:{}", user_id.hyphenated())
+pub(crate) fn reset_password_cache_key(user_id: UserId) -> String {
+    format!("reset_password_code:v2:{}", user_id.hyphenated())
 }
 
 #[cfg(test)]
 mod tests {
-    use academy_auth_contracts::MockAuthService;
     use academy_cache_contracts::MockCacheService;
     use academy_demo::{
         VERIFICATION_CODE_1, VERIFICATION_CODE_2,
         user::{FOO, FOO_PASSWORD},
     };
     use academy_email_contracts::template::MockTemplateEmailService;
-    use academy_models::{email_address::EmailAddress, user::UserPatch};
+    use academy_models::user::UserPatch;
     use academy_persistence_contracts::user::MockUserRepository;
     use academy_shared_contracts::{password::MockPasswordService, secret::MockSecretService};
     use academy_utils::{Apply, assert_matches};
@@ -219,7 +217,6 @@ mod tests {
     use super::*;
 
     type Sut = UserEmailConfirmationServiceImpl<
-        MockAuthService<()>,
         MockSecretService,
         MockTemplateEmailService,
         MockCacheService,
@@ -252,8 +249,8 @@ mod tests {
         );
 
         let cache = MockCacheService::new().with_set(
-            format!("verification:{}", **VERIFICATION_CODE_1),
-            FOO.user.email.clone().unwrap(),
+            format!("verification:v2:{}", **VERIFICATION_CODE_1),
+            (FOO.user.id, FOO.user.email.clone().unwrap()),
             Some(config.verification_verification_code_ttl),
         );
 
@@ -265,7 +262,7 @@ mod tests {
         };
 
         // Act
-        let result = sut.request_verification(recipient).await;
+        let result = sut.request_verification(FOO.user.id, recipient).await;
 
         // Assert
         result.unwrap();
@@ -274,16 +271,16 @@ mod tests {
     #[tokio::test]
     async fn verify_email_ok() {
         // Arrange
-        let auth = MockAuthService::new().with_invalidate_access_tokens(FOO.user.id);
-
-        let cache_key = format!("verification:{}", **VERIFICATION_CODE_1);
-        let cache = MockCacheService::new()
-            .with_get(cache_key.clone(), Some(FOO.user.email.clone().unwrap()))
-            .with_remove(cache_key);
+        let cache_key = format!("verification:v2:{}", **VERIFICATION_CODE_1);
+        let cache = MockCacheService::new().with_pop(
+            cache_key.clone(),
+            Some((FOO.user.id, FOO.user.email.clone().unwrap())),
+        );
 
         let user_repo = MockUserRepository::new()
-            .with_get_composite_by_email(
-                FOO.user.email.clone().unwrap(),
+            .with_lock_account(FOO.user.id, true)
+            .with_get_composite(
+                FOO.user.id,
                 Some(FOO.clone().with(|u| u.user.email_verified = false)),
             )
             .with_update(
@@ -293,7 +290,6 @@ mod tests {
             );
 
         let sut = UserEmailConfirmationServiceImpl {
-            auth,
             cache,
             user_repo,
             ..Sut::default()
@@ -309,17 +305,14 @@ mod tests {
     #[tokio::test]
     async fn verify_email_invalid_code() {
         // Arrange
-        let auth = MockAuthService::new();
-
-        let cache = MockCacheService::new().with_get(
-            format!("verification:{}", **VERIFICATION_CODE_1),
-            None::<EmailAddress>,
+        let cache = MockCacheService::new().with_pop(
+            format!("verification:v2:{}", **VERIFICATION_CODE_1),
+            None::<VerificationTarget>,
         );
 
         let user_repo = MockUserRepository::new();
 
         let sut = UserEmailConfirmationServiceImpl {
-            auth,
             cache,
             user_repo,
             ..Sut::default()
@@ -338,18 +331,16 @@ mod tests {
     #[tokio::test]
     async fn verify_email_user_not_found() {
         // Arrange
-        let auth = MockAuthService::new();
-
-        let cache = MockCacheService::new().with_get(
-            format!("verification:{}", **VERIFICATION_CODE_1),
-            Some(FOO.user.email.clone().unwrap()),
+        let cache = MockCacheService::new().with_pop(
+            format!("verification:v2:{}", **VERIFICATION_CODE_1),
+            Some((FOO.user.id, FOO.user.email.clone().unwrap())),
         );
 
         let user_repo = MockUserRepository::new()
-            .with_get_composite_by_email(FOO.user.email.clone().unwrap(), None);
+            .with_lock_account(FOO.user.id, true)
+            .with_get_composite(FOO.user.id, None);
 
         let sut = UserEmailConfirmationServiceImpl {
-            auth,
             cache,
             user_repo,
             ..Sut::default()
@@ -368,18 +359,17 @@ mod tests {
     #[tokio::test]
     async fn verify_email_already_verified() {
         // Arrange
-        let auth = MockAuthService::new();
-
-        let cache_key = format!("verification:{}", **VERIFICATION_CODE_1);
-        let cache = MockCacheService::new()
-            .with_get(cache_key.clone(), Some(FOO.user.email.clone().unwrap()))
-            .with_remove(cache_key);
+        let cache_key = format!("verification:v2:{}", **VERIFICATION_CODE_1);
+        let cache = MockCacheService::new().with_pop(
+            cache_key.clone(),
+            Some((FOO.user.id, FOO.user.email.clone().unwrap())),
+        );
 
         let user_repo = MockUserRepository::new()
-            .with_get_composite_by_email(FOO.user.email.clone().unwrap(), Some(FOO.clone()));
+            .with_lock_account(FOO.user.id, true)
+            .with_get_composite(FOO.user.id, Some(FOO.clone()));
 
         let sut = UserEmailConfirmationServiceImpl {
-            auth,
             cache,
             user_repo,
             ..Sut::default()
@@ -419,8 +409,8 @@ mod tests {
         );
 
         let cache = MockCacheService::new().with_set(
-            format!("reset_password_code:{}", FOO.user.id.hyphenated()),
-            VERIFICATION_CODE_1.clone(),
+            format!("reset_password_code:v2:{}", FOO.user.id.hyphenated()),
+            (FOO.user.email.clone().unwrap(), VERIFICATION_CODE_1.clone()),
             Some(config.password_reset_verification_code_ttl),
         );
 
@@ -450,16 +440,24 @@ mod tests {
     #[tokio::test]
     async fn reset_password_ok() {
         // Arrange
-        let cache_key = format!("reset_password_code:{}", FOO.user.id.hyphenated());
+        let cache_key = format!("reset_password_code:v2:{}", FOO.user.id.hyphenated());
         let cache = MockCacheService::new()
-            .with_get(cache_key.clone(), Some(VERIFICATION_CODE_1.clone()))
-            .with_remove(cache_key);
+            .with_get(
+                cache_key.clone(),
+                Some((FOO.user.email.clone().unwrap(), VERIFICATION_CODE_1.clone())),
+            )
+            .with_pop(
+                cache_key,
+                Some((FOO.user.email.clone().unwrap(), VERIFICATION_CODE_1.clone())),
+            );
 
         let password = MockPasswordService::new()
             .with_hash(FOO_PASSWORD.clone().into_inner(), "new pw hash".into());
 
-        let user_repo =
-            MockUserRepository::new().with_save_password_hash(FOO.user.id, "new pw hash".into());
+        let user_repo = MockUserRepository::new()
+            .with_lock_account(FOO.user.id, true)
+            .with_get_composite(FOO.user.id, Some(FOO.clone()))
+            .with_save_password_hash(FOO.user.id, "new pw hash".into());
 
         let sut = UserEmailConfirmationServiceImpl {
             cache,
@@ -486,12 +484,15 @@ mod tests {
     async fn reset_password_no_code() {
         // Arrange
         let cache = MockCacheService::new().with_get(
-            format!("reset_password_code:{}", FOO.user.id.hyphenated()),
-            None::<VerificationCode>,
+            format!("reset_password_code:v2:{}", FOO.user.id.hyphenated()),
+            None::<ResetAuthorization>,
         );
 
         let sut = UserEmailConfirmationServiceImpl {
             cache,
+            user_repo: MockUserRepository::new()
+                .with_lock_account(FOO.user.id, true)
+                .with_get_composite(FOO.user.id, Some(FOO.clone())),
             ..Sut::default()
         };
 
@@ -516,12 +517,15 @@ mod tests {
     async fn reset_password_invalid_code() {
         // Arrange
         let cache = MockCacheService::new().with_get(
-            format!("reset_password_code:{}", FOO.user.id.hyphenated()),
-            Some(VERIFICATION_CODE_2.clone()),
+            format!("reset_password_code:v2:{}", FOO.user.id.hyphenated()),
+            Some((FOO.user.email.clone().unwrap(), VERIFICATION_CODE_2.clone())),
         );
 
         let sut = UserEmailConfirmationServiceImpl {
             cache,
+            user_repo: MockUserRepository::new()
+                .with_lock_account(FOO.user.id, true)
+                .with_get_composite(FOO.user.id, Some(FOO.clone())),
             ..Sut::default()
         };
 

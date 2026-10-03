@@ -12,6 +12,7 @@ pub trait UserEmailConfirmationService<Txn: Send + Sync + 'static>: Send + Sync 
     /// Send a verification email to verify a user's email address.
     fn request_verification(
         &self,
+        user_id: UserId,
         email: EmailAddressWithName,
     ) -> impl Future<Output = anyhow::Result<()>> + Send;
 
@@ -59,11 +60,18 @@ pub enum UserEmailConfirmationResetPasswordError {
 
 #[cfg(feature = "mock")]
 impl<Txn: Send + Sync + 'static> MockUserEmailConfirmationService<Txn> {
-    pub fn with_request_verification(mut self, email: EmailAddressWithName) -> Self {
+    pub fn with_request_verification(
+        mut self,
+        user_id: UserId,
+        email: EmailAddressWithName,
+    ) -> Self {
         self.expect_request_verification()
             .once()
-            .with(mockall::predicate::eq(email))
-            .return_once(|_| Box::pin(std::future::ready(Ok(()))));
+            .with(
+                mockall::predicate::eq(user_id),
+                mockall::predicate::eq(email),
+            )
+            .return_once(|_, _| Box::pin(std::future::ready(Ok(()))));
         self
     }
 

@@ -30,6 +30,10 @@ async fn ok() {
 
     let sut = UserFeatureServiceImpl {
         db,
+        auth: academy_auth_contracts::MockAuthService::new()
+            .with_invalidate_access_tokens_of(Vec::new()),
+        session: academy_core_session_contracts::session::MockSessionService::new()
+            .with_revoke_by_user(FOO.user.id, Vec::new()),
         user_repo,
         user_email_confirmation,
         ..Sut::default()

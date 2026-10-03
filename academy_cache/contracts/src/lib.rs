@@ -30,6 +30,16 @@ pub trait CacheService: Sized + Send + Sync + 'static {
         ttl: Option<Duration>,
     ) -> impl Future<Output = anyhow::Result<bool>> + Send;
 
+    /// Replace an item only if its current value matches `expected` (including
+    /// absence). Compare, write and expiry update are a single cache operation.
+    fn compare_and_set<T: Serialize + Debug + Sync + 'static>(
+        &self,
+        key: &str,
+        expected: &Option<T>,
+        value: &T,
+        ttl: Duration,
+    ) -> impl Future<Output = anyhow::Result<bool>> + Send;
+
     /// Read a cache item and remove it in the same operation.
     ///
     /// Returns `None` if the cache item does not exist. Because reading and
@@ -51,6 +61,25 @@ pub trait CacheService: Sized + Send + Sync + 'static {
 
 #[cfg(feature = "mock")]
 impl MockCacheService {
+    pub fn with_compare_and_set<T: Debug + PartialEq + Serialize + Send + Sync + 'static>(
+        mut self,
+        key: String,
+        expected: Option<T>,
+        value: T,
+        ttl: Duration,
+        updated: bool,
+    ) -> Self {
+        self.expect_compare_and_set()
+            .once()
+            .with(
+                mockall::predicate::eq(key),
+                mockall::predicate::eq(expected),
+                mockall::predicate::eq(value),
+                mockall::predicate::eq(ttl),
+            )
+            .return_once(move |_, _, _, _| Box::pin(std::future::ready(Ok(updated))));
+        self
+    }
     pub fn with_get<T: DeserializeOwned + Debug + Send + 'static>(
         mut self,
         key: String,

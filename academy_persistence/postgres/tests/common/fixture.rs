@@ -170,8 +170,15 @@ async fn connect_database(name: &str) -> PostgresDatabase {
     txn.commit().await.unwrap();
     // The actual checkout, not a copied historical path or a presence-only test.
     for migration in MIGRATIONS {
-        let directory = Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("migrations")
+        let workspace = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .ancestors()
+            .find(|path| {
+                path.join("academy_persistence/postgres/migrations")
+                    .is_dir()
+            })
+            .expect("current workspace migration sources required");
+        let directory = workspace
+            .join("academy_persistence/postgres/migrations")
             .join(migration.name);
         assert_eq!(
             migration.up,

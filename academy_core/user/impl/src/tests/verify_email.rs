@@ -18,6 +18,9 @@ async fn ok() {
 
     let sut = UserFeatureServiceImpl {
         db,
+        auth: academy_auth_contracts::MockAuthService::new()
+            .with_list_refresh_token_hashes(FOO.user.id, Vec::new())
+            .with_invalidate_access_tokens_of(Vec::new()),
         user_email_confirmation,
         ..Sut::default()
     };

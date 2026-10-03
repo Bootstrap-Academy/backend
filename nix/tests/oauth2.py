@@ -118,6 +118,14 @@ resp = c.patch("/auth/users/me", json={"password": ""})
 assert resp.status_code == 200
 user["password"] = False
 assert resp.json() == user
+# Credential changes end every session; use the remaining OAuth login method.
+discard_auth()
+resp = c.post("/auth/sessions/oauth", json=authenticate(42, "foo"))
+assert resp.status_code == 200
+login = resp.json()["login"]
+user["last_login"] = login["user"]["last_login"]
+assert login["user"] == user
+save_auth(login)
 assert get_self() == user
 
 resp = c.delete(f"/auth/oauth/links/me/{link['id']}")
@@ -128,6 +136,13 @@ resp = c.patch("/auth/users/me", json={"password": "a"})
 assert resp.status_code == 200
 user["password"] = True
 assert resp.json() == user
+discard_auth()
+resp = c.post("/auth/sessions", json={"name_or_email": "a", "password": "a"})
+assert resp.status_code == 200
+login = resp.json()
+user["last_login"] = login["user"]["last_login"]
+assert login["user"] == user
+save_auth(login)
 assert get_self() == user
 
 # delete link

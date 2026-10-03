@@ -2,7 +2,7 @@ use std::future::Future;
 
 use academy_models::{
     auth::Login,
-    session::{DeviceName, SessionId},
+    session::{DeviceName, SessionId, SessionRefreshTokenHash},
     user::{UserComposite, UserId},
 };
 use thiserror::Error;
@@ -50,6 +50,14 @@ pub trait SessionService<Txn: Send + Sync + 'static>: Send + Sync + 'static {
         txn: &mut Txn,
         user_id: UserId,
     ) -> impl Future<Output = anyhow::Result<()>> + Send;
+
+    /// Delete sessions inside the caller's account-locked transaction, returning
+    /// their hashes for cache invalidation only after a successful commit.
+    fn revoke_by_user(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
+    ) -> impl Future<Output = anyhow::Result<Vec<SessionRefreshTokenHash>>> + Send;
 }
 
 #[derive(Debug, Error)]
@@ -62,6 +70,20 @@ pub enum SessionRefreshError {
 
 #[cfg(feature = "mock")]
 impl<Txn: Send + Sync + 'static> MockSessionService<Txn> {
+    pub fn with_revoke_by_user(
+        mut self,
+        user_id: UserId,
+        hashes: Vec<SessionRefreshTokenHash>,
+    ) -> Self {
+        self.expect_revoke_by_user()
+            .once()
+            .with(
+                mockall::predicate::always(),
+                mockall::predicate::eq(user_id),
+            )
+            .return_once(move |_, _| Box::pin(std::future::ready(Ok(hashes))));
+        self
+    }
     pub fn with_create(
         mut self,
         user_composite: UserComposite,

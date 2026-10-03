@@ -140,7 +140,8 @@ async fn invoice_identity_forward_controls() {
                 "2026-09-11-050000_wallet_restore_target",
                 "2026-09-12-070000_legacy_moderation_email",
                 "2026-09-12-170000_internal_heart_operations",
-                "2026-09-26-120000_daily_learning_heart_receipts"
+                "2026-09-26-120000_daily_learning_heart_receipts",
+                "2026-10-03-140000_profile_publications"
             ]
         );
     }
@@ -548,7 +549,8 @@ async fn pending_invoice_rich_export_controls() {
                 "2026-09-11-050000_wallet_restore_target",
                 "2026-09-12-070000_legacy_moderation_email",
                 "2026-09-12-170000_internal_heart_operations",
-                "2026-09-26-120000_daily_learning_heart_receipts"
+                "2026-09-26-120000_daily_learning_heart_receipts",
+                "2026-10-03-140000_profile_publications"
             ]
         );
     }
@@ -699,7 +701,8 @@ async fn erased_owner_identity_conflict_controls() {
                 "2026-09-11-050000_wallet_restore_target",
                 "2026-09-12-070000_legacy_moderation_email",
                 "2026-09-12-170000_internal_heart_operations",
-                "2026-09-26-120000_daily_learning_heart_receipts"
+                "2026-09-26-120000_daily_learning_heart_receipts",
+                "2026-10-03-140000_profile_publications"
             ]
         );
     }

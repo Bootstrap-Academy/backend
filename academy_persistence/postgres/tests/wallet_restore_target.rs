@@ -226,7 +226,7 @@ async fn wallet_legacy_real_receipts_survive_upgrade_erasure_replacement_and_iso
     let r2 = call(&db, "restore_credit", &extra).await.unwrap();
     let before = fingerprint(&db).await;
     assert_eq!(
-        db.run_migrations(None).await.unwrap(),
+        common::apply_through(&db, Some("2026-09-26-120000_daily_learning_heart_receipts")).await,
         vec![
             FORWARD,
             "2026-09-12-070000_legacy_moderation_email",
@@ -521,7 +521,7 @@ async fn wallet_cash_branch_upgrade_replay_and_split_remaining_preserve_all_valu
     assert_eq!(old["cash_capacity"], 2000);
     let before = fingerprint(&db).await;
     assert_eq!(
-        db.run_migrations(None).await.unwrap(),
+        common::apply_through(&db, Some("2026-09-26-120000_daily_learning_heart_receipts")).await,
         vec![
             FORWARD,
             "2026-09-12-070000_legacy_moderation_email",
@@ -651,13 +651,14 @@ async fn wallet_foreign_lock_avoidance_and_forward_only_preserve_immediate_guard
         .expect("foreign discovery must refuse before foreign user lock");
     drop(holder);
     let before = fingerprint(&db).await;
-    let e = db.revert_migrations(Some(1)).await.unwrap_err();
-    assert!(
-        format!("{e:#}")
-            .contains("Heart operation replay receipts must not be removed by a downgrade")
-    );
+    common::assert_down_refused(
+        &db,
+        "2026-09-26-120000_daily_learning_heart_receipts",
+        "Heart operation replay receipts must not be removed by a downgrade",
+    )
+    .await;
     assert_eq!(fingerprint(&db).await, before);
-    // The newest migration refuses first; the wallet's own protection must also remain intact.
+    // The named heart guard and the wallet guard both retain their protections.
     let tx = db.begin_transaction().await.unwrap();
     let wallet = academy_persistence_postgres::MIGRATIONS
         .iter()

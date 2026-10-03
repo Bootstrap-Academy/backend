@@ -24,6 +24,7 @@ use crate::{UserFeatureServiceImpl, tests::Sut};
 
 fn account() -> AccountDataExport {
     AccountDataExport {
+        publication: None,
         commercial: serde_json::json!({}),
         moderation: serde_json::json!([]),
         purchase_evidence: serde_json::json!([]),

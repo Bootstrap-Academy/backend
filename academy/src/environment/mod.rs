@@ -19,7 +19,9 @@ use academy_extern_impl::{
     microservices::MicroservicesApiServiceConfig, paypal::PaypalApiServiceConfig,
     recaptcha::RecaptchaApiServiceConfig, render::RenderApiServiceConfig, vat::VatApiServiceConfig,
 };
-use academy_models::{learning_policy::LearningPolicyConfig, oauth2::OAuth2Provider};
+use academy_models::{
+    learning_policy::LearningPolicyConfig, oauth2::OAuth2Provider, publication::PublicationConfig,
+};
 use academy_shared_impl::{
     captcha::{CaptchaServiceConfig, RecaptchaCaptchaServiceConfig},
     jwt::JwtServiceConfig,
@@ -63,6 +65,7 @@ provider! {
             SessionFeatureConfig,
             SessionLoginThrottleConfig,
             UserFeatureConfig,
+            PublicationConfig,
             PaypalFeatureConfig,
             FinanceFeatureConfig,
             HeartFeatureConfig,
@@ -130,6 +133,7 @@ provider! {
         session_feature_config: SessionFeatureConfig,
         session_login_throttle_config: SessionLoginThrottleConfig,
         user_feature_config: UserFeatureConfig,
+        publication_config: PublicationConfig,
         paypal_feature_config: PaypalFeatureConfig,
         finance_feature_config: FinanceFeatureConfig,
         heart_feature_config: HeartFeatureConfig,
@@ -357,6 +361,7 @@ impl ConfigProvider {
             premium_feature_config,
             purchase_feature_config,
             learning_policy_config: config.learning_policy.clone(),
+            publication_config: config.publication,
         })
     }
 }

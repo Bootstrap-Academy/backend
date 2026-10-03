@@ -126,6 +126,7 @@ where
         };
 
         Ok(Some(AccountDataExport {
+            publication: self.user_repo.get_publication(txn, user_id).await?,
             commercial: self
                 .moderation_repo
                 .commercial_operation(txn, "export", Some(user_id), &serde_json::json!({}))

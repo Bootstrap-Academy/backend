@@ -19,6 +19,7 @@ use user::{UserListQuery, UserListResult};
 
 pub mod email_confirmation;
 pub mod export;
+pub mod publication;
 pub mod update;
 pub mod user;
 

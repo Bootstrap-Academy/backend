@@ -20,6 +20,7 @@ pub mod oauth2;
 pub mod pagination;
 pub mod paypal;
 pub mod premium;
+pub mod publication;
 pub mod purchase;
 pub mod retention;
 pub mod session;

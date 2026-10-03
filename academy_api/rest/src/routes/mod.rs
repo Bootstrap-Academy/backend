@@ -13,6 +13,7 @@ pub mod moderation;
 pub mod oauth2;
 pub mod paypal;
 pub mod premium;
+pub mod publication;
 pub mod purchase;
 pub mod session;
 pub mod user;

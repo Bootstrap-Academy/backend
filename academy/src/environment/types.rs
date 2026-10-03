@@ -83,6 +83,7 @@ pub type RestServer = academy_api_rest::RestServer<
     Internal,
     AdminAuditFeature,
     ModerationFeature,
+    PublicationFeature,
 >;
 
 // Persistence
@@ -344,4 +345,15 @@ pub type ModerationFeature = academy_core_moderation_impl::ModerationFeatureServ
     PurchaseFeature,
     FinanceFeature,
     UserFeature,
+>;
+
+// Additive private-progress authority.
+pub type PublicationRepo = academy_persistence_postgres::publication::PostgresPublicationRepository;
+pub type PublicationFeature = academy_core_user_impl::publication::PublicationFeatureServiceImpl<
+    Database,
+    Auth,
+    AuthInternal,
+    Jwt,
+    PublicationRepo,
+    UserRepo,
 >;

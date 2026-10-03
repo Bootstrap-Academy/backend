@@ -11,6 +11,7 @@ mod mfa;
 mod oauth2;
 mod paypal;
 mod premium;
+mod publication;
 mod session;
 mod user;
 mod withdrawal;
@@ -32,19 +33,7 @@ pub fn sliced<T>(data: &[T], slice: PaginationSlice) -> &[T] {
 
 /// Check the named evidence guard itself; a newer unconditional guard is not its witness.
 pub async fn assert_down_refused(db: &crate::common::Db, name: &str, expected: &str) {
-    use academy_persistence_contracts::{Database, Transaction};
-    let migration = academy_persistence_postgres::MIGRATIONS
-        .iter()
-        .find(|m| m.name == name)
-        .unwrap();
-    let tx = db.begin_transaction().await.unwrap();
-    let error = tx.txn().batch_execute(migration.down).await.unwrap_err();
-    assert_eq!(error.code().unwrap().code(), "P0001");
-    assert!(
-        error.as_db_error().unwrap().message().contains(expected),
-        "{error:?}"
-    );
-    tx.rollback().await.unwrap();
+    crate::common::assert_down_refused(db, name, expected).await;
 }
 
 /// Count only actually installed historical migrations, never a later source suffix.

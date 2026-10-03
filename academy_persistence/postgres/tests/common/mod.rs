@@ -81,3 +81,19 @@ pub async fn setup_clean() -> Db {
     db.reset().await.unwrap();
     db
 }
+
+/// Check the intended preservation guard independently of later additive migrations.
+pub async fn assert_down_refused(db: &Db, name: &str, expected: &str) {
+    let migration = academy_persistence_postgres::MIGRATIONS
+        .iter()
+        .find(|m| m.name == name)
+        .unwrap();
+    let tx = db.begin_transaction().await.unwrap();
+    let error = tx.txn().batch_execute(migration.down).await.unwrap_err();
+    assert_eq!(error.code().unwrap().code(), "P0001");
+    assert!(
+        error.as_db_error().unwrap().message().contains(expected),
+        "{error:?}"
+    );
+    tx.rollback().await.unwrap();
+}

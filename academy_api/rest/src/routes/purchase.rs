@@ -18,6 +18,10 @@ use uuid::Uuid;
 
 pub fn router(service: Arc<impl PurchaseFeatureService>) -> ApiRouter<()> {
     ApiRouter::new()
+        .api_route(
+            "/shop/learning/policy",
+            aide::axum::routing::get_with(learning_policy, learning_policy_docs),
+        )
         .route("/shop/purchases", routing::get(list))
         .route("/shop/purchases/offers/{kind}", routing::post(offer))
         .route("/shop/purchases/accept", routing::post(accept))
@@ -163,4 +167,71 @@ async fn external_complete(
         s.external_complete(&t.0, user.into(), &source, id, result)
             .await,
     )
+}
+
+async fn learning_policy(
+    s: State<Arc<impl PurchaseFeatureService>>,
+    t: ApiToken<AccessToken>,
+) -> Response {
+    learning_policy_response(s.learning_policy(&t.0).await)
+}
+
+fn learning_policy_response(
+    result: Result<
+        academy_models::learning_policy::LearningPolicy,
+        academy_core_purchase_contracts::LearningPolicyError,
+    >,
+) -> Response {
+    use academy_core_purchase_contracts::LearningPolicyError;
+    match result {
+        Ok(policy) => Json(policy).into_response(),
+        Err(LearningPolicyError::NotFound) => StatusCode::NOT_FOUND.into_response(),
+        Err(LearningPolicyError::Auth(error)) => crate::errors::auth_error(error),
+        Err(LearningPolicyError::Other(error)) => crate::errors::internal_server_error(error),
+    }
+}
+
+fn learning_policy_docs(
+    op: aide::transform::TransformOperation,
+) -> aide::transform::TransformOperation {
+    use crate::docs::TransformOperationExt;
+    op.summary("Return the authenticated learner's policy without purchasing or renewing.")
+        .add_response::<academy_models::learning_policy::LearningPolicy>(StatusCode::OK, None)
+        .with(crate::errors::auth_error_docs)
+        .add_response::<()>(StatusCode::NOT_FOUND, "The subject does not exist.")
+        .with(crate::errors::internal_server_error_docs)
+}
+
+#[cfg(test)]
+mod policy_error_tests {
+    use super::*;
+    use academy_core_purchase_contracts::LearningPolicyError;
+    use academy_models::auth::{AuthError, AuthenticateError};
+
+    #[test]
+    fn policy_auth_subject_and_infrastructure_errors_keep_their_status() {
+        assert_eq!(
+            learning_policy_response(Err(LearningPolicyError::Auth(AuthError::Authenticate(
+                AuthenticateError::InvalidToken
+            ))))
+            .status(),
+            StatusCode::UNAUTHORIZED
+        );
+        assert_eq!(
+            learning_policy_response(Err(LearningPolicyError::Auth(AuthError::Authenticate(
+                AuthenticateError::Other(anyhow::anyhow!("offline"))
+            ))))
+            .status(),
+            StatusCode::INTERNAL_SERVER_ERROR
+        );
+        assert_eq!(
+            learning_policy_response(Err(LearningPolicyError::NotFound)).status(),
+            StatusCode::NOT_FOUND
+        );
+        assert_eq!(
+            learning_policy_response(Err(LearningPolicyError::Other(anyhow::anyhow!("offline"))))
+                .status(),
+            StatusCode::INTERNAL_SERVER_ERROR
+        );
+    }
 }

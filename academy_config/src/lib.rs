@@ -85,6 +85,7 @@ fn load_paths(paths: &[impl AsRef<Path>], overrides: &[&str]) -> anyhow::Result<
 /// Everything that is checked here would otherwise only be noticed on the
 /// document that was produced with it, or not at all.
 fn validate(config: &Config) -> anyhow::Result<()> {
+    config.learning_policy.validate()?;
     for (kind, seconds) in &config.purchase.provision_window_seconds {
         anyhow::ensure!(
             matches!(
@@ -127,6 +128,8 @@ pub struct Config {
     pub coin: CoinConfig,
     pub heart: HeartConfig,
     pub premium: PremiumConfig,
+    #[serde(default)]
+    pub learning_policy: academy_models::learning_policy::LearningPolicyConfig,
     #[serde(default)]
     pub purchase: PurchaseConfig,
     pub render: RenderConfig,
@@ -213,6 +216,10 @@ pub struct HealthConfig {
 pub struct UserConfig {
     /// Version of the terms and conditions that is currently in force.
     pub terms_version: TermsVersion,
+    /// Optional terms version offered only when creating a new account.
+    /// Existing-account acceptance keeps using `terms_version`.
+    #[serde(default)]
+    pub registration_terms_version: Option<TermsVersion>,
     pub name_change_rate_limit: Duration,
     pub export_rate_limit: Duration,
     pub verification_code_ttl: Duration,
@@ -501,6 +508,55 @@ mod tests {
             super::load_paths(&[] as &[&str], &overrides)
                 .unwrap_or_else(|err| panic!("{vat_percent} was rejected: {err}"));
         }
+    }
+
+    #[test]
+    fn registration_terms_override_defaults_to_none_and_does_not_change_existing_terms() {
+        let default = super::load_paths(&[] as &[&str], &MINIMAL_OVERRIDES).unwrap();
+        assert!(default.user.registration_terms_version.is_none());
+        let overrides = MINIMAL_OVERRIDES
+            .into_iter()
+            .chain(["user.registration_terms_version='reviewed-signup-only'"])
+            .collect::<Vec<_>>();
+        let selected = super::load_paths(&[] as &[&str], &overrides).unwrap();
+        assert_eq!(selected.user.terms_version, default.user.terms_version);
+        assert_eq!(
+            selected
+                .user
+                .registration_terms_version
+                .unwrap()
+                .to_string(),
+            "reviewed-signup-only"
+        );
+    }
+
+    #[test]
+    fn learning_policy_defaults_off_and_rejects_an_unbound_daily_rollout() {
+        let config = super::load_paths(&[] as &[&str], &MINIMAL_OVERRIDES).unwrap();
+        assert_eq!(
+            config.learning_policy.mode,
+            academy_models::learning_policy::LearningMode::Legacy
+        );
+        for extra in [
+            "learning_policy.mode='daily'",
+            "[learning_policy]\nmode='daily'\nterms_version='test-only'\naccepted_since='2026-09-26T00:00:00Z'",
+        ] {
+            let overrides = MINIMAL_OVERRIDES
+                .into_iter()
+                .chain([extra])
+                .collect::<Vec<_>>();
+            assert!(super::load_paths(&[] as &[&str], &overrides).is_err());
+        }
+        let extra = "[learning_policy]\nmode='daily'\nterms_version='test-only'\naccepted_since='2026-09-26T00:00:00Z'\nuser_ids=['11111111-1111-4111-8111-111111111111']";
+        let overrides = MINIMAL_OVERRIDES
+            .into_iter()
+            .chain([extra])
+            .collect::<Vec<_>>();
+        let config = super::load_paths(&[] as &[&str], &overrides).unwrap();
+        assert_ne!(
+            config.user.terms_version,
+            config.learning_policy.terms_version.unwrap()
+        );
     }
 
     #[test]

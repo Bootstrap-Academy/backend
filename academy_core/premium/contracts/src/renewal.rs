@@ -6,9 +6,25 @@ use academy_models::{
     user::UserId,
 };
 
+#[derive(Debug, Clone, Copy)]
+pub enum RenewalDocumentKind {
+    Terms,
+    Withdrawal,
+}
+
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait PremiumRenewalService: Send + Sync + 'static {
     fn offer(&self) -> PremiumRenewalOffer;
+    fn offer_for(
+        &self,
+        user_id: UserId,
+    ) -> impl Future<Output = Result<PremiumRenewalOffer, PremiumUpdateSubscriptionError>> + Send;
+    fn document_for(
+        &self,
+        user_id: UserId,
+        offer_id: &str,
+        kind: RenewalDocumentKind,
+    ) -> impl Future<Output = Result<Vec<u8>, PremiumUpdateSubscriptionError>> + Send;
     fn enable(
         &self,
         user_id: UserId,

@@ -71,6 +71,13 @@ pub trait PremiumRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
         user_id: UserId,
     ) -> impl Future<Output = anyhow::Result<Option<Premium>>> + Send;
 
+    /// Read the current paid period without reconciliation, renewal, or any writes.
+    fn get_current_by_user_id(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
+    ) -> impl Future<Output = anyhow::Result<Option<Premium>>> + Send;
+
     /// Create a new premium membership.
     fn create(
         &self,

@@ -230,7 +230,8 @@ async fn wallet_legacy_real_receipts_survive_upgrade_erasure_replacement_and_iso
         vec![
             FORWARD,
             "2026-09-12-070000_legacy_moderation_email",
-            "2026-09-12-170000_internal_heart_operations"
+            "2026-09-12-170000_internal_heart_operations",
+            "2026-09-26-120000_daily_learning_heart_receipts"
         ]
     );
     let after = fingerprint(&db).await;
@@ -524,7 +525,8 @@ async fn wallet_cash_branch_upgrade_replay_and_split_remaining_preserve_all_valu
         vec![
             FORWARD,
             "2026-09-12-070000_legacy_moderation_email",
-            "2026-09-12-170000_internal_heart_operations"
+            "2026-09-12-170000_internal_heart_operations",
+            "2026-09-26-120000_daily_learning_heart_receipts"
         ]
     );
     let after = fingerprint(&db).await;

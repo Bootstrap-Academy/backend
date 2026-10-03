@@ -50,6 +50,7 @@ impl HeartRepository<PostgresTransaction> for PostgresHeartRepository {
             "charged" => HeartOperationOutcome::Charged,
             "premium" => HeartOperationOutcome::Premium,
             "insufficient" => HeartOperationOutcome::Insufficient,
+            "daily_learning" => HeartOperationOutcome::DailyLearning,
             _ => anyhow::bail!("Invalid stored heart operation outcome"),
         };
         Ok(HeartOperationClaim::Completed(HeartOperationReceipt {
@@ -87,6 +88,7 @@ impl HeartRepository<PostgresTransaction> for PostgresHeartRepository {
             HeartOperationOutcome::Charged => "charged",
             HeartOperationOutcome::Premium => "premium",
             HeartOperationOutcome::Insufficient => "insufficient",
+            HeartOperationOutcome::DailyLearning => "daily_learning",
         };
         txn.txn()
             .execute(

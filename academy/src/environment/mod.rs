@@ -11,7 +11,7 @@ use academy_core_heart_impl::HeartFeatureConfig;
 use academy_core_oauth2_impl::OAuth2FeatureConfig;
 use academy_core_paypal_impl::PaypalFeatureConfig;
 use academy_core_premium_impl::PremiumFeatureConfig;
-use academy_core_purchase_impl::PurchaseFeatureConfig;
+use academy_core_purchase_impl::{PurchaseDocuments, PurchaseFeatureConfig};
 use academy_core_session_impl::{SessionFeatureConfig, login_throttle::SessionLoginThrottleConfig};
 use academy_core_user_impl::UserFeatureConfig;
 use academy_di::provider;
@@ -19,7 +19,7 @@ use academy_extern_impl::{
     microservices::MicroservicesApiServiceConfig, paypal::PaypalApiServiceConfig,
     recaptcha::RecaptchaApiServiceConfig, render::RenderApiServiceConfig, vat::VatApiServiceConfig,
 };
-use academy_models::oauth2::OAuth2Provider;
+use academy_models::{learning_policy::LearningPolicyConfig, oauth2::OAuth2Provider};
 use academy_shared_impl::{
     captcha::{CaptchaServiceConfig, RecaptchaCaptchaServiceConfig},
     jwt::JwtServiceConfig,
@@ -68,6 +68,7 @@ provider! {
             HeartFeatureConfig,
             PremiumFeatureConfig,
             PurchaseFeatureConfig,
+            LearningPolicyConfig,
         }
     }
 }
@@ -134,6 +135,7 @@ provider! {
         heart_feature_config: HeartFeatureConfig,
         premium_feature_config: PremiumFeatureConfig,
         purchase_feature_config: PurchaseFeatureConfig,
+        learning_policy_config: LearningPolicyConfig,
     }
 }
 
@@ -283,6 +285,7 @@ impl ConfigProvider {
 
         let user_feature_config = UserFeatureConfig {
             terms_version: config.user.terms_version.clone(),
+            registration_terms_version: config.user.registration_terms_version.clone(),
             name_change_rate_limit: config.user.name_change_rate_limit.into(),
             export_rate_limit: config.user.export_rate_limit.into(),
             verification_redirect_url: config.user.verification_redirect_url.clone().into(),
@@ -313,6 +316,7 @@ impl ConfigProvider {
         let premium_feature_config = PremiumFeatureConfig {
             monthly_price: config.premium.monthly_price,
             yearly_price: config.premium.yearly_price,
+            daily_documents: PurchaseDocuments::load_daily(&config.learning_policy)?,
         };
         let purchase_feature_config = PurchaseFeatureConfig {
             provision_window_seconds: config.purchase.provision_window_seconds.clone(),
@@ -352,6 +356,7 @@ impl ConfigProvider {
             heart_feature_config,
             premium_feature_config,
             purchase_feature_config,
+            learning_policy_config: config.learning_policy.clone(),
         })
     }
 }

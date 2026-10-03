@@ -880,3 +880,182 @@ async fn deadline_migration_retains_unproven_agreements_but_disables_their_debit
     )
     .await;
 }
+
+#[tokio::test]
+async fn current_paid_period_read_ignores_future_periods_and_never_needs_write_authority() {
+    let db = setup().await;
+    let mut txn = db.begin_transaction().await.unwrap();
+    let now = chrono::DateTime::from_timestamp(Utc::now().timestamp(), 0).unwrap();
+    let active = Premium {
+        id: UUID1.into(),
+        user_id: FOO.user.id,
+        since: now - chrono::TimeDelta::days(1),
+        until: now + chrono::TimeDelta::days(1),
+    };
+    let future = Premium {
+        id: UUID2.into(),
+        user_id: FOO.user.id,
+        since: now + chrono::TimeDelta::days(2),
+        until: now + chrono::TimeDelta::days(3),
+    };
+    REPO.create(&mut txn, active).await.unwrap();
+    REPO.create(&mut txn, future).await.unwrap();
+    txn.commit().await.unwrap();
+    let mut txn = db.begin_transaction().await.unwrap();
+    txn.txn()
+        .batch_execute("SET TRANSACTION READ ONLY")
+        .await
+        .unwrap();
+    assert_eq!(
+        REPO.get_current_by_user_id(&mut txn, FOO.user.id)
+            .await
+            .unwrap(),
+        Some(active)
+    );
+    assert_eq!(
+        REPO.get_current_by_user_id(&mut txn, BAR.user.id)
+            .await
+            .unwrap(),
+        None
+    );
+    txn.commit().await.unwrap();
+}
+
+#[tokio::test]
+async fn read_only_policy_distinguishes_pending_renewal_from_known_free_access() {
+    use academy_models::premium::PremiumRenewalAgreement;
+    let db = setup().await;
+    let mut txn = db.begin_transaction().await.unwrap();
+    let now = chrono::DateTime::from_timestamp(Utc::now().timestamp(), 0).unwrap();
+    let paid = Premium {
+        id: UUID2.into(),
+        user_id: FOO.user.id,
+        since: now - chrono::TimeDelta::days(2),
+        until: now - chrono::TimeDelta::days(1),
+    };
+    REPO.create(&mut txn, paid).await.unwrap();
+    REPO.create_renewal(
+        &mut txn,
+        &PremiumRenewalAgreement {
+            id: UUID1.into(),
+            user_id: FOO.user.id,
+            received_at: paid.since,
+            paid_period_id: Some(paid.id),
+            confirmation_deadline: Some(paid.until),
+            offer_id: "synthetic-confirmed-monthly".into(),
+            monthly_price: 750,
+            recipient: "fixture@example.invalid".into(),
+            document: "synthetic".into(),
+            terms_pdf: vec![1],
+            withdrawal_pdf: vec![2],
+        },
+    )
+    .await
+    .unwrap();
+    // A historical timely delivery in this isolated fixture; no SMTP runs.
+    txn.txn()
+        .execute(
+            "UPDATE premium_renewal_delivery SET sent_at=$2 WHERE agreement_id=$1",
+            &[&UUID1, &paid.since],
+        )
+        .await
+        .unwrap();
+    txn.txn().execute("INSERT INTO coins(user_id,coins,withheld_coins) VALUES($1,750,0) ON CONFLICT(user_id) DO UPDATE SET coins=750,withheld_coins=0", &[&*FOO.user.id]).await.unwrap();
+    txn.commit().await.unwrap();
+    let mut txn = db.begin_transaction().await.unwrap();
+    txn.txn()
+        .batch_execute("SET TRANSACTION READ ONLY")
+        .await
+        .unwrap();
+    assert!(
+        REPO.get_current_by_user_id(&mut txn, FOO.user.id)
+            .await
+            .unwrap_err()
+            .to_string()
+            .contains("awaiting settlement")
+    );
+    assert_eq!(
+        txn.txn()
+            .query_one("SELECT coins FROM coins WHERE user_id=$1", &[&*FOO.user.id])
+            .await
+            .unwrap()
+            .get::<_, i64>(0),
+        750
+    );
+    txn.commit().await.unwrap();
+
+    // Insufficient available coins are known free, even before refresh cancels
+    // the opt-in. Withheld coins cannot fund it. No permanent unavailable state.
+    let txn = db.begin_transaction().await.unwrap();
+    txn.txn()
+        .execute(
+            "UPDATE coins SET coins=749,withheld_coins=1000 WHERE user_id=$1",
+            &[&*FOO.user.id],
+        )
+        .await
+        .unwrap();
+    txn.commit().await.unwrap();
+    let mut txn = db.begin_transaction().await.unwrap();
+    txn.txn()
+        .batch_execute("SET TRANSACTION READ ONLY")
+        .await
+        .unwrap();
+    assert_eq!(
+        REPO.get_current_by_user_id(&mut txn, FOO.user.id)
+            .await
+            .unwrap(),
+        None
+    );
+    txn.commit().await.unwrap();
+
+    // Existing refresh/status renewal resolution creates a paid period; the
+    // next policy read becomes Premium without any policy-side write.
+    let mut txn = db.begin_transaction().await.unwrap();
+    let renewed = Premium {
+        id: uuid::Uuid::new_v4().into(),
+        since: paid.since,
+        until: now + chrono::TimeDelta::days(30),
+        ..paid
+    };
+    REPO.create(&mut txn, renewed).await.unwrap();
+    txn.commit().await.unwrap();
+    let mut txn = db.begin_transaction().await.unwrap();
+    txn.txn()
+        .batch_execute("SET TRANSACTION READ ONLY")
+        .await
+        .unwrap();
+    assert_eq!(
+        REPO.get_current_by_user_id(&mut txn, FOO.user.id)
+            .await
+            .unwrap(),
+        Some(renewed)
+    );
+    txn.commit().await.unwrap();
+
+    // Cancellation resolves to free after expiry regardless of available coins.
+    let mut txn = db.begin_transaction().await.unwrap();
+    REPO.extend(&mut txn, renewed.id, paid.until).await.unwrap();
+    REPO.set_subscription(&mut txn, FOO.user.id, None)
+        .await
+        .unwrap();
+    txn.txn()
+        .execute(
+            "UPDATE coins SET coins=1000 WHERE user_id=$1",
+            &[&*FOO.user.id],
+        )
+        .await
+        .unwrap();
+    txn.commit().await.unwrap();
+    let mut txn = db.begin_transaction().await.unwrap();
+    txn.txn()
+        .batch_execute("SET TRANSACTION READ ONLY")
+        .await
+        .unwrap();
+    assert_eq!(
+        REPO.get_current_by_user_id(&mut txn, FOO.user.id)
+            .await
+            .unwrap(),
+        None
+    );
+    txn.commit().await.unwrap();
+}

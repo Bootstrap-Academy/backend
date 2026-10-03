@@ -1,5 +1,6 @@
 use academy_models::{
-    auth::{AccessToken, InternalToken},
+    auth::{AccessToken, AuthError, InternalToken},
+    learning_policy::LearningPolicy,
     purchase::{PurchaseAcceptance, PurchaseProduct, PurchaseStatus},
     user::UserId,
 };
@@ -7,6 +8,16 @@ use std::future::Future;
 use thiserror::Error;
 
 pub use academy_models::purchase;
+
+#[derive(Debug, Error)]
+pub enum LearningPolicyError {
+    #[error("The user does not exist.")]
+    NotFound,
+    #[error(transparent)]
+    Auth(#[from] AuthError),
+    #[error(transparent)]
+    Other(#[from] anyhow::Error),
+}
 
 #[derive(Debug, Error)]
 pub enum PurchaseError {
@@ -79,6 +90,10 @@ pub trait PurchaseFeatureService: Send + Sync + 'static {
         payment: academy_models::paypal::PaypalPayment,
         invoice: Vec<u8>,
     ) -> impl Future<Output = anyhow::Result<bool>> + Send;
+    fn learning_policy(
+        &self,
+        token: &AccessToken,
+    ) -> impl Future<Output = Result<LearningPolicy, LearningPolicyError>> + Send;
     fn offer(
         &self,
         token: &AccessToken,

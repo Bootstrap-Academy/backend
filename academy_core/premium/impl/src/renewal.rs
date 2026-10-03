@@ -1,12 +1,15 @@
+#[cfg(test)]
 use academy_assets::email::{AGB_2026_09_R4_PDF, WIDERRUFSBELEHRUNG_2026_09_R1_PDF};
 use academy_core_premium_contracts::{
-    PremiumUpdateSubscriptionError, renewal::PremiumRenewalService,
+    PremiumUpdateSubscriptionError,
+    renewal::{PremiumRenewalService, RenewalDocumentKind},
 };
 use academy_di::Build;
 use academy_email_contracts::{
     AttachmentContentType, ContentType, Email, EmailAttachment, EmailService,
 };
 use academy_models::{
+    learning_policy::{LearningMode, LearningPolicyConfig},
     premium::{PremiumRenewalAgreement, PremiumRenewalConsent, PremiumRenewalOffer},
     user::UserId,
 };
@@ -16,7 +19,7 @@ use academy_persistence_contracts::{
 use academy_shared_contracts::time::TimeService;
 use sha2::{Digest, Sha256};
 
-use crate::PremiumFeatureConfig;
+use crate::{PremiumFeatureConfig, documents::PurchaseDocuments};
 
 pub const RENEWAL_TERMS_VERSION: &str = "2026-09-r4";
 pub const RENEWAL_TEXT_VERSION: &str = "premium-renewal-2026-09-v3";
@@ -30,6 +33,7 @@ pub struct PremiumRenewalServiceImpl<Db, Time, UserRepo, PremiumRepo, EmailS> {
     premium_repo: PremiumRepo,
     email: EmailS,
     config: PremiumFeatureConfig,
+    learning_policy_config: LearningPolicyConfig,
 }
 
 impl<Db, Time, UserRepo, PremiumRepo, EmailS> PremiumRenewalService
@@ -42,44 +46,35 @@ where
     EmailS: EmailService,
 {
     fn offer(&self) -> PremiumRenewalOffer {
-        let price = self.config.monthly_price;
-        let euros = price as f64 / 100.0;
-        let text = format!(
-            "Premium: Zugriff auf alle Kurse und Übungen ohne Verbrauch von Herzen.\n\n\
-             Monatliche automatische Verlängerung für {price} MorphCoins ({euros:.2} EUR einschließlich Umsatzsteuer) je Kalendermonat. \
-             Die Verlängerung läuft auf unbestimmte Zeit. Du zahlst nur aus deinem vorhandenen MorphCoin-Guthaben. \
-             Der Coin-Preis bleibt für diese Verlängerung fest. Es gibt keine automatische Zahlung über PayPal. Du musst keine Coins nachkaufen.\n\n\
-             Die erste Abbuchung erfolgt nach Ablauf deiner bereits bezahlten Premium-Zeit und nach Versand dieser Vertragsbestätigung, \
-             spätestens am folgenden Tag oder bei deiner nächsten Nutzung. Dein neuer Kalendermonat beginnt mit der Abbuchung. \
-             Wenn du Premium zusätzlich kaufst, läuft diese Zeit zuerst ab. Deine automatische Verlängerung bleibt bestehen. \
-             Die Vertragsbestätigung muss vor dem Ende deiner bei der Bestellung bereits bezahlten Premium-Zeit versandt sein. \
-             Ein zusätzlicher Premium-Kauf verlängert diese Frist nicht. Wird sie verpasst, endet die automatische Verlängerung. Es wird auch später nichts dafür abgebucht; dafür müsstest du die Verlängerung neu bestellen. \
-             Reicht dein Guthaben nicht aus, endet Premium ohne weitere Kosten und die automatische Verlängerung wird ausgeschaltet.\n\n\
-             Du kannst jederzeit zum Ende deiner bezahlten Laufzeit kündigen, nach einer automatischen Verlängerung zum Ende des laufenden Monats: \
-             auf der Seite Abonnement durch Ausschalten, unter https://bootstrap.academy/vertrag-kuendigen oder per E-Mail an hallo@bootstrap.academy. \
-             Es wird immer nur ein Monat verlängert, kein ganzes Jahr. Deine gesetzlichen Widerrufs- und Mängelrechte bleiben bestehen.\n\n\
-             Ich stimme dieser monatlichen kostenpflichtigen Verlängerung und den AGB {RENEWAL_TERMS_VERSION} für diese Vereinbarung ausdrücklich zu. \
-             Meine übrigen bestehenden Verträge werden dadurch nicht geändert.\n\n\
-             Ich verlange ausdrücklich und stimme zu, dass Sie vor Ablauf der Widerrufsfrist mit der Erbringung der Dienstleistung beginnen.\n\
-             Mir ist bekannt, dass mein Widerrufsrecht mit vollständiger Erbringung der Dienstleistung erlischt.\n\n\
-             Vertrags- und Erklärungssprache: Deutsch. Erklärungsversion: {RENEWAL_TEXT_VERSION}."
-        );
-        // The client acknowledges the exact offer, including document bytes;
-        // changing price or an attachment invalidates outstanding confirmations.
-        let mut hash = Sha256::new();
-        for bytes in [
-            text.as_bytes(),
-            AGB_2026_09_R4_PDF,
-            WIDERRUFSBELEHRUNG_2026_09_R1_PDF,
-        ] {
-            hash.update(bytes);
+        build_offer(
+            self.config.monthly_price,
+            &PurchaseDocuments::legacy(),
+            false,
+        )
+    }
+
+    async fn offer_for(
+        &self,
+        user_id: UserId,
+    ) -> Result<PremiumRenewalOffer, PremiumUpdateSubscriptionError> {
+        let (offer, _) = self.offer_and_documents(user_id).await?;
+        Ok(offer)
+    }
+
+    async fn document_for(
+        &self,
+        user_id: UserId,
+        offer_id: &str,
+        kind: RenewalDocumentKind,
+    ) -> Result<Vec<u8>, PremiumUpdateSubscriptionError> {
+        let (offer, documents) = self.offer_and_documents(user_id).await?;
+        if offer.id != offer_id {
+            return Err(PremiumUpdateSubscriptionError::RenewalConsentRequired);
         }
-        PremiumRenewalOffer {
-            id: format!("{:x}", hash.finalize()),
-            monthly_price: price,
-            terms_version: RENEWAL_TERMS_VERSION.into(),
-            text,
-        }
+        Ok(match kind {
+            RenewalDocumentKind::Terms => documents.terms_pdf,
+            RenewalDocumentKind::Withdrawal => documents.withdrawal_pdf,
+        })
     }
 
     async fn enable(
@@ -87,11 +82,12 @@ where
         user_id: UserId,
         consent: PremiumRenewalConsent,
     ) -> Result<(), PremiumUpdateSubscriptionError> {
-        let offer = self.offer();
+        let legacy_offer = self.offer();
         if !consent.accepted
             || !consent.withdrawal_consent
-            || consent.offer_id != offer.id
-            || offer.monthly_price == 0
+            || (self.learning_policy_config.mode != LearningMode::Daily
+                && consent.offer_id != legacy_offer.id)
+            || legacy_offer.monthly_price == 0
         {
             return Err(PremiumUpdateSubscriptionError::RenewalConsentRequired);
         }
@@ -107,7 +103,7 @@ where
             .get_renewal_agreement(&mut txn, consent.request_id)
             .await?
         {
-            if existing.user_id != user_id || existing.offer_id != offer.id {
+            if existing.user_id != user_id || existing.offer_id != consent.offer_id {
                 return Err(PremiumUpdateSubscriptionError::RenewalConsentRequired);
             }
             // A retried request never reactivates a subsequently cancelled row.
@@ -124,6 +120,23 @@ where
             .await?
             .ok_or(PremiumUpdateSubscriptionError::NoPremium)?
             .user;
+        let mode = self.learning_policy_config.mode_for(&user);
+        let documents = if mode == LearningMode::Daily {
+            self.config
+                .daily_documents
+                .clone()
+                .ok_or(PremiumUpdateSubscriptionError::RenewalConsentRequired)?
+        } else {
+            PurchaseDocuments::legacy()
+        };
+        let offer = build_offer(
+            self.config.monthly_price,
+            &documents,
+            mode == LearningMode::Daily,
+        );
+        if consent.offer_id != offer.id {
+            return Err(PremiumUpdateSubscriptionError::RenewalConsentRequired);
+        }
         let recipient = user
             .email
             .ok_or(PremiumUpdateSubscriptionError::RenewalConsentRequired)?
@@ -155,8 +168,8 @@ where
                     monthly_price: offer.monthly_price,
                     recipient,
                     document,
-                    terms_pdf: AGB_2026_09_R4_PDF.into(),
-                    withdrawal_pdf: WIDERRUFSBELEHRUNG_2026_09_R1_PDF.into(),
+                    terms_pdf: documents.terms_pdf,
+                    withdrawal_pdf: documents.withdrawal_pdf,
                 },
             )
             .await?;
@@ -207,6 +220,95 @@ where
         }
         txn.commit().await?;
         Ok(())
+    }
+}
+
+impl<Db, Time, UserRepo, PremiumRepo, EmailS>
+    PremiumRenewalServiceImpl<Db, Time, UserRepo, PremiumRepo, EmailS>
+where
+    Db: Database,
+    UserRepo: UserRepository<Db::Transaction>,
+{
+    async fn offer_and_documents(
+        &self,
+        user_id: UserId,
+    ) -> Result<(PremiumRenewalOffer, PurchaseDocuments), PremiumUpdateSubscriptionError> {
+        let mut txn = self.db.begin_transaction().await?;
+        let account = self
+            .user_repo
+            .get_internal_composite(&mut txn, user_id)
+            .await?
+            .ok_or(PremiumUpdateSubscriptionError::NoPremium)?;
+        let mode = self.learning_policy_config.mode_for(&account.user);
+        let documents = if mode == LearningMode::Daily {
+            self.config
+                .daily_documents
+                .clone()
+                .ok_or(PremiumUpdateSubscriptionError::RenewalConsentRequired)?
+        } else {
+            PurchaseDocuments::legacy()
+        };
+        Ok((
+            build_offer(
+                self.config.monthly_price,
+                &documents,
+                mode == LearningMode::Daily,
+            ),
+            documents,
+        ))
+    }
+}
+
+fn build_offer(price: u64, documents: &PurchaseDocuments, daily: bool) -> PremiumRenewalOffer {
+    let terms_version = &documents.terms_version;
+    let text_version = if daily {
+        "premium-renewal-daily-2026-09-v1"
+    } else {
+        RENEWAL_TEXT_VERSION
+    };
+    let euros = price as f64 / 100.0;
+    let mut text = format!(
+        "Premium: Zugriff auf alle Kurse und Übungen ohne Verbrauch von Herzen.\n\n\
+             Monatliche automatische Verlängerung für {price} MorphCoins ({euros:.2} EUR einschließlich Umsatzsteuer) je Kalendermonat. \
+             Die Verlängerung läuft auf unbestimmte Zeit. Du zahlst nur aus deinem vorhandenen MorphCoin-Guthaben. \
+             Der Coin-Preis bleibt für diese Verlängerung fest. Es gibt keine automatische Zahlung über PayPal. Du musst keine Coins nachkaufen.\n\n\
+             Die erste Abbuchung erfolgt nach Ablauf deiner bereits bezahlten Premium-Zeit und nach Versand dieser Vertragsbestätigung, \
+             spätestens am folgenden Tag oder bei deiner nächsten Nutzung. Dein neuer Kalendermonat beginnt mit der Abbuchung. \
+             Wenn du Premium zusätzlich kaufst, läuft diese Zeit zuerst ab. Deine automatische Verlängerung bleibt bestehen. \
+             Die Vertragsbestätigung muss vor dem Ende deiner bei der Bestellung bereits bezahlten Premium-Zeit versandt sein. \
+             Ein zusätzlicher Premium-Kauf verlängert diese Frist nicht. Wird sie verpasst, endet die automatische Verlängerung. Es wird auch später nichts dafür abgebucht; dafür müsstest du die Verlängerung neu bestellen. \
+             Reicht dein Guthaben nicht aus, endet Premium ohne weitere Kosten und die automatische Verlängerung wird ausgeschaltet.\n\n\
+             Du kannst jederzeit zum Ende deiner bezahlten Laufzeit kündigen, nach einer automatischen Verlängerung zum Ende des laufenden Monats: \
+             auf der Seite Abonnement durch Ausschalten, unter https://bootstrap.academy/vertrag-kuendigen oder per E-Mail an hallo@bootstrap.academy. \
+             Es wird immer nur ein Monat verlängert, kein ganzes Jahr. Deine gesetzlichen Widerrufs- und Mängelrechte bleiben bestehen.\n\n\
+             Ich stimme dieser monatlichen kostenpflichtigen Verlängerung und den AGB {terms_version} für diese Vereinbarung ausdrücklich zu. \
+             Meine übrigen bestehenden Verträge werden dadurch nicht geändert.\n\n\
+             Ich verlange ausdrücklich und stimme zu, dass Sie vor Ablauf der Widerrufsfrist mit der Erbringung der Dienstleistung beginnen.\n\
+             Mir ist bekannt, dass mein Widerrufsrecht mit vollständiger Erbringung der Dienstleistung erlischt.\n\n\
+             Vertrags- und Erklärungssprache: Deutsch. Erklärungsversion: {text_version}."
+    );
+    if daily {
+        text = text.replacen(
+            "Premium: Zugriff auf alle Kurse und Übungen ohne Verbrauch von Herzen.",
+            "Premium: Du kannst jeden Tag beliebig viele neue Lektionen anfangen.",
+            1,
+        );
+    }
+    // The client acknowledges the exact offer, including document bytes;
+    // changing price or an attachment invalidates outstanding confirmations.
+    let mut hash = Sha256::new();
+    for bytes in [
+        text.as_bytes(),
+        &documents.terms_pdf,
+        &documents.withdrawal_pdf,
+    ] {
+        hash.update(bytes);
+    }
+    PremiumRenewalOffer {
+        id: format!("{:x}", hash.finalize()),
+        monthly_price: price,
+        terms_version: terms_version.clone(),
+        text,
     }
 }
 
@@ -471,5 +573,253 @@ mod tests {
             // All mocks have zero allowed calls: this rejection neither loads nor
             // changes a historical agreement and cannot reactivate its renewal.
         }
+    }
+    fn daily_fixture() -> (
+        academy_models::user::UserComposite,
+        LearningPolicyConfig,
+        PurchaseDocuments,
+    ) {
+        let mut user = FOO.clone();
+        user.user.terms_version = Some("approved-test-terms".try_into().unwrap());
+        user.user.terms_accepted_at = Some(paid().since);
+        let config = LearningPolicyConfig {
+            mode: LearningMode::Daily,
+            terms_version: user.user.terms_version.clone(),
+            accepted_since: Some(paid().since),
+            user_ids: vec![FOO.user.id],
+            registered_since: None,
+            daily_documents: None,
+        };
+        let documents = PurchaseDocuments {
+            terms_version: "approved-test-terms".into(),
+            terms_pdf: b"%PDF-1.7 synthetic daily terms".to_vec(),
+            withdrawal_pdf: b"%PDF-1.7 synthetic daily withdrawal".to_vec(),
+        };
+        (user, config, documents)
+    }
+
+    #[tokio::test]
+    async fn authenticated_daily_offer_binds_the_reviewed_bundle_and_preserves_coin_price() {
+        let (user, policy, documents) = daily_fixture();
+        let expected = build_offer(1000, &documents, true);
+        let sut = Sut {
+            db: MockDatabase::build(false),
+            learning_policy_config: policy,
+            user_repo: MockUserRepository::new()
+                .with_get_internal_composite(FOO.user.id, Some(user)),
+            config: PremiumFeatureConfig {
+                daily_documents: Some(documents),
+                ..Default::default()
+            },
+            ..Sut::default()
+        };
+        let offer = sut.offer_for(FOO.user.id).await.unwrap();
+        assert_eq!(offer, expected);
+        assert_eq!(offer.terms_version, "approved-test-terms");
+        assert!(offer.text.contains("beliebig viele neue Lektionen"));
+        assert!(!offer.text.contains("Herzen"));
+        assert!(offer.text.contains("1000 MorphCoins"));
+        assert!(
+            offer
+                .text
+                .contains("keine automatische Zahlung über PayPal")
+        );
+        assert_ne!(offer.id, sut.offer().id);
+    }
+
+    #[tokio::test]
+    async fn daily_renewal_records_the_exact_confirmed_documents_and_never_debits_at_enrolment() {
+        let (user, policy, documents) = daily_fixture();
+        let offer = build_offer(1000, &documents, true);
+        let expected_documents = documents.clone();
+        let mut db = MockDatabase::new();
+        db.expect_begin_transaction().times(2).returning(|| {
+            let mut txn = MockTransaction::new();
+            txn.expect_commit()
+                .once()
+                .return_once(|| Box::pin(async { Ok(()) }));
+            Box::pin(async { Ok(txn) })
+        });
+        let mut repo =
+            MockPremiumRepository::new().with_get_latest_by_user_id(FOO.user.id, Some(paid()));
+        repo.expect_get_renewal_agreement()
+            .once()
+            .return_once(|_, _| Box::pin(async { Ok(None) }));
+        repo.expect_create_renewal()
+            .once()
+            .withf(move |_, agreement| {
+                agreement.monthly_price == 1000
+                    && agreement.terms_pdf == expected_documents.terms_pdf
+                    && agreement.withdrawal_pdf == expected_documents.withdrawal_pdf
+                    && agreement.document.contains("approved-test-terms")
+                    && !agreement.document.contains("Herzen")
+            })
+            .return_once(|_, _| Box::pin(async { Ok(()) }));
+        repo.expect_pending_renewal_confirmations()
+            .once()
+            .return_once(|_| Box::pin(async { Ok(vec![]) }));
+        let sut = Sut {
+            db,
+            time: MockTimeService::new().with_now(paid().since),
+            user_repo: MockUserRepository::new().with_get_composite(FOO.user.id, Some(user)),
+            premium_repo: repo,
+            learning_policy_config: policy,
+            config: PremiumFeatureConfig {
+                daily_documents: Some(documents),
+                ..Default::default()
+            },
+            ..Sut::default()
+        };
+        sut.enable(
+            FOO.user.id,
+            PremiumRenewalConsent {
+                offer_id: offer.id,
+                ..consent(&sut)
+            },
+        )
+        .await
+        .unwrap();
+    }
+
+    #[tokio::test]
+    async fn daily_transition_rejects_a_new_legacy_renewal_but_replays_the_original_accepted_agreement()
+     {
+        let (user, policy, documents) = daily_fixture();
+        for existing in [false, true] {
+            let original_offer = Sut::default().offer();
+            let original_id = original_offer.id.clone();
+            let mut repo =
+                MockPremiumRepository::new().with_get_latest_by_user_id(FOO.user.id, Some(paid()));
+            repo.expect_get_renewal_agreement()
+                .once()
+                .return_once(move |_, _| {
+                    Box::pin(async move {
+                        Ok(existing.then_some(PremiumRenewalAgreement {
+                            id: UUID1.into(),
+                            user_id: FOO.user.id,
+                            received_at: paid().since,
+                            paid_period_id: Some(paid().id),
+                            confirmation_deadline: Some(paid().until),
+                            offer_id: original_id,
+                            monthly_price: 1000,
+                            recipient: "fixture@example.invalid".into(),
+                            document: "immutable original".into(),
+                            terms_pdf: AGB_2026_09_R4_PDF.to_vec(),
+                            withdrawal_pdf: WIDERRUFSBELEHRUNG_2026_09_R1_PDF.to_vec(),
+                        }))
+                    })
+                });
+            let mut sut = Sut {
+                db: MockDatabase::build(existing),
+                premium_repo: repo,
+                learning_policy_config: policy.clone(),
+                config: PremiumFeatureConfig {
+                    daily_documents: Some(documents.clone()),
+                    ..Default::default()
+                },
+                ..Sut::default()
+            };
+            if !existing {
+                sut.time = MockTimeService::new().with_now(paid().since);
+                sut.user_repo =
+                    MockUserRepository::new().with_get_composite(FOO.user.id, Some(user.clone()));
+            }
+            let result = sut
+                .enable(
+                    FOO.user.id,
+                    PremiumRenewalConsent {
+                        offer_id: original_offer.id,
+                        ..consent(&sut)
+                    },
+                )
+                .await;
+            if existing {
+                assert!(result.is_ok());
+            } else {
+                assert!(matches!(
+                    result,
+                    Err(PremiumUpdateSubscriptionError::RenewalConsentRequired)
+                ));
+            }
+        }
+    }
+    #[tokio::test]
+    async fn offer_documents_are_exact_for_each_cohort_and_reject_stale_policy_or_bundle() {
+        for daily in [false, true] {
+            for kind in [RenewalDocumentKind::Terms, RenewalDocumentKind::Withdrawal] {
+                for stale in [false, true] {
+                    let (daily_user, policy, documents) = daily_fixture();
+                    let current_docs = if daily {
+                        documents.clone()
+                    } else {
+                        PurchaseDocuments::legacy()
+                    };
+                    let offer = build_offer(1000, &current_docs, daily);
+                    let other_offer = build_offer(
+                        1000,
+                        &if daily {
+                            PurchaseDocuments::legacy()
+                        } else {
+                            documents.clone()
+                        },
+                        !daily,
+                    );
+                    let expected = match kind {
+                        RenewalDocumentKind::Terms => current_docs.terms_pdf,
+                        RenewalDocumentKind::Withdrawal => current_docs.withdrawal_pdf,
+                    };
+                    let sut = Sut {
+                        db: MockDatabase::build(false),
+                        // Same global rollout, selected users differ by acceptance.
+                        learning_policy_config: policy,
+                        user_repo: MockUserRepository::new().with_get_internal_composite(
+                            FOO.user.id,
+                            Some(if daily { daily_user } else { FOO.clone() }),
+                        ),
+                        config: PremiumFeatureConfig {
+                            daily_documents: Some(documents),
+                            ..Default::default()
+                        },
+                        ..Sut::default()
+                    };
+                    let result = sut
+                        .document_for(
+                            FOO.user.id,
+                            &if stale { other_offer.id } else { offer.id },
+                            kind,
+                        )
+                        .await;
+                    if stale {
+                        assert!(matches!(
+                            result,
+                            Err(PremiumUpdateSubscriptionError::RenewalConsentRequired)
+                        ));
+                    } else {
+                        assert_eq!(result.unwrap(), expected);
+                    }
+                }
+            }
+        }
+        let (user, policy, mut documents) = daily_fixture();
+        let original_offer = build_offer(1000, &documents, true);
+        documents
+            .terms_pdf
+            .extend_from_slice(b" changed approved bundle");
+        let sut = Sut {
+            db: MockDatabase::build(false),
+            learning_policy_config: policy,
+            user_repo: MockUserRepository::new()
+                .with_get_internal_composite(FOO.user.id, Some(user)),
+            config: PremiumFeatureConfig {
+                daily_documents: Some(documents),
+                ..Default::default()
+            },
+            ..Sut::default()
+        };
+        assert!(matches!(
+            sut.document_for(FOO.user.id, &original_offer.id, RenewalDocumentKind::Terms)
+                .await,
+            Err(PremiumUpdateSubscriptionError::RenewalConsentRequired)
+        ));
     }
 }

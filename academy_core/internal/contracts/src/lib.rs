@@ -6,6 +6,7 @@ use academy_models::{
     coin::{Balance, CoinOperation, TransactionDescription},
     email_address::EmailAddress,
     heart::{HeartOperation, HeartOperationReceipt, Hearts},
+    learning_policy::LearningPolicy,
     user::{UserComposite, UserId},
 };
 use thiserror::Error;
@@ -70,6 +71,13 @@ pub trait InternalService: Send + Sync + 'static {
         token: &InternalToken,
         operation: HeartOperation,
     ) -> impl Future<Output = Result<HeartOperationReceipt, InternalHeartOperationError>> + Send;
+
+    /// Authoritative access mode and premium state; failures are never free-tier results.
+    fn learning_policy(
+        &self,
+        token: &InternalToken,
+        user_id: UserId,
+    ) -> impl Future<Output = Result<LearningPolicy, InternalHasPremiumError>> + Send;
 
     /// Return whether the given user is a premium member.
     fn has_premium(

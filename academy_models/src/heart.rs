@@ -18,6 +18,7 @@ pub enum HeartOperationOutcome {
     Charged,
     Premium,
     Insufficient,
+    DailyLearning,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

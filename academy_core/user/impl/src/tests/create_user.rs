@@ -618,3 +618,59 @@ async fn outdated_terms_version() {
     // Assert
     assert_matches!(result, Err(UserCreateError::TermsVersionMismatch));
 }
+
+#[tokio::test]
+async fn registration_override_is_explicit_and_records_only_the_offered_version() {
+    let registration_version: academy_models::user::TermsVersion =
+        "reviewed-signup-only".try_into().unwrap();
+    for current_request in [false, true] {
+        let request = UserCreateRequest {
+            name: FOO.user.name.clone(),
+            display_name: FOO.profile.display_name.clone(),
+            email: FOO.user.email.clone().unwrap(),
+            password: Some("secure password".try_into().unwrap()),
+            oauth2_registration_token: None,
+            age_confirmed: true,
+            terms_version: if current_request {
+                registration_version.clone()
+            } else {
+                TERMS_VERSION.clone()
+            },
+        };
+        let mut sut = Sut::default();
+        sut.config.registration_terms_version = Some(registration_version.clone());
+        if current_request {
+            let mut command = req_to_cmd(&request);
+            command.terms_version = Some(registration_version.clone());
+            let mut account = FOO.clone();
+            account.user.terms_version = Some(registration_version.clone());
+            let expected = Login {
+                user_composite: account.clone(),
+                session: FOO_1.clone(),
+                access_token: "synthetic".into(),
+                refresh_token: "synthetic".into(),
+            };
+            sut.db = MockDatabase::build(true);
+            sut.captcha = MockCaptchaService::new().with_check(None, Ok(()));
+            sut.user = MockUserService::new().with_create(command, Ok(account.clone()));
+            sut.session = MockSessionService::new().with_create(
+                account,
+                FOO_1.device_name.clone(),
+                true,
+                false,
+                expected.clone(),
+            );
+            assert_eq!(
+                sut.create_user(request, FOO_1.device_name.clone(), None)
+                    .await
+                    .unwrap(),
+                expected
+            );
+        } else {
+            assert!(matches!(
+                sut.create_user(request, None, None).await,
+                Err(UserCreateError::TermsVersionMismatch)
+            ));
+        }
+    }
+}

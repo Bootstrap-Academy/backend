@@ -190,8 +190,16 @@ fn subject() -> UserId {
         .into()
 }
 fn sut(saved: Arc<Mutex<Saved>>, creating: bool, exists: bool, commit: bool) -> Sut {
+    sut_with_database(saved, creating, exists, MockDatabase::build(commit))
+}
+fn sut_with_database(
+    saved: Arc<Mutex<Saved>>,
+    creating: bool,
+    exists: bool,
+    db: MockDatabase,
+) -> Sut {
     Sut {
-        db: MockDatabase::build(commit),
+        db,
         auth: MockAuthService::new(),
         internal_auth: MockAuthInternalService::new(),
         user_repo: MockUserRepository::new(),
@@ -208,12 +216,14 @@ fn sut(saved: Arc<Mutex<Saved>>, creating: bool, exists: bool, commit: bool) -> 
         premium_config: PremiumFeatureConfig {
             monthly_price: 1000,
             yearly_price: 10000,
+            daily_documents: None,
         },
         heart_config: HeartFeatureConfig {
             hearts_max: 10,
             hearts_refill_price: 100,
             auto_refill_time: chrono::NaiveTime::from_hms_opt(0, 0, 0).unwrap(),
         },
+        learning_policy_config: LearningPolicyConfig::default(),
         purchase_config: PurchaseFeatureConfig {
             provision_window_seconds: [("premium_monthly".into(), 600)].into(),
         },
@@ -471,5 +481,212 @@ async fn closing_saved_r1_document_bytes_and_changed_submission_boundary_remain_
             s.accept_for(subject(), "backend", a).await,
             Err(PurchaseError::OfferRequired)
         ));
+    }
+}
+
+fn daily_account() -> (UserComposite, LearningPolicyConfig) {
+    let mut user = account();
+    let since = Utc::now() - TimeDelta::days(1);
+    let terms = "approved-test-terms".try_into().unwrap();
+    user.user.terms_version = Some(terms);
+    user.user.terms_accepted_at = Some(since);
+    let policy = LearningPolicyConfig {
+        mode: LearningMode::Daily,
+        terms_version: user.user.terms_version.clone(),
+        accepted_since: Some(since),
+        user_ids: vec![subject()],
+        registered_since: None,
+        daily_documents: None,
+    };
+    (user, policy)
+}
+
+#[tokio::test]
+async fn daily_rejects_new_heart_and_course_offers_before_charges_or_documents() {
+    for kind in ["hearts", "course"] {
+        let old = issued_kind_with_window(kind, 600).await;
+        let saved = Arc::new(Mutex::new(Saved::default()));
+        let mut s = sut(Arc::clone(&saved), true, true, false);
+        let (user, policy) = daily_account();
+        s.learning_policy_config = policy;
+        s.user_repo = MockUserRepository::new().with_get_internal_composite(subject(), Some(user));
+        assert!(matches!(
+            s.issue(
+                subject(),
+                &old.status.offer.source,
+                old.status.offer.product
+            )
+            .await,
+            Err(PurchaseError::Unavailable)
+        ));
+        assert!(saved.lock().unwrap().record.is_none());
+    }
+}
+
+#[tokio::test]
+async fn daily_rejects_stale_unaccepted_heart_and_course_offers_before_submission() {
+    for kind in ["hearts", "course"] {
+        let old = issued_kind_with_window(kind, 600).await;
+        let acceptance = PurchaseAcceptance {
+            order_id: old.status.offer.id,
+            offer_hash: old.status.offer.hash.clone(),
+            accepted: true,
+            early_performance_requested: true,
+        };
+        let saved = Arc::new(Mutex::new(Saved {
+            record: Some(old.clone()),
+            calls: vec![],
+        }));
+        let mut s = sut(Arc::clone(&saved), false, true, false);
+        let (user, policy) = daily_account();
+        s.learning_policy_config = policy;
+        s.user_repo = MockUserRepository::new().with_get_internal_composite(subject(), Some(user));
+        assert!(matches!(
+            s.accept_for(subject(), &old.status.offer.source, acceptance)
+                .await,
+            Err(PurchaseError::Unavailable)
+        ));
+        assert_eq!(saved.lock().unwrap().calls, ["lock_user", "get"]);
+    }
+}
+
+#[tokio::test]
+async fn daily_keeps_historical_accepted_orders_replayable_without_new_policy_or_payment() {
+    let mut old = historical().await;
+    for kind in ["hearts", "course"] {
+        old.status.offer.product.kind = kind.into();
+        let saved = Arc::new(Mutex::new(Saved {
+            record: Some(old.clone()),
+            calls: vec![],
+        }));
+        let mut s = sut(Arc::clone(&saved), false, true, true);
+        s.learning_policy_config = daily_account().1;
+        let result = s
+            .accept_for(subject(), "backend", old.submission.clone().unwrap())
+            .await
+            .unwrap();
+        assert_eq!(
+            serde_json::to_value(result).unwrap(),
+            serde_json::to_value(&old.status).unwrap()
+        );
+        assert_eq!(saved.lock().unwrap().calls, ["lock_user", "get"]);
+    }
+}
+
+#[tokio::test]
+async fn daily_premium_keeps_coin_price_and_duration_and_describes_actual_benefit() {
+    let saved = Arc::new(Mutex::new(Saved::default()));
+    let mut s = sut(Arc::clone(&saved), true, true, true);
+    let (user, policy) = daily_account();
+    s.learning_policy_config = policy;
+    s.premium_config.daily_documents = Some(PurchaseDocuments {
+        terms_pdf: b"%PDF-1.7 synthetic new terms".to_vec(),
+        terms_version: "approved-test-terms".into(),
+        withdrawal_pdf: b"%PDF-1.7 synthetic withdrawal".to_vec(),
+    });
+    s.user_repo = MockUserRepository::new()
+        .with_get_internal_composite(subject(), Some(user.clone()))
+        .with_get_purchase_composite(subject(), Some(user));
+    let offer = s
+        .issue(subject(), "backend", s.builtin("premium_monthly").unwrap())
+        .await
+        .unwrap()
+        .offer;
+    assert_eq!(offer.product.coins, 1000);
+    assert_eq!(offer.product.facts["months"], 1);
+    assert_eq!(offer.product.facts["automatic_renewal"], false);
+    assert!(
+        offer
+            .product
+            .description
+            .contains("beliebig viele neue Lektionen")
+    );
+    assert!(!offer.product.description.contains("Herzen"));
+    let saved = saved.lock().unwrap();
+    let record = saved.record.as_ref().unwrap();
+    assert_eq!(record.terms_pdf, b"%PDF-1.7 synthetic new terms");
+    assert_ne!(record.terms_pdf, AGB_2026_09_R4_PDF);
+    assert_eq!(
+        offer.document_hash,
+        document_hash(&record.terms_pdf, &record.withdrawal_pdf)
+    );
+}
+
+#[test]
+fn daily_document_bundle_requires_matching_version_exact_hashes_and_new_terms() {
+    use academy_models::learning_policy::LearningDocumentBundleConfig;
+    let (_, mut config) = daily_account();
+    assert!(PurchaseDocuments::load_daily(&config).is_err());
+    let dir = std::env::temp_dir().join(format!("academy-policy-bundle-{}", Uuid::new_v4()));
+    std::fs::create_dir(&dir).unwrap();
+    let terms = b"%PDF-1.7 synthetic approved terms";
+    let withdrawal = b"%PDF-1.7 synthetic approved withdrawal";
+    let terms_path = dir.join("terms.pdf");
+    let withdrawal_path = dir.join("withdrawal.pdf");
+    std::fs::write(&terms_path, terms).unwrap();
+    std::fs::write(&withdrawal_path, withdrawal).unwrap();
+    config.daily_documents = Some(LearningDocumentBundleConfig {
+        terms_version: config.terms_version.clone().unwrap(),
+        terms_pdf_path: terms_path.clone(),
+        terms_sha256: format!("{:x}", Sha256::digest(terms)),
+        withdrawal_pdf_path: withdrawal_path,
+        withdrawal_sha256: format!("{:x}", Sha256::digest(withdrawal)),
+    });
+    let documents = PurchaseDocuments::load_daily(&config).unwrap().unwrap();
+    assert_eq!(documents.hash(), document_hash(terms, withdrawal));
+    config.daily_documents.as_mut().unwrap().terms_sha256 = "0".repeat(64);
+    assert!(PurchaseDocuments::load_daily(&config).is_err());
+    let bundle = config.daily_documents.as_mut().unwrap();
+    bundle.terms_sha256 = format!("{:x}", Sha256::digest(terms));
+    bundle.terms_version = "different-version".try_into().unwrap();
+    assert!(PurchaseDocuments::load_daily(&config).is_err());
+    let bundle = config.daily_documents.as_mut().unwrap();
+    bundle.terms_version = config.terms_version.clone().unwrap();
+    bundle.terms_sha256 = format!("{:x}", Sha256::digest(AGB_2026_09_R4_PDF));
+    std::fs::write(&terms_path, AGB_2026_09_R4_PDF).unwrap();
+    assert!(PurchaseDocuments::load_daily(&config).is_err());
+    std::fs::remove_dir_all(&dir).unwrap();
+}
+
+#[tokio::test]
+async fn no_daily_premium_offer_is_issued_with_missing_approved_documents() {
+    let saved = Arc::new(Mutex::new(Saved::default()));
+    let mut s = sut(Arc::clone(&saved), true, true, false);
+    let (user, policy) = daily_account();
+    s.learning_policy_config = policy;
+    s.user_repo = MockUserRepository::new().with_get_internal_composite(subject(), Some(user));
+    assert!(matches!(
+        s.issue(subject(), "backend", s.builtin("premium_monthly").unwrap())
+            .await,
+        Err(PurchaseError::Unavailable)
+    ));
+    assert!(saved.lock().unwrap().record.is_none());
+}
+
+#[tokio::test]
+async fn public_policy_auth_failure_never_becomes_a_missing_subject() {
+    use academy_core_purchase_contracts::LearningPolicyError;
+    use academy_models::auth::{AuthError, AuthenticateError};
+    for unavailable in [false, true] {
+        let mut s = sut_with_database(Default::default(), false, true, MockDatabase::new());
+        let mut auth = MockAuthService::new();
+        auth.expect_authenticate().once().return_once(move |_| {
+            Box::pin(async move {
+                Err(if unavailable {
+                    AuthenticateError::Other(anyhow::anyhow!("session storage offline"))
+                } else {
+                    AuthenticateError::InvalidToken
+                })
+            })
+        });
+        s.auth = auth;
+        let error = s.learning_policy(&"token".into()).await.unwrap_err();
+        assert!(match error {
+            LearningPolicyError::Auth(AuthError::Authenticate(AuthenticateError::Other(_))) =>
+                unavailable,
+            LearningPolicyError::Auth(AuthError::Authenticate(AuthenticateError::InvalidToken)) =>
+                !unavailable,
+            _ => false,
+        });
     }
 }

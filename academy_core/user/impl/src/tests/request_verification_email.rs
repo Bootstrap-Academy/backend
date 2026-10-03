@@ -30,6 +30,7 @@ async fn ok_self() {
 
     let user_email_confirmation = MockUserEmailConfirmationService::new()
         .with_request_verification(
+            FOO.user.id,
             FOO.user
                 .email
                 .clone()
@@ -69,6 +70,7 @@ async fn ok_admin() {
 
     let user_email_confirmation = MockUserEmailConfirmationService::new()
         .with_request_verification(
+            FOO.user.id,
             FOO.user
                 .email
                 .clone()

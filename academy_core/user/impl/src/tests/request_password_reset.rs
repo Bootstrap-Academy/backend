@@ -17,7 +17,9 @@ async fn ok() {
     let captcha = MockCaptchaService::new().with_check(Some("resp"), Ok(()));
 
     let user_repo = MockUserRepository::new()
-        .with_get_composite_by_email(FOO.user.email.clone().unwrap(), Some(FOO.clone()));
+        .with_get_composite_by_email(FOO.user.email.clone().unwrap(), Some(FOO.clone()))
+        .with_lock_account(FOO.user.id, true)
+        .with_get_composite(FOO.user.id, Some(FOO.clone()));
 
     let user_email_confirmation = MockUserEmailConfirmationService::new()
         .with_request_password_reset(

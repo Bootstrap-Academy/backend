@@ -1,7 +1,6 @@
 use std::{fmt::Debug, time::Duration};
 
 use academy_cache_contracts::CacheService;
-use academy_utils::trace_instrument;
 use anyhow::Context;
 use bb8_redis::{
     RedisConnectionManager,
@@ -9,6 +8,7 @@ use bb8_redis::{
     redis::{self, AsyncCommands},
 };
 use serde::{Serialize, de::DeserializeOwned};
+use tracing::instrument;
 
 #[derive(Debug, Clone)]
 pub struct ValkeyCache {
@@ -62,7 +62,7 @@ impl ValkeyCache {
 }
 
 impl CacheService for ValkeyCache {
-    #[trace_instrument(skip(self))]
+    #[instrument(skip_all)]
     async fn get<T: DeserializeOwned + Debug + 'static>(
         &self,
         key: &str,
@@ -84,7 +84,7 @@ impl CacheService for ValkeyCache {
             .context("Failed to deserialize cached value")
     }
 
-    #[trace_instrument(skip(self))]
+    #[instrument(skip_all)]
     async fn set<T: Serialize + Debug + Sync + 'static>(
         &self,
         key: &str,
@@ -107,7 +107,7 @@ impl CacheService for ValkeyCache {
         .context("Failed to write value to cache")
     }
 
-    #[trace_instrument(skip(self))]
+    #[instrument(skip_all)]
     async fn set_if_absent<T: Serialize + Debug + Sync + 'static>(
         &self,
         key: &str,
@@ -132,7 +132,51 @@ impl CacheService for ValkeyCache {
         Ok(result.is_some())
     }
 
-    #[trace_instrument(skip(self))]
+    #[instrument(skip_all)]
+    async fn compare_and_set<T: Serialize + Debug + Sync + 'static>(
+        &self,
+        key: &str,
+        expected: &Option<T>,
+        value: &T,
+        ttl: Duration,
+    ) -> anyhow::Result<bool> {
+        let expected_bytes = expected.as_ref().map(rmp_serde::to_vec).transpose()?;
+        let value = rmp_serde::to_vec(value)?;
+        let mut conn = self
+            .pool
+            .get()
+            .await
+            .context("Failed to acquire cache connection")?;
+        // The serialized value is binary; compare exact bytes, never decode
+        // credentials or expose them to the logger.
+        let result: bool = redis::cmd("EVAL")
+            .arg(
+                r#"
+            local current = redis.call('GET', KEYS[1])
+            if ARGV[1] == 'absent' then
+                if current then return 0 end
+            elseif current ~= ARGV[2] then return 0 end
+            redis.call('PSETEX', KEYS[1], ARGV[4], ARGV[3])
+            return 1
+        "#,
+            )
+            .arg(1)
+            .arg(key)
+            .arg(if expected_bytes.is_some() {
+                "present"
+            } else {
+                "absent"
+            })
+            .arg(expected_bytes.unwrap_or_default())
+            .arg(value)
+            .arg(u64::try_from(ttl.as_millis())?)
+            .query_async(&mut *conn)
+            .await
+            .context("Failed to compare and update cache item")?;
+        Ok(result)
+    }
+
+    #[instrument(skip_all)]
     async fn pop<T: DeserializeOwned + Debug + 'static>(
         &self,
         key: &str,
@@ -154,7 +198,7 @@ impl CacheService for ValkeyCache {
             .context("Failed to deserialize cached value")
     }
 
-    #[trace_instrument(skip(self))]
+    #[instrument(skip_all)]
     async fn remove(&self, key: &str) -> anyhow::Result<()> {
         let mut conn = self
             .pool
@@ -167,7 +211,7 @@ impl CacheService for ValkeyCache {
             .context("Failed to remove item from cache")
     }
 
-    #[trace_instrument(skip(self))]
+    #[instrument(skip_all)]
     async fn ping(&self) -> anyhow::Result<()> {
         let mut conn = self
             .pool

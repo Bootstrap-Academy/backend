@@ -19,6 +19,15 @@ pub trait AuthService<Txn: Send + Sync + 'static>: Send + Sync + 'static {
         token: &AccessToken,
     ) -> impl Future<Output = Result<Authentication, AuthenticateError>> + Send;
 
+    /// Recheck current access authority using the caller's existing transaction.
+    /// Use this after waiting for an account lock without borrowing another
+    /// database connection while that transaction holds the lock.
+    fn authenticate_in_transaction(
+        &self,
+        txn: &mut Txn,
+        token: &AccessToken,
+    ) -> impl Future<Output = Result<Authentication, AuthenticateError>> + Send;
+
     /// Authenticates a user using their account password.
     fn authenticate_by_password(
         &self,
@@ -160,6 +169,32 @@ where
 
 #[cfg(feature = "mock")]
 impl<Txn: Send + Sync + 'static> MockAuthService<Txn> {
+    pub fn with_authenticate_in_transaction(
+        mut self,
+        auth: Option<(User, academy_models::session::Session)>,
+    ) -> Self {
+        self.expect_authenticate_in_transaction()
+            .once()
+            .with(
+                mockall::predicate::always(),
+                mockall::predicate::eq(AccessToken::new("token")),
+            )
+            .return_once(|_, _| {
+                Box::pin(std::future::ready(
+                    auth.map(|(user, session)| Authentication {
+                        user_id: user.id,
+                        session_id: session.id,
+                        refresh_token_hash: SessionRefreshTokenHash::new(Default::default()),
+                        admin: user.admin,
+                        email_verified: user.email_verified,
+                        mfa_verified: session.mfa_verified,
+                    })
+                    .ok_or(AuthenticateError::InvalidToken),
+                ))
+            });
+        self
+    }
+
     pub fn with_authenticate(
         mut self,
         auth: Option<(User, academy_models::session::Session)>,

@@ -60,6 +60,8 @@ To run the unit tests, use the command `just test-unit`.
 Integration tests are used to test the integration with other systems such as external APIs or databases.
 To run the integration tests, use the corresponding just recipes (e.g. to run the Postgres tests execute `just test-postgres`).
 
+Authentication concurrency, session revocation and credential logging regressions use owned loopback PostgreSQL 18 and Valkey fixtures. Run `python3 scripts/test-auth.py --evidence-dir /path/to/new/evidence` with PostgreSQL 18 tools, `valkey-server` and Cargo on PATH. The runner refuses external database fixtures and cleans up its own servers.
+
 To run all unit and integration tests, use the command `just test`.
 It is also possible to generate coverage reports by replacing `test` with `coverage` in any of the previous commands.
 

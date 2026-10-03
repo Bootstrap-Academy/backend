@@ -26,6 +26,25 @@ class Fixture(safety.Fixture):
     publication_enabled = False
     database = "safety"
 
+    def sql(self, statement):
+        return self.command(
+            self.args.pg_bin / "psql",
+            "-X",
+            "-qAt",
+            "-v",
+            "ON_ERROR_STOP=1",
+            "-h",
+            "127.0.0.1",
+            "-p",
+            self.ports["pg"],
+            "-U",
+            "safety",
+            "-d",
+            self.database,
+            "-c",
+            statement,
+        )
+
     def write_config(self):
         super().write_config()
         path = self.base / "fixture.toml"
@@ -326,10 +345,20 @@ def dump_restore_and_disabled_recovery(f):
 
 
 def authority_outage_is_closed(f):
+    owner = f.account()
+    owner_token = f.token(owner)
     f.publication(ROOT + "snapshot", token=f.auth)
     f.command(f.args.pg_bin / "pg_ctl", "-D", f.base / "pg", "-m", "fast", "-w", "stop", label="publication-outage")
     f.pg_started = False
     assert f.publication(ROOT + "snapshot", token=f.auth, expected=503) == {"detail": "publication_unavailable"}
+    for path, method, body in (
+        (OWNER, "GET", None),
+        (OWNER + "-preview", "GET", None),
+        (OWNER, "PUT", {"profile_visibility": "private", "expected_revision": 0, "request_id": str(uuid4())}),
+    ):
+        assert f.publication(path, method=method, body=body, token=owner_token, expected=503) == {
+            "detail": "publication_unavailable"
+        }
 
 
 CASES = [

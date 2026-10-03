@@ -21,7 +21,8 @@ nix shell --accept-flake-config --no-write-lock-file --inputs-from . \
 Nine scenarios cover disabled compatibility, internal token audiences, actual
 password/OAuth registration, preview/owner/scope boundaries, CAS races, delayed
 replays, legacy opt-out, current email verification, receipts in export/erasure,
-timed moderation changes, dump/restore, disabled recovery and authority outage.
+timed moderation changes, dump/restore, disabled recovery and authority outage,
+including loss of the live owner authentication database on all three owner routes.
 The OAuth fixture seeds the same ephemeral registration cache consumed by the
 normal API; no OAuth provider is contacted. Snapshot identities contain exactly
 user ID, display name, standard-avatar null and visibility revision; XP and

@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use academy_core_user_contracts::publication::{PublicationError, PublicationFeatureService};
 use academy_models::{
-    auth::{AccessToken, InternalToken},
+    auth::{AccessToken, AuthError, AuthenticateError, InternalToken},
     publication::{
         PublicationChoice, PublicationChoiceResult, PublicationEpoch, PublicationPreview,
         PublicationSettings, PublicationSnapshot,
@@ -66,6 +66,11 @@ fn respond<T: Serialize>(result: Result<T, PublicationError>) -> Response {
         Err(error) => error,
     };
     let (status, detail) = match error {
+        PublicationError::Other(error)
+        | PublicationError::Auth(AuthError::Authenticate(AuthenticateError::Other(error))) => {
+            tracing::warn!("publication authority unavailable: {error:#}");
+            (StatusCode::SERVICE_UNAVAILABLE, "publication_unavailable")
+        }
         PublicationError::Auth(error) => return auth_error(error),
         PublicationError::InternalAuth => (StatusCode::UNAUTHORIZED, "invalid_token"),
         PublicationError::Disabled => (StatusCode::SERVICE_UNAVAILABLE, "publication_unavailable"),
@@ -76,10 +81,6 @@ fn respond<T: Serialize>(result: Result<T, PublicationError>) -> Response {
             "publication_preview_required",
         ),
         PublicationError::Unverified => (StatusCode::FORBIDDEN, "email_not_verified"),
-        PublicationError::Other(error) => {
-            tracing::warn!("publication authority unavailable: {error:#}");
-            (StatusCode::SERVICE_UNAVAILABLE, "publication_unavailable")
-        }
     };
     (status, Json(serde_json::json!({"detail":detail}))).into_response()
 }

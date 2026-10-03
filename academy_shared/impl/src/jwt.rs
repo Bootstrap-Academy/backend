@@ -5,12 +5,12 @@ use academy_shared_contracts::{
     jwt::{JwtService, VerifyJwtError},
     time::TimeService,
 };
-use academy_utils::trace_instrument;
 use anyhow::Context;
 use hmac::{Hmac, digest::KeyInit};
 use jwt::{SignWithKey, VerifyWithKey};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use sha2::Sha256;
+use tracing::instrument;
 
 #[derive(Debug, Clone, Build)]
 pub struct JwtServiceImpl<Time> {
@@ -93,7 +93,7 @@ impl<Time> JwtService for JwtServiceImpl<Time>
 where
     Time: TimeService,
 {
-    #[trace_instrument(skip(self))]
+    #[instrument(skip(self, data))]
     fn sign<T: Serialize + Debug + 'static>(
         &self,
         data: T,
@@ -102,7 +102,7 @@ where
         self.sign_with_secret(&self.config.jwt_secret, data, ttl)
     }
 
-    #[trace_instrument(skip(self))]
+    #[instrument(skip(self, jwt))]
     fn verify<T: DeserializeOwned + Debug + 'static>(
         &self,
         jwt: &str,
@@ -110,7 +110,7 @@ where
         self.verify_with_secret(&self.config.jwt_secret, jwt)
     }
 
-    #[trace_instrument(skip(self))]
+    #[instrument(skip(self, data))]
     fn sign_with_key<T: Serialize + Debug + 'static>(
         &self,
         key: &str,
@@ -120,7 +120,7 @@ where
         self.sign_with_secret(self.config.key(key), data, ttl)
     }
 
-    #[trace_instrument(skip(self))]
+    #[instrument(skip(self, jwt))]
     fn verify_with_key<T: DeserializeOwned + Debug + 'static>(
         &self,
         key: &str,

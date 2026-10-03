@@ -324,11 +324,22 @@ where
             invoice_info: invoice_info_update,
         }: UserUpdateRequest,
     ) -> Result<UserComposite, UserUpdateError> {
-        let auth = self.auth.authenticate(token).await.map_auth_err()?;
+        let mut auth = self.auth.authenticate(token).await.map_auth_err()?;
         let user_id = user_id.unwrap_or(auth.user_id);
         auth.ensure_self_or_admin(user_id).map_auth_err()?;
 
         let mut txn = self.db.begin_transaction().await?;
+
+        let password_changed = password.is_update();
+        if password_changed || email.is_update() {
+            if !self.user_repo.lock_account(&mut txn, user_id).await? {
+                return Err(UserUpdateError::NotFound);
+            }
+            // A reset may have revoked the caller while this request waited
+            // for the account lock. Never authorize a mutation with that snapshot.
+            auth = self.auth.authenticate(token).await.map_auth_err()?;
+            auth.ensure_self_or_admin(user_id).map_auth_err()?;
+        }
 
         // Fetch current user
         let UserComposite {
@@ -431,6 +442,14 @@ where
             commit = true;
         }
 
+        // Invalidate links under the owner lock so even changing an address
+        // away and back cannot revive a reset link sent to its former owner.
+        if email.is_update() || password_changed {
+            self.cache
+                .remove(&email_confirmation::reset_password_cache_key(user_id))
+                .await?;
+        }
+
         if email.is_update() || email_verified.is_update() {
             user.email_verified =
                 email_verified.update_or(user.email_verified && email.is_unchanged());
@@ -513,7 +532,15 @@ where
         }
 
         if commit {
+            let hashes = if password_changed {
+                self.session.revoke_by_user(&mut txn, user_id).await?
+            } else {
+                Vec::new()
+            };
             txn.commit().await?;
+            if password_changed {
+                self.auth.invalidate_access_tokens_of(hashes).await?;
+            }
         }
 
         Ok(user_composite)
@@ -786,14 +813,17 @@ where
             .ok_or(UserRequestVerificationEmailError::NoEmail)?;
 
         self.user_email_confirmation
-            .request_verification(email.with_name(user_composite.profile.display_name.into_inner()))
+            .request_verification(
+                user_id,
+                email.with_name(user_composite.profile.display_name.into_inner()),
+            )
             .await
             .context("Failed to request verification email")?;
 
         Ok(())
     }
 
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, code))]
     async fn verify_email(&self, code: VerificationCode) -> Result<(), UserVerifyEmailError> {
         let mut txn = self.db.begin_transaction().await?;
 
@@ -802,8 +832,13 @@ where
             .verify_email(&mut txn, &code)
             .await
         {
-            Ok(_) => {
+            Ok(user) => {
+                let hashes = self
+                    .auth
+                    .list_refresh_token_hashes(&mut txn, user.user.id)
+                    .await?;
                 txn.commit().await?;
+                self.auth.invalidate_access_tokens_of(hashes).await?;
                 Ok(())
             }
             Err(UserEmailConfirmationVerifyEmailError::AlreadyVerified) => Ok(()),
@@ -838,6 +873,21 @@ where
             .await
             .context("Failed to get user from database")?
         {
+            if !self
+                .user_repo
+                .lock_account(&mut txn, user_composite.user.id)
+                .await?
+            {
+                return Ok(());
+            }
+            let Some(user_composite) = self
+                .user_repo
+                .get_composite(&mut txn, user_composite.user.id)
+                .await?
+                .filter(|user| user.user.email.as_ref() == Some(&email))
+            else {
+                return Ok(());
+            };
             let email = user_composite.user.email.ok_or_else(|| {
                 anyhow!(
                     "User {} fetched by email {} has no email address",
@@ -885,7 +935,12 @@ where
                 }
             })?;
 
+        let hashes = self
+            .session
+            .revoke_by_user(&mut txn, user_composite.user.id)
+            .await?;
         txn.commit().await?;
+        self.auth.invalidate_access_tokens_of(hashes).await?;
 
         Ok(user_composite)
     }

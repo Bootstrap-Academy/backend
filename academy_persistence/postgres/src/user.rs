@@ -34,6 +34,18 @@ use crate::PostgresTransaction;
 pub struct PostgresUserRepository;
 
 impl UserRepository<PostgresTransaction> for PostgresUserRepository {
+    #[trace_instrument(skip(self, txn))]
+    async fn lock_account(
+        &self,
+        txn: &mut PostgresTransaction,
+        user_id: UserId,
+    ) -> anyhow::Result<bool> {
+        Ok(txn
+            .txn()
+            .query_opt("SELECT id FROM users WHERE id=$1 FOR UPDATE", &[&*user_id])
+            .await?
+            .is_some())
+    }
     async fn get_internal_composite(
         &self,
         txn: &mut PostgresTransaction,

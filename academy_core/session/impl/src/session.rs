@@ -194,6 +194,20 @@ where
 
         Ok(())
     }
+
+    #[trace_instrument(skip(self, txn))]
+    async fn revoke_by_user(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
+    ) -> anyhow::Result<Vec<academy_models::session::SessionRefreshTokenHash>> {
+        let hashes = self.auth.list_refresh_token_hashes(txn, user_id).await?;
+        self.session_repo
+            .delete_by_user(txn, user_id)
+            .await
+            .context("Failed to revoke sessions in database")?;
+        Ok(hashes)
+    }
 }
 
 #[cfg(test)]

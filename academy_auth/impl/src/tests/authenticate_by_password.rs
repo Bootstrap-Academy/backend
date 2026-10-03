@@ -11,8 +11,9 @@ async fn ok() {
     // Arrange
     let password_hash = "hash of foo's password";
 
-    let user_repo =
-        MockUserRepository::new().with_get_password_hash(FOO.user.id, Some(password_hash.into()));
+    let user_repo = MockUserRepository::new()
+        .with_lock_account(FOO.user.id, true)
+        .with_get_password_hash(FOO.user.id, Some(password_hash.into()));
 
     let password = MockPasswordService::new().with_verify(
         FOO_PASSWORD.clone().into_inner(),
@@ -42,7 +43,9 @@ async fn ok() {
 #[tokio::test]
 async fn user_not_found() {
     // Arrange
-    let user_repo = MockUserRepository::new().with_get_password_hash(FOO.user.id, None);
+    let user_repo = MockUserRepository::new()
+        .with_lock_account(FOO.user.id, true)
+        .with_get_password_hash(FOO.user.id, None);
 
     let sut = AuthServiceImpl {
         user_repo,
@@ -67,8 +70,9 @@ async fn wrong_password() {
     // Arrange
     let password_hash = "hash of foo's password";
 
-    let user_repo =
-        MockUserRepository::new().with_get_password_hash(FOO.user.id, Some(password_hash.into()));
+    let user_repo = MockUserRepository::new()
+        .with_lock_account(FOO.user.id, true)
+        .with_get_password_hash(FOO.user.id, Some(password_hash.into()));
 
     let password = MockPasswordService::new().with_verify(
         FOO_PASSWORD.clone().into_inner(),

@@ -1,7 +1,7 @@
 { lib, pkgs, ... }:
 
 {
-  tree-root-file = ".git/config";
+  tree-root-file = "flake.nix";
   on-unmatched = "fatal";
 
   excludes = [

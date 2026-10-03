@@ -98,57 +98,78 @@ where
         &self,
         name_or_email: &UserNameOrEmailAddress,
     ) -> anyhow::Result<()> {
-        let now = self.time.now();
         let key = self.account_key(name_or_email);
-        let count = self.get(&key).await?.map_or(0, |a| a.count) + 1;
+        loop {
+            let now = self.time.now();
+            let previous = self.get(&key).await?;
+            let count = previous.map_or(0, |a| a.count).saturating_add(1);
 
-        // The first `fails_before_lock` attempts pass unhindered; each one after
-        // that is answered with a lock twice as long as the previous one, up to
-        // `lock_max`.
-        let blocked_until = (count >= self.config.fails_before_lock).then(|| {
-            let steps = count - self.config.fails_before_lock;
-            let lock = self
-                .config
-                .lock_initial
-                .saturating_mul(2u32.saturating_pow(steps.try_into().unwrap_or(u32::MAX)))
-                .min(self.config.lock_max);
-            now + TimeDelta::from_std(lock).unwrap_or(TimeDelta::MAX)
-        });
+            // The first `fails_before_lock` attempts pass unhindered; each one after
+            // that is answered with a lock twice as long as the previous one, up to
+            // `lock_max`.
+            let blocked_until = (count >= self.config.fails_before_lock).then(|| {
+                let steps = count - self.config.fails_before_lock;
+                let lock = self
+                    .config
+                    .lock_initial
+                    .saturating_mul(2u32.saturating_pow(steps.try_into().unwrap_or(u32::MAX)))
+                    .min(self.config.lock_max);
+                now + TimeDelta::from_std(lock).unwrap_or(TimeDelta::MAX)
+            });
 
-        let ttl = self.ttl(now, self.config.fail_window, blocked_until);
-        self.set(
-            &key,
-            FailedAttempts {
-                count,
-                blocked_until,
-            },
-            ttl,
-        )
-        .await
+            let ttl = self.ttl(now, self.config.fail_window, blocked_until);
+            if self
+                .cache
+                .compare_and_set(
+                    &key,
+                    &previous,
+                    &FailedAttempts {
+                        count,
+                        blocked_until,
+                    },
+                    ttl,
+                )
+                .await
+                .context("Failed to update login throttle atomically")?
+            {
+                return Ok(());
+            }
+        }
     }
 
     #[trace_instrument(skip(self))]
     async fn record_ip_failure(&self, client_ip: IpAddr) -> anyhow::Result<()> {
-        let now = self.time.now();
         let key = self.ip_key(client_ip);
-        let count = self.get(&key).await?.map_or(0, |a| a.count) + 1;
+        loop {
+            let now = self.time.now();
+            let previous = self.get(&key).await?;
+            let count = previous.map_or(0, |a| a.count).saturating_add(1);
 
-        // Unlike a single login, an address is not locked for longer and longer:
-        // it is shared by everybody behind the same NAT, so it only waits out
-        // one window.
-        let blocked_until = (count >= self.config.fails_per_ip)
-            .then(|| now + TimeDelta::from_std(self.config.ip_window).unwrap_or(TimeDelta::MAX));
+            // Unlike a single login, an address is not locked for longer and longer:
+            // it is shared by everybody behind the same NAT, so it only waits out
+            // one window.
+            let blocked_until = (count >= self.config.fails_per_ip).then(|| {
+                now + TimeDelta::from_std(self.config.ip_window).unwrap_or(TimeDelta::MAX)
+            });
 
-        let ttl = self.ttl(now, self.config.ip_window, blocked_until);
-        self.set(
-            &key,
-            FailedAttempts {
-                count,
-                blocked_until,
-            },
-            ttl,
-        )
-        .await
+            let ttl = self.ttl(now, self.config.ip_window, blocked_until);
+            if self
+                .cache
+                .compare_and_set(
+                    &key,
+                    &previous,
+                    &FailedAttempts {
+                        count,
+                        blocked_until,
+                    },
+                    ttl,
+                )
+                .await
+                .context("Failed to update login throttle atomically")?
+            {
+                return Ok(());
+            }
+        }
     }
 
     #[trace_instrument(skip(self, name_or_email))]
@@ -179,13 +200,6 @@ where
             .get(key)
             .await
             .context("Failed to get failed login attempts from cache")
-    }
-
-    async fn set(&self, key: &str, attempts: FailedAttempts, ttl: Duration) -> anyhow::Result<()> {
-        self.cache
-            .set(key, &attempts, Some(ttl))
-            .await
-            .context("Failed to save failed login attempts in cache")
     }
 
     /// Keep a bucket at least until its block has passed, so a lock cannot be
@@ -422,13 +436,18 @@ mod tests {
                     blocked_until: None,
                 }),
             )
-            .with_set(
+            .with_compare_and_set(
                 account_key(),
+                Some(FailedAttempts {
+                    count: 3,
+                    blocked_until: None,
+                }),
                 FailedAttempts {
                     count: 4,
                     blocked_until: None,
                 },
-                Some(Duration::from_secs(15 * 60)),
+                Duration::from_secs(15 * 60),
+                true,
             );
 
         let sut = SessionLoginThrottleServiceImpl::new(
@@ -466,14 +485,19 @@ mod tests {
                         blocked_until: None,
                     }),
                 )
-                .with_set(
+                .with_compare_and_set(
                     account_key(),
+                    Some(FailedAttempts {
+                        count: count_before,
+                        blocked_until: None,
+                    }),
                     FailedAttempts {
                         count: count_before + 1,
                         blocked_until: Some(now() + TimeDelta::seconds(lock_seconds)),
                     },
                     // The counter outlives the lock it caused.
-                    Some(Duration::from_secs(15 * 60)),
+                    Duration::from_secs(15 * 60),
+                    true,
                 );
 
             let sut = SessionLoginThrottleServiceImpl::new(
@@ -503,13 +527,18 @@ mod tests {
                     blocked_until: None,
                 }),
             )
-            .with_set(
+            .with_compare_and_set(
                 ip_key(),
+                Some(FailedAttempts {
+                    count: 29,
+                    blocked_until: None,
+                }),
                 FailedAttempts {
                     count: 30,
                     blocked_until: Some(now() + TimeDelta::seconds(15 * 60)),
                 },
-                Some(Duration::from_secs(15 * 60)),
+                Duration::from_secs(15 * 60),
+                true,
             );
 
         let sut = SessionLoginThrottleServiceImpl::new(

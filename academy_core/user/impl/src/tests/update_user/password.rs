@@ -15,17 +15,27 @@ async fn update_password() {
     // Arrange
     let new_password = UserPassword::try_new("the new password").unwrap();
 
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_invalidate_access_tokens_of(Vec::new());
 
     let db = MockDatabase::build(true);
 
-    let user_repo = MockUserRepository::new().with_get_composite(FOO.user.id, Some(FOO.clone()));
+    let user_repo = MockUserRepository::new()
+        .with_lock_account(FOO.user.id, true)
+        .with_get_composite(FOO.user.id, Some(FOO.clone()));
 
     let user_update =
         MockUserUpdateService::new().with_update_password(FOO.user.id, new_password.clone());
 
     let sut = UserFeatureServiceImpl {
         auth,
+        session: academy_core_session_contracts::session::MockSessionService::new()
+            .with_revoke_by_user(FOO.user.id, Vec::new()),
+        cache: academy_cache_contracts::MockCacheService::new().with_remove(
+            crate::email_confirmation::reset_password_cache_key(FOO.user.id),
+        ),
         db,
         user_update,
         user_repo,
@@ -54,16 +64,25 @@ async fn update_password() {
 #[tokio::test]
 async fn remove_password_oauth() {
     // Arrange
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_invalidate_access_tokens_of(Vec::new());
 
     let db = MockDatabase::build(true);
 
     let user_repo = MockUserRepository::new()
+        .with_lock_account(FOO.user.id, true)
         .with_get_composite(FOO.user.id, Some(FOO.clone()))
         .with_remove_password_hash(FOO.user.id, true);
 
     let sut = UserFeatureServiceImpl {
         auth,
+        session: academy_core_session_contracts::session::MockSessionService::new()
+            .with_revoke_by_user(FOO.user.id, Vec::new()),
+        cache: academy_cache_contracts::MockCacheService::new().with_remove(
+            crate::email_confirmation::reset_password_cache_key(FOO.user.id),
+        ),
         db,
         user_repo,
         ..Sut::default()
@@ -94,17 +113,24 @@ async fn remove_password_oauth() {
 #[tokio::test]
 async fn remove_password_no_oauth() {
     // Arrange
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
 
     let db = MockDatabase::build(false);
 
-    let user_repo = MockUserRepository::new().with_get_composite(
-        FOO.user.id,
-        Some(FOO.clone().with(|u| u.details.oauth2_login = false)),
-    );
+    let user_repo = MockUserRepository::new()
+        .with_lock_account(FOO.user.id, true)
+        .with_get_composite(
+            FOO.user.id,
+            Some(FOO.clone().with(|u| u.details.oauth2_login = false)),
+        );
 
     let sut = UserFeatureServiceImpl {
         auth,
+        cache: academy_cache_contracts::MockCacheService::new().with_remove(
+            crate::email_confirmation::reset_password_cache_key(FOO.user.id),
+        ),
         db,
         user_repo,
         ..Sut::default()

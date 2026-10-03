@@ -125,6 +125,11 @@ where
         user_id: UserId,
         password: UserPassword,
     ) -> Result<(), AuthenticateByPasswordError> {
+        // Holding the same owner lock as reset/revocation prevents a login
+        // verified against the old password from creating a session after reset.
+        if !self.user_repo.lock_account(txn, user_id).await? {
+            return Err(AuthenticateByPasswordError::InvalidCredentials);
+        }
         let password_hash = self
             .user_repo
             .get_password_hash(txn, user_id)

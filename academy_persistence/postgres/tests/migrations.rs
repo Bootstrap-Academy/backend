@@ -40,11 +40,12 @@ async fn current_refusal(db: &common::Db) {
         .unwrap()
         .get(0);
     tx.commit().await.unwrap();
-    let error = db.revert_migrations(Some(1)).await.unwrap_err();
-    assert!(
-        format!("{error:#}")
-            .contains("Heart operation replay receipts must not be removed by a downgrade")
-    );
+    common::assert_down_refused(
+        db,
+        "2026-09-26-120000_daily_learning_heart_receipts",
+        "Heart operation replay receipts must not be removed by a downgrade",
+    )
+    .await;
     let tx = db.begin_transaction().await.unwrap();
     let after: String = tx
         .txn()

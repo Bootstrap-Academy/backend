@@ -69,6 +69,7 @@ pub struct RestServer<
     Internal,
     AdminAudit,
     Moderation,
+    Publication,
 > {
     _config: RestServerConfig,
     health: Health,
@@ -89,6 +90,7 @@ pub struct RestServer<
     internal: Internal,
     admin_audit: AdminAudit,
     moderation: Moderation,
+    publication: Publication,
 }
 
 #[derive(Debug, Clone)]
@@ -125,6 +127,7 @@ impl<
     Internal,
     AdminAudit,
     Moderation,
+    Publication,
 >
     RestServer<
         Health,
@@ -145,8 +148,10 @@ impl<
         Internal,
         AdminAudit,
         Moderation,
+        Publication,
     >
 where
+    Publication: academy_core_user_contracts::publication::PublicationFeatureService,
     Health: HealthFeatureService,
     Config: ConfigFeatureService,
     User: UserFeatureService,
@@ -279,6 +284,7 @@ where
 
     fn router(self) -> ApiRouter<()> {
         ApiRouter::new()
+            .merge(routes::publication::router(self.publication.into()))
             .merge(routes::health::router(self.health.into()))
             .merge(routes::config::router(self.config.into()))
             .merge(routes::user::router(self.user.into()))

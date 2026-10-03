@@ -45,6 +45,7 @@ use tracing::{info, instrument, trace, warn};
 
 pub mod email_confirmation;
 pub mod export;
+pub mod publication;
 pub mod update;
 pub mod user;
 

@@ -50,6 +50,7 @@ pub struct ApiServiceExport {
 /// Everything this service stores about a single user.
 #[derive(Debug, Clone, Serialize, JsonSchema)]
 pub struct ApiAccountDataExport {
+    pub publication: Option<academy_models::publication::PublicationSettings>,
     pub commercial: serde_json::Value,
     pub moderation: serde_json::Value,
     /// The account, the profile and the invoice information, in the same
@@ -230,6 +231,7 @@ impl From<AccountDataExport> for ApiAccountDataExport {
 
         Self {
             user: value.user.into(),
+            publication: value.publication,
             premium_renewal_evidence: value.premium_renewal_evidence,
             purchase_evidence: value.purchase_evidence,
             commercial: value.commercial,

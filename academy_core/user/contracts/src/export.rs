@@ -78,6 +78,8 @@ impl From<Option<serde_json::Value>> for ServiceDataExport {
 /// Everything the monolith stores about a single user.
 #[derive(Debug, Clone, PartialEq)]
 pub struct AccountDataExport {
+    /// Current choice and only the last necessary share/withdrawal receipts.
+    pub publication: Option<academy_models::publication::PublicationSettings>,
     /// Independent requests, obligations, evidence and dispositions; no access keys.
     pub commercial: serde_json::Value,
     /// Recipient-safe owning-service decisions and complaints; no private notifier evidence.

@@ -612,12 +612,13 @@ async fn isolation_entries_and_forward_only_downgrade_preserve_exact_state() {
         }
     }
     assert_eq!(fingerprint(&db).await, old);
-    let error = db.revert_migrations(Some(1)).await.unwrap_err();
-    assert!(
-        format!("{error:#}")
-            .contains("Heart operation replay receipts must not be removed by a downgrade")
-    );
-    // Exercise this unit's guard as well; the newest heart-operation refusal is separate.
+    common::assert_down_refused(
+        &db,
+        "2026-09-26-120000_daily_learning_heart_receipts",
+        "Heart operation replay receipts must not be removed by a downgrade",
+    )
+    .await;
+    // Exercise this unit's guard as well; the heart-operation refusal is separate.
     let tx = db.begin_transaction().await.unwrap();
     let invoice = academy_persistence_postgres::MIGRATIONS
         .iter()

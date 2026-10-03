@@ -49,6 +49,10 @@ database_cache_ttl = "10s"
 cache_cache_ttl = "10s"
 email_cache_ttl = "10s"
 
+[publication]
+# Preparation only. Enabling requires coordinated persistent policy activation.
+enabled = false
+
 [user]
 # Version of the terms and conditions that is currently in force. Only this
 # version can be accepted, and it is the value that is recorded.

@@ -108,6 +108,8 @@ fn validate(config: &Config) -> anyhow::Result<()> {
 
 #[derive(Debug, Deserialize)]
 pub struct Config {
+    #[serde(default)]
+    pub publication: academy_models::publication::PublicationConfig,
     pub http: HttpConfig,
     pub database: DatabaseConfig,
     pub cache: CacheConfig,

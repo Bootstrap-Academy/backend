@@ -34,6 +34,16 @@ use crate::PostgresTransaction;
 pub struct PostgresUserRepository;
 
 impl UserRepository<PostgresTransaction> for PostgresUserRepository {
+    async fn get_publication(
+        &self,
+        txn: &mut PostgresTransaction,
+        user_id: UserId,
+    ) -> anyhow::Result<Option<academy_models::publication::PublicationSettings>> {
+        use academy_persistence_contracts::publication::PublicationRepository;
+        crate::publication::PostgresPublicationRepository
+            .settings(txn, user_id)
+            .await
+    }
     async fn get_internal_composite(
         &self,
         txn: &mut PostgresTransaction,

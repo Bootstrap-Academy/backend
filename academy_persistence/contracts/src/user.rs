@@ -15,6 +15,13 @@ use thiserror::Error;
 
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait UserRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
+    fn get_publication(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
+    ) -> impl Future<
+        Output = anyhow::Result<Option<academy_models::publication::PublicationSettings>>,
+    > + Send;
     /// Internal lifecycle identity; purpose subjects are physically present but
     /// do not acquire ordinary authentication or public-profile authority.
     fn get_internal_composite(

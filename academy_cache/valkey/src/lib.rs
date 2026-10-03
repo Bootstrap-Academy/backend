@@ -108,6 +108,31 @@ impl CacheService for ValkeyCache {
     }
 
     #[trace_instrument(skip(self))]
+    async fn set_if_absent<T: Serialize + Debug + Sync + 'static>(
+        &self,
+        key: &str,
+        value: &T,
+        ttl: Option<Duration>,
+    ) -> anyhow::Result<bool> {
+        let value = rmp_serde::to_vec(value).context("Failed to serialize value")?;
+        let mut conn = self
+            .pool
+            .get()
+            .await
+            .context("Failed to acquire cache connection")?;
+        let mut command = redis::cmd("SET");
+        command.arg(key).arg(value).arg("NX");
+        if let Some(ttl) = ttl {
+            command.arg("PX").arg(u64::try_from(ttl.as_millis())?);
+        }
+        let result: Option<String> = command
+            .query_async(&mut *conn)
+            .await
+            .context("Failed to reserve cache item")?;
+        Ok(result.is_some())
+    }
+
+    #[trace_instrument(skip(self))]
     async fn pop<T: DeserializeOwned + Debug + 'static>(
         &self,
         key: &str,

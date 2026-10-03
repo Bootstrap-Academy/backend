@@ -49,6 +49,9 @@ class Fixture(safety.Fixture):
         super().write_config()
         path = self.base / "fixture.toml"
         config = path.read_text().replace('/safety"', f'/{self.database}"')
+        # Keep deliberate PG outages inside the HTTP deadline regardless of
+        # when the pool's background connection cleanup runs.
+        config = config.replace("[database]\n", '[database]\nacquire_timeout = "2s"\n', 1)
         path.write_text(config + f"\n[publication]\nenabled = {str(self.publication_enabled).lower()}\n")
 
     def publication(self, path=OWNER, *, method="GET", body=None, token=None, expected=200):

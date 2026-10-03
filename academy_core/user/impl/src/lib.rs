@@ -544,7 +544,13 @@ where
             };
             txn.commit().await?;
             if password_changed {
-                self.auth.invalidate_access_tokens_of(hashes).await?;
+                // Durable revocation already succeeded; cache invalidation is an optimization.
+                if self.auth.invalidate_access_tokens_of(hashes).await.is_err() {
+                    warn!(
+                        operation = "password_change",
+                        "Committed password change; session cache invalidation failed"
+                    );
+                }
             }
         }
 
@@ -945,7 +951,13 @@ where
             .revoke_by_user(&mut txn, user_composite.user.id)
             .await?;
         txn.commit().await?;
-        self.auth.invalidate_access_tokens_of(hashes).await?;
+        // A consumed reset link must never report a committed password change as failed.
+        if self.auth.invalidate_access_tokens_of(hashes).await.is_err() {
+            warn!(
+                operation = "password_reset",
+                "Committed password change; session cache invalidation failed"
+            );
+        }
 
         Ok(user_composite)
     }

@@ -680,3 +680,247 @@ async fn credential_change_must_not_acquire_a_second_database_connection() {
         .await
         .expect("credential mutation exhausted its own connection pool");
 }
+
+#[derive(Clone)]
+struct FollowupCapture(std::sync::Arc<std::sync::Mutex<Vec<u8>>>);
+impl std::io::Write for FollowupCapture {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        self.0.lock().unwrap().extend_from_slice(buf);
+        Ok(buf.len())
+    }
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
+}
+
+async fn owned_cache_permission(permission: &str) {
+    let port = std::env::var("AUTH_REVIEW_VALKEY_PORT").unwrap();
+    let output = tokio::process::Command::new("valkey-cli")
+        .args(["-p", &port, "ACL", "SETUSER", "default", permission])
+        .output()
+        .await
+        .unwrap();
+    assert!(
+        output.status.success() && output.stdout == b"OK\n",
+        "owned cache permission setup failed"
+    );
+}
+
+async fn committed_password_change_with_failed_cache_is_successful(reset: bool) {
+    use academy_core_session_contracts::SessionCreateCommand;
+    use academy_core_user_contracts::{PasswordUpdate, UserUpdateRequest, UserUpdateUserRequest};
+    use academy_models::{mfa::MfaAuthentication, user::UserNameOrEmailAddress};
+    use academy_utils::patch::PatchValue;
+    use tracing::instrument::WithSubscriber;
+    let (mut provider, db, cache) = fixture().await;
+    let old = login(&mut provider, &db, &FOO, false).await;
+    let sessions: types::SessionFeature = provider.provide();
+    sessions
+        .get_current_session(&old.access_token)
+        .await
+        .unwrap();
+    reset_code(&cache).await;
+    let new_password =
+        academy_models::user::UserPassword::try_new("owned-cache-failure-password".to_owned())
+            .unwrap();
+    let users: types::UserFeature = provider.provide();
+    let bytes = Arc::new(std::sync::Mutex::new(Vec::new()));
+    let writer = FollowupCapture(Arc::clone(&bytes));
+    let subscriber = tracing::Dispatch::new(
+        tracing_subscriber::fmt()
+            .with_ansi(false)
+            .without_time()
+            .with_max_level(tracing::Level::WARN)
+            .with_writer(move || writer.clone())
+            .finish(),
+    );
+    // Only our disposable cache is changed. Restore permissions before any assertion.
+    owned_cache_permission("-psetex").await;
+    let successful = if reset {
+        users
+            .reset_password(
+                FOO.user.email.clone().unwrap(),
+                code(),
+                new_password.clone(),
+            )
+            .with_subscriber(subscriber)
+            .await
+            .is_ok()
+    } else {
+        users
+            .update_user(
+                &old.access_token,
+                FOO.user.id.into(),
+                UserUpdateRequest {
+                    user: UserUpdateUserRequest {
+                        password: PatchValue::Update(PasswordUpdate::Change(new_password.clone())),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                },
+            )
+            .with_subscriber(subscriber)
+            .await
+            .is_ok()
+    };
+    owned_cache_permission("+psetex").await;
+    let txn = db.begin_transaction().await.unwrap();
+    let remaining: i64 = txn
+        .txn()
+        .query_one(
+            "SELECT count(*) FROM sessions WHERE user_id=$1",
+            &[&*FOO.user.id],
+        )
+        .await
+        .unwrap()
+        .get(0);
+    txn.commit().await.unwrap();
+    assert_eq!(
+        remaining, 0,
+        "post-commit cache failure restored durable sessions"
+    );
+    assert!(
+        sessions
+            .get_current_session(&old.access_token)
+            .await
+            .is_err()
+    );
+    assert!(sessions.refresh_session(&old.refresh_token).await.is_err());
+    assert!(
+        cache
+            .get::<(
+                academy_models::email_address::EmailAddress,
+                VerificationCode
+            )>(&format!(
+                "reset_password_code:v2:{}",
+                FOO.user.id.hyphenated()
+            ))
+            .await
+            .unwrap()
+            .is_none(),
+        "successful credential commit left a reset challenge valid"
+    );
+    cache.clear().await.unwrap();
+    assert!(
+        sessions
+            .get_current_session(&old.access_token)
+            .await
+            .is_err()
+    );
+    assert!(sessions.refresh_session(&old.refresh_token).await.is_err());
+    sessions
+        .create_session(
+            "127.0.0.1".parse().unwrap(),
+            SessionCreateCommand {
+                name_or_email: UserNameOrEmailAddress::Name(FOO.user.name.clone()),
+                password: new_password.clone(),
+                mfa: MfaAuthentication::default(),
+                device_name: None,
+            },
+            None,
+        )
+        .await
+        .expect("known committed password must permit a new session");
+    assert!(
+        successful,
+        "known successful password commit returned an error after cache failure"
+    );
+    let captured = String::from_utf8(bytes.lock().unwrap().clone()).unwrap();
+    assert!(
+        captured.contains("WARN")
+            && captured.contains("Committed password change; session cache invalidation failed"),
+        "cache failure was not observable to operators"
+    );
+    assert!(
+        ![
+            new_password.as_str(),
+            old.access_token.as_str(),
+            old.refresh_token.as_str(),
+            code().as_str(),
+            FOO.user.email.as_ref().unwrap().as_str()
+        ]
+        .iter()
+        .any(|secret| captured.contains(secret)),
+        "post-commit warning exposed account or credential values"
+    );
+}
+
+#[tokio::test]
+async fn committed_reset_succeeds_when_cache_invalidation_fails() {
+    committed_password_change_with_failed_cache_is_successful(true).await;
+}
+
+#[tokio::test]
+async fn committed_account_password_change_succeeds_when_cache_invalidation_fails() {
+    committed_password_change_with_failed_cache_is_successful(false).await;
+}
+
+#[tokio::test]
+async fn successful_mfa_authentication_never_logs_totp_code() {
+    use academy_core_session_contracts::SessionCreateCommand;
+    use academy_demo::user::FOO_PASSWORD;
+    use academy_models::{
+        mfa::{MfaAuthentication, TotpCode},
+        user::UserNameOrEmailAddress,
+    };
+    use tracing::instrument::WithSubscriber;
+    let (mut provider, db, _) = fixture().await;
+    let txn = db.begin_transaction().await.unwrap();
+    txn.txn()
+        .execute(
+            "UPDATE totp_devices SET enabled=true WHERE user_id=$1",
+            &[&*FOO.user.id],
+        )
+        .await
+        .unwrap();
+    txn.commit().await.unwrap();
+    // RFC6238 using the public demo fixture; the real second factor must succeed.
+    let output = tokio::process::Command::new("python3").args(["-B", "-c", r#"import base64,hashlib,hmac,struct,time; fixture='6MKF3WY2IYYEVEKW4O4W6NNUBY'; secret=base64.b32decode(fixture+'='*(-len(fixture)%8)); digest=hmac.new(secret,struct.pack('>Q',int(time.time())//30),hashlib.sha1).digest(); offset=digest[-1]&15; value=(struct.unpack('>I',digest[offset:offset+4])[0]&0x7fffffff)%1000000; print(str(value).zfill(6))"#]).output().await.unwrap();
+    assert!(output.status.success(), "synthetic TOTP calculation failed");
+    let raw = String::from_utf8(output.stdout).unwrap().trim().to_owned();
+    let totp: TotpCode = raw.clone().try_into().unwrap();
+    assert_eq!(
+        serde_json::to_value(&totp).unwrap().as_str(),
+        Some(raw.as_str()),
+        "redaction changed the public input format"
+    );
+    let sessions: types::SessionFeature = provider.provide();
+    let bytes = Arc::new(std::sync::Mutex::new(Vec::new()));
+    let writer = FollowupCapture(Arc::clone(&bytes));
+    let subscriber = tracing_subscriber::fmt()
+        .with_ansi(false)
+        .without_time()
+        .with_max_level(tracing::Level::TRACE)
+        .with_writer(move || writer.clone())
+        .finish();
+    let authenticated = sessions
+        .create_session(
+            "127.0.0.1".parse().unwrap(),
+            SessionCreateCommand {
+                name_or_email: UserNameOrEmailAddress::Name(FOO.user.name.clone()),
+                password: FOO_PASSWORD.clone(),
+                mfa: MfaAuthentication {
+                    totp_code: Some(totp),
+                    ..Default::default()
+                },
+                device_name: None,
+            },
+            None,
+        )
+        .with_subscriber(subscriber)
+        .await
+        .unwrap();
+    assert!(
+        authenticated.session.mfa_verified,
+        "trace probe never authenticated its second factor"
+    );
+    let captured = String::from_utf8(bytes.lock().unwrap().clone()).unwrap();
+    assert!(
+        !captured.is_empty(),
+        "trace probe captured no actual service events"
+    );
+    assert!(
+        !captured.contains(&raw),
+        "successful authentication TRACE exposed the raw TOTP code"
+    );
+}

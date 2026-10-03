@@ -15,6 +15,13 @@ use thiserror::Error;
 
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait UserRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
+    /// Serialize credential changes with login, refresh and session creation.
+    /// Read the current account/credentials only after acquiring this lock.
+    fn lock_account(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
+    ) -> impl Future<Output = anyhow::Result<bool>> + Send;
     /// Internal lifecycle identity; purpose subjects are physically present but
     /// do not acquire ordinary authentication or public-profile authority.
     fn get_internal_composite(
@@ -228,6 +235,16 @@ pub enum UserRepoError {
 
 #[cfg(feature = "mock")]
 impl<Txn: Send + Sync + 'static> MockUserRepository<Txn> {
+    pub fn with_lock_account(mut self, user_id: UserId, result: bool) -> Self {
+        self.expect_lock_account()
+            .once()
+            .with(
+                mockall::predicate::always(),
+                mockall::predicate::eq(user_id),
+            )
+            .return_once(move |_, _| Box::pin(std::future::ready(Ok(result))));
+        self
+    }
     pub fn with_count(mut self, filter: UserFilter, result: u64) -> Self {
         self.expect_count()
             .once()

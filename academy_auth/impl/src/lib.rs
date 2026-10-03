@@ -78,44 +78,19 @@ where
 {
     #[trace_instrument(skip(self))]
     async fn authenticate(&self, token: &AccessToken) -> Result<Authentication, AuthenticateError> {
-        let auth = self
-            .auth_access_token
-            .verify(token)
-            .ok_or(AuthenticateError::InvalidToken)?;
-
-        if self
-            .auth_access_token
-            .is_invalidated(auth.refresh_token_hash)
-            .await
-            .context("Failed to check whether access token has been invalidated")?
-        {
-            trace!(?auth, "token invalidated");
-            return Err(AuthenticateError::InvalidToken);
-        }
-
+        let auth = authenticate_token(&self.auth_access_token, token).await?;
         let mut txn = self.db.begin_transaction().await?;
-        // Ordinary authority requires a current live session and an enabled
-        // account. Redis invalidation is an early rejection optimization, never
-        // the sole source of authority (cache expiry/flush cannot revive it).
-        let user = self
-            .user_repo
-            .get_composite(&mut txn, auth.user_id)
-            .await?
-            .filter(|u| u.user.enabled)
-            .ok_or(AuthenticateError::InvalidToken)?;
-        let session = self
-            .session_repo
-            .get_by_refresh_token_hash(&mut txn, auth.refresh_token_hash)
-            .await?
-            .filter(|s| s.id == auth.session_id && s.user_id == auth.user_id)
-            .ok_or(AuthenticateError::InvalidToken)?;
-        let auth = Authentication {
-            admin: user.user.admin,
-            email_verified: user.user.email_verified,
-            mfa_verified: session.mfa_verified,
-            ..auth
-        };
-        Ok(auth)
+        authenticate_current_authority(&self.user_repo, &self.session_repo, &mut txn, auth).await
+    }
+
+    #[trace_instrument(skip(self, txn))]
+    async fn authenticate_in_transaction(
+        &self,
+        txn: &mut Txn,
+        token: &AccessToken,
+    ) -> Result<Authentication, AuthenticateError> {
+        let auth = authenticate_token(&self.auth_access_token, token).await?;
+        authenticate_current_authority(&self.user_repo, &self.session_repo, txn, auth).await
     }
 
     #[trace_instrument(skip(self, txn, password))]
@@ -125,6 +100,11 @@ where
         user_id: UserId,
         password: UserPassword,
     ) -> Result<(), AuthenticateByPasswordError> {
+        // Holding the same owner lock as reset/revocation prevents a login
+        // verified against the old password from creating a session after reset.
+        if !self.user_repo.lock_account(txn, user_id).await? {
+            return Err(AuthenticateByPasswordError::InvalidCredentials);
+        }
         let password_hash = self
             .user_repo
             .get_password_hash(txn, user_id)
@@ -225,4 +205,59 @@ where
 
         Ok(())
     }
+}
+
+// Keep signature/cache verification and durable authority identical for ordinary
+// requests and for a caller already holding its account transaction.
+async fn authenticate_token(
+    auth_access_token: &impl AuthAccessTokenService,
+    token: &AccessToken,
+) -> Result<Authentication, AuthenticateError> {
+    let auth = auth_access_token
+        .verify(token)
+        .ok_or(AuthenticateError::InvalidToken)?;
+
+    if auth_access_token
+        .is_invalidated(auth.refresh_token_hash)
+        .await
+        .context("Failed to check whether access token has been invalidated")?
+    {
+        trace!(?auth, "token invalidated");
+        return Err(AuthenticateError::InvalidToken);
+    }
+
+    Ok(auth)
+}
+
+async fn authenticate_current_authority<Txn, UserRepo, SessionRepo>(
+    user_repo: &UserRepo,
+    session_repo: &SessionRepo,
+    txn: &mut Txn,
+    auth: Authentication,
+) -> Result<Authentication, AuthenticateError>
+where
+    Txn: Send + Sync + 'static,
+    UserRepo: UserRepository<Txn>,
+    SessionRepo: SessionRepository<Txn>,
+{
+    // Ordinary authority requires a current live session and an enabled
+    // account. Redis invalidation is an early rejection optimization, never
+    // the sole source of authority (cache expiry/flush cannot revive it).
+    let user = user_repo
+        .get_composite(txn, auth.user_id)
+        .await?
+        .filter(|u| u.user.enabled)
+        .ok_or(AuthenticateError::InvalidToken)?;
+    let session = session_repo
+        .get_by_refresh_token_hash(txn, auth.refresh_token_hash)
+        .await?
+        .filter(|s| s.id == auth.session_id && s.user_id == auth.user_id)
+        .ok_or(AuthenticateError::InvalidToken)?;
+    let auth = Authentication {
+        admin: user.user.admin,
+        email_verified: user.user.email_verified,
+        mfa_verified: session.mfa_verified,
+        ..auth
+    };
+    Ok(auth)
 }

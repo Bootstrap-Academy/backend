@@ -32,11 +32,13 @@ HISTORICAL_FIXTURE_ENV = (
 )
 
 
-def main() -> int:
+def main(*, postgres_tests=None, cache_port=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--evidence-dir", type=Path, required=True)
     parser.add_argument("--suite", choices=["unit", "postgres"], default="unit")
     args = parser.parse_args()
+    if postgres_tests is not None and args.suite != "postgres":
+        parser.error("selected integration targets require the owned postgres fixture")
     if os.geteuid() == 0:
         parser.error("run as an unprivileged user")
     evidence = args.evidence_dir.resolve()
@@ -51,6 +53,11 @@ def main() -> int:
         if "(PostgreSQL) 18." not in version:
             parser.error(f"{tool} must come from the same PostgreSQL 18 installation")
     config = (repo / "config.dev.toml").read_text()
+    if cache_port is not None:
+        cache_url = "redis://127.0.0.1:6379/0"
+        if config.count(cache_url) != 1 or not 0 < cache_port < 65536:
+            raise RuntimeError("one synthetic cache URL and a valid owned port required")
+        config = config.replace(cache_url, f"redis://127.0.0.1:{cache_port}/0")
     old_url = "postgres://academy@127.0.0.1:5432/academy"
     if config.count(old_url) != 1:
         raise RuntimeError("the committed synthetic development database URL must occur exactly once")
@@ -157,21 +164,25 @@ def main() -> int:
         ):
             return 1
         if args.suite == "postgres":
-            result = run(
-                "postgres",
-                [
-                    "cargo",
-                    "test",
-                    "-p",
-                    "academy_persistence_postgres",
-                    "--no-fail-fast",
-                    "--all-features",
-                    "--test",
-                    "*",
-                    "--",
-                    "--nocapture",
-                ],
-            )
+            targets = postgres_tests or [("academy_persistence_postgres", "*")]
+            for package, target in targets:
+                result = run(
+                    "postgres" if postgres_tests is None else target,
+                    [
+                        "cargo",
+                        "test",
+                        "-p",
+                        package,
+                        "--no-fail-fast",
+                        "--all-features",
+                        "--test",
+                        target,
+                        "--",
+                        "--nocapture",
+                    ],
+                )
+                if result:
+                    return result
             return result
         result = run("unit", ["cargo", "test", "--no-fail-fast", "--all-features", "--bins", "--lib"])
         if result == 0:

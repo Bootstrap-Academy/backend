@@ -170,7 +170,7 @@ pub type UserFeature = UserFeatureServiceImpl<
 >;
 pub type User = UserServiceImpl<Id, Time, Password, UserRepo, OAuth2Link>;
 pub type UserEmailConfirmation =
-    UserEmailConfirmationServiceImpl<Auth, Secret, TemplateEmail, Cache, Password, UserRepo>;
+    UserEmailConfirmationServiceImpl<Secret, TemplateEmail, Cache, Password, UserRepo>;
 pub type UserExport = UserExportServiceImpl<
     UserRepo,
     SessionRepo,

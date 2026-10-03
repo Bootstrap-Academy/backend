@@ -59,25 +59,17 @@ where
             return Err(TotpCheckError::InvalidCode);
         }
 
-        // temporarily cache used totp codes to prevent replay attacks
+        // Reserve valid codes atomically: two concurrent checks must never both
+        // authorize a request. Each code is accepted for three 30-second windows.
         let cache_key = format!("totp_code_used:{}:{}", hex::encode(secret_hash.0), **code);
-        if self
+        if !self
             .cache
-            .get::<()>(&cache_key)
+            .set_if_absent(&cache_key, &(), Some(Duration::from_secs(90)))
             .await
-            .context("Failed to check whether totp code has recently been used")?
-            .is_some()
+            .context("Failed to reserve TOTP code")?
         {
             return Err(TotpCheckError::RecentlyUsed);
         }
-
-        // Each code is valid for 30 seconds and we also accept the window before and
-        // after the current one. So after 30 + 30 + 30 = 90 seconds the code should
-        // have expired and can be removed from the cache.
-        self.cache
-            .set(&cache_key, &(), Some(Duration::from_secs(90)))
-            .await
-            .context("Failed to cache used totp code")?;
 
         Ok(())
     }
@@ -133,9 +125,12 @@ mod tests {
         let hash = MockHashService::new().with_sha256(secret.clone().into_inner(), *SHA256HASH1);
 
         let cache_key = format!("totp_code_used:{SHA256HASH1_HEX}:{code}");
-        let cache = MockCacheService::new()
-            .with_get(cache_key.clone(), None::<()>)
-            .with_set(cache_key, (), Some(Duration::from_secs(90)));
+        let cache = MockCacheService::new().with_set_if_absent(
+            cache_key,
+            (),
+            Some(Duration::from_secs(90)),
+            true,
+        );
 
         let sut = TotpServiceImpl {
             time,
@@ -187,7 +182,12 @@ mod tests {
         let hash = MockHashService::new().with_sha256(secret.clone().into_inner(), *SHA256HASH1);
 
         let cache_key = format!("totp_code_used:{SHA256HASH1_HEX}:{code}");
-        let cache = MockCacheService::new().with_get(cache_key.clone(), Some(()));
+        let cache = MockCacheService::new().with_set_if_absent(
+            cache_key,
+            (),
+            Some(Duration::from_secs(90)),
+            false,
+        );
 
         let sut = TotpServiceImpl {
             time,

@@ -67,6 +67,52 @@ async fn set_ttl() {
 }
 
 #[tokio::test]
+async fn single_use_reservation_has_one_winner_and_keeps_its_value() {
+    let cache = setup().await;
+    let mut attempts = tokio::task::JoinSet::new();
+    for value in 0..32 {
+        let cache = cache.clone();
+        attempts.spawn(async move {
+            let created = cache
+                .set_if_absent("single-use", &value, None)
+                .await
+                .unwrap();
+            (created, value)
+        });
+    }
+    let mut results = Vec::new();
+    while let Some(result) = attempts.join_next().await {
+        results.push(result.unwrap());
+    }
+    let winners: Vec<_> = results.iter().filter(|(created, _)| *created).collect();
+    assert_eq!(winners.len(), 1);
+    assert_eq!(
+        cache.get::<i32>("single-use").await.unwrap(),
+        Some(winners[0].1)
+    );
+}
+
+#[tokio::test]
+async fn refused_reservation_does_not_extend_expiry() {
+    let cache = setup().await;
+    assert!(
+        cache
+            .set_if_absent("single-use", &1, Some(Duration::from_millis(200)))
+            .await
+            .unwrap()
+    );
+    assert!(
+        !cache
+            .set_if_absent("single-use", &2, Some(Duration::from_secs(10)))
+            .await
+            .unwrap()
+    );
+    tokio::time::sleep(Duration::from_millis(300)).await;
+    assert!(cache.set_if_absent("single-use", &3, None).await.unwrap());
+    assert_eq!(cache.get::<i32>("single-use").await.unwrap(), Some(3));
+}
+
+#[tokio::test]
 async fn pop() {
     let cache = setup().await;
 

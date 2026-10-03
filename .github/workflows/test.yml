@@ -65,6 +65,10 @@ jobs:
         env:
           ACADEMY_CONFIG: ${{ github.workspace }}/config.extra.toml:${{ github.workspace }}/config.dev.toml
           RUST_TEST_THREADS: 1
+      - name: test concurrent second-factor replay
+        run: cargo test -p academy --test totp_replay
+        env:
+          ACADEMY_CONFIG: ${{ github.workspace }}/config.extra.toml:${{ github.workspace }}/config.dev.toml
     services:
       valkey:
         image: valkey/valkey:9.1-alpine

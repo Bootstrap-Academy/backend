@@ -20,6 +20,16 @@ pub trait CacheService: Sized + Send + Sync + 'static {
         ttl: Option<Duration>,
     ) -> impl Future<Output = anyhow::Result<()>> + Send;
 
+    /// Atomically create an item only if its key is absent. Returns whether it
+    /// was created; an existing item's value and expiry are left unchanged.
+    /// Use this to reserve a single-use code across concurrent requests.
+    fn set_if_absent<T: Serialize + Debug + Sync + 'static>(
+        &self,
+        key: &str,
+        value: &T,
+        ttl: Option<Duration>,
+    ) -> impl Future<Output = anyhow::Result<bool>> + Send;
+
     /// Read a cache item and remove it in the same operation.
     ///
     /// Returns `None` if the cache item does not exist. Because reading and
@@ -79,6 +89,24 @@ impl MockCacheService {
             .once()
             .with(mockall::predicate::eq(key))
             .return_once(|_| Box::pin(std::future::ready(Ok(result))));
+        self
+    }
+
+    pub fn with_set_if_absent<T: Debug + PartialEq + Serialize + Send + Sync + 'static>(
+        mut self,
+        key: String,
+        value: T,
+        ttl: Option<Duration>,
+        created: bool,
+    ) -> Self {
+        self.expect_set_if_absent()
+            .once()
+            .with(
+                mockall::predicate::eq(key),
+                mockall::predicate::eq(value),
+                mockall::predicate::eq(ttl),
+            )
+            .return_once(move |_, _, _| Box::pin(std::future::ready(Ok(created))));
         self
     }
 

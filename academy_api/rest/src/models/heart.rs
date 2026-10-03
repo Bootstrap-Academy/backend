@@ -36,6 +36,7 @@ impl From<HeartOperationReceipt> for ApiHeartOperationReceipt {
                 HeartOperationOutcome::Charged => "charged",
                 HeartOperationOutcome::Premium => "premium",
                 HeartOperationOutcome::Insufficient => "insufficient",
+                HeartOperationOutcome::DailyLearning => "daily_learning",
             },
         }
     }

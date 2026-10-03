@@ -15,6 +15,7 @@ use academy_models::{
     heart::{
         HeartOperation, HeartOperationClaim, HeartOperationOutcome, HeartOperationReceipt, Hearts,
     },
+    learning_policy::{LearningMode, LearningPolicy, LearningPolicyConfig},
     user::{UserComposite, UserId},
 };
 use academy_persistence_contracts::{
@@ -45,6 +46,7 @@ pub struct InternalServiceImpl<
     coin: Coin,
     heart: Heart,
     premium: Premium,
+    learning_policy_config: LearningPolicyConfig,
 }
 
 impl<Db, AuthInternal, UserRepo, Coin, Heart, Premium, CoinRepo, HeartRepo> InternalService
@@ -225,6 +227,17 @@ where
             return Err(InternalAddHeartsError::UserNotFound);
         }
 
+        if hearts < 0 && self.learning_policy_config.mode == LearningMode::Daily {
+            let user = self
+                .user_repo
+                .get_internal_composite(&mut txn, user_id)
+                .await?
+                .ok_or(InternalAddHeartsError::UserNotFound)?;
+            if self.learning_policy_config.mode_for(&user.user) == LearningMode::Daily {
+                return self.heart.get(&mut txn, user_id).await.map_err(Into::into);
+            }
+        }
+
         let result = self
             .heart
             .add(&mut txn, user_id, hearts)
@@ -271,13 +284,28 @@ where
 
         // The shared user lock also serializes premium changes, paid refills,
         // ordinary consumption and erasure. Refill is evaluated exactly once.
-        let premium = self
-            .premium
-            .get_active(&mut txn, operation.user_id)
-            .await?
-            .is_some();
+        let daily = if self.learning_policy_config.mode == LearningMode::Daily {
+            let user = self
+                .user_repo
+                .get_internal_composite(&mut txn, operation.user_id)
+                .await?
+                .ok_or(InternalHeartOperationError::UserNotFound)?;
+            self.learning_policy_config.mode_for(&user.user) == LearningMode::Daily
+        } else {
+            false
+        };
+        let premium = if daily {
+            false
+        } else {
+            self.premium
+                .get_active(&mut txn, operation.user_id)
+                .await?
+                .is_some()
+        };
         let current = self.heart.get(&mut txn, operation.user_id).await?;
-        let (outcome, charged_half_hearts) = if premium {
+        let (outcome, charged_half_hearts) = if daily {
+            (HeartOperationOutcome::DailyLearning, 0)
+        } else if premium {
             (HeartOperationOutcome::Premium, 0)
         } else if current.hearts < 2 {
             // A concurrent attempt may have used the last heart. No partial
@@ -304,6 +332,26 @@ where
             .await?;
         txn.commit().await?;
         Ok(receipt)
+    }
+
+    #[trace_instrument(skip(self))]
+    async fn learning_policy(
+        &self,
+        token: &InternalToken,
+        user_id: UserId,
+    ) -> Result<LearningPolicy, InternalHasPremiumError> {
+        self.auth_internal.authenticate(token, "shop")?;
+        let mut txn = self.db.begin_transaction().await?;
+        let user = self
+            .user_repo
+            .get_internal_composite(&mut txn, user_id)
+            .await?
+            .ok_or(InternalHasPremiumError::UserNotFound)?;
+        let premium = self.premium.get_current(&mut txn, user_id).await?.is_some();
+        Ok(LearningPolicy::new(
+            self.learning_policy_config.mode_for(&user.user),
+            premium,
+        ))
     }
 
     #[trace_instrument(skip(self))]

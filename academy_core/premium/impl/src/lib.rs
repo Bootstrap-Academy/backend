@@ -21,6 +21,7 @@ use academy_persistence_contracts::{
 };
 use academy_utils::trace_instrument;
 
+pub mod documents;
 pub mod period;
 pub mod plan;
 pub mod premium;
@@ -54,10 +55,11 @@ pub struct PremiumFeatureServiceImpl<
     renewal: RenewalS,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct PremiumFeatureConfig {
     pub monthly_price: u64,
     pub yearly_price: u64,
+    pub daily_documents: Option<documents::PurchaseDocuments>,
 }
 
 impl<
@@ -95,6 +97,26 @@ where
 {
     fn get_renewal_offer(&self) -> PremiumRenewalOffer {
         self.renewal.offer()
+    }
+
+    async fn get_renewal_offer_for(
+        &self,
+        token: &AccessToken,
+    ) -> Result<PremiumRenewalOffer, PremiumUpdateSubscriptionError> {
+        let auth = self.auth.authenticate(token).await.map_auth_err()?;
+        self.renewal.offer_for(auth.user_id).await
+    }
+
+    async fn get_renewal_document(
+        &self,
+        token: &AccessToken,
+        offer_id: &str,
+        kind: academy_core_premium_contracts::renewal::RenewalDocumentKind,
+    ) -> Result<Vec<u8>, PremiumUpdateSubscriptionError> {
+        let auth = self.auth.authenticate(token).await.map_auth_err()?;
+        self.renewal
+            .document_for(auth.user_id, offer_id, kind)
+            .await
     }
 
     async fn retry_renewal_confirmations(&self) -> anyhow::Result<()> {

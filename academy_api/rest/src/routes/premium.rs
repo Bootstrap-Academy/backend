@@ -11,7 +11,7 @@ use aide::{
 use axum::{
     Json,
     extract::{Path, State},
-    http::StatusCode,
+    http::{StatusCode, header},
     response::{IntoResponse, Response},
 };
 use schemars::JsonSchema;
@@ -44,6 +44,19 @@ pub fn router(service: Arc<impl PremiumFeatureService>) -> ApiRouter<()> {
                 op.summary("Return the exact monthly renewal offer requiring explicit consent.")
                     .add_response::<RenewalOfferResponse>(StatusCode::OK, None)
             }),
+        )
+        .api_route(
+            "/shop/premium/renewal-offer/me",
+            routing::get_with(get_renewal_offer_for, |op| {
+                op.summary("Return the exact monthly offer for the authenticated learner's policy.")
+                    .add_response::<RenewalOfferResponse>(StatusCode::OK, None)
+                    .with(auth_error_docs)
+                    .with(internal_server_error_docs)
+            }),
+        )
+        .api_route(
+            "/shop/premium/renewal-offer/me/{offer_id}/documents/{kind}",
+            routing::get_with(get_renewal_document, get_renewal_document_docs),
         )
         .api_route(
             "/shop/premium/{user_id}",
@@ -178,4 +191,134 @@ error_code! {
     RenewalConsentRequiredError(PRECONDITION_FAILED, "Current monthly renewal consent required");
     /// The user is not a premium member
     NoPremiumError(PRECONDITION_FAILED, "No premium");
+}
+
+async fn get_renewal_offer_for(
+    service: State<Arc<impl PremiumFeatureService>>,
+    token: ApiToken,
+) -> Response {
+    match service.get_renewal_offer_for(&token.0).await {
+        Ok(offer) => Json(RenewalOfferResponse {
+            id: offer.id,
+            monthly_price: offer.monthly_price,
+            terms_version: offer.terms_version,
+            text: offer.text,
+        })
+        .into_response(),
+        Err(PremiumUpdateSubscriptionError::NoPremium) => NoPremiumError.into_response(),
+        Err(PremiumUpdateSubscriptionError::RenewalConsentRequired) => {
+            RenewalConsentRequiredError.into_response()
+        }
+        Err(PremiumUpdateSubscriptionError::Auth(err)) => auth_error(err),
+        Err(PremiumUpdateSubscriptionError::Other(err)) => internal_server_error(err),
+    }
+}
+
+fn get_renewal_document_docs(op: TransformOperation) -> TransformOperation {
+    op.summary("Download the exact offered renewal PDF (terms or withdrawal).")
+        .add_response_with::<String>(
+            StatusCode::OK,
+            "Exact offered PDF; private, no-store",
+            |mut response| {
+                response.inner().content.clear();
+                response.inner().content.insert("application/pdf".into(), aide::openapi::MediaType {
+                schema: Some(aide::openapi::SchemaObject {
+                    json_schema: schemars::json_schema!({"type":"string","format":"binary"}),
+                    external_docs: None,
+                    example: None,
+                }),
+                ..Default::default()
+            });
+                response
+            },
+        )
+        .response_with::<409, (), _>(|response| {
+            response.description("The current offer has changed.")
+        })
+        .response_with::<404, (), _>(|response| {
+            response.description("Unknown document or account.")
+        })
+        .with(auth_error_docs)
+        .with(internal_server_error_docs)
+}
+
+async fn get_renewal_document(
+    service: State<Arc<impl PremiumFeatureService>>,
+    token: ApiToken,
+    Path((offer_id, kind)): Path<(String, String)>,
+) -> Response {
+    use academy_core_premium_contracts::renewal::RenewalDocumentKind;
+    let kind = match kind.as_str() {
+        "terms" => RenewalDocumentKind::Terms,
+        "withdrawal" => RenewalDocumentKind::Withdrawal,
+        _ => return StatusCode::NOT_FOUND.into_response(),
+    };
+    renewal_document_response(
+        service
+            .get_renewal_document(&token.0, &offer_id, kind)
+            .await,
+    )
+}
+
+fn renewal_document_response(result: Result<Vec<u8>, PremiumUpdateSubscriptionError>) -> Response {
+    match result {
+        Ok(bytes) => (
+            [
+                (header::CONTENT_TYPE, "application/pdf"),
+                (header::CONTENT_DISPOSITION, "attachment"),
+                (header::CACHE_CONTROL, "private, no-store"),
+            ],
+            bytes,
+        )
+            .into_response(),
+        Err(PremiumUpdateSubscriptionError::RenewalConsentRequired) => {
+            StatusCode::CONFLICT.into_response()
+        }
+        Err(PremiumUpdateSubscriptionError::NoPremium) => StatusCode::NOT_FOUND.into_response(),
+        Err(PremiumUpdateSubscriptionError::Auth(err)) => auth_error(err),
+        Err(PremiumUpdateSubscriptionError::Other(err)) => internal_server_error(err),
+    }
+}
+
+#[cfg(test)]
+mod renewal_document_tests {
+    use super::*;
+
+    #[test]
+    fn document_openapi_describes_binary_pdf_and_empty_conflict() {
+        let mut operation = aide::openapi::Operation::default();
+        let _ = get_renewal_document_docs(TransformOperation::new(&mut operation));
+        let json = serde_json::to_value(operation).unwrap();
+        let success = &json["responses"]["200"]["content"];
+        assert_eq!(success.as_object().unwrap().len(), 1);
+        assert_eq!(success["application/pdf"]["schema"]["format"], "binary");
+        assert!(json["responses"]["409"]["content"].is_null());
+    }
+
+    #[tokio::test]
+    async fn exact_pdf_is_private_and_stale_offer_never_returns_a_pdf() {
+        let pdf = b"%PDF-1.7 synthetic".to_vec();
+        let response = renewal_document_response(Ok(pdf.clone()));
+        assert_eq!(response.status(), StatusCode::OK);
+        assert_eq!(response.headers()[header::CONTENT_TYPE], "application/pdf");
+        assert_eq!(
+            response.headers()[header::CACHE_CONTROL],
+            "private, no-store"
+        );
+        assert_eq!(
+            axum::body::to_bytes(response.into_body(), 1024)
+                .await
+                .unwrap(),
+            pdf
+        );
+        let stale =
+            renewal_document_response(Err(PremiumUpdateSubscriptionError::RenewalConsentRequired));
+        assert_eq!(stale.status(), StatusCode::CONFLICT);
+        assert!(
+            axum::body::to_bytes(stale.into_body(), 1024)
+                .await
+                .unwrap()
+                .is_empty()
+        );
+    }
 }

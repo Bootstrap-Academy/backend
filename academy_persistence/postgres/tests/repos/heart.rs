@@ -361,3 +361,31 @@ async fn migration_is_additive_and_cannot_discard_replay_receipts() {
     txn.rollback().await.unwrap();
     super::assert_down_refused(&db, MIGRATION, "must not be removed").await;
 }
+
+#[tokio::test]
+async fn daily_receipt_is_durable_zero_charge_and_replays_without_balance_change() {
+    let db = setup().await;
+    let mut txn = db.begin_transaction().await.unwrap();
+    let expected = HeartOperationReceipt {
+        charged_half_hearts: 0,
+        hearts: 2,
+        outcome: HeartOperationOutcome::DailyLearning,
+        ..receipt()
+    };
+    REPO.complete_operation(&mut txn, &operation(), expected)
+        .await
+        .unwrap();
+    txn.commit().await.unwrap();
+    let mut txn = db.begin_transaction().await.unwrap();
+    assert_eq!(
+        REPO.claim_operation(&mut txn, &operation()).await.unwrap(),
+        HeartOperationClaim::Completed(expected)
+    );
+    assert!(
+        REPO.export_operations(&mut txn, FOO.user.id)
+            .await
+            .unwrap()
+            .contains("daily_learning")
+    );
+    assert_eq!(REPO.get(&mut txn, FOO.user.id).await.unwrap(), None);
+}

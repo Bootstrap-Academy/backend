@@ -1,7 +1,9 @@
+#[cfg(test)]
 use academy_assets::email::{AGB_2026_09_R4_PDF, WIDERRUFSBELEHRUNG_2026_09_R1_PDF};
 use academy_auth_contracts::{AuthService, internal::AuthInternalService};
 use academy_core_heart_contracts::heart::HeartService;
 use academy_core_heart_impl::HeartFeatureConfig;
+pub use academy_core_premium_impl::documents::PurchaseDocuments;
 use academy_core_premium_impl::{PremiumFeatureConfig, period::add_months};
 use academy_core_purchase_contracts::{PurchaseError, PurchaseFeatureService};
 use academy_di::Build;
@@ -11,6 +13,7 @@ use academy_email_contracts::{
 use academy_models::{
     auth::{AccessToken, InternalToken},
     coin::Transaction as CoinTransaction,
+    learning_policy::{LearningMode, LearningPolicy, LearningPolicyConfig},
     premium::Premium,
     purchase::*,
     user::UserId,
@@ -65,15 +68,7 @@ pub struct PurchaseFeatureServiceImpl<
     premium_config: PremiumFeatureConfig,
     heart_config: HeartFeatureConfig,
     purchase_config: PurchaseFeatureConfig,
-}
-
-fn docs_hash() -> String {
-    let mut hash = Sha256::new();
-    for bytes in [AGB_2026_09_R4_PDF, WIDERRUFSBELEHRUNG_2026_09_R1_PDF] {
-        hash.update((bytes.len() as u64).to_be_bytes());
-        hash.update(bytes);
-    }
-    format!("{:x}", hash.finalize())
+    learning_policy_config: LearningPolicyConfig,
 }
 
 impl<Db, Auth, InternalAuth, UserRepo, CoinRepo, Heart, HeartRepo, PremiumRepo, PurchaseRepo, Mail>
@@ -101,6 +96,36 @@ where
     PurchaseRepo: PurchaseRepository<Db::Transaction>,
     Mail: EmailService,
 {
+    async fn mode_for(
+        &self,
+        txn: &mut Db::Transaction,
+        user: UserId,
+    ) -> Result<LearningMode, PurchaseError> {
+        if self.learning_policy_config.mode != LearningMode::Daily {
+            return Ok(self.learning_policy_config.mode);
+        }
+        let account = self
+            .user_repo
+            .get_internal_composite(txn, user)
+            .await?
+            .ok_or(PurchaseError::NotFound)?;
+        Ok(self.learning_policy_config.mode_for(&account.user))
+    }
+
+    async fn ensure_new_product_allowed(
+        &self,
+        txn: &mut Db::Transaction,
+        user: UserId,
+        kind: &str,
+    ) -> Result<(), PurchaseError> {
+        if matches!(kind, "hearts" | "course")
+            && self.mode_for(txn, user).await? == LearningMode::Daily
+        {
+            return Err(PurchaseError::Unavailable);
+        }
+        Ok(())
+    }
+
     async fn principal(&self, token: &AccessToken) -> Result<UserId, PurchaseError> {
         let auth = self
             .auth
@@ -135,6 +160,26 @@ where
             service_starts_at: None,
         })
     }
+    fn documents_for(&self, mode: LearningMode) -> Result<PurchaseDocuments, PurchaseError> {
+        if mode == LearningMode::Daily {
+            return self
+                .premium_config
+                .daily_documents
+                .clone()
+                .ok_or(PurchaseError::Unavailable);
+        }
+        Ok(PurchaseDocuments::legacy())
+    }
+
+    fn adapt_premium_product(&self, product: &mut PurchaseProduct, mode: LearningMode) {
+        if mode == LearningMode::Daily && product.kind.starts_with("premium_") {
+            product.description = format!(
+                "Du kannst jeden Tag beliebig viele neue Lektionen anfangen. {COMMENCEMENT}"
+            );
+            product.revision.push_str(":daily");
+        }
+    }
+
     async fn unresolved(
         &self,
         txn: &mut Db::Transaction,
@@ -193,6 +238,11 @@ where
             txn.commit().await?;
             return Ok(existing);
         }
+        self.ensure_new_product_allowed(&mut txn, user, &product.kind)
+            .await?;
+        let mode = self.mode_for(&mut txn, user).await?;
+        let documents = self.documents_for(mode)?;
+        self.adapt_premium_product(&mut product, mode);
         let provision_window_seconds = if product.service_starts_at.is_none() {
             Some(
                 *self
@@ -281,7 +331,7 @@ where
             expires_at,
             recipient,
             product,
-            document_hash: docs_hash(),
+            document_hash: documents.hash(),
             hash: String::new(),
             text,
             declaration: DECLARATION.into(),
@@ -304,8 +354,8 @@ where
                 provision_timing: None,
                 document_corrections: Vec::new(),
             },
-            terms_pdf: AGB_2026_09_R4_PDF.to_vec(),
-            withdrawal_pdf: WIDERRUFSBELEHRUNG_2026_09_R1_PDF.to_vec(),
+            terms_pdf: documents.terms_pdf,
+            withdrawal_pdf: documents.withdrawal_pdf,
             confirmation_body: None,
             delivery_generation: 0,
             submission: None,
@@ -371,6 +421,8 @@ where
         if !exists {
             return Err(PurchaseError::NotFound);
         }
+        self.ensure_new_product_allowed(&mut txn, user, &o.product.kind)
+            .await?;
         self.purchase_repo
             .submit(
                 &mut txn,
@@ -393,11 +445,18 @@ where
             txn.commit().await?;
             return Ok(self.owned(user, o.id).await?.status);
         }
+        let mode = self.mode_for(&mut txn, user).await?;
+        let documents = self.documents_for(mode)?;
         let mut expected = if source == "backend" {
             Some(self.builtin(&o.product.kind)?)
         } else {
             None
         };
+        if let Some(ref mut expected) = expected
+            && o.product.kind.starts_with("premium_")
+        {
+            self.adapt_premium_product(expected, mode);
+        }
         if let Some(ref mut expected) = expected
             && o.product.kind == "hearts"
         {
@@ -405,7 +464,7 @@ where
             expected.description = o.product.description.clone();
         }
         if o.expires_at <= Utc::now()
-            || o.document_hash != docs_hash()
+            || o.document_hash != documents.hash()
             || expected.is_some_and(|v| v != o.product)
         {
             self.purchase_repo
@@ -979,7 +1038,14 @@ where
         let hearts = self.heart.get(&mut txn, user).await?;
         let balance = self.coin_repo.get_balance(&mut txn, user).await?;
         let now = Utc::now();
+        let learning_policy = LearningPolicy::new(
+            self.mode_for(&mut txn, user).await?,
+            premium
+                .as_ref()
+                .is_some_and(|p| p.since <= now && now < p.until),
+        );
         let result = json!({
+            "learning_policy": learning_policy,
             "subject":user,"purpose":"retained_learning","ordinary_authority":false,
             "coins":balance.coins,"withheld_coins":balance.withheld_coins,
             "hearts":hearts.hearts,"hearts_max":self.heart_config.hearts_max,
@@ -991,6 +1057,30 @@ where
         txn.commit().await?;
         Ok(result)
     }
+    async fn learning_policy(
+        &self,
+        token: &AccessToken,
+    ) -> Result<LearningPolicy, academy_core_purchase_contracts::LearningPolicyError> {
+        use academy_auth_contracts::AuthResultExt;
+        use academy_core_purchase_contracts::LearningPolicyError;
+        let user = self.auth.authenticate(token).await.map_auth_err()?.user_id;
+        let mut txn = self.db.begin_transaction().await?;
+        let account = self
+            .user_repo
+            .get_internal_composite(&mut txn, user)
+            .await?
+            .ok_or(LearningPolicyError::NotFound)?;
+        let premium = self
+            .premium_repo
+            .get_current_by_user_id(&mut txn, user)
+            .await?;
+        let now = Utc::now();
+        Ok(LearningPolicy::new(
+            self.learning_policy_config.mode_for(&account.user),
+            premium.is_some_and(|p| p.since <= now && now < p.until),
+        ))
+    }
+
     async fn offer(
         &self,
         token: &AccessToken,

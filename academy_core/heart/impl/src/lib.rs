@@ -8,6 +8,7 @@ use academy_di::Build;
 use academy_models::{
     auth::AccessToken,
     heart::{HeartConfig, Hearts},
+    learning_policy::{LearningMode, LearningPolicyConfig},
     user::UserIdOrSelf,
     withdrawal::{WithdrawalConsentDeclaration, WithdrawalSubject},
 };
@@ -30,6 +31,7 @@ pub struct HeartFeatureServiceImpl<Db, Auth, UserRepo, Heart, Coin, WithdrawalCo
     coin: Coin,
     withdrawal_consent: WithdrawalConsentS,
     config: HeartFeatureConfig,
+    learning_policy_config: LearningPolicyConfig,
 }
 
 #[derive(Debug, Clone)]
@@ -95,6 +97,19 @@ where
 
         let mut txn = self.db.begin_transaction().await?;
 
+        if self.learning_policy_config.mode == LearningMode::Daily {
+            let user = self
+                .user_repo
+                .get_internal_composite(&mut txn, user_id)
+                .await?
+                .ok_or_else(|| anyhow::anyhow!("Learning account unavailable"))?;
+            if self.learning_policy_config.mode_for(&user.user) == LearningMode::Daily {
+                return Err(anyhow::anyhow!(
+                    "Heart purchases are unavailable under daily learning"
+                )
+                .into());
+            }
+        }
         let hearts = self.heart.get(&mut txn, user_id).await?;
         if hearts.hearts >= self.config.hearts_max {
             return Ok(hearts);

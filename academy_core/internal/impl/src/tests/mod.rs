@@ -25,3 +25,5 @@ type Sut = InternalServiceImpl<
     academy_persistence_contracts::coin::MockCoinRepository<MockTransaction>,
     academy_persistence_contracts::heart::MockHeartRepository<MockTransaction>,
 >;
+
+mod learning_policy;

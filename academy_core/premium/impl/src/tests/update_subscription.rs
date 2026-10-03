@@ -88,3 +88,20 @@ async fn cancellation_never_calls_charge_on_read_even_without_premium() {
         .await
         .unwrap();
 }
+
+#[tokio::test]
+async fn renewal_documents_require_authentication_before_any_document_read() {
+    let sut = Sut {
+        auth: MockAuthService::new().with_authenticate(None),
+        ..Sut::default()
+    };
+    assert!(matches!(
+        sut.get_renewal_document(
+            &"token".into(),
+            "offer",
+            academy_core_premium_contracts::renewal::RenewalDocumentKind::Terms
+        )
+        .await,
+        Err(PremiumUpdateSubscriptionError::Auth(_))
+    ));
+}

@@ -13,6 +13,7 @@ pub mod contract;
 pub mod email_address;
 pub mod finance;
 pub mod heart;
+pub mod learning_policy;
 mod macros;
 pub mod mfa;
 pub mod oauth2;

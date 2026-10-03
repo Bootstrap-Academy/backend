@@ -107,6 +107,7 @@ async fn replay_never_rechecks_balance_premium_or_user_and_cannot_become_a_debt(
         HeartOperationOutcome::Charged,
         HeartOperationOutcome::Premium,
         HeartOperationOutcome::Insufficient,
+        HeartOperationOutcome::DailyLearning,
     ] {
         let expected = HeartOperationReceipt {
             operation_id: UUID1.into(),
@@ -246,4 +247,49 @@ async fn failed_receipt_does_not_commit_the_debit() {
             .await,
         Err(InternalHeartOperationError::Other(_))
     ));
+}
+
+#[tokio::test]
+async fn daily_mode_finishes_pending_operation_with_unchanged_balance() {
+    let config = super::learning_policy::daily_config();
+    let mut user = FOO.clone();
+    user.user.terms_version = config.terms_version.clone();
+    user.user.terms_accepted_at = config.accepted_since;
+    let expected = HeartOperationReceipt {
+        operation_id: UUID1.into(),
+        user_id: FOO.user.id,
+        charged_half_hearts: 0,
+        hearts: 2,
+        outcome: HeartOperationOutcome::DailyLearning,
+    };
+    let mut repo = claimed(HeartOperationClaim::New);
+    repo.expect_lock_user()
+        .once()
+        .return_once(|_, _| Box::pin(async { Ok(true) }));
+    repo.expect_complete_operation()
+        .once()
+        .withf(move |_, _, receipt| *receipt == expected)
+        .return_once(|_, _, _| Box::pin(async { Ok(()) }));
+    let sut = Sut {
+        auth_internal: MockAuthInternalService::new().with_authenticate("shop", true),
+        db: MockDatabase::build(true),
+        heart_repo: repo,
+        user_repo: academy_persistence_contracts::user::MockUserRepository::new()
+            .with_get_internal_composite(FOO.user.id, Some(user)),
+        heart: MockHeartService::new().with_get(
+            FOO.user.id,
+            Hearts {
+                hearts: 2,
+                last_refill: FOO.user.created_at,
+            },
+        ),
+        learning_policy_config: config,
+        ..Sut::default()
+    };
+    assert_eq!(
+        sut.apply_heart_operation(&"internal token".into(), operation())
+            .await
+            .unwrap(),
+        expected
+    );
 }

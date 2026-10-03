@@ -357,3 +357,87 @@ let foo: Foo = provider.provide();
 ```
 
 The main providers are defined in `academy/src/environment/mod.rs`.
+
+
+## Terms-bound daily learning rollout
+
+The default `[learning_policy] mode = "legacy"` preserves existing hearts, purchases,
+and agreements. `shadow` reports a measurement mode to skills without changing
+these rules. Skills owns lesson starts and daily counts; backend owns the user
+policy and paid Premium status.
+
+`GET /shop/_internal/learning-policy/{user_id}` uses the existing shop internal
+token. `GET /shop/learning/policy` uses the caller's normal access token. Both
+return `{mode, premium, single_course_sales, heart_sales}`; policy GETs only read
+paid periods and never renew or debit coins. Funded, confirmed opt-in renewals
+awaiting settlement return an error, not a guessed free status. Known insufficient
+coins or a cancelled renewal do not create indefinite unavailability. Existing
+Premium status reads and the `refresh-premium` task settle renewal; the task
+remains daily by default. Database/auth failures remain
+errors. Existing learning-resources responses also include `learning_policy`,
+with their previous resource fields retained.
+
+Daily mode requires the explicit configuration `terms_version`, `accepted_since`
+(RFC3339), and either `user_ids` or `registered_since`. A user must belong to the
+selected cohort and have recorded acceptance of exactly that terms version at
+or after the configured date. No migration edits acceptance, paid periods,
+balances, orders, or original documents. No registration terms version changes
+implicitly. Old-contract users outside that intersection remain on legacy rules.
+
+Before daily mode can start, `[learning_policy.daily_documents]` must bind the
+same `terms_version` and absolute `terms_pdf_path` / `withdrawal_pdf_path`, each
+with its exact approved `terms_sha256` / `withdrawal_sha256` (lowercase SHA-256).
+The application reads and validates these PDFs once at startup. Missing,
+mismatched, oversized, non-PDF or legacy-r4 daily terms fail startup. New daily
+orders store these exact bytes and their combined document hash; legacy orders
+continue to bind the existing r4/r1 originals. A document change invalidates
+unaccepted offers, while accepted orders keep their stored documents and recovery.
+This mechanism does not approve or publish any new terms.
+
+In daily mode, new course and heart offers and their first acceptance are rejected
+server-side, including offers created before the transition. Accepted historical
+orders remain fulfillable and replayable. Premium keeps the configured coin prices,
+calendar durations and existing opt-in renewal arrangements; its new daily offer
+copy describes unlimited new lesson starts.
+
+New incorrect-attempt operations under daily policy finish with
+`outcome: "daily_learning"`, `charged_half_hearts: 0` and the unchanged effective
+heart balance. Already completed IDs replay their immutable original receipt.
+Unapplied old outbox operations do not become delayed charges after a transition.
+Apply the additive receipt migration before deploying code that can emit the new
+outcome. The old receipt outcomes and historical records remain valid.
+
+Rollout and recovery: ship with legacy policy, optionally measure with shadow,
+then enable a specifically approved cohort only after its documents and transition
+are approved. Once users have adopted daily terms, pause enforcement in skills
+while retaining their backend policy. Do not roll back their agreed access by
+resetting the backend policy to legacy. A recovery generation must understand
+`daily_learning` receipts and retain the same policy/documents configuration.
+
+
+The existing anonymous `GET /shop/premium/renewal-offer` remains the legacy
+monthly offer. Authenticated clients use `GET /shop/premium/renewal-offer/me`
+with the same `{id, monthly_price, terms_version, text}` shape. It selects the
+user's policy and the same approved document bundle as ordinary purchases.
+`PUT /shop/premium/autopay` retains its existing request shape and validates
+that exact offer before recording a new agreement. Existing accepted agreements
+replay their original offer identity; their paid periods, fixed coin price,
+cancellation and delivery evidence remain unchanged. Daily renewal enrolment
+never binds r4, never charges coins on enrolment and creates no PayPal mandate.
+
+Selective signup uses optional `user.registration_terms_version` (default absent:
+use `user.terms_version`). Only new registration validates and records that
+selection. Keep ordinary `user.terms_version` at r4 for existing accounts, and
+retain the signup selector after adoption to protect that version from an old
+client's r4 acceptance form. Signup selection offers no existing-account opt-in;
+that transition still needs a separately approved mechanism and decision.
+Frontend signup document/version controls must match the selected registration
+version; valid r4 and selected signup-version users must not receive a global
+forced conversion gate. No defaults or shipped documents change here.
+
+Authenticated monthly renewal offers use `/shop/premium/renewal-offer/me`. Their
+exact pre-acceptance PDFs are downloadable at
+`/shop/premium/renewal-offer/me/{offer_id}/documents/{kind}` (`terms|withdrawal`).
+The same builder chooses and hashes the selected documents. Stale offer IDs,
+including after a policy or bundle change, return 409 with no PDF. These read-only
+downloads are private/no-store; saved accepted agreements keep their originals.

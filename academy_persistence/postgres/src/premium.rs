@@ -24,6 +24,42 @@ use crate::PostgresTransaction;
 pub struct PostgresPremiumRepository;
 
 impl PremiumRepository<PostgresTransaction> for PostgresPremiumRepository {
+    async fn get_current_by_user_id(
+        &self,
+        txn: &mut PostgresTransaction,
+        user_id: UserId,
+    ) -> anyhow::Result<Option<Premium>> {
+        // One read snapshot distinguishes paid access from a funded confirmed
+        // renewal that the existing refresh/status path has yet to settle. GET
+        // must not debit coins, nor classify that unsettled state as free.
+        let row = txn.txn().query_one(
+            "SELECT p.id,p.since,p.until, EXISTS (\
+               SELECT 1 FROM premium_subscriptions s \
+               JOIN premium_renewal_agreements a ON a.id=s.agreement_id AND a.user_id=s.user_id \
+               JOIN premium_renewal_delivery d ON d.agreement_id=a.id \
+               JOIN user_composites u ON u.id=s.user_id AND u.enabled \
+               JOIN coins c ON c.user_id=s.user_id AND c.coins>=a.monthly_price \
+               WHERE s.user_id=$1 AND s.plan='monthly' AND d.sent_at<a.confirmation_deadline \
+             ) AS pending FROM (VALUES (1)) seed(n) LEFT JOIN LATERAL (\
+               SELECT id,since,until FROM premium WHERE user_id=$1 AND since<=now() AND now()<until ORDER BY until DESC LIMIT 1\
+             ) p ON true",
+            &[&*user_id],
+        ).await?;
+        if let Some(id) = row.get::<_, Option<uuid::Uuid>>(0) {
+            return Ok(Some(Premium {
+                id: id.into(),
+                user_id,
+                since: row.get(1),
+                until: row.get(2),
+            }));
+        }
+        anyhow::ensure!(
+            !row.get::<_, bool>(3),
+            "Confirmed premium renewal is awaiting settlement"
+        );
+        Ok(None)
+    }
+
     async fn export_renewal_evidence(
         &self,
         txn: &mut PostgresTransaction,

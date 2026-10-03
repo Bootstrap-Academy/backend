@@ -4,6 +4,13 @@ use academy_models::{premium::Premium, user::UserId};
 
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait PremiumService<Txn: Send + Sync + 'static>: Send + Sync + 'static {
+    /// Read the paid membership only. Never renews, reconciles or debits coins.
+    fn get_current(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
+    ) -> impl Future<Output = anyhow::Result<Option<Premium>>> + Send;
+
     /// Return the currently active premium membership of the given user, if
     /// any.
     ///

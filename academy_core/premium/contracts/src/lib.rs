@@ -17,6 +17,16 @@ pub mod renewal;
 
 pub trait PremiumFeatureService: Send + Sync + 'static {
     fn get_renewal_offer(&self) -> PremiumRenewalOffer;
+    fn get_renewal_offer_for(
+        &self,
+        token: &AccessToken,
+    ) -> impl Future<Output = Result<PremiumRenewalOffer, PremiumUpdateSubscriptionError>> + Send;
+    fn get_renewal_document(
+        &self,
+        token: &AccessToken,
+        offer_id: &str,
+        kind: renewal::RenewalDocumentKind,
+    ) -> impl Future<Output = Result<Vec<u8>, PremiumUpdateSubscriptionError>> + Send;
     fn retry_renewal_confirmations(&self) -> impl Future<Output = anyhow::Result<()>> + Send;
     /// Return all available premium plans.
     fn get_plans(&self) -> HashMap<PremiumPlan, PremiumPlanDetails>;

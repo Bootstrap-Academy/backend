@@ -31,6 +31,7 @@ impl Default for PremiumFeatureConfig {
         Self {
             monthly_price: 1000,
             yearly_price: 10000,
+            daily_documents: None,
         }
     }
 }

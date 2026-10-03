@@ -234,3 +234,40 @@ async fn outdated_terms_version() {
     // Assert
     assert_matches!(result, Err(UserAcceptTermsError::TermsVersionMismatch));
 }
+
+#[tokio::test]
+async fn signup_override_neither_migrates_existing_users_nor_downgrades_new_users() {
+    let registration_version: academy_models::user::TermsVersion =
+        "reviewed-signup-only".try_into().unwrap();
+    for new_user in [false, true] {
+        let mut account = FOO.clone();
+        if new_user {
+            account.user.terms_version = Some(registration_version.clone());
+            account.user.terms_accepted_at = Some(Utc::now());
+        }
+        let mut sut = Sut {
+            auth: MockAuthService::new()
+                .with_authenticate(Some((account.user.clone(), FOO_1.clone()))),
+            ..Sut::default()
+        };
+        sut.config.registration_terms_version = Some(registration_version.clone());
+        if new_user {
+            sut.db = MockDatabase::build(false);
+            sut.user_repo =
+                MockUserRepository::new().with_get_composite(FOO.user.id, Some(account));
+        }
+        let request = UserAcceptTermsRequest {
+            terms_version: if new_user {
+                TERMS_VERSION.clone()
+            } else {
+                registration_version.clone()
+            },
+            age_confirmed: true,
+        };
+        assert!(matches!(
+            sut.accept_terms(&"token".into(), request).await,
+            Err(UserAcceptTermsError::TermsVersionMismatch)
+        ));
+        // No allowed update calls: both directions preserve recorded acceptance.
+    }
+}

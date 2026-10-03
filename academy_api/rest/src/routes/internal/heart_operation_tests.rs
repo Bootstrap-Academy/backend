@@ -89,6 +89,21 @@ impl InternalService for Feature {
     ) -> Result<Hearts, InternalAddHeartsError> {
         panic!("unexpected route")
     }
+    async fn learning_policy(
+        &self,
+        _: &InternalToken,
+        _: UserId,
+    ) -> Result<LearningPolicy, InternalHasPremiumError> {
+        match self.failure {
+            Some("missing") => Err(InternalHasPremiumError::UserNotFound),
+            Some("auth") => Err(AuthInternalAuthenticateError::InvalidToken.into()),
+            Some("database") => Err(anyhow::anyhow!("synthetic failure").into()),
+            _ => Ok(LearningPolicy::new(
+                academy_models::learning_policy::LearningMode::Daily,
+                false,
+            )),
+        }
+    }
     async fn has_premium(
         &self,
         _: &InternalToken,
@@ -176,6 +191,50 @@ async fn retry_conflict_auth_invalid_and_missing_have_distinct_http_outcomes() {
             .await
             .status(),
             status
+        );
+    }
+}
+
+#[tokio::test]
+async fn learning_policy_wire_preserves_error_states_and_declares_new_route() {
+    for (failure, status) in [
+        (None, StatusCode::OK),
+        (Some("missing"), StatusCode::NOT_FOUND),
+        (Some("auth"), StatusCode::UNAUTHORIZED),
+        (Some("database"), StatusCode::INTERNAL_SERVER_ERROR),
+    ] {
+        let service = Arc::new(Feature {
+            failure,
+            ..Default::default()
+        });
+        let mut api = Default::default();
+        let response = router(service)
+            .finish_api(&mut api)
+            .oneshot(
+                Request::builder()
+                    .uri(format!("/shop/_internal/learning-policy/{USER}"))
+                    .header("authorization", "synthetic-internal-token")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), status);
+        if status == StatusCode::OK {
+            let json: Value =
+                serde_json::from_slice(&to_bytes(response.into_body(), 4096).await.unwrap())
+                    .unwrap();
+            assert_eq!(
+                json,
+                json!({"mode":"daily","premium":false,"single_course_sales":false,"heart_sales":false})
+            );
+        }
+        assert!(
+            api.paths
+                .as_ref()
+                .unwrap()
+                .paths
+                .contains_key("/shop/_internal/learning-policy/{user_id}")
         );
     }
 }

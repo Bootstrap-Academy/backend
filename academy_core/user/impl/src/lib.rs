@@ -98,6 +98,9 @@ pub struct UserFeatureConfig {
     /// never from the request, so the record cannot claim a version that was
     /// never published.
     pub terms_version: TermsVersion,
+    /// Optional terms version offered only when creating a new account.
+    /// Existing-account acceptance keeps using `terms_version`.
+    pub registration_terms_version: Option<TermsVersion>,
     pub name_change_rate_limit: Duration,
     /// Minimum time between two data exports of the same user.
     pub export_rate_limit: Duration,
@@ -215,7 +218,12 @@ where
             return Err(UserCreateError::AgeNotConfirmed);
         }
 
-        if request.terms_version != self.config.terms_version {
+        let registration_terms = self
+            .config
+            .registration_terms_version
+            .as_ref()
+            .unwrap_or(&self.config.terms_version);
+        if &request.terms_version != registration_terms {
             return Err(UserCreateError::TermsVersionMismatch);
         }
 
@@ -255,7 +263,7 @@ where
             oauth2_registration,
             // The version that is recorded is the server's, not the one the
             // request carried.
-            terms_version: Some(self.config.terms_version.clone()),
+            terms_version: Some(registration_terms.clone()),
             age_confirmed: request.age_confirmed,
         };
 
@@ -538,6 +546,21 @@ where
             .await
             .context("Failed to get user from database")?
             .ok_or(UserAcceptTermsError::NotFound)?;
+
+        // Signup selection is not an offer to migrate existing accounts. Nor
+        // may a valid signup on the separate version be downgraded by an old
+        // client submitting the ordinary acceptance form.
+        if self
+            .config
+            .registration_terms_version
+            .as_ref()
+            .is_some_and(|version| {
+                version != &self.config.terms_version
+                    && user_composite.user.terms_version.as_ref() == Some(version)
+            })
+        {
+            return Err(UserAcceptTermsError::TermsVersionMismatch);
+        }
 
         user_composite.user = self
             .user_update

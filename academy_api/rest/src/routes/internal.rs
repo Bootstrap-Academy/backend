@@ -11,6 +11,7 @@ use academy_models::{
     coin::{CoinOperation, CoinOperationId, TransactionDescription},
     email_address::EmailAddress,
     heart::{HeartOperation, HeartOperationId},
+    learning_policy::LearningPolicy,
     user::UserId,
 };
 use aide::{
@@ -64,6 +65,10 @@ pub fn router(service: Arc<impl InternalService>) -> ApiRouter<()> {
         .api_route(
             "/shop/_internal/hearts/{user_id}",
             routing::get_with(get_hearts, get_hearts_docs).post_with(add_hearts, add_hearts_docs),
+        )
+        .api_route(
+            "/shop/_internal/learning-policy/{user_id}",
+            routing::get_with(learning_policy, learning_policy_docs),
         )
         .api_route(
             "/shop/_internal/premium/{user_id}",
@@ -366,4 +371,24 @@ error_code! {
     CoinOperationConflictError(CONFLICT, "Coin operation conflict");
     /// The internal authentication token is invalid or has expired.
     InvalidTokenError(UNAUTHORIZED, "Invalid token");
+}
+
+async fn learning_policy(
+    service: State<Arc<impl InternalService>>,
+    token: ApiToken<InternalToken>,
+    Path(PathUserId { user_id }): Path<PathUserId>,
+) -> Response {
+    match service.learning_policy(&token.0, user_id).await {
+        Ok(policy) => Json(policy).into_response(),
+        Err(InternalHasPremiumError::UserNotFound) => UserNotFoundError.into_response(),
+        Err(InternalHasPremiumError::Auth(err)) => internal_auth_error(err),
+        Err(InternalHasPremiumError::Other(err)) => internal_server_error(err),
+    }
+}
+fn learning_policy_docs(op: TransformOperation) -> TransformOperation {
+    op.summary("Return the learner's active policy and verified premium state.")
+        .add_response::<LearningPolicy>(StatusCode::OK, None)
+        .add_error::<UserNotFoundError>()
+        .with(internal_auth_error_docs)
+        .with(internal_server_error_docs)
 }

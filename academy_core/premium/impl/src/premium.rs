@@ -23,6 +23,10 @@ where
     PremiumPurchase: PremiumPurchaseService<Txn>,
     PremiumRepo: PremiumRepository<Txn>,
 {
+    async fn get_current(&self, txn: &mut Txn, user_id: UserId) -> anyhow::Result<Option<Premium>> {
+        self.premium_repo.get_current_by_user_id(txn, user_id).await
+    }
+
     /// Paid periods are always retained. Only a separately recorded monthly
     /// agreement with its durable confirmation sent can trigger a coin debit.
     #[trace_instrument(skip(self, txn))]

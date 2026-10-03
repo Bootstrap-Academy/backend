@@ -88,6 +88,14 @@ pub struct PublicationChoice {
     pub preview_token: Option<String>,
 }
 
+/// Support can withdraw an existing choice, never give consent for its owner.
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct PublicationWithdrawal {
+    pub expected_revision: i64,
+    pub request_id: Uuid,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct PublicationChoiceResult {
     pub current: PublicationSettings,

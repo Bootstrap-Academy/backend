@@ -5,8 +5,9 @@ use academy_models::{
     auth::{AccessToken, AuthError, AuthenticateError, InternalToken},
     publication::{
         PublicationChoice, PublicationChoiceResult, PublicationEpoch, PublicationPreview,
-        PublicationSettings, PublicationSnapshot,
+        PublicationSettings, PublicationSnapshot, PublicationWithdrawal,
     },
+    user::UserId,
 };
 use aide::{
     axum::{ApiRouter, routing},
@@ -14,7 +15,7 @@ use aide::{
 };
 use axum::{
     Json,
-    extract::{Request, State},
+    extract::{Path, Request, State},
     http::{
         HeaderValue, StatusCode,
         header::{CACHE_CONTROL, VARY},
@@ -26,8 +27,18 @@ use serde::Serialize;
 
 use crate::{docs::TransformOperationExt, errors::auth_error, extractors::auth::ApiToken};
 
+pub const SUPPORT_ROUTE: &str = "/auth/admin/users/{user_id}/publication";
+
 pub fn router(service: Arc<impl PublicationFeatureService>) -> ApiRouter<()> {
     ApiRouter::new()
+        .api_route(
+            SUPPORT_ROUTE,
+            routing::get_with(support_settings, support_settings_docs),
+        )
+        .api_route(
+            "/auth/admin/users/{user_id}/publication/withdraw",
+            routing::post_with(support_withdraw, support_withdraw_docs),
+        )
         .api_route(
             "/auth/users/me/publication",
             routing::get_with(settings, settings_docs).put_with(choose, choice_docs),
@@ -91,6 +102,25 @@ async fn settings(
 ) -> Response {
     respond(service.settings(&token.0).await)
 }
+async fn support_settings(
+    service: State<Arc<impl PublicationFeatureService>>,
+    token: ApiToken<AccessToken>,
+    Path(user_id): Path<UserId>,
+) -> Response {
+    respond(service.support_settings(&token.0, user_id).await)
+}
+async fn support_withdraw(
+    service: State<Arc<impl PublicationFeatureService>>,
+    token: ApiToken<AccessToken>,
+    Path(user_id): Path<UserId>,
+    Json(withdrawal): Json<PublicationWithdrawal>,
+) -> Response {
+    respond(
+        service
+            .support_withdraw(&token.0, user_id, withdrawal)
+            .await,
+    )
+}
 async fn preview(
     service: State<Arc<impl PublicationFeatureService>>,
     token: ApiToken<AccessToken>,
@@ -120,6 +150,14 @@ async fn snapshot(
 fn settings_docs(op: TransformOperation) -> TransformOperation {
     op.summary("Read the owner's publication choice.")
         .add_response::<PublicationSettings>(StatusCode::OK, None)
+}
+fn support_settings_docs(op: TransformOperation) -> TransformOperation {
+    op.summary("Read a private publication choice for support (admin and MFA required).")
+        .add_response::<PublicationSettings>(StatusCode::OK, None)
+}
+fn support_withdraw_docs(op: TransformOperation) -> TransformOperation {
+    op.summary("Withdraw a publication for support; consent cannot be given for another account.")
+        .add_response::<PublicationChoiceResult>(StatusCode::OK, None)
 }
 fn preview_docs(op: TransformOperation) -> TransformOperation {
     op.summary("Preview the exact publication scope without writing.")

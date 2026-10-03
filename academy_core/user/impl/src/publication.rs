@@ -8,8 +8,9 @@ use academy_models::{
     publication::{
         NOTICE, NOTICE_HASH, PublicationChoice, PublicationChoiceResult, PublicationConfig,
         PublicationEpoch, PublicationPreview, PublicationPreviewClaims, PublicationSettings,
-        PublicationSnapshot, PublishedIdentity, SCOPE_VERSION,
+        PublicationSnapshot, PublicationWithdrawal, PublishedIdentity, SCOPE_VERSION,
     },
+    user::UserId,
 };
 use academy_persistence_contracts::{
     Database, Transaction,
@@ -50,6 +51,78 @@ where
     Repo: PublicationRepository<Db::Transaction>,
     UserRepo: UserRepository<Db::Transaction>,
 {
+    async fn support_settings(
+        &self,
+        token: &AccessToken,
+        user_id: UserId,
+    ) -> Result<PublicationSettings, PublicationError> {
+        let mut txn = self.db.begin_transaction().await?;
+        let auth = self
+            .auth
+            .authenticate_in_transaction(&mut txn, token)
+            .await
+            .map_auth_err()?;
+        auth.ensure_admin().map_auth_err()?;
+        if !self
+            .repo
+            .epoch(&mut txn, self.config.enabled)
+            .await?
+            .publishing_enabled
+        {
+            return Err(PublicationError::Disabled);
+        }
+        // Purpose-only retained subjects are outside the ordinary account support view.
+        self.user_repo
+            .get_composite(&mut txn, user_id)
+            .await?
+            .ok_or(PublicationError::NotFound)?;
+        let settings = self
+            .repo
+            .settings(&mut txn, user_id)
+            .await?
+            .ok_or(PublicationError::NotFound)?;
+        txn.commit().await?;
+        Ok(settings)
+    }
+
+    async fn support_withdraw(
+        &self,
+        token: &AccessToken,
+        user_id: UserId,
+        withdrawal: PublicationWithdrawal,
+    ) -> Result<PublicationChoiceResult, PublicationError> {
+        let auth = self.auth.authenticate(token).await.map_auth_err()?;
+        auth.ensure_admin().map_auth_err()?;
+        let mut txn = self.db.begin_transaction().await?;
+        // Stable owner order also handles two administrators supporting each other.
+        let mut owners = vec![auth.user_id, user_id];
+        owners.sort_unstable();
+        owners.dedup();
+        for owner in owners {
+            if !self.user_repo.lock_account(&mut txn, owner).await? {
+                return Err(PublicationError::NotFound);
+            }
+        }
+        // A queued request must not retain removed admin/MFA/session authority.
+        let current_auth = self
+            .auth
+            .authenticate_in_transaction(&mut txn, token)
+            .await
+            .map_auth_err()?;
+        current_auth.ensure_admin().map_auth_err()?;
+        self.user_repo
+            .get_composite(&mut txn, user_id)
+            .await?
+            .ok_or(PublicationError::NotFound)?;
+        let result = self
+            .repo
+            .withdraw(&mut txn, user_id, &withdrawal, self.config.enabled)
+            .await
+            .map_err(publication_error)?;
+        txn.commit().await?;
+        Ok(result)
+    }
+
     async fn settings(&self, token: &AccessToken) -> Result<PublicationSettings, PublicationError> {
         let auth = self.auth.authenticate(token).await.map_auth_err()?;
         let mut txn = self.db.begin_transaction().await?;

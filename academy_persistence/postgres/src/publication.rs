@@ -3,7 +3,7 @@ use academy_models::{
     publication::{
         NOTICE_HASH, ProfileVisibility, PublicationChoice, PublicationChoiceResult,
         PublicationEpoch, PublicationReceipt, PublicationSettings, PublicationSnapshot,
-        SCOPE_VERSION,
+        PublicationWithdrawal, SCOPE_VERSION,
     },
     user::UserId,
 };
@@ -129,6 +129,40 @@ impl PublicationRepository<PostgresTransaction> for PostgresPublicationRepositor
         enabled: bool,
         preview_valid: bool,
     ) -> Result<PublicationChoiceResult, PublicationWriteError> {
+        self.write_choice(txn, user_id, choice, enabled, preview_valid, false)
+            .await
+    }
+
+    async fn withdraw(
+        &self,
+        txn: &mut PostgresTransaction,
+        user_id: UserId,
+        withdrawal: &PublicationWithdrawal,
+        enabled: bool,
+    ) -> Result<PublicationChoiceResult, PublicationWriteError> {
+        let choice = PublicationChoice {
+            profile_visibility: ProfileVisibility::Private,
+            expected_revision: withdrawal.expected_revision,
+            request_id: withdrawal.request_id,
+            scope_version: None,
+            notice_hash: None,
+            preview_token: None,
+        };
+        self.write_choice(txn, user_id, &choice, enabled, false, true)
+            .await
+    }
+}
+
+impl PostgresPublicationRepository {
+    async fn write_choice(
+        &self,
+        txn: &mut PostgresTransaction,
+        user_id: UserId,
+        choice: &PublicationChoice,
+        enabled: bool,
+        preview_valid: bool,
+        support: bool,
+    ) -> Result<PublicationChoiceResult, PublicationWriteError> {
         // Match the existing owner-first deletion/refresh lock order.
         let owner = txn
             .txn()
@@ -148,7 +182,7 @@ impl PublicationRepository<PostgresTransaction> for PostgresPublicationRepositor
             .await
             .map_err(anyhow::Error::from)?
             .get(0);
-        if !owner.get::<_, bool>("enabled") || !effective_enabled {
+        if !support && (!owner.get::<_, bool>("enabled") || !effective_enabled) {
             return Err(PublicationWriteError::NotFound);
         }
         let row = txn
@@ -162,13 +196,15 @@ impl PublicationRepository<PostgresTransaction> for PostgresPublicationRepositor
         if !epoch.publishing_enabled {
             return Err(PublicationWriteError::Disabled);
         }
+        let source = if support { "support" } else { "owner" };
         // At most the last sharing and last withdrawal receipts; never a click history.
         for receipt in [&current.last_shared_receipt, &current.last_private_receipt]
             .into_iter()
             .flatten()
         {
             if receipt.request_id == choice.request_id {
-                if receipt.expected_revision != choice.expected_revision
+                if receipt.source != source
+                    || receipt.expected_revision != choice.expected_revision
                     || receipt.profile_visibility != choice.profile_visibility
                     || (choice.profile_visibility == ProfileVisibility::Shared
                         && (receipt.scope_version != choice.scope_version
@@ -217,7 +253,7 @@ impl PublicationRepository<PostgresTransaction> for PostgresPublicationRepositor
             recorded_at: now.timestamp(),
             scope_version: shared.then(|| SCOPE_VERSION.into()),
             notice_hash: shared.then(|| NOTICE_HASH.into()),
-            source: "owner".into(),
+            source: source.into(),
         };
         txn.txn().execute(
             "UPDATE user_profiles SET profile_visibility=$2,visibility_revision=$3,leaderboard_opt_out=NOT $4,

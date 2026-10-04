@@ -930,21 +930,35 @@ def paypal_capture_and_recovery_queue(f):
             )
             recovery_waiters = wait_blocked(f, recovery, {row["pid"] for row in second_waiters})
             f.release.set()
-            statuses = [first.result(timeout=25)[0], second.result(timeout=25)[0]]
+            replies = [first.result(timeout=25), second.result(timeout=25)]
             recovery.result(timeout=25)
+        statuses = [status for status, _ in replies]
+        # Confirmation delivery may still be in flight in another processor.
+        # The API explicitly exposes that state as PaymentPendingError. Require
+        # the original order to replay successfully after recovery completes.
+        pending_code = (
+            "Your payment is still being checked. Please retry this order later; " "do not place a second order."
+        )
+        capture_replies_valid = all(
+            status == 200 or (status == 503 and body == {"code": pending_code}) for status, body in replies
+        )
+        replay_status, _ = f.request(f"/shop/coins/paypal/orders/{oid}/capture", "POST", None, f.token(account), None)
         state = f.state(account)
         charges = f.orders[oid]["charges"]
         return {
             "passed": bool(
                 second_waiters
                 and recovery_waiters
-                and statuses == [200, 200]
+                and capture_replies_valid
+                and replay_status == 200
                 and charges == 1
                 and state["coins"] == 1837
                 and state["ledger_rows"] == 1
                 and state["purchase_fulfillments"] == 1
             ),
             "capture_statuses": statuses,
+            "capture_replies_match_success_or_documented_pending": capture_replies_valid,
+            "original_order_replay_after_recovery_status": replay_status,
             "native_recovery_completed": True,
             "second_capture_waiters": second_waiters,
             "recovery_waiters": recovery_waiters,

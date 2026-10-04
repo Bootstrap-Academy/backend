@@ -1,25 +1,18 @@
-use std::time::Duration;
-
-use academy_cache_contracts::CacheService;
 use academy_di::Build;
 use academy_models::mfa::{TotpCode, TotpSecret, TotpSecretLength, TotpSetup};
 use academy_shared_contracts::{
-    hash::HashService,
     secret::SecretService,
     time::TimeService,
     totp::{TotpCheckError, TotpService},
 };
 use academy_utils::trace_instrument;
-use anyhow::Context;
 use totp_rs::{Rfc6238, TOTP};
 
 #[derive(Debug, Clone, Build)]
 #[cfg_attr(test, derive(Default))]
-pub struct TotpServiceImpl<Secret, Time, Hash, Cache> {
+pub struct TotpServiceImpl<Secret, Time> {
     secret: Secret,
     time: Time,
-    hash: Hash,
-    cache: Cache,
     config: TotpServiceConfig,
 }
 
@@ -28,179 +21,107 @@ pub struct TotpServiceConfig {
     pub secret_length: TotpSecretLength,
 }
 
-impl<Secret, Time, Hash, Cache> TotpService for TotpServiceImpl<Secret, Time, Hash, Cache>
+impl<Secret, Time> TotpService for TotpServiceImpl<Secret, Time>
 where
     Secret: SecretService,
     Time: TimeService,
-    Hash: HashService,
-    Cache: CacheService,
 {
     #[trace_instrument(skip(self))]
     fn generate_secret(&self) -> (TotpSecret, TotpSetup) {
         let secret = self.secret.generate_bytes(*self.config.secret_length).0;
-
         let totp = TOTP::from_rfc6238(Rfc6238::with_defaults(secret).unwrap()).unwrap();
         let setup = TotpSetup {
             secret: totp.get_secret_base32().into(),
         };
-
         (TotpSecret::try_new(totp.secret).unwrap(), setup)
     }
 
-    #[trace_instrument(skip(self))]
-    async fn check(&self, code: &TotpCode, secret: TotpSecret) -> Result<(), TotpCheckError> {
-        let now = self.time.now().timestamp();
-        let secret_hash = self.hash.sha256(&*secret);
-
+    #[trace_instrument(skip(self, code, secret))]
+    async fn check(&self, code: &TotpCode, secret: TotpSecret) -> Result<i64, TotpCheckError> {
+        let now =
+            u64::try_from(self.time.now().timestamp()).map_err(|_| TotpCheckError::InvalidCode)?;
         let totp =
             TOTP::from_rfc6238(Rfc6238::with_defaults(secret.into_inner()).unwrap()).unwrap();
-
-        if !totp.check(code, now as _) {
-            return Err(TotpCheckError::InvalidCode);
+        let current_step = now / totp.step;
+        // Validate each candidate through the library's constant-time comparison.
+        // Choose the newest matching step if truncated codes happen to collide.
+        let mut exact = totp.clone();
+        exact.skew = 0;
+        for offset in (-1..=1).rev() {
+            if let Some(step) = current_step.checked_add_signed(offset)
+                && exact.check(code, step * totp.step)
+            {
+                return Ok(step as i64);
+            }
         }
-
-        // Reserve valid codes atomically: two concurrent checks must never both
-        // authorize a request. Each code is accepted for three 30-second windows.
-        let cache_key = format!("totp_code_used:{}:{}", hex::encode(secret_hash.0), **code);
-        if !self
-            .cache
-            .set_if_absent(&cache_key, &(), Some(Duration::from_secs(90)))
-            .await
-            .context("Failed to reserve TOTP code")?
-        {
-            return Err(TotpCheckError::RecentlyUsed);
-        }
-
-        Ok(())
+        Err(TotpCheckError::InvalidCode)
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use academy_cache_contracts::MockCacheService;
-    use academy_demo::{SHA256HASH1, SHA256HASH1_HEX};
-    use academy_shared_contracts::{
-        hash::MockHashService, secret::MockSecretService, time::MockTimeService,
-    };
+    use academy_shared_contracts::{secret::MockSecretService, time::MockTimeService};
     use academy_utils::assert_matches;
     use chrono::DateTime;
 
     use super::*;
 
-    type Sut =
-        TotpServiceImpl<MockSecretService, MockTimeService, MockHashService, MockCacheService>;
+    type Sut = TotpServiceImpl<MockSecretService, MockTimeService>;
 
     #[test]
     fn generate_secret() {
-        // Arrange
-        let expected_secret = "XSSYkVp8pDsOnT1jB5eN0CB8".to_owned().into_bytes();
-        let expected_totp_setup = TotpSetup {
-            secret: "LBJVGWLLKZYDQ4CEONHW4VBRNJBDKZKOGBBUEOA".into(),
-        };
-
+        let expected_secret = b"XSSYkVp8pDsOnT1jB5eN0CB8".to_vec();
         let secret = MockSecretService::new().with_generate_bytes(24, expected_secret.clone());
-
-        let sut = TotpServiceImpl {
+        let sut = Sut {
             secret,
             ..Sut::default()
         };
-
-        // Act
         let (secret, setup) = sut.generate_secret();
-
-        // Assert
         assert_eq!(secret.into_inner(), expected_secret);
-        assert_eq!(setup, expected_totp_setup);
-    }
-
-    #[tokio::test]
-    async fn check_ok() {
-        // Arrange
-        let code = "960546";
-        let secret =
-            TotpSecret::try_new("XSSYkVp8pDsOnT1jB5eN0CB8".to_owned().into_bytes()).unwrap();
-
-        let time =
-            MockTimeService::new().with_now(DateTime::from_timestamp(1724949831, 0).unwrap());
-        let hash = MockHashService::new().with_sha256(secret.clone().into_inner(), *SHA256HASH1);
-
-        let cache_key = format!("totp_code_used:{SHA256HASH1_HEX}:{code}");
-        let cache = MockCacheService::new().with_set_if_absent(
-            cache_key,
-            (),
-            Some(Duration::from_secs(90)),
-            true,
+        assert_eq!(
+            setup.secret.as_str(),
+            "LBJVGWLLKZYDQ4CEONHW4VBRNJBDKZKOGBBUEOA"
         );
-
-        let sut = TotpServiceImpl {
-            time,
-            cache,
-            hash,
-            ..Sut::default()
-        };
-
-        // Act
-        let result = sut.check(&code.try_into().unwrap(), secret.clone()).await;
-
-        // Assert
-        result.unwrap();
     }
 
     #[tokio::test]
-    async fn check_invalid() {
-        // Arrange
-        let code = "384957";
-        let secret =
-            TotpSecret::try_new("XSSYkVp8pDsOnT1jB5eN0CB8".to_owned().into_bytes()).unwrap();
+    async fn matching_step_is_stable_across_the_entire_skew_window() {
+        let secret = TotpSecret::try_new(b"XSSYkVp8pDsOnT1jB5eN0CB8".to_vec()).unwrap();
+        let code: TotpCode = "960546".try_into().unwrap();
+        let step = 1724949831 / 30;
+        for (timestamp, valid) in [
+            ((step - 1) * 30 - 1, false),
+            ((step - 1) * 30, true),
+            (step * 30 - 1, true),
+            (step * 30, true),
+            ((step + 1) * 30, true),
+            ((step + 2) * 30 - 1, true),
+            ((step + 2) * 30, false),
+            (-1, false),
+        ] {
+            let sut = Sut {
+                time: MockTimeService::new()
+                    .with_now(DateTime::from_timestamp(timestamp, 0).unwrap()),
+                ..Sut::default()
+            };
+            let result = sut.check(&code, secret.clone()).await;
+            if valid {
+                assert_eq!(result.unwrap(), step, "timestamp {timestamp}");
+            } else {
+                assert_matches!(result, Err(TotpCheckError::InvalidCode));
+            }
+        }
+    }
 
-        let time =
-            MockTimeService::new().with_now(DateTime::from_timestamp(1724949831, 0).unwrap());
-        let hash = MockHashService::new().with_sha256(secret.clone().into_inner(), *SHA256HASH1);
-
-        let sut = TotpServiceImpl {
-            time,
-            hash,
+    #[tokio::test]
+    async fn invalid_code() {
+        let sut = Sut {
+            time: MockTimeService::new().with_now(DateTime::from_timestamp(1724949831, 0).unwrap()),
             ..Sut::default()
         };
-
-        // Act
-        let result = sut.check(&code.try_into().unwrap(), secret.clone()).await;
-
-        // Assert
+        let secret = TotpSecret::try_new(b"XSSYkVp8pDsOnT1jB5eN0CB8".to_vec()).unwrap();
+        let result = sut.check(&"384957".try_into().unwrap(), secret).await;
         assert_matches!(result, Err(TotpCheckError::InvalidCode));
-    }
-
-    #[tokio::test]
-    async fn check_recently_used() {
-        // Arrange
-        let code = "960546";
-        let secret =
-            TotpSecret::try_new("XSSYkVp8pDsOnT1jB5eN0CB8".to_owned().into_bytes()).unwrap();
-
-        let time =
-            MockTimeService::new().with_now(DateTime::from_timestamp(1724949831, 0).unwrap());
-        let hash = MockHashService::new().with_sha256(secret.clone().into_inner(), *SHA256HASH1);
-
-        let cache_key = format!("totp_code_used:{SHA256HASH1_HEX}:{code}");
-        let cache = MockCacheService::new().with_set_if_absent(
-            cache_key,
-            (),
-            Some(Duration::from_secs(90)),
-            false,
-        );
-
-        let sut = TotpServiceImpl {
-            time,
-            cache,
-            hash,
-            ..Sut::default()
-        };
-
-        // Act
-        let result = sut.check(&code.try_into().unwrap(), secret.clone()).await;
-
-        // Assert
-        assert_matches!(result, Err(TotpCheckError::RecentlyUsed));
     }
 
     impl Default for TotpServiceConfig {

@@ -693,8 +693,25 @@ def mfa_setup_replay_and_recovery(f):
         {"name_or_email": user["name"], "password": user["password"], "mfa_code": code},
         expected=412,
     )
-    verified = f.login(user["name"], user["password"], mfa_code=totp(secret, offset=1))
+    next_code = totp(secret, offset=1)
+    verified = f.login(user["name"], user["password"], mfa_code=next_code)
     assert verified["session"]["mfa_verified"] is True
+    body = {"name_or_email": user["name"], "password": user["password"], "mfa_code": next_code}
+    f.request("/auth/sessions", "POST", body, expected=412)
+    watermark = f.sql(
+        f"SELECT last_accepted_step,s.xmin FROM totp_device_secrets s JOIN totp_devices d USING(id) "
+        f"WHERE d.user_id='{user['id']}'"
+    )
+    # Erase only this fixture's disposable, nonpersistent Valkey state. A code
+    # accepted over HTTP must remain consumed in PostgreSQL afterwards.
+    with socket.create_connection(("127.0.0.1", f.ports["cache"]), timeout=5) as cache:
+        cache.sendall(b"*1\r\n$7\r\nFLUSHDB\r\n")
+        assert cache.recv(1024) == b"+OK\r\n"
+    f.request("/auth/sessions", "POST", body, expected=412)
+    assert watermark == f.sql(
+        f"SELECT last_accepted_step,s.xmin FROM totp_device_secrets s JOIN totp_devices d USING(id) "
+        f"WHERE d.user_id='{user['id']}'"
+    )
     f.request("/auth/users", token=verified["access_token"])
     recovered = f.login(user["name"], user["password"], recovery_code=recovery)
     assert recovered["session"]["mfa_verified"] is False

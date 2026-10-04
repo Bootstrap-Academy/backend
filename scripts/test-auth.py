@@ -70,7 +70,7 @@ def main(*, postgres_tests=None):
         sys.argv.extend(["--suite", "postgres"])
         return module.main(
             postgres_tests=postgres_tests
-            or [("academy", "auth_robustness_native"), ("academy", "auth_robustness_logs")],
+            or [("academy", "auth_robustness_native"), ("academy", "auth_robustness_logs"), ("academy", "totp_replay")],
             cache_port=port,
         )
     finally:

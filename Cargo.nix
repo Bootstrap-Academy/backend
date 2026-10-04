@@ -993,6 +993,10 @@ rec {
             features = [ "dummy" ];
           }
           {
+            name = "academy_core_mfa_contracts";
+            packageId = "academy_core_mfa_contracts";
+          }
+          {
             name = "academy_email_impl";
             packageId = "academy_email_impl";
             features = [ "dummy" ];

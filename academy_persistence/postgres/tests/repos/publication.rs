@@ -67,7 +67,7 @@ async fn additive_migration_preserves_old_accounts_and_api_and_reapplies() {
         );
     }
     txn.rollback().await.unwrap();
-    assert_eq!(db.run_migrations(None).await.unwrap(), [MIGRATION]);
+    assert_eq!(db.run_migrations(Some(1)).await.unwrap(), [MIGRATION]);
     let mut txn = db.begin_transaction().await.unwrap();
     for account in &accounts {
         assert_eq!(
@@ -90,7 +90,7 @@ async fn additive_migration_preserves_old_accounts_and_api_and_reapplies() {
     assert!(!REPO.epoch(&mut txn, true).await.unwrap().publishing_enabled);
     txn.rollback().await.unwrap();
     assert_eq!(db.revert_migrations(Some(1)).await.unwrap(), [MIGRATION]);
-    assert_eq!(db.run_migrations(None).await.unwrap(), [MIGRATION]);
+    assert_eq!(db.run_migrations(Some(1)).await.unwrap(), [MIGRATION]);
     let mut txn = db.begin_transaction().await.unwrap();
     // All alternate account creation paths use this repository or the same DB default.
     let mut imported = FOO.clone();

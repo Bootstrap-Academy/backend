@@ -15,6 +15,58 @@ use crate::common::setup;
 const REPO: PostgresMfaRepository = PostgresMfaRepository;
 
 #[tokio::test]
+async fn totp_steps_require_an_active_device_and_share_the_authorization_transaction() {
+    let db = setup().await;
+    let mut txn = db.begin_transaction().await.unwrap();
+    let secret = REPO
+        .get_totp_device_secret(&mut txn, ADMIN2_TOTP_1.id)
+        .await
+        .unwrap();
+    REPO.update_totp_device(
+        &mut txn,
+        ADMIN2_TOTP_1.id,
+        TotpDevicePatchRef::new().update_enabled(&false),
+    )
+    .await
+    .unwrap();
+    assert!(
+        !REPO
+            .consume_totp_step(&mut txn, ADMIN2.user.id, &secret, 42, false)
+            .await
+            .unwrap()
+    );
+    assert!(
+        REPO.consume_totp_step(&mut txn, ADMIN2.user.id, &secret, 42, true)
+            .await
+            .unwrap()
+    );
+    // A later authorization failure rolls back both confirmation and its step.
+    txn.rollback().await.unwrap();
+    let mut txn = db.begin_transaction().await.unwrap();
+    assert!(
+        REPO.consume_totp_step(&mut txn, ADMIN2.user.id, &secret, 42, false)
+            .await
+            .unwrap()
+    );
+    txn.commit().await.unwrap();
+    let mut txn = db.begin_transaction().await.unwrap();
+    for step in [-1, 41, 42] {
+        assert!(
+            !REPO
+                .consume_totp_step(&mut txn, ADMIN2.user.id, &secret, step, false)
+                .await
+                .unwrap()
+        );
+    }
+    assert!(
+        REPO.consume_totp_step(&mut txn, ADMIN2.user.id, &secret, 43, false)
+            .await
+            .unwrap()
+    );
+    txn.commit().await.unwrap();
+}
+
+#[tokio::test]
 async fn list_totp_devices_by_user() {
     let db = setup().await;
     let mut txn = db.begin_transaction().await.unwrap();

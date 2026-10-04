@@ -23,6 +23,7 @@ dependencies = [
  "academy_core_health_impl",
  "academy_core_heart_impl",
  "academy_core_internal_impl",
+ "academy_core_mfa_contracts",
  "academy_core_mfa_impl",
  "academy_core_moderation_contracts",
  "academy_core_moderation_impl",

@@ -33,13 +33,15 @@ in
     pkgs.writeShellScriptBin "generate-clorinde" ''
       export PATH=${lib.makeBinPath runtimeDependencies}
 
-      set -e
+      set -euo pipefail
+
+      url="''${CLORINDE_DATABASE_URL:-postgres://academy@127.0.0.1:5432/academy}"
 
       cd "$(git rev-parse --show-toplevel)/academy_persistence/postgres"
 
-      PATH="${rustfmtWrapper}/bin:$PATH" clorinde live "postgres://academy@127.0.0.1:5432/academy"
+      PATH="${rustfmtWrapper}/bin:$PATH" clorinde live "$url"
 
-      if [[ "$1" != "-f" ]]; then
+      if [[ "''${1:-}" != "-f" ]]; then
         git restore clorinde/{.gitattributes,Cargo.toml}
       fi
 

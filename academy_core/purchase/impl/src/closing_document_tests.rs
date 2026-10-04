@@ -306,7 +306,7 @@ async fn issued_kind_with_window(kind: &str, seconds: u64) -> PurchaseRecord {
         ),
         _ => ("backend", s.builtin(kind).unwrap()),
     };
-    let result = s.issue(subject(), source, product).await.unwrap();
+    let result = s.issue(subject(), source, product, None).await.unwrap();
     let saved = saved.lock().unwrap();
     let record = saved.record.clone().unwrap();
     assert_eq!(
@@ -435,7 +435,7 @@ async fn closing_saved_r1_replay_keeps_complete_original_without_new_catalog_or_
         s.purchase_config.provision_window_seconds.clear();
         s.premium_config.monthly_price = 9999;
         let result = s
-            .accept_for(subject(), "backend", old.submission.clone().unwrap())
+            .accept_for(subject(), "backend", old.submission.clone().unwrap(), None)
             .await
             .unwrap();
         assert_eq!(
@@ -478,7 +478,7 @@ async fn closing_saved_r1_document_bytes_and_changed_submission_boundary_remain_
             a.early_performance_requested = false;
         }
         assert!(matches!(
-            s.accept_for(subject(), "backend", a).await,
+            s.accept_for(subject(), "backend", a, None).await,
             Err(PurchaseError::OfferRequired)
         ));
     }
@@ -514,7 +514,8 @@ async fn daily_rejects_new_heart_and_course_offers_before_charges_or_documents()
             s.issue(
                 subject(),
                 &old.status.offer.source,
-                old.status.offer.product
+                old.status.offer.product,
+                None
             )
             .await,
             Err(PurchaseError::Unavailable)
@@ -542,7 +543,7 @@ async fn daily_rejects_stale_unaccepted_heart_and_course_offers_before_submissio
         s.learning_policy_config = policy;
         s.user_repo = MockUserRepository::new().with_get_internal_composite(subject(), Some(user));
         assert!(matches!(
-            s.accept_for(subject(), &old.status.offer.source, acceptance)
+            s.accept_for(subject(), &old.status.offer.source, acceptance, None)
                 .await,
             Err(PurchaseError::Unavailable)
         ));
@@ -562,7 +563,7 @@ async fn daily_keeps_historical_accepted_orders_replayable_without_new_policy_or
         let mut s = sut(Arc::clone(&saved), false, true, true);
         s.learning_policy_config = daily_account().1;
         let result = s
-            .accept_for(subject(), "backend", old.submission.clone().unwrap())
+            .accept_for(subject(), "backend", old.submission.clone().unwrap(), None)
             .await
             .unwrap();
         assert_eq!(
@@ -588,7 +589,12 @@ async fn daily_premium_keeps_coin_price_and_duration_and_describes_actual_benefi
         .with_get_internal_composite(subject(), Some(user.clone()))
         .with_get_purchase_composite(subject(), Some(user));
     let offer = s
-        .issue(subject(), "backend", s.builtin("premium_monthly").unwrap())
+        .issue(
+            subject(),
+            "backend",
+            s.builtin("premium_monthly").unwrap(),
+            None,
+        )
         .await
         .unwrap()
         .offer;
@@ -656,8 +662,13 @@ async fn no_daily_premium_offer_is_issued_with_missing_approved_documents() {
     s.learning_policy_config = policy;
     s.user_repo = MockUserRepository::new().with_get_internal_composite(subject(), Some(user));
     assert!(matches!(
-        s.issue(subject(), "backend", s.builtin("premium_monthly").unwrap())
-            .await,
+        s.issue(
+            subject(),
+            "backend",
+            s.builtin("premium_monthly").unwrap(),
+            None
+        )
+        .await,
         Err(PurchaseError::Unavailable)
     ));
     assert!(saved.lock().unwrap().record.is_none());

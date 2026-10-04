@@ -87,9 +87,52 @@ async fn email_not_verified() {
 }
 
 #[tokio::test]
+async fn revoked_session_after_initial_authentication_never_purchases_or_records_consent() {
+    for plan in [PremiumPlan::Monthly, PremiumPlan::Yearly] {
+        let sut = Sut {
+            db: MockDatabase::build(false),
+            auth: MockAuthService::new()
+                .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+                .with_authenticate_in_transaction(None),
+            ..Sut::default()
+        };
+        assert_matches!(
+            sut.purchase(&"token".into(), plan, false, declaration())
+                .await,
+            Err(PremiumPurchaseError::Auth(AuthError::Authenticate(
+                AuthenticateError::InvalidToken
+            )))
+        );
+        // Purchase, consent and subscription mocks permit no calls or commit.
+    }
+}
+
+#[tokio::test]
+async fn current_unverified_email_after_wait_never_purchases() {
+    let mut current_user = FOO.user.clone();
+    current_user.email_verified = false;
+    let sut = Sut {
+        db: MockDatabase::build(false),
+        auth: MockAuthService::new()
+            .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+            .with_authenticate_in_transaction(Some((current_user, FOO_1.clone()))),
+        ..Sut::default()
+    };
+    assert_matches!(
+        sut.purchase(&"token".into(), PremiumPlan::Monthly, false, declaration())
+            .await,
+        Err(PremiumPurchaseError::Auth(AuthError::Authorize(
+            AuthorizeError::EmailVerified
+        )))
+    );
+}
+
+#[tokio::test]
 async fn not_enough_coins() {
     // Arrange
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
 
     let db = MockDatabase::build(false);
 
@@ -125,7 +168,9 @@ async fn no_subscribe() {
         renewal: None,
     };
 
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
 
     let db = MockDatabase::build(true);
 

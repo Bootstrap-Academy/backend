@@ -91,6 +91,7 @@ async fn update_email_admin() {
     let db = MockDatabase::build(true);
 
     let user_repo = MockUserRepository::new()
+        .with_lock_account(ADMIN.user.id, true)
         .with_lock_account(FOO.user.id, true)
         .with_get_composite(FOO.user.id, Some(FOO.clone()));
 
@@ -150,6 +151,7 @@ async fn update_email_admin_verified() {
     let db = MockDatabase::build(true);
 
     let user_repo = MockUserRepository::new()
+        .with_lock_account(ADMIN.user.id, true)
         .with_lock_account(FOO.user.id, true)
         .with_get_composite(FOO.user.id, Some(FOO.clone()));
 
@@ -210,6 +212,7 @@ async fn update_email_admin_unverified() {
     let db = MockDatabase::build(true);
 
     let user_repo = MockUserRepository::new()
+        .with_lock_account(ADMIN.user.id, true)
         .with_lock_account(FOO.user.id, true)
         .with_get_composite(FOO.user.id, Some(FOO.clone()));
 
@@ -256,21 +259,25 @@ async fn update_set_email_verified() {
     // Arrange
     let expected = FOO.clone();
 
-    let auth =
-        MockAuthService::new().with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())))
+        .with_authenticate_in_transaction(Some((ADMIN.user.clone(), ADMIN_1.clone())));
 
     let db = MockDatabase::build(true);
 
-    let user_repo = MockUserRepository::new().with_get_composite(
-        FOO.user.id,
-        Some(UserComposite {
-            user: User {
-                email_verified: false,
-                ..FOO.user.clone()
-            },
-            ..FOO.clone()
-        }),
-    );
+    let user_repo = MockUserRepository::new()
+        .with_lock_account(FOO.user.id, true)
+        .with_lock_account(ADMIN.user.id, true)
+        .with_get_composite(
+            FOO.user.id,
+            Some(UserComposite {
+                user: User {
+                    email_verified: false,
+                    ..FOO.user.clone()
+                },
+                ..FOO.clone()
+            }),
+        );
 
     let user_update = MockUserUpdateService::new().with_update_email(
         FOO.user.id,
@@ -317,12 +324,16 @@ async fn update_set_email_unverified() {
         ..FOO.clone()
     };
 
-    let auth =
-        MockAuthService::new().with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())))
+        .with_authenticate_in_transaction(Some((ADMIN.user.clone(), ADMIN_1.clone())));
 
     let db = MockDatabase::build(true);
 
-    let user_repo = MockUserRepository::new().with_get_composite(FOO.user.id, Some(FOO.clone()));
+    let user_repo = MockUserRepository::new()
+        .with_lock_account(ADMIN.user.id, true)
+        .with_lock_account(FOO.user.id, true)
+        .with_get_composite(FOO.user.id, Some(FOO.clone()));
 
     let user_update = MockUserUpdateService::new().with_update_email(
         FOO.user.id,

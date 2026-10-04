@@ -30,11 +30,15 @@ async fn update_name_self() {
         ..FOO.clone()
     };
 
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
 
     let db = MockDatabase::build(true);
 
-    let user_repo = MockUserRepository::new().with_get_composite(FOO.user.id, Some(FOO.clone()));
+    let user_repo = MockUserRepository::new()
+        .with_lock_account(FOO.user.id, true)
+        .with_get_composite(FOO.user.id, Some(FOO.clone()));
 
     let user_update = MockUserUpdateService::new().with_update_name(
         FOO.user.clone(),
@@ -82,12 +86,16 @@ async fn update_name_admin_no_rate_limit() {
         ..FOO.clone()
     };
 
-    let auth =
-        MockAuthService::new().with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())))
+        .with_authenticate_in_transaction(Some((ADMIN.user.clone(), ADMIN_1.clone())));
 
     let db = MockDatabase::build(true);
 
-    let user_repo = MockUserRepository::new().with_get_composite(FOO.user.id, Some(FOO.clone()));
+    let user_repo = MockUserRepository::new()
+        .with_lock_account(ADMIN.user.id, true)
+        .with_lock_account(FOO.user.id, true)
+        .with_get_composite(FOO.user.id, Some(FOO.clone()));
 
     let user_update = MockUserUpdateService::new().with_update_name(
         FOO.user.clone(),
@@ -144,12 +152,15 @@ async fn update_name_admin_without_mfa_rate_limit() {
         mfa_verified: false,
         ..ADMIN_1.clone()
     };
-    let auth = MockAuthService::new().with_authenticate(Some((ADMIN.user.clone(), session)));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((ADMIN.user.clone(), session.clone())))
+        .with_authenticate_in_transaction(Some((ADMIN.user.clone(), session)));
 
     let db = MockDatabase::build(true);
 
-    let user_repo =
-        MockUserRepository::new().with_get_composite(ADMIN.user.id, Some(ADMIN.clone()));
+    let user_repo = MockUserRepository::new()
+        .with_lock_account(ADMIN.user.id, true)
+        .with_get_composite(ADMIN.user.id, Some(ADMIN.clone()));
 
     // `Enforce` instead of `Bypass` is the whole assertion: the mock only
     // matches a call with this policy.
@@ -190,11 +201,15 @@ async fn update_name_admin_without_mfa_rate_limit() {
 #[tokio::test]
 async fn update_name_self_rate_limit() {
     // Arrange
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
 
     let db = MockDatabase::build(false);
 
-    let user_repo = MockUserRepository::new().with_get_composite(FOO.user.id, Some(FOO.clone()));
+    let user_repo = MockUserRepository::new()
+        .with_lock_account(FOO.user.id, true)
+        .with_get_composite(FOO.user.id, Some(FOO.clone()));
 
     let expected = FOO.user.last_name_change.unwrap() + Duration::from_secs(17);
 
@@ -235,11 +250,15 @@ async fn update_name_self_rate_limit() {
 #[tokio::test]
 async fn update_name_conflict() {
     // Arrange
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
 
     let db = MockDatabase::build(false);
 
-    let user_repo = MockUserRepository::new().with_get_composite(FOO.user.id, Some(FOO.clone()));
+    let user_repo = MockUserRepository::new()
+        .with_lock_account(FOO.user.id, true)
+        .with_get_composite(FOO.user.id, Some(FOO.clone()));
 
     let user_update = MockUserUpdateService::new().with_update_name(
         FOO.user.clone(),

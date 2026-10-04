@@ -14,7 +14,9 @@ async fn ok() {
     // Arrange
     let db = MockDatabase::build(true);
 
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
 
     let session = MockSessionService::new().with_delete(FOO_1.id, true);
 

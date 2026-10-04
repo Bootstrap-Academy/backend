@@ -92,10 +92,16 @@ where
             .ok_or(HeartRefillError::WithdrawalConsentMissing)?
             .clone();
 
-        let auth = self.auth.authenticate(token).await.map_auth_err()?;
-        let user_id = auth.user_id;
+        self.auth.authenticate(token).await.map_auth_err()?;
 
         let mut txn = self.db.begin_transaction().await?;
+
+        let auth = self
+            .auth
+            .authenticate_in_transaction(&mut txn, token)
+            .await
+            .map_auth_err()?;
+        let user_id = auth.user_id;
 
         if self.learning_policy_config.mode == LearningMode::Daily {
             let user = self

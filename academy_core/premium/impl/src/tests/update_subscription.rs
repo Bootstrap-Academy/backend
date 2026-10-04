@@ -79,7 +79,9 @@ async fn no_consent_cannot_enable_monthly_or_yearly() {
 #[tokio::test]
 async fn cancellation_never_calls_charge_on_read_even_without_premium() {
     let sut = PremiumFeatureServiceImpl {
-        auth: MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone()))),
+        auth: MockAuthService::new()
+            .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+            .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone()))),
         db: MockDatabase::build(true),
         premium_repo: MockPremiumRepository::new().with_set_subscription(FOO.user.id, None),
         ..Sut::default()
@@ -87,6 +89,40 @@ async fn cancellation_never_calls_charge_on_read_even_without_premium() {
     sut.update_subscription(&"token".into(), None, None)
         .await
         .unwrap();
+}
+
+#[tokio::test]
+async fn cancellation_rejects_revoked_session_and_changed_email_before_any_write() {
+    for revoked in [false, true] {
+        let mut current_user = FOO.user.clone();
+        current_user.email_verified = false;
+        let sut = Sut {
+            db: MockDatabase::build(false),
+            auth: MockAuthService::new()
+                .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+                .with_authenticate_in_transaction(
+                    (!revoked).then_some((current_user, FOO_1.clone())),
+                ),
+            ..Sut::default()
+        };
+        let result = sut.update_subscription(&"token".into(), None, None).await;
+        if revoked {
+            assert_matches!(
+                result,
+                Err(PremiumUpdateSubscriptionError::Auth(
+                    AuthError::Authenticate(AuthenticateError::InvalidToken)
+                ))
+            );
+        } else {
+            assert_matches!(
+                result,
+                Err(PremiumUpdateSubscriptionError::Auth(AuthError::Authorize(
+                    AuthorizeError::EmailVerified
+                )))
+            );
+        }
+        // Cancellation and charge-on-read services permit no calls or commit.
+    }
 }
 
 #[tokio::test]

@@ -19,9 +19,9 @@ pub trait AuthService<Txn: Send + Sync + 'static>: Send + Sync + 'static {
         token: &AccessToken,
     ) -> impl Future<Output = Result<Authentication, AuthenticateError>> + Send;
 
-    /// Recheck current access authority using the caller's existing transaction.
-    /// Use this after waiting for an account lock without borrowing another
-    /// database connection while that transaction holds the lock.
+    /// Lock the caller's account and recheck durable access authority in the
+    /// existing write transaction, without borrowing another pool connection.
+    /// Cross-account writes must lock caller and target in UUID order first.
     fn authenticate_in_transaction(
         &self,
         txn: &mut Txn,

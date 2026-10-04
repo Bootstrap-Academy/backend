@@ -2,6 +2,7 @@ use std::future::Future;
 
 use crate::PremiumUpdateSubscriptionError;
 use academy_models::{
+    auth::AccessToken,
     premium::{PremiumRenewalConsent, PremiumRenewalOffer},
     user::UserId,
 };
@@ -27,6 +28,7 @@ pub trait PremiumRenewalService: Send + Sync + 'static {
     ) -> impl Future<Output = Result<Vec<u8>, PremiumUpdateSubscriptionError>> + Send;
     fn enable(
         &self,
+        token: &AccessToken,
         user_id: UserId,
         consent: PremiumRenewalConsent,
     ) -> impl Future<Output = Result<(), PremiumUpdateSubscriptionError>> + Send;

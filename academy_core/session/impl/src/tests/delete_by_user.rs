@@ -10,7 +10,7 @@ use academy_models::{
     auth::{AuthError, AuthenticateError, AuthorizeError},
     user::UserIdOrSelf,
 };
-use academy_persistence_contracts::MockDatabase;
+use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
 use academy_utils::assert_matches;
 
 use super::Sut;
@@ -19,7 +19,9 @@ use crate::SessionFeatureServiceImpl;
 #[tokio::test]
 async fn ok_self() {
     // Arrange
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
 
     let db = MockDatabase::build(true);
 
@@ -44,17 +46,22 @@ async fn ok_self() {
 #[tokio::test]
 async fn ok_admin() {
     // Arrange
-    let auth =
-        MockAuthService::new().with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())))
+        .with_authenticate_in_transaction(Some((ADMIN.user.clone(), ADMIN_1.clone())));
 
     let db = MockDatabase::build(true);
 
     let session = MockSessionService::new().with_delete_by_user(FOO.user.id);
+    let user_repo = MockUserRepository::new()
+        .with_lock_account(FOO.user.id, true)
+        .with_lock_account(ADMIN.user.id, true);
 
     let sut = SessionFeatureServiceImpl {
         db,
         auth,
         session,
+        user_repo,
         ..Sut::default()
     };
 

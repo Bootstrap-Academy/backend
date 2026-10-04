@@ -80,7 +80,8 @@ where
     async fn authenticate(&self, token: &AccessToken) -> Result<Authentication, AuthenticateError> {
         let auth = authenticate_token(&self.auth_access_token, token).await?;
         let mut txn = self.db.begin_transaction().await?;
-        authenticate_current_authority(&self.user_repo, &self.session_repo, &mut txn, auth).await
+        authenticate_current_authority(&self.user_repo, &self.session_repo, &mut txn, auth, false)
+            .await
     }
 
     #[trace_instrument(skip(self, txn))]
@@ -90,7 +91,12 @@ where
         token: &AccessToken,
     ) -> Result<Authentication, AuthenticateError> {
         let auth = authenticate_token(&self.auth_access_token, token).await?;
-        authenticate_current_authority(&self.user_repo, &self.session_repo, txn, auth).await
+        // Keep revocation, credential changes and this write in a single
+        // account-lock order. The authority read must follow any lock wait.
+        if !self.user_repo.lock_account(txn, auth.user_id).await? {
+            return Err(AuthenticateError::InvalidToken);
+        }
+        authenticate_current_authority(&self.user_repo, &self.session_repo, txn, auth, true).await
     }
 
     #[trace_instrument(skip(self, txn, password))]
@@ -234,6 +240,7 @@ async fn authenticate_current_authority<Txn, UserRepo, SessionRepo>(
     session_repo: &SessionRepo,
     txn: &mut Txn,
     auth: Authentication,
+    for_write: bool,
 ) -> Result<Authentication, AuthenticateError>
 where
     Txn: Send + Sync + 'static,
@@ -248,11 +255,19 @@ where
         .await?
         .filter(|u| u.user.enabled)
         .ok_or(AuthenticateError::InvalidToken)?;
-    let session = session_repo
-        .get_by_refresh_token_hash(txn, auth.refresh_token_hash)
-        .await?
-        .filter(|s| s.id == auth.session_id && s.user_id == auth.user_id)
-        .ok_or(AuthenticateError::InvalidToken)?;
+    // A write also holds the session/token rows until commit, so expiry
+    // cleanup cannot delete the authority between this read and the mutation.
+    let session = if for_write {
+        session_repo
+            .get_by_refresh_token_hash_for_update(txn, auth.refresh_token_hash)
+            .await?
+    } else {
+        session_repo
+            .get_by_refresh_token_hash(txn, auth.refresh_token_hash)
+            .await?
+    }
+    .filter(|s| s.id == auth.session_id && s.user_id == auth.user_id)
+    .ok_or(AuthenticateError::InvalidToken)?;
     let auth = Authentication {
         admin: user.user.admin,
         email_verified: user.user.email_verified,

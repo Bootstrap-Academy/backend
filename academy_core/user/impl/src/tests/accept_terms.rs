@@ -34,7 +34,9 @@ async fn ok() {
         ..FOO.user.clone()
     };
 
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
 
     let db = MockDatabase::build(true);
 
@@ -83,8 +85,9 @@ async fn ok_account_without_previous_acceptance() {
         ..ADMIN.user.clone()
     };
 
-    let auth =
-        MockAuthService::new().with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())))
+        .with_authenticate_in_transaction(Some((ADMIN.user.clone(), ADMIN_1.clone())));
 
     let db = MockDatabase::build(true);
 
@@ -180,7 +183,9 @@ async fn age_not_confirmed() {
 #[tokio::test]
 async fn not_found() {
     // Arrange
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
 
     let db = MockDatabase::build(false);
 
@@ -252,6 +257,9 @@ async fn signup_override_neither_migrates_existing_users_nor_downgrades_new_user
         };
         sut.config.registration_terms_version = Some(registration_version.clone());
         if new_user {
+            sut.auth = sut
+                .auth
+                .with_authenticate_in_transaction(Some((account.user.clone(), FOO_1.clone())));
             sut.db = MockDatabase::build(false);
             sut.user_repo =
                 MockUserRepository::new().with_get_composite(FOO.user.id, Some(account));

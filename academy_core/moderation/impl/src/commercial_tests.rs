@@ -17,6 +17,9 @@ use uuid::Uuid;
 mod unused;
 use unused::Unused;
 
+#[path = "session_recheck_tests.rs"]
+mod session_recheck;
+
 fn page_request(family: &str) -> Value {
     json!({"family":family,"limit":2,"cursor":null})
 }
@@ -383,11 +386,17 @@ fn database(commits: &[bool]) -> MockDatabase {
     db
 }
 fn sut(commits: &[bool]) -> Sut {
+    let mut auth = MockAuthService::new();
+    auth.expect_authenticate_in_transaction()
+        .returning(|_, _| Box::pin(async { Ok(staff()) }));
+    let mut repo = MockModerationRepository::new();
+    repo.expect_lock_session_write()
+        .returning(|_, _, _, _, _| Box::pin(async { Ok(()) }));
     Sut {
         db: database(commits),
-        auth: MockAuthService::new(),
+        auth,
         internal: MockAuthInternalService::new(),
-        repo: MockModerationRepository::new(),
+        repo,
         session: Unused,
         export: MockUserExportService::new(),
         services: MockMicroservicesApiService::new(),

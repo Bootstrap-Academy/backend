@@ -53,6 +53,7 @@ fn response<T: serde::Serialize>(result: Result<T, PurchaseError>) -> Response {
         Ok(v) => Json(v).into_response(),
         Err(e) => {
             let status = match e {
+                PurchaseError::Auth(_) => StatusCode::UNAUTHORIZED,
                 PurchaseError::NotFound => StatusCode::NOT_FOUND,
                 PurchaseError::OfferRequired => StatusCode::CONFLICT,
                 PurchaseError::ContactRequired | PurchaseError::Unavailable => {

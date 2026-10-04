@@ -3,7 +3,11 @@ use academy_auth_contracts::MockAuthService;
 use academy_core_paypal_contracts::{PaypalCreateCoinOrderError, PaypalFeatureService};
 use academy_core_purchase_contracts::MockPurchaseFeatureService;
 use academy_demo::{session::FOO_1, user::FOO};
-use academy_models::{paypal::PaypalRemoteOrder, purchase::*};
+use academy_models::{
+    auth::{AuthError, AuthenticateError},
+    paypal::PaypalRemoteOrder,
+    purchase::*,
+};
 use academy_persistence_contracts::{MockDatabase, paypal::MockPaypalRepository};
 use chrono::{TimeDelta, Utc};
 use rust_decimal_macros::dec;
@@ -82,7 +86,9 @@ async fn accepted_retry_returns_original_provider_identity_without_repricing() {
         .once()
         .return_once(|_, _| Box::pin(std::future::ready(Ok(Some("ORIGINAL".try_into().unwrap())))));
     let sut = Sut {
-        auth: MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone()))),
+        auth: MockAuthService::new()
+            .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+            .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone()))),
         db: MockDatabase::build(true),
         paypal_repo: repo,
         purchase: purchase(&status),
@@ -95,6 +101,37 @@ async fn accepted_retry_returns_original_provider_identity_without_repricing() {
             .as_str(),
         "ORIGINAL"
     );
+}
+
+#[tokio::test]
+async fn accepted_purchase_still_requires_current_session_before_provider_order_creation() {
+    let status = accepted();
+    let acceptance = request(&status);
+    let mut repo = MockPaypalRepository::new();
+    repo.expect_lock_contract_order().never();
+    let mut api = academy_extern_contracts::paypal::MockPaypalApiService::new();
+    api.expect_create_order().never();
+    api.expect_get_order().never();
+    let sut = Sut {
+        auth: MockAuthService::new()
+            .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+            .with_authenticate_in_transaction(None),
+        db: MockDatabase::build(false),
+        purchase: purchase(&status),
+        paypal_repo: repo,
+        paypal_api: api,
+        ..Sut::default()
+    };
+
+    assert!(matches!(
+        sut.create_coin_order(&"token".into(), 1337, acceptance)
+            .await,
+        Err(PaypalCreateCoinOrderError::Auth(AuthError::Authenticate(
+            AuthenticateError::InvalidToken
+        )))
+    ));
+    // Both purchase mocks must complete successfully. The subsequent PayPal
+    // transaction still needs current authority before any order effect or commit.
 }
 #[tokio::test]
 async fn amount_from_another_offer_cannot_create_or_replay_payment() {
@@ -163,7 +200,9 @@ async fn accepted_offer_creates_snapshot_from_original_tax_recipient_and_declara
         })))
     });
     let sut = Sut {
-        auth: MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone()))),
+        auth: MockAuthService::new()
+            .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+            .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone()))),
         db: MockDatabase::build(true),
         paypal_repo: repo,
         purchase: purchase(&status),

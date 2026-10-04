@@ -16,7 +16,9 @@ use crate::{OAuth2FeatureServiceImpl, tests::Sut};
 #[tokio::test]
 async fn ok() {
     // Arrange
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
 
     let db = MockDatabase::build(true);
 
@@ -97,17 +99,22 @@ async fn unauthorized() {
 #[tokio::test]
 async fn not_found() {
     // Arrange
-    let auth =
-        MockAuthService::new().with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())))
+        .with_authenticate_in_transaction(Some((ADMIN.user.clone(), ADMIN_1.clone())));
 
     let db = MockDatabase::build(false);
 
     let oauth2_repo = MockOAuth2Repository::new().with_get_link(FOO_OAUTH2_LINK_1.id, None);
+    let user_repo = MockUserRepository::new()
+        .with_lock_account(FOO.user.id, true)
+        .with_lock_account(ADMIN.user.id, true);
 
     let sut = OAuth2FeatureServiceImpl {
         db,
         auth,
         oauth2_repo,
+        user_repo,
         ..Sut::default()
     };
 
@@ -123,18 +130,24 @@ async fn not_found() {
 #[tokio::test]
 async fn user_id_mismatch() {
     // Arrange
-    let auth =
-        MockAuthService::new().with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())))
+        .with_authenticate_in_transaction(Some((ADMIN.user.clone(), ADMIN_1.clone())));
 
     let db = MockDatabase::build(false);
 
     let oauth2_repo = MockOAuth2Repository::new()
         .with_get_link(FOO_OAUTH2_LINK_1.id, Some(FOO_OAUTH2_LINK_1.clone()));
 
+    let user_repo = MockUserRepository::new()
+        .with_lock_account(BAR.user.id, true)
+        .with_lock_account(ADMIN.user.id, true);
+
     let sut = OAuth2FeatureServiceImpl {
         db,
         auth,
         oauth2_repo,
+        user_repo,
         ..Sut::default()
     };
 
@@ -150,7 +163,9 @@ async fn user_id_mismatch() {
 #[tokio::test]
 async fn last_login_method() {
     // Arrange
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
 
     let db = MockDatabase::build_expect_rollback();
 

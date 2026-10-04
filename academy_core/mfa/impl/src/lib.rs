@@ -68,6 +68,25 @@ where
 
         let mut txn = self.db.begin_transaction().await?;
 
+        if auth.user_id != user_id
+            && !academy_persistence_contracts::user::lock_accounts(
+                &self.user_repo,
+                &mut txn,
+                auth.user_id,
+                user_id,
+            )
+            .await?
+        {
+            return Err(MfaInitializeError::NotFound);
+        }
+
+        let auth = self
+            .auth
+            .authenticate_in_transaction(&mut txn, token)
+            .await
+            .map_auth_err()?;
+        auth.ensure_self_or_admin(user_id).map_auth_err()?;
+
         trace!("check user existence");
         if !self
             .user_repo
@@ -123,6 +142,25 @@ where
         auth.ensure_self_or_admin(user_id).map_auth_err()?;
 
         let mut txn = self.db.begin_transaction().await?;
+
+        if auth.user_id != user_id
+            && !academy_persistence_contracts::user::lock_accounts(
+                &self.user_repo,
+                &mut txn,
+                auth.user_id,
+                user_id,
+            )
+            .await?
+        {
+            return Err(MfaEnableError::NotFound);
+        }
+
+        let auth = self
+            .auth
+            .authenticate_in_transaction(&mut txn, token)
+            .await
+            .map_auth_err()?;
+        auth.ensure_self_or_admin(user_id).map_auth_err()?;
 
         trace!("check user existence");
         if !self
@@ -186,6 +224,25 @@ where
         auth.ensure_self_or_admin(user_id).map_auth_err()?;
 
         let mut txn = self.db.begin_transaction().await?;
+
+        if auth.user_id != user_id
+            && !academy_persistence_contracts::user::lock_accounts(
+                &self.user_repo,
+                &mut txn,
+                auth.user_id,
+                user_id,
+            )
+            .await?
+        {
+            return Err(MfaDisableError::NotFound);
+        }
+
+        let auth = self
+            .auth
+            .authenticate_in_transaction(&mut txn, token)
+            .await
+            .map_auth_err()?;
+        auth.ensure_self_or_admin(user_id).map_auth_err()?;
 
         trace!("check user existence");
         if !self

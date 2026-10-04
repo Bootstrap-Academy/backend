@@ -19,6 +19,16 @@ pub trait ContractRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static 
         txn: &mut Txn,
         id: ContractDeclarationId,
     ) -> impl Future<Output = anyhow::Result<()>> + Send;
+    /// Called after `lock_request`: lock the session actor, observed owner and
+    /// optional verified cancellation target in UUID order before rechecking
+    /// session authority and taking declaration/resource locks.
+    fn lock_session_processing(
+        &self,
+        txn: &mut Txn,
+        id: ContractDeclarationId,
+        actor: UserId,
+        verified_target: Option<UserId>,
+    ) -> impl Future<Output = anyhow::Result<()>> + Send;
     /// Account then declaration lock, shared with schedule recovery.
     fn lock_processing(
         &self,

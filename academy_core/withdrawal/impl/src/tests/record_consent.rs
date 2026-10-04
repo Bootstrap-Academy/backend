@@ -37,7 +37,9 @@ async fn ok() {
 
     let db = MockDatabase::build(true);
 
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
 
     let withdrawal_consent = MockWithdrawalConsentService::new().with_record(expected.clone());
 
@@ -132,4 +134,28 @@ async fn unauthenticated() {
             AuthenticateError::InvalidToken
         )))
     );
+}
+
+#[tokio::test]
+async fn revoked_session_after_initial_authentication_never_records_consent() {
+    let sut = Sut {
+        db: MockDatabase::build(false),
+        auth: MockAuthService::new()
+            .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+            .with_authenticate_in_transaction(None),
+        ..Sut::default()
+    };
+    assert_matches!(
+        sut.record_consent(
+            &"token".into(),
+            WithdrawalSubject::Course,
+            Some("html".try_into().unwrap()),
+            declaration(),
+        )
+        .await,
+        Err(WithdrawalRecordConsentError::Auth(AuthError::Authenticate(
+            AuthenticateError::InvalidToken
+        )))
+    );
+    // No withdrawal record or transaction commit is allowed.
 }

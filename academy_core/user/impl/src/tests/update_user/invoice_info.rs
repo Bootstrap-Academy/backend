@@ -27,14 +27,18 @@ async fn ok() {
         ..BAR.clone().with(|u| u.user.email_verified = true)
     };
 
-    let auth = MockAuthService::new().with_authenticate(Some((BAR.user.clone(), BAR_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((BAR.user.clone(), BAR_1.clone())))
+        .with_authenticate_in_transaction(Some((BAR.user.clone(), BAR_1.clone())));
 
     let db = MockDatabase::build(true);
 
-    let user_repo = MockUserRepository::new().with_get_composite(
-        BAR.user.id,
-        Some(BAR.clone().with(|u| u.user.email_verified = true)),
-    );
+    let user_repo = MockUserRepository::new()
+        .with_lock_account(BAR.user.id, true)
+        .with_get_composite(
+            BAR.user.id,
+            Some(BAR.clone().with(|u| u.user.email_verified = true)),
+        );
 
     let user_update = MockUserUpdateService::new().with_update_invoice_info(
         BAR.user.id,
@@ -77,14 +81,18 @@ async fn ok_release_coins() {
         ..BAR.clone().with(|u| u.user.email_verified = true)
     };
 
-    let auth = MockAuthService::new().with_authenticate(Some((BAR.user.clone(), BAR_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((BAR.user.clone(), BAR_1.clone())))
+        .with_authenticate_in_transaction(Some((BAR.user.clone(), BAR_1.clone())));
 
     let db = MockDatabase::build(true);
 
-    let user_repo = MockUserRepository::new().with_get_composite(
-        BAR.user.id,
-        Some(BAR.clone().with(|u| u.user.email_verified = true)),
-    );
+    let user_repo = MockUserRepository::new()
+        .with_lock_account(BAR.user.id, true)
+        .with_get_composite(
+            BAR.user.id,
+            Some(BAR.clone().with(|u| u.user.email_verified = true)),
+        );
 
     let user_update = MockUserUpdateService::new().with_update_invoice_info(
         BAR.user.id,
@@ -136,11 +144,15 @@ async fn invalid_vat_id() {
         ..BAR.clone()
     };
 
-    let auth = MockAuthService::new().with_authenticate(Some((BAR.user.clone(), BAR_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((BAR.user.clone(), BAR_1.clone())))
+        .with_authenticate_in_transaction(Some((BAR.user.clone(), BAR_1.clone())));
 
     let db = MockDatabase::build(false);
 
-    let user_repo = MockUserRepository::new().with_get_composite(BAR.user.id, Some(BAR.clone()));
+    let user_repo = MockUserRepository::new()
+        .with_lock_account(BAR.user.id, true)
+        .with_get_composite(BAR.user.id, Some(BAR.clone()));
 
     let vat_api = MockVatApiService::new().with_is_vat_id_valid("DE1234".into(), false);
 

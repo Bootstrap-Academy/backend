@@ -90,6 +90,33 @@ impl ContractRepository<PostgresTransaction> for PostgresContractRepository {
             .await?;
         Ok(())
     }
+    async fn lock_session_processing(
+        &self,
+        txn: &mut PostgresTransaction,
+        id: ContractDeclarationId,
+        actor: UserId,
+        verified_target: Option<UserId>,
+    ) -> anyhow::Result<()> {
+        let mut accounts = vec![*actor];
+        accounts.extend(verified_target.map(|user| *user));
+        let owner = txn
+            .txn()
+            .query_opt(
+                "SELECT user_id FROM contract_account_observation WHERE declaration_id=$1",
+                &[&*id],
+            )
+            .await?;
+        accounts.extend(owner.map(|row| row.get::<_, uuid::Uuid>(0)));
+        // Keep request -> accounts -> declaration/resource, including the
+        // existing anonymous receipt and schedule recovery paths.
+        txn.txn()
+            .query(
+                "SELECT id FROM users WHERE id=ANY($1) ORDER BY id FOR UPDATE",
+                &[&accounts],
+            )
+            .await?;
+        Ok(())
+    }
     async fn lock_resolution_delivery(
         &self,
         txn: &mut PostgresTransaction,

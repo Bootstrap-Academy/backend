@@ -3,6 +3,18 @@ use serde_json::Value;
 use std::future::Future;
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait ModerationRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
+    /// Keep the owning command fence before account locks. Lock the session
+    /// actor and any live target account in UUID order before reauthentication.
+    /// This is only for ordinary session writes; retained capabilities and
+    /// internal recovery keep their existing authority and lock order.
+    fn lock_session_write(
+        &self,
+        txn: &mut Txn,
+        actor: UserId,
+        commercial: bool,
+        operation: &str,
+        body: &Value,
+    ) -> impl Future<Output = anyhow::Result<()>> + Send;
     /// Original claimant of the exact case, including closed/erased cases.
     fn commercial_case_subject(
         &self,

@@ -19,7 +19,9 @@ use crate::{UserFeatureServiceImpl, tests::Sut};
 #[tokio::test]
 async fn ok_self() {
     // Arrange
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
 
     let db = MockDatabase::build(false);
 
@@ -58,15 +60,19 @@ async fn ok_self() {
 #[tokio::test]
 async fn ok_admin() {
     // Arrange
-    let auth =
-        MockAuthService::new().with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())))
+        .with_authenticate_in_transaction(Some((ADMIN.user.clone(), ADMIN_1.clone())));
 
     let db = MockDatabase::build(false);
 
-    let user_repo = MockUserRepository::new().with_get_composite(
-        FOO.user.id,
-        Some(FOO.clone().with(|u| u.user.email_verified = false)),
-    );
+    let user_repo = MockUserRepository::new()
+        .with_lock_account(FOO.user.id, true)
+        .with_lock_account(ADMIN.user.id, true)
+        .with_get_composite(
+            FOO.user.id,
+            Some(FOO.clone().with(|u| u.user.email_verified = false)),
+        );
 
     let user_email_confirmation = MockUserEmailConfirmationService::new()
         .with_request_verification(
@@ -146,12 +152,16 @@ async fn unauthorized() {
 #[tokio::test]
 async fn not_found() {
     // Arrange
-    let auth =
-        MockAuthService::new().with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())))
+        .with_authenticate_in_transaction(Some((ADMIN.user.clone(), ADMIN_1.clone())));
 
     let db = MockDatabase::build(false);
 
-    let user_repo = MockUserRepository::new().with_get_composite(FOO.user.id, None);
+    let user_repo = MockUserRepository::new()
+        .with_lock_account(ADMIN.user.id, true)
+        .with_lock_account(FOO.user.id, true)
+        .with_get_composite(FOO.user.id, None);
 
     let sut = UserFeatureServiceImpl {
         auth,
@@ -172,7 +182,9 @@ async fn not_found() {
 #[tokio::test]
 async fn already_verified() {
     // Arrange
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
 
     let db = MockDatabase::build(false);
 
@@ -200,7 +212,9 @@ async fn already_verified() {
 #[tokio::test]
 async fn no_email() {
     // Arrange
-    let auth = MockAuthService::new().with_authenticate(Some((BAR.user.clone(), BAR_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((BAR.user.clone(), BAR_1.clone())))
+        .with_authenticate_in_transaction(Some((BAR.user.clone(), BAR_1.clone())));
 
     let db = MockDatabase::build(false);
 

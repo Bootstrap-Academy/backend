@@ -17,8 +17,9 @@ pub struct PasswordServiceImpl {
 }
 
 impl PasswordService for PasswordServiceImpl {
-    #[trace_instrument(skip(self))]
+    #[tracing::instrument(skip(self, password))]
     async fn hash(&self, password: Sensitive<String>) -> anyhow::Result<String> {
+        tracing::trace!("call");
         let argon2 = Arc::clone(&self.argon2);
         let salt = SaltString::generate(&mut OsRng);
         tokio::task::spawn_blocking(move || {
@@ -30,7 +31,7 @@ impl PasswordService for PasswordServiceImpl {
         .context("Failed to hash password")
     }
 
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, password, hash))]
     async fn verify(
         &self,
         password: Sensitive<String>,

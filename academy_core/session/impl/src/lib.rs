@@ -96,7 +96,7 @@ where
     UserRepo: UserRepository<Db::Transaction>,
     SessionRepo: SessionRepository<Db::Transaction>,
 {
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, token))]
     async fn get_current_session(
         &self,
         token: &AccessToken,
@@ -111,7 +111,7 @@ where
             .ok_or_else(|| anyhow!("Failed to get authenticated session").into())
     }
 
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, token))]
     async fn list_by_user(
         &self,
         token: &AccessToken,
@@ -133,7 +133,7 @@ where
     // The command carries the name or email address the login was attempted
     // with and the user agent of the client, neither of which belongs in the
     // logs of every login attempt.
-    #[trace_instrument(skip(self, cmd))]
+    #[tracing::instrument(skip(self, cmd, recaptcha_response))]
     async fn create_session(
         &self,
         client_ip: IpAddr,
@@ -173,7 +173,7 @@ where
         Ok(user.user.id)
     }
 
-    #[trace_instrument(skip(self))]
+    #[tracing::instrument(skip(self, token))]
     async fn impersonate(
         &self,
         token: &AccessToken,
@@ -227,7 +227,7 @@ where
         Ok(login)
     }
 
-    #[trace_instrument(skip(self))]
+    #[tracing::instrument(skip(self, refresh_token))]
     async fn refresh_session(
         &self,
         refresh_token: &RefreshToken,
@@ -274,7 +274,7 @@ where
         Ok(login)
     }
 
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, token))]
     async fn delete_session(
         &self,
         token: &AccessToken,
@@ -324,7 +324,7 @@ where
         Ok(())
     }
 
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, token))]
     async fn delete_current_session(
         &self,
         token: &AccessToken,
@@ -349,7 +349,7 @@ where
         Ok(())
     }
 
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, token))]
     async fn delete_by_user(
         &self,
         token: &AccessToken,

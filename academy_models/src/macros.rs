@@ -131,15 +131,11 @@ macro_rules! nutype_string {
 
 macro_rules! sensitive_debug {
     ($ident:ident $(<$($generics:ident),*>)?) => {
-        impl $(<$($generics : ::std::fmt::Debug),*>)? ::std::fmt::Debug for $ident $(<$($generics),*>)? {
+        impl $(<$($generics),*>)? ::std::fmt::Debug for $ident $(<$($generics),*>)? {
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                // debug: use default Debug implementation
-                #[cfg(debug_assertions)]
-                { f.debug_tuple(::core::stringify!($ident)).field(&**self).finish() }
-
-                // release: hide secrets
-                #[cfg(not(debug_assertions))]
-                { f.write_str(::core::concat!(::core::stringify!($ident), "(<redacted>)")) }
+                // Debug builds can also run with TRACE enabled. Never inspect
+                // credential contents, even through a nested Debug formatter.
+                f.write_str(::core::concat!(::core::stringify!($ident), "(<redacted>)"))
             }
         }
     };

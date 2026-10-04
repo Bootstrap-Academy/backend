@@ -32,10 +32,7 @@ where
     SessionRepo: SessionRepository<Txn>,
     UserRepo: UserRepository<Txn>,
 {
-    #[trace_instrument(
-        skip(self, txn, user_composite, device_name),
-        fields(user_id = %*user_composite.user.id),
-    )]
+    #[tracing::instrument(skip(self, txn, user_composite, device_name), fields(user_id = %*user_composite.user.id))]
     async fn create(
         &self,
         txn: &mut Txn,
@@ -91,7 +88,7 @@ where
         })
     }
 
-    #[trace_instrument(skip(self, txn))]
+    #[tracing::instrument(skip(self, txn))]
     async fn refresh(
         &self,
         txn: &mut Txn,

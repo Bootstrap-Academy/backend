@@ -98,20 +98,7 @@ impl std::fmt::Debug for OAuth2AuthorizationUrl {
         // the authorize URL repeats the state nonce and the PKCE challenge in
         // its query string, so the whole value is treated as sensitive
 
-        // debug: use default Debug implementation
-        #[cfg(debug_assertions)]
-        {
-            f.debug_struct("OAuth2AuthorizationUrl")
-                .field("state", &self.state)
-                .field("authorize_url", &self.authorize_url)
-                .finish()
-        }
-
-        // release: hide secrets
-        #[cfg(not(debug_assertions))]
-        {
-            f.write_str("OAuth2AuthorizationUrl(<redacted>)")
-        }
+        f.write_str("OAuth2AuthorizationUrl(<redacted>)")
     }
 }
 

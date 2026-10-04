@@ -2,7 +2,6 @@ use academy_auth_contracts::refresh_token::AuthRefreshTokenService;
 use academy_di::Build;
 use academy_models::{auth::RefreshToken, session::SessionRefreshTokenHash};
 use academy_shared_contracts::{hash::HashService, secret::SecretService};
-use academy_utils::trace_instrument;
 
 use crate::AuthServiceConfig;
 
@@ -19,7 +18,7 @@ where
     Secret: SecretService,
     Hash: HashService,
 {
-    #[trace_instrument(skip(self))]
+    #[tracing::instrument(skip(self))]
     fn issue(&self) -> RefreshToken {
         self.secret
             .generate(self.config.refresh_token_length)
@@ -27,7 +26,7 @@ where
             .into()
     }
 
-    #[trace_instrument(skip(self))]
+    #[tracing::instrument(skip(self, refresh_token))]
     fn hash(&self, refresh_token: &RefreshToken) -> SessionRefreshTokenHash {
         self.hash.sha256(refresh_token).into()
     }

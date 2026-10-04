@@ -76,7 +76,7 @@ where
     AuthAccessToken: AuthAccessTokenService,
     AuthRefreshToken: AuthRefreshTokenService,
 {
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, token))]
     async fn authenticate(&self, token: &AccessToken) -> Result<Authentication, AuthenticateError> {
         let auth = authenticate_token(&self.auth_access_token, token).await?;
         let mut txn = self.db.begin_transaction().await?;
@@ -84,7 +84,7 @@ where
             .await
     }
 
-    #[trace_instrument(skip(self, txn))]
+    #[trace_instrument(skip(self, txn, token))]
     async fn authenticate_in_transaction(
         &self,
         txn: &mut Txn,
@@ -133,7 +133,7 @@ where
             })
     }
 
-    #[trace_instrument(skip(self, txn))]
+    #[trace_instrument(skip(self, txn, refresh_token))]
     async fn authenticate_by_refresh_token(
         &self,
         txn: &mut Txn,
@@ -158,7 +158,7 @@ where
         Ok(session.id)
     }
 
-    #[trace_instrument(skip(self, user), fields(user_id = %*user.id))]
+    #[tracing::instrument(skip(self, user), fields(user_id = %*user.id))]
     fn issue_tokens(
         &self,
         user: &User,

@@ -26,8 +26,9 @@ where
     Secret: SecretService,
     Time: TimeService,
 {
-    #[trace_instrument(skip(self))]
+    #[tracing::instrument(skip(self))]
     fn generate_secret(&self) -> (TotpSecret, TotpSetup) {
+        tracing::trace!("call");
         let secret = self.secret.generate_bytes(*self.config.secret_length).0;
         let totp = TOTP::from_rfc6238(Rfc6238::with_defaults(secret).unwrap()).unwrap();
         let setup = TotpSetup {

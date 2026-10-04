@@ -3,7 +3,6 @@ use academy_di::Build;
 use academy_models::{mfa::MfaRecoveryCode, user::UserId};
 use academy_persistence_contracts::mfa::MfaRepository;
 use academy_shared_contracts::{hash::HashService, secret::SecretService};
-use academy_utils::trace_instrument;
 use anyhow::Context;
 
 #[derive(Debug, Clone, Build)]
@@ -21,7 +20,7 @@ where
     Hash: HashService,
     MfaRepo: MfaRepository<Txn>,
 {
-    #[trace_instrument(skip(self, txn))]
+    #[tracing::instrument(skip(self, txn))]
     async fn setup(&self, txn: &mut Txn, user_id: UserId) -> anyhow::Result<MfaRecoveryCode> {
         let recovery_code = self.secret.generate_mfa_recovery_code();
 

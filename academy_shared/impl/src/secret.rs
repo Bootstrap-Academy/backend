@@ -1,7 +1,6 @@
 use academy_di::Build;
 use academy_models::{Sensitive, VerificationCode, mfa::MfaRecoveryCode};
 use academy_shared_contracts::secret::SecretService;
-use academy_utils::trace_instrument;
 use rand::{
     CryptoRng, Rng,
     distr::{Alphanumeric, Distribution, SampleString, Uniform},
@@ -12,22 +11,25 @@ use rand::{
 pub struct SecretServiceImpl;
 
 impl SecretService for SecretServiceImpl {
-    #[trace_instrument(skip(self))]
+    #[tracing::instrument(skip(self))]
     fn generate(&self, len: usize) -> Sensitive<String> {
+        tracing::trace!("call");
         Alphanumeric.sample_string(&mut csprng(), len).into()
     }
 
     // Random bytes include authenticator secrets. Never record the returned
-    // value, including in debug builds where generic Sensitive reveals it.
+    // value; credential-returning spans expose only the operation.
     #[tracing::instrument(skip(self))]
     fn generate_bytes(&self, len: usize) -> Sensitive<Vec<u8>> {
+        tracing::trace!("call");
         let mut out = vec![0; len];
         csprng().fill_bytes(&mut out);
         out.into()
     }
 
-    #[trace_instrument(skip(self))]
+    #[tracing::instrument(skip(self))]
     fn generate_verification_code(&self) -> VerificationCode {
+        tracing::trace!("call");
         generate_hyphenated_code(
             csprng(),
             uppercase_digits(),
@@ -38,8 +40,9 @@ impl SecretService for SecretServiceImpl {
         .unwrap()
     }
 
-    #[trace_instrument(skip(self))]
+    #[tracing::instrument(skip(self))]
     fn generate_mfa_recovery_code(&self) -> MfaRecoveryCode {
+        tracing::trace!("call");
         generate_hyphenated_code(
             csprng(),
             uppercase_digits(),

@@ -107,7 +107,7 @@ impl MfaRepository<PostgresTransaction> for PostgresMfaRepository {
             .map_err(Into::into)
     }
 
-    #[trace_instrument(skip(self, txn))]
+    #[tracing::instrument(skip(self, txn))]
     async fn list_enabled_totp_device_secrets_by_user(
         &self,
         txn: &mut PostgresTransaction,
@@ -122,7 +122,7 @@ impl MfaRepository<PostgresTransaction> for PostgresMfaRepository {
             .await
     }
 
-    #[trace_instrument(skip(self, txn))]
+    #[tracing::instrument(skip(self, txn))]
     async fn get_totp_device_secret(
         &self,
         txn: &mut PostgresTransaction,

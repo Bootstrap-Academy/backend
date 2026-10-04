@@ -31,7 +31,7 @@ where
     Totp: TotpService,
     MfaRepo: MfaRepository<Txn>,
 {
-    #[trace_instrument(skip(self, txn))]
+    #[tracing::instrument(skip(self, txn))]
     async fn create(&self, txn: &mut Txn, user_id: UserId) -> anyhow::Result<TotpSetup> {
         let (secret, setup) = self.totp.generate_secret();
 
@@ -93,7 +93,7 @@ where
         Ok(totp_device.update(patch))
     }
 
-    #[trace_instrument(skip(self, txn))]
+    #[tracing::instrument(skip(self, txn))]
     async fn reset(
         &self,
         txn: &mut Txn,

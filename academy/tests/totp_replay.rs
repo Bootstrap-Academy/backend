@@ -21,6 +21,7 @@ use academy_models::mfa::{MfaAuthentication, TotpSecret};
 use academy_persistence_contracts::{Database, Transaction, mfa::MfaRepository};
 use academy_persistence_postgres::mfa::PostgresMfaRepository;
 use academy_shared_contracts::time::TimeService;
+use academy_shared_contracts::totp::TotpService;
 use academy_shared_impl::{
     hash::HashServiceImpl,
     secret::SecretServiceImpl,
@@ -41,6 +42,7 @@ impl TimeService for FixedTime {
     }
 }
 provider! { ReplayProvider { time: FixedTime, config: TotpServiceConfig, disable: types::MfaDisable, } }
+provider! { GenerationProvider { time: FixedTime, config: TotpServiceConfig, } }
 type Auth = MfaAuthenticateServiceImpl<
     HashServiceImpl,
     TotpServiceImpl<SecretServiceImpl, FixedTime>,
@@ -268,6 +270,16 @@ async fn trace_events_and_spans_never_contain_the_totp_value_or_secret() {
         .with_writer(move || writer.clone())
         .finish();
     let dispatch = tracing::Dispatch::new(subscriber);
+    let mut generation = GenerationProvider {
+        _cache: Default::default(),
+        time: FixedTime(Arc::new(AtomicI64::new(1724949831))),
+        config: TotpServiceConfig {
+            secret_length: 24.try_into().unwrap(),
+        },
+    };
+    let totp: TotpServiceImpl<SecretServiceImpl, FixedTime> = generation.provide();
+    let (generated_secret, setup) =
+        tracing::dispatcher::with_default(&dispatch, || totp.generate_secret());
     authenticate(&auth, &db)
         .with_subscriber(dispatch.clone())
         .await
@@ -288,6 +300,15 @@ async fn trace_events_and_spans_never_contain_the_totp_value_or_secret() {
     assert!(
         !log.contains("XSSYkVp8pDsOnT1jB5eN0CB8"),
         "TRACE contained the synthetic secret"
+    );
+    assert!(
+        !log.contains(&format!("{:?}", secret().as_slice())),
+        "TRACE contained authenticator bytes through debug formatting"
+    );
+    assert!(
+        !log.contains(&format!("{:?}", generated_secret.as_slice()))
+            && !log.contains(setup.secret.as_str()),
+        "TRACE exposed a newly generated authenticator secret"
     );
     assert!(
         !log.contains("totp_code_used"),

@@ -7,7 +7,7 @@ use regex::Regex;
 
 use crate::{
     hyphenated_code_regex,
-    macros::{id, nutype_string, sensitive_debug, sha256hash},
+    macros::{id, nutype_string, sha256hash},
     user::UserId,
 };
 
@@ -46,7 +46,11 @@ pub static TOTP_CODE_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^[0-9
 
 #[nutype(validate(predicate = |x| x.len() >= 16), derive(Clone, PartialEq, Eq, Deref, TryFrom))]
 pub struct TotpSecret(Vec<u8>);
-sensitive_debug!(TotpSecret);
+impl std::fmt::Debug for TotpSecret {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("TotpSecret([REDACTED])")
+    }
+}
 
 #[nutype(
     validate(greater_or_equal = 16),
@@ -70,7 +74,31 @@ pub struct TotpSetup {
     pub secret: TotpSecretBase32,
 }
 
-nutype_string!(TotpSecretBase32(sensitive));
+#[nutype(derive(
+    Clone,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Hash,
+    AsRef,
+    Deref,
+    From,
+    Serialize,
+    Deserialize,
+    JsonSchema
+))]
+pub struct TotpSecretBase32(String);
+impl std::fmt::Debug for TotpSecretBase32 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("TotpSecretBase32([REDACTED])")
+    }
+}
+impl AsRef<[u8]> for TotpSecretBase32 {
+    fn as_ref(&self) -> &[u8] {
+        self.as_bytes()
+    }
+}
 
 nutype_string!(MfaRecoveryCode(
     sensitive,

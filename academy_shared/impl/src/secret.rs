@@ -17,7 +17,9 @@ impl SecretService for SecretServiceImpl {
         Alphanumeric.sample_string(&mut csprng(), len).into()
     }
 
-    #[trace_instrument(skip(self))]
+    // Random bytes include authenticator secrets. Never record the returned
+    // value, including in debug builds where generic Sensitive reveals it.
+    #[tracing::instrument(skip(self))]
     fn generate_bytes(&self, len: usize) -> Sensitive<Vec<u8>> {
         let mut out = vec![0; len];
         csprng().fill_bytes(&mut out);

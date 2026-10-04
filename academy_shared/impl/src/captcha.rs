@@ -19,11 +19,21 @@ pub enum CaptchaServiceConfig {
     Recaptcha(RecaptchaCaptchaServiceConfig),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct RecaptchaCaptchaServiceConfig {
     pub sitekey: Arc<str>,
     pub secret: Arc<str>,
     pub min_score: f64,
+}
+
+impl std::fmt::Debug for RecaptchaCaptchaServiceConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("RecaptchaCaptchaServiceConfig")
+            .field("sitekey", &self.sitekey)
+            .field("secret", &"<redacted>")
+            .field("min_score", &self.min_score)
+            .finish()
+    }
 }
 
 impl<RecaptchaApi> CaptchaService for CaptchaServiceImpl<RecaptchaApi>
@@ -40,7 +50,7 @@ where
         }
     }
 
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, response))]
     async fn check(&self, response: Option<&str>) -> Result<(), CaptchaCheckError> {
         let config = match &self.config {
             CaptchaServiceConfig::Recaptcha(config) => config,

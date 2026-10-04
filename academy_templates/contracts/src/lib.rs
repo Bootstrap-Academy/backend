@@ -63,16 +63,28 @@ templates! {
     ContractWithdrawalConfirmationTemplate(templates::CONTRACT_WITHDRAWAL_CONFIRMATION_HTML),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Clone, PartialEq, Eq, Serialize)]
 pub struct ResetPasswordTemplate {
     pub code: String,
     pub url: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+impl std::fmt::Debug for ResetPasswordTemplate {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("ResetPasswordTemplate(<redacted>)")
+    }
+}
+
+#[derive(Clone, PartialEq, Eq, Serialize)]
 pub struct VerifyEmailTemplate {
     pub code: String,
     pub url: String,
+}
+
+impl std::fmt::Debug for VerifyEmailTemplate {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("VerifyEmailTemplate(<redacted>)")
+    }
 }
 
 /// Confirmation of a contract cancellation (§ 312k BGB).

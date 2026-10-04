@@ -37,7 +37,7 @@ impl RecaptchaApiServiceConfig {
 }
 
 impl RecaptchaApiService for RecaptchaApiServiceImpl {
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, response, secret))]
     async fn siteverify(
         &self,
         response: &str,

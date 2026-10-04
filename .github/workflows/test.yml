@@ -67,6 +67,18 @@ jobs:
               --pg-bin "$(dirname "$(command -v pg_ctl)")" \
               --valkey "$(command -v valkey-server)" \
               --output "$RUNNER_TEMP/academy-auth-trace-evidence"'
+      - name: check delivered mail, OAuth and CAPTCHA secrets in debug and release TRACE
+        run: |
+          set -euo pipefail
+          cargo build --locked --release --bin academy
+          cargo test --locked --release -p academy --test secret_paths_logs
+          nix shell --accept-flake-config --no-write-lock-file --inputs-from . \
+            nixpkgs#postgresql_18 nixpkgs#valkey -c bash -euo pipefail -c \
+            'python3 -B tests/secret-paths-trace.py --debug-binary target/debug/academy \
+              --release-binary target/release/academy \
+              --pg-bin "$(dirname "$(command -v pg_ctl)")" \
+              --valkey "$(command -v valkey-server)" \
+              --output "$RUNNER_TEMP/academy-secret-paths-trace-evidence"'
       - name: test account and wallet behavior through HTTP
         run: |
           nix shell --accept-flake-config --no-write-lock-file --inputs-from . \
@@ -116,6 +128,12 @@ jobs:
         with:
           name: sensitive-writes-test-evidence
           path: ${{ runner.temp }}/academy-sensitive-writes-test-evidence
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: secret-paths-trace-evidence
+          path: ${{ runner.temp }}/academy-secret-paths-trace-evidence
 
   valkey:
     runs-on: ubuntu-latest

@@ -25,7 +25,9 @@ select secret from totp_device_secrets where id=:id;
 
 --! set_totp_device_secret
 insert into totp_device_secrets (id, secret) values (:id, :secret)
-  on conflict (id) do update set secret=:secret;
+  on conflict (id) do update set secret=:secret,
+    last_accepted_step=case when totp_device_secrets.secret=:secret
+      then totp_device_secrets.last_accepted_step else -1 end;
 
 --! get_recovery_code_hash
 select code from mfa_recovery_codes where user_id=:user_id;

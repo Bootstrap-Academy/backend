@@ -375,7 +375,7 @@ impl GetTotpDeviceSecretStmt {
 pub struct SetTotpDeviceSecretStmt(&'static str, Option<tokio_postgres::Statement>);
 pub fn set_totp_device_secret() -> SetTotpDeviceSecretStmt {
     SetTotpDeviceSecretStmt(
-        "insert into totp_device_secrets (id, secret) values ($1, $2) on conflict (id) do update set secret=$2",
+        "insert into totp_device_secrets (id, secret) values ($1, $2) on conflict (id) do update set secret=$2, last_accepted_step=case when totp_device_secrets.secret=$2 then totp_device_secrets.last_accepted_step else -1 end",
         None,
     )
 }

@@ -59,8 +59,13 @@ impl MfaRepository<PostgresTransaction> for PostgresMfaRepository {
             .params(txn.txn(), &params)
             .await?;
 
-        queries::mfa::set_totp_device_secret()
-            .bind(txn.txn(), &totp_device.id, &**secret)
+        // Creation needs no upsert. Keeping this insertion additive-schema
+        // independent also lets historical migration fixtures seed old devices.
+        txn.txn()
+            .execute(
+                "INSERT INTO totp_device_secrets(id, secret) VALUES($1, $2)",
+                &[&*totp_device.id, &secret.as_slice()],
+            )
             .await?;
 
         Ok(())
@@ -102,7 +107,7 @@ impl MfaRepository<PostgresTransaction> for PostgresMfaRepository {
             .map_err(Into::into)
     }
 
-    #[trace_instrument(skip(self, txn))]
+    #[tracing::instrument(skip(self, txn))]
     async fn list_enabled_totp_device_secrets_by_user(
         &self,
         txn: &mut PostgresTransaction,
@@ -117,7 +122,7 @@ impl MfaRepository<PostgresTransaction> for PostgresMfaRepository {
             .await
     }
 
-    #[trace_instrument(skip(self, txn))]
+    #[tracing::instrument(skip(self, txn))]
     async fn get_totp_device_secret(
         &self,
         txn: &mut PostgresTransaction,
@@ -129,6 +134,34 @@ impl MfaRepository<PostgresTransaction> for PostgresMfaRepository {
             .await
             .map_err(Into::into)
             .and_then(decode_totp_device_secret)
+    }
+
+    #[trace_instrument(skip(self, txn, secret))]
+    async fn consume_totp_step(
+        &self,
+        txn: &mut PostgresTransaction,
+        user_id: UserId,
+        secret: &TotpSecret,
+        step: i64,
+        allow_pending: bool,
+    ) -> anyhow::Result<bool> {
+        // Use the same owner-first lock order as device changes and revocation.
+        // UPDATE's predicate is rechecked after a concurrent commit; only one
+        // transaction can advance the durable high-water mark for a step.
+        txn.txn()
+            .query_opt("SELECT id FROM users WHERE id=$1 FOR UPDATE", &[&*user_id])
+            .await?;
+        let changed = txn
+            .txn()
+            .execute(
+                "UPDATE totp_device_secrets AS s SET last_accepted_step=$3::bigint \
+             FROM totp_devices AS d WHERE s.id=d.id AND d.user_id=$1 \
+             AND s.secret=$2 AND (d.enabled OR $4) \
+             AND $3::bigint>=0 AND s.last_accepted_step<$3::bigint",
+                &[&*user_id, &secret.as_slice(), &step, &allow_pending],
+            )
+            .await?;
+        Ok(changed == 1)
     }
 
     #[trace_instrument(skip(self, txn))]

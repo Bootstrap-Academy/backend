@@ -116,7 +116,7 @@ pub type Jwt = JwtServiceImpl<Time>;
 pub type Password = PasswordServiceImpl;
 pub type Secret = SecretServiceImpl;
 pub type Time = TimeServiceImpl;
-pub type Totp = TotpServiceImpl<Secret, Time, Hash, Cache>;
+pub type Totp = TotpServiceImpl<Secret, Time>;
 
 // Repositories
 pub type SessionRepo = PostgresSessionRepository;

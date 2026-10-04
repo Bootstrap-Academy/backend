@@ -30,7 +30,7 @@ where
     MfaDisable: MfaDisableService<Txn>,
     MfaRepo: MfaRepository<Txn>,
 {
-    #[trace_instrument(skip(self, txn))]
+    #[trace_instrument(skip(self, txn, cmd))]
     async fn authenticate(
         &self,
         txn: &mut Txn,
@@ -72,12 +72,20 @@ where
             trace!("try totp code");
 
             for secret in totp_secrets {
-                match self.totp.check(&code, secret).await {
-                    Ok(()) => {
+                match self.totp.check(&code, secret.clone()).await {
+                    Ok(step) => {
+                        if !self
+                            .mfa_repo
+                            .consume_totp_step(txn, user_id, &secret, step, false)
+                            .await
+                            .context("Failed to consume TOTP time step")?
+                        {
+                            continue;
+                        }
                         trace!("totp code matches");
                         return Ok(MfaAuthenticateResult::Ok);
                     }
-                    Err(TotpCheckError::InvalidCode | TotpCheckError::RecentlyUsed) => (),
+                    Err(TotpCheckError::InvalidCode) => (),
                     Err(TotpCheckError::Other(err)) => {
                         return Err(err.context("Failed to check totp code").into());
                     }
@@ -183,10 +191,11 @@ mod tests {
         let totp = MockTotpService::new().with_check(
             cmd.totp_code.clone().unwrap(),
             secret.clone(),
-            Ok(()),
+            Ok(42),
         );
 
         let mfa_repo = MockMfaRepository::new()
+            .with_consume_totp_step(FOO.user.id, secret.clone(), 42, false, true)
             .with_list_enabled_totp_device_secrets_by_user(FOO.user.id, vec![secret]);
 
         let sut = MfaAuthenticateServiceImpl {
@@ -333,10 +342,11 @@ mod tests {
         let totp = MockTotpService::new().with_check(
             cmd.totp_code.clone().unwrap(),
             secret.clone(),
-            Err(TotpCheckError::RecentlyUsed),
+            Ok(42),
         );
 
         let mfa_repo = MockMfaRepository::new()
+            .with_consume_totp_step(FOO.user.id, secret.clone(), 42, false, false)
             .with_list_enabled_totp_device_secrets_by_user(FOO.user.id, vec![secret]);
 
         let sut = MfaAuthenticateServiceImpl {

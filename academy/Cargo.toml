@@ -86,6 +86,7 @@ uuid.workspace = true
 indicatif = "0.18.4"
 
 [dev-dependencies]
+academy_core_mfa_contracts.workspace = true
 academy_cache_valkey = { workspace = true, features = ["dummy"] }
 academy_email_impl = { workspace = true, features = ["dummy"] }
 academy_persistence_postgres = { workspace = true, features = ["dummy"] }

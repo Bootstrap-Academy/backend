@@ -45,6 +45,18 @@ pub trait MfaRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
         user_id: UserId,
     ) -> impl Future<Output = anyhow::Result<Vec<TotpSecret>>> + Send;
 
+    /// Atomically consume a verified step for the user's matching secret.
+    /// A replay, stale secret or missing/disabled device returns false without
+    /// changing replay state. Pending devices are allowed only at confirmation.
+    fn consume_totp_step(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
+        secret: &TotpSecret,
+        step: i64,
+        allow_pending: bool,
+    ) -> impl Future<Output = anyhow::Result<bool>> + Send;
+
     /// Return the secret of the given TOTP device.
     fn get_totp_device_secret(
         &self,
@@ -85,6 +97,27 @@ pub trait MfaRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
 
 #[cfg(feature = "mock")]
 impl<Txn: Send + Sync + 'static> MockMfaRepository<Txn> {
+    pub fn with_consume_totp_step(
+        mut self,
+        user_id: UserId,
+        secret: TotpSecret,
+        step: i64,
+        allow_pending: bool,
+        result: bool,
+    ) -> Self {
+        self.expect_consume_totp_step()
+            .once()
+            .with(
+                mockall::predicate::always(),
+                mockall::predicate::eq(user_id),
+                mockall::predicate::eq(secret),
+                mockall::predicate::eq(step),
+                mockall::predicate::eq(allow_pending),
+            )
+            .return_once(move |_, _, _, _, _| Box::pin(std::future::ready(Ok(result))));
+        self
+    }
+
     pub fn with_list_totp_devices_by_user(
         mut self,
         user_id: UserId,

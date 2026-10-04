@@ -4,6 +4,38 @@ use common::{setup, setup_clean};
 
 mod common;
 
+#[tokio::test]
+async fn durable_totp_migration_preserves_devices_and_can_be_reverted() {
+    const NAME: &str = "2026-10-04-070000_durable_totp_steps";
+    let db = common::setup_before(NAME, true).await;
+    let txn = db.begin_transaction().await.unwrap();
+    let before: String = txn.txn().query_one(
+        "SELECT jsonb_agg(jsonb_build_array(id,encode(secret,'hex')) ORDER BY id)::text FROM totp_device_secrets", &[]
+    ).await.unwrap().get(0);
+    txn.commit().await.unwrap();
+    assert_eq!(db.run_migrations(None).await.unwrap(), [NAME]);
+    let txn = db.begin_transaction().await.unwrap();
+    let count: i64 = txn
+        .txn()
+        .query_one(
+            "SELECT count(*) FROM totp_device_secrets WHERE last_accepted_step<>-1",
+            &[],
+        )
+        .await
+        .unwrap()
+        .get(0);
+    assert_eq!(count, 0);
+    txn.commit().await.unwrap();
+    assert_eq!(db.revert_migrations(Some(1)).await.unwrap(), [NAME]);
+    let txn = db.begin_transaction().await.unwrap();
+    let after: String = txn.txn().query_one(
+        "SELECT jsonb_agg(jsonb_build_array(id,encode(secret,'hex')) ORDER BY id)::text FROM totp_device_secrets", &[]
+    ).await.unwrap().get(0);
+    assert_eq!(after, before);
+    txn.commit().await.unwrap();
+    assert_eq!(db.run_migrations(None).await.unwrap(), [NAME]);
+}
+
 async fn fingerprint(db: &common::Db) -> std::collections::BTreeMap<String, String> {
     let tx = db.begin_transaction().await.unwrap();
     let mut state = std::collections::BTreeMap::new();

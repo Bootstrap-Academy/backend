@@ -19,7 +19,7 @@ impl<Jwt> AuthInternalService for AuthInternalServiceImpl<Jwt>
 where
     Jwt: JwtService,
 {
-    #[trace_instrument(skip(self))]
+    #[tracing::instrument(skip(self))]
     fn issue_token(&self, audience: &str) -> anyhow::Result<InternalToken> {
         self.jwt
             .sign_with_key(
@@ -35,7 +35,7 @@ where
             })
     }
 
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, token))]
     fn authenticate(
         &self,
         token: &InternalToken,

@@ -26,7 +26,7 @@ where
     Jwt: JwtService,
     Cache: CacheService,
 {
-    #[trace_instrument(skip(self, user), fields(user_id = %*user.id))]
+    #[tracing::instrument(skip(self, user, refresh_token_hash), fields(user_id = %*user.id))]
     fn issue(
         &self,
         user: &User,
@@ -49,7 +49,7 @@ where
             .context("Failed to sign JWT")
     }
 
-    #[trace_instrument(skip(self))]
+    #[tracing::instrument(skip(self, access_token))]
     fn verify(&self, access_token: &AccessToken) -> Option<Authentication> {
         self.jwt.verify(access_token).map(Token::into).ok()
     }

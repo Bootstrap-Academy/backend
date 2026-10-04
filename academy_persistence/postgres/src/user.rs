@@ -516,7 +516,7 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
             .map_err(Into::into)
     }
 
-    #[trace_instrument(skip(self, txn))]
+    #[trace_instrument(skip(self, txn, password_hash))]
     async fn save_password_hash(
         &self,
         txn: &mut PostgresTransaction,
@@ -530,12 +530,13 @@ impl UserRepository<PostgresTransaction> for PostgresUserRepository {
             .map_err(Into::into)
     }
 
-    #[trace_instrument(skip(self, txn))]
+    #[tracing::instrument(skip(self, txn))]
     async fn get_password_hash(
         &self,
         txn: &mut PostgresTransaction,
         user_id: UserId,
     ) -> anyhow::Result<Option<String>> {
+        tracing::trace!("call");
         queries::user::get_password_hash()
             .bind(txn.txn(), &user_id)
             .opt()

@@ -185,7 +185,7 @@ where
             .map_err(Into::into)
     }
 
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, token))]
     async fn get_user(
         &self,
         token: &AccessToken,
@@ -204,7 +204,7 @@ where
             .ok_or(UserGetError::NotFound)
     }
 
-    #[trace_instrument(skip(self, request, device_name))]
+    #[tracing::instrument(skip(self, request, device_name, recaptcha_response))]
     async fn create_user(
         &self,
         request: UserCreateRequest,
@@ -560,7 +560,7 @@ where
         Ok(user_composite)
     }
 
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, token))]
     async fn accept_terms(
         &self,
         token: &AccessToken,
@@ -624,7 +624,7 @@ where
         Ok(user_composite)
     }
 
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, token))]
     async fn decline_terms(
         &self,
         token: &AccessToken,
@@ -657,7 +657,7 @@ where
         Ok(user_composite)
     }
 
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, token))]
     async fn delete_user(
         &self,
         token: &AccessToken,
@@ -733,7 +733,7 @@ where
         Ok(export)
     }
 
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, token))]
     async fn request_verification_email(
         &self,
         token: &AccessToken,

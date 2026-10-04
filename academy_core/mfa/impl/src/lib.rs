@@ -56,7 +56,7 @@ where
     MfaDisable: MfaDisableService<Db::Transaction>,
     MfaTotpDevice: MfaTotpDeviceService<Db::Transaction>,
 {
-    #[trace_instrument(skip(self))]
+    #[tracing::instrument(skip(self, token))]
     async fn initialize(
         &self,
         token: &AccessToken,
@@ -130,7 +130,7 @@ where
         Ok(setup)
     }
 
-    #[trace_instrument(skip(self))]
+    #[tracing::instrument(skip(self, token, code))]
     async fn enable(
         &self,
         token: &AccessToken,
@@ -213,7 +213,7 @@ where
         Ok(recovery_code)
     }
 
-    #[trace_instrument(skip(self))]
+    #[trace_instrument(skip(self, token))]
     async fn disable(
         &self,
         token: &AccessToken,

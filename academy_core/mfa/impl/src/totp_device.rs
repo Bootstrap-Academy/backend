@@ -31,7 +31,7 @@ where
     Totp: TotpService,
     MfaRepo: MfaRepository<Txn>,
 {
-    #[trace_instrument(skip(self, txn))]
+    #[tracing::instrument(skip(self, txn))]
     async fn create(&self, txn: &mut Txn, user_id: UserId) -> anyhow::Result<TotpSetup> {
         let (secret, setup) = self.totp.generate_secret();
 
@@ -50,7 +50,7 @@ where
         Ok(setup)
     }
 
-    #[trace_instrument(skip(self, txn))]
+    #[trace_instrument(skip(self, txn, code))]
     async fn confirm(
         &self,
         txn: &mut Txn,
@@ -65,15 +65,23 @@ where
             .context("Failed to get totp device secret from database")?;
 
         trace!("check code");
-        self.totp
-            .check(&code, secret)
+        let step = self
+            .totp
+            .check(&code, secret.clone())
             .await
             .map_err(|err| match err {
-                TotpCheckError::InvalidCode | TotpCheckError::RecentlyUsed => {
-                    MfaTotpDeviceConfirmError::InvalidCode
-                }
+                TotpCheckError::InvalidCode => MfaTotpDeviceConfirmError::InvalidCode,
                 TotpCheckError::Other(err) => err.context("Failed to check totp code").into(),
             })?;
+
+        if !self
+            .mfa_repo
+            .consume_totp_step(txn, totp_device.user_id, &secret, step, true)
+            .await
+            .context("Failed to consume confirmation TOTP step")?
+        {
+            return Err(MfaTotpDeviceConfirmError::InvalidCode);
+        }
 
         trace!("update device");
         let patch = TotpDevicePatch::new().update_enabled(true);
@@ -85,7 +93,7 @@ where
         Ok(totp_device.update(patch))
     }
 
-    #[trace_instrument(skip(self, txn))]
+    #[tracing::instrument(skip(self, txn))]
     async fn reset(
         &self,
         txn: &mut Txn,
@@ -168,9 +176,10 @@ mod tests {
         let code = TotpCode::try_new("123456").unwrap();
         let secret = TotpSecret::try_new("the random totp secret".to_owned().into_bytes()).unwrap();
 
-        let totp = MockTotpService::new().with_check(code.clone(), secret.clone(), Ok(()));
+        let totp = MockTotpService::new().with_check(code.clone(), secret.clone(), Ok(42));
 
         let mfa_repo = MockMfaRepository::new()
+            .with_consume_totp_step(FOO_TOTP_1.user_id, secret.clone(), 42, true, true)
             .with_get_totp_device_secret(FOO_TOTP_1.id, secret)
             .with_update_totp_device(
                 FOO_TOTP_1.id,

@@ -8,20 +8,20 @@ pub trait TotpService: Send + Sync + 'static {
     /// Generate a new random totp secret.
     fn generate_secret(&self) -> (TotpSecret, TotpSetup);
 
-    /// Check the given totp code.
+    /// Validate the code and return its matching 30-second time step.
+    /// Callers must atomically consume this step in their database transaction
+    /// before authorizing a request or confirming an authenticator.
     fn check(
         &self,
         code: &TotpCode,
         secret: TotpSecret,
-    ) -> impl Future<Output = Result<(), TotpCheckError>> + Send;
+    ) -> impl Future<Output = Result<i64, TotpCheckError>> + Send;
 }
 
 #[derive(Debug, Error)]
 pub enum TotpCheckError {
     #[error("The code is incorrect.")]
     InvalidCode,
-    #[error("The code has already been used recently.")]
-    RecentlyUsed,
     #[error(transparent)]
     Other(#[from] anyhow::Error),
 }
@@ -40,7 +40,7 @@ impl MockTotpService {
         mut self,
         code: TotpCode,
         secret: TotpSecret,
-        result: Result<(), TotpCheckError>,
+        result: Result<i64, TotpCheckError>,
     ) -> Self {
         self.expect_check()
             .once()

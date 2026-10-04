@@ -6,7 +6,11 @@ use academy_core_finance_contracts::{
     FinancialDocumentListQuery, FinancialDocumentListResult, invoice::FinanceInvoiceService,
 };
 use academy_di::Build;
-use academy_models::{auth::AccessToken, finance::FinancialDocumentKind, user::UserId};
+use academy_models::{
+    auth::AccessToken,
+    finance::{FinanceDownloadToken, FinancialDocumentKind},
+    user::UserId,
+};
 use academy_persistence_contracts::{Database, Transaction, finance::FinancialDocumentRepository};
 use academy_shared_contracts::jwt::{JwtService, VerifyJwtError};
 use academy_utils::{static_value, trace_instrument};
@@ -53,25 +57,26 @@ where
     FinanceInvoice: FinanceInvoiceService<Db::Transaction>,
     DocumentRepo: FinancialDocumentRepository<Db::Transaction>,
 {
-    #[trace_instrument(skip(self))]
+    #[instrument(skip(self, token))]
     async fn get_download_token(
         &self,
         token: &AccessToken,
-    ) -> Result<String, FinanceGetDownloadTokenError> {
+    ) -> Result<FinanceDownloadToken, FinanceGetDownloadTokenError> {
+        tracing::trace!("call");
         let auth = self.auth.authenticate(token).await.map_auth_err()?;
         self.recipient_download_token(auth.user_id).await
     }
     async fn recipient_download_token(
         &self,
         user: UserId,
-    ) -> Result<String, FinanceGetDownloadTokenError> {
+    ) -> Result<FinanceDownloadToken, FinanceGetDownloadTokenError> {
         let data = DownloadToken {
             sub: user,
             aud: DownloadTokenAud,
         };
         let token = self.jwt.sign(data, self.config.download_token_ttl)?;
 
-        Ok(token)
+        Ok(token.into())
     }
 
     async fn download_recipient_original(
@@ -95,12 +100,13 @@ where
             .ok_or(FinanceDownloadError::NotFound)
     }
 
-    #[instrument(skip(self))]
+    #[instrument(skip(self, token))]
     async fn download_invoice(
         &self,
-        token: &str,
+        token: &FinanceDownloadToken,
         invoice_number: u64,
     ) -> Result<Vec<u8>, FinanceDownloadError> {
+        tracing::trace!("call");
         let DownloadToken { sub: user_id, .. } =
             self.jwt.verify(token).map_err(|err| match err {
                 VerifyJwtError::Expired(_) | VerifyJwtError::Invalid => {
@@ -122,13 +128,14 @@ where
         invoice.ok_or(FinanceDownloadError::NotFound)
     }
 
-    #[instrument(skip(self))]
+    #[instrument(skip(self, token))]
     async fn download_credit_note(
         &self,
-        token: &str,
+        token: &FinanceDownloadToken,
         year: i32,
         month: u32,
     ) -> Result<Vec<u8>, FinanceDownloadError> {
+        tracing::trace!("call");
         let DownloadToken { sub: user_id, .. } =
             self.jwt.verify(token).map_err(|err| match err {
                 VerifyJwtError::Expired(_) | VerifyJwtError::Invalid => {

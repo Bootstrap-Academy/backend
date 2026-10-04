@@ -1,4 +1,4 @@
-"""Compare delivered mail codes, OAuth and CAPTCHA values to actual TRACE.
+"""Compare delivered codes, OAuth, CAPTCHA and finance bearers to actual TRACE.
 
 Backend logs, SMTP bodies and credentials stay in memory. Evidence contains
 boolean comparisons and hashes. It also verifies the password/hash/session
@@ -7,6 +7,7 @@ redaction inherited from the merged PR774.
 
 import argparse
 import base64
+from datetime import date, timedelta
 import hashlib
 import http.server
 import importlib.util
@@ -17,6 +18,8 @@ import re
 import subprocess
 import threading
 import urllib.parse
+import urllib.error
+import urllib.request
 
 REPO = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location("secret_trace_fixture", REPO / "tests/backend-safety.py")
@@ -167,6 +170,94 @@ scopes = []
         return values[0]
 
 
+def check_finance_downloads(f, user, foreign, access_token):
+    """Issue real bearers and use them for owned archived invoice/credit PDFs."""
+    invoice = b"%PDF-1.4\n% isolated invoice fixture\n%%EOF\n"
+    credit = b"%PDF-1.4\n% isolated credit-note fixture\n%%EOF\n"
+    folder = f.base / "invoices"
+    folder.mkdir(exist_ok=True)
+    (folder / "R0000042.pdf").write_bytes(invoice)
+    f.sql(
+        f"INSERT INTO financial_documents(number,kind,user_id,issued_at) "
+        f"VALUES('R0000042','invoice','{user['id']}',now())"
+    )
+    number = f.sql(
+        f"INSERT INTO user_numbers(user_id,number) VALUES('{user['id']}',nextval('user_number')) RETURNING number"
+    )
+    month = date.today().replace(day=1) - timedelta(days=1)
+    folder = f.base / "credits"
+    folder.mkdir(exist_ok=True)
+    (folder / f"G{month.year:04}{month.month:02}-{number}.pdf").write_bytes(credit)
+    token = f.request("/finance/token", token=access_token)
+    assert isinstance(token, str) and len(token.split(".")) == 3, "finance bearer not issued"
+    foreign_token = f.request("/finance/token", token=f.token(foreign))
+    assert foreign_token != token, "separate recipients must have separate finance authority"
+    invalid = "owned-synthetic-invalid-finance-bearer"
+
+    def download(path, expected, pdf=None, *, method="GET", access=None):
+        headers = {} if access is None else {"Authorization": f"Bearer {access}"}
+        request = urllib.request.Request(f"http://127.0.0.1:{f.ports['api']}{path}", method=method, headers=headers)
+        if access is None:
+            assert "Authorization" not in request.headers
+        try:
+            response = urllib.request.urlopen(request, timeout=15)
+        except urllib.error.HTTPError as error:
+            response = error
+        with response:
+            status, body = response.status, response.read()
+        assert status == expected, f"finance download expected {expected}, got {status}; URI omitted"
+        if pdf is not None:
+            assert body == pdf, "finance download did not return the exact owned original"
+
+    invoice_path = f"/finance/invoices/{token}/42/invoice.pdf"
+    credit_path = f"/finance/credit_notes/{token}/{month.year}/{month.month}/credit_note.pdf"
+    download(invoice_path, 200, invoice)
+    download(credit_path, 200, credit)
+    encoded = token.replace(".", "%2E")
+    download(f"/finance/invoices/{encoded}/42/invoice.pdf", 200, invoice)
+    download(f"/finance/invoices/{invalid}/42/invoice.pdf", 401)
+    download(f"/finance/credit_notes/{invalid}/{month.year}/{month.month}/credit_note.pdf", 401)
+    download(f"/finance/invoices/{foreign_token}/42/invoice.pdf", 404)
+    download(f"/finance/invoices/{f.auth}/42/invoice.pdf", 401)
+    # Query values, parse failures and unmatched routes must also stay out of
+    # request spans. All successful downloads use only the path bearer.
+    download(invoice_path + f"?secret={token}", 200, invoice)
+    download(f"/finance/invoices/{token}/not-a-number/invoice.pdf", 400)
+    download(invoice_path + "/unmatched", 404)
+    # The audit service is instrumented before its admin check, so also cover
+    # regular access tokens. Real admin entries must retain useful metadata and
+    # redact the bearer before both persistence and TRACE.
+    download(invoice_path, 405, method="POST", access=access_token)
+    f.sql(f"UPDATE users SET admin=true WHERE id='{user['id']}'")
+    download(invoice_path, 405, method="POST", access=access_token)
+    download(credit_path, 405, method="POST", access=access_token)
+    download(invoice_path + "/unmatched", 404, method="POST", access=access_token)
+    download(f"/finance/invoices/{encoded}/42/invoice.pdf", 405, method="POST", access=access_token)
+    entries = json.loads(
+        f.sql(
+            "SELECT json_agg(json_build_object('method',method,'path',path,'status',status,'request_id',request_id)) "
+            f"FROM admin_audit_log WHERE admin_user_id='{user['id']}' AND path LIKE '/finance/%'"
+        )
+    )
+    assert len(entries) == 4, "rejected admin finance requests must retain audit entries"
+    assert sorted(entry["status"] for entry in entries) == [404, 405, 405, 405]
+    assert all(entry["method"] == "POST" and entry["request_id"] for entry in entries), "audit metadata lost"
+    tokens = {
+        "issued_finance_bearer": token,
+        "issued_foreign_finance_bearer": foreign_token,
+        "encoded_finance_bearer": encoded,
+        "invalid_finance_bearer": invalid,
+    }
+    audit = {
+        "entries_compared": len(entries),
+        "paths_redacted": all("<redacted>" in entry["path"] for entry in entries),
+        "bearer_matches": any(value in entry["path"] for value in tokens.values() for entry in entries),
+        "metadata_preserved": True,
+        "rejected_regular_request_status": 405,
+    }
+    return tokens, audit
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--debug-binary", type=Path, required=True)
 parser.add_argument("--release-binary", type=Path, required=True)
@@ -178,7 +269,12 @@ os.umask(0o077)
 OUT = args.output.resolve()
 OUT.mkdir(parents=True, exist_ok=False)
 
-report = {"checks": [], "credential_secrecy_passed": False, "scope": "R774-03..05 and internal JWTs"}
+report = {
+    "checks": [],
+    "credential_secrecy_passed": False,
+    "scope": "R774-03..05, R775-01 and internal JWTs",
+    "probe_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+}
 try:
     for build, binary in [("debug", args.debug_binary), ("release", args.release_binary)]:
         owned = argparse.Namespace(
@@ -186,6 +282,7 @@ try:
         )
         with Fixture(owned) as f:
             user = f.account()
+            foreign = f.account()
             f.sql(f"UPDATE users SET email_verified=false WHERE id='{user['id']}'")
             f.request("/auth/users/me/email", "POST", token=f.token(user))
             verification = f.last_mail_code()
@@ -219,6 +316,7 @@ try:
             f.request(f"/shop/_internal/learning-policy/{user['id']}", token=f.shop)
             f.request(f"/shop/_internal/learning-policy/{user['id']}", token=f.auth, expected=401)
             f.request("/auth/users/me/export", token=new_login["access_token"])
+            finance_tokens, finance_audit = check_finance_downloads(f, user, foreign, new_login["access_token"])
             # Earlier requests may issue another token for the same audience
             # with a different expiry. Require all services and compare every
             # captured token, regardless of the number of distinct issuances.
@@ -234,6 +332,7 @@ try:
             raw = b"\n".join(chunks for chunks, _ in f.captures).decode(errors="replace")
             raw = re.sub(r"\x1b\[[0-9;]*m", "", raw)
             known = {
+                **finance_tokens,
                 "verification_email_code": verification,
                 "password_reset_code": reset_code,
                 "oauth_state": state,
@@ -257,6 +356,15 @@ try:
                     "siteverify",
                     "VerifyEmailTemplate",
                     "ResetPasswordTemplate",
+                    "get_download_token",
+                    "download_invoice",
+                    "download_credit_note",
+                    "/finance/invoices/{token}/{invoice_number}/invoice.pdf",
+                    "/finance/credit_notes/{token}/{year}/{month}/credit_note.pdf",
+                    "<unmatched>",
+                    "finished processing request",
+                    "academy_core_admin_audit_impl",
+                    "academy_persistence_postgres::admin_audit",
                 ]
             }
             controls.update({name: name in raw for name in ["academy_auth_impl::internal"]})
@@ -286,6 +394,21 @@ try:
                 "successful_password_reset_and_login": True,
                 "oauth_begin_succeeded": True,
                 "captcha_loopback_verified": True,
+                "finance": {
+                    "issued_bearers_compared": 2,
+                    "owned_invoice_downloaded_without_authorization_header": True,
+                    "owned_credit_note_downloaded_without_authorization_header": True,
+                    "downloaded_bytes_match_originals": True,
+                    "encoded_bearer_download_status": 200,
+                    "invalid_invoice_bearer_status": 401,
+                    "invalid_credit_note_bearer_status": 401,
+                    "foreign_recipient_status": 404,
+                    "wrong_audience_bearer_status": 401,
+                    "query_bearer_download_status": 200,
+                    "path_parse_error_status": 400,
+                    "unmatched_route_status": 404,
+                    "admin_audit": finance_audit,
+                },
                 "raw_trace_and_smtp_persisted": False,
             }
         row["fixture_removed"] = not base.exists()
@@ -296,6 +419,8 @@ try:
         not any(row["credential_matches"].values())
         and not any(row["password_hash_session_comparisons"].values())
         and not row["issued_internal_token_matches"]
+        and not row["finance"]["admin_audit"]["bearer_matches"]
+        and row["finance"]["admin_audit"]["paths_redacted"]
         for row in report["checks"]
     )
     report["passed"] = report["credential_secrecy_passed"] and all(

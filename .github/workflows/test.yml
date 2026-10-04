@@ -67,7 +67,7 @@ jobs:
               --pg-bin "$(dirname "$(command -v pg_ctl)")" \
               --valkey "$(command -v valkey-server)" \
               --output "$RUNNER_TEMP/academy-auth-trace-evidence"'
-      - name: check delivered mail, OAuth and CAPTCHA secrets in debug and release TRACE
+      - name: check delivered mail, OAuth, CAPTCHA and finance bearers in debug and release TRACE
         run: |
           set -euo pipefail
           cargo build --locked --release --bin academy

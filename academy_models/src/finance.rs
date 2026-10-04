@@ -20,6 +20,10 @@ use chrono::{DateTime, TimeZone, Utc};
 
 use crate::{macros::nutype_string, user::UserId, withdrawal::WithdrawalTextVersion};
 
+// Short-lived bearer for the recipient's financial documents. Debug never
+// exposes the credential; serialization retains the existing string wire format.
+nutype_string!(FinanceDownloadToken(sensitive));
+
 nutype_string!(FinancialDocumentNumber(validate(
     len_char_min = 1,
     len_char_max = 64

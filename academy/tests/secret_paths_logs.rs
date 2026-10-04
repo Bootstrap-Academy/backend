@@ -5,11 +5,27 @@ use std::{
 };
 
 use academy_di::Provide;
-use academy_models::RecaptchaResponse;
+use academy_models::{RecaptchaResponse, finance::FinanceDownloadToken};
 use academy_templates_contracts::{ResetPasswordTemplate, TemplateService, VerifyEmailTemplate};
 use academy_templates_impl::TemplateServiceImpl;
 
 academy_di::provider! { Provider {} }
+
+#[test]
+fn finance_bearer_debug_redacts_and_serialization_preserves_wire_value() {
+    let value = "owned-synthetic-finance-bearer";
+    let token: FinanceDownloadToken = value.into();
+    let debug = format!("{token:?} {nested:?}", nested = Some(Ok::<_, ()>(&token)));
+    assert!(
+        !debug.contains(value),
+        "finance bearer exposed through Debug"
+    );
+    assert!(debug.contains("<redacted>"), "redaction marker missing");
+    let serialized = serde_json::to_string(&token).unwrap();
+    assert_eq!(serialized, serde_json::to_string(value).unwrap());
+    let decoded: FinanceDownloadToken = serde_json::from_str(&serialized).unwrap();
+    assert_eq!(decoded, token);
+}
 
 #[derive(Clone)]
 struct Capture(Arc<Mutex<Vec<u8>>>);

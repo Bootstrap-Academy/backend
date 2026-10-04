@@ -50,6 +50,7 @@ dependencies = [
  "academy_persistence_postgres",
  "academy_shared_contracts",
  "academy_shared_impl",
+ "academy_templates_contracts",
  "academy_templates_impl",
  "academy_utils",
  "anyhow",
@@ -2939,7 +2940,6 @@ dependencies = [
  "socket2",
  "tokio",
  "tokio-rustls",
- "tracing",
  "url",
  "webpki-roots",
 ]

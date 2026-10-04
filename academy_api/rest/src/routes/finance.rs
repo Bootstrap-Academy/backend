@@ -4,6 +4,7 @@ use academy_core_finance_contracts::{
     FinanceDownloadError, FinanceFeatureService, FinanceGetDownloadTokenError, FinanceListError,
     FinancialDocumentListQuery, FinancialDocumentListResult,
 };
+use academy_models::finance::FinanceDownloadToken;
 use aide::{
     axum::{ApiRouter, routing},
     transform::TransformOperation,
@@ -76,14 +77,14 @@ async fn get_download_token(
 
 fn get_download_token_docs(op: TransformOperation) -> TransformOperation {
     op.summary("Return a token to download finance documents.")
-        .add_response::<String>(StatusCode::OK, None)
+        .add_response::<FinanceDownloadToken>(StatusCode::OK, None)
         .with(auth_error_docs)
         .with(internal_server_error_docs)
 }
 
 #[derive(Deserialize, JsonSchema)]
 struct DownloadInvoicePath {
-    token: String,
+    token: FinanceDownloadToken,
     invoice_number: u64,
 }
 
@@ -111,7 +112,7 @@ fn download_invoice_docs(op: TransformOperation) -> TransformOperation {
 
 #[derive(Deserialize, JsonSchema)]
 struct DownloadCreditNotePath {
-    token: String,
+    token: FinanceDownloadToken,
     year: i32,
     month: u32,
 }

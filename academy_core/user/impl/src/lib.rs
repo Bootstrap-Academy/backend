@@ -819,7 +819,7 @@ where
         }
     }
 
-    #[trace_instrument(skip(self, email))]
+    #[trace_instrument(skip(self, email, recaptcha_response))]
     async fn request_password_reset(
         &self,
         email: EmailAddress,

@@ -33,7 +33,7 @@ async fn ok() {
     let result = sut.get_download_token(&"token".into()).await;
 
     // Assert
-    assert_eq!(result.unwrap(), "the-jwt");
+    assert_eq!(*result.unwrap(), "the-jwt");
 }
 
 #[tokio::test]

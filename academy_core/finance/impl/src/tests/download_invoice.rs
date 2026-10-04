@@ -37,7 +37,7 @@ async fn ok() {
     };
 
     // Act
-    let result = sut.download_invoice("the-jwt", 42).await;
+    let result = sut.download_invoice(&"the-jwt".into(), 42).await;
 
     // Assert
     assert_eq!(result.unwrap(), expected);
@@ -55,7 +55,7 @@ async fn invalid_token() {
     };
 
     // Act
-    let result = sut.download_invoice("the-jwt", 42).await;
+    let result = sut.download_invoice(&"the-jwt".into(), 42).await;
 
     // Assert
     assert_matches!(result, Err(FinanceDownloadError::InvalidToken));
@@ -86,7 +86,7 @@ async fn missing_original_commits_reconciliation_before_not_found() {
     };
 
     // Act
-    let result = sut.download_invoice("the-jwt", 42).await;
+    let result = sut.download_invoice(&"the-jwt".into(), 42).await;
 
     // Assert
     assert_matches!(result, Err(FinanceDownloadError::NotFound));

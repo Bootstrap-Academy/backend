@@ -31,8 +31,9 @@ impl Default for State {
 }
 
 impl TemplateService for TemplateServiceImpl {
-    #[instrument(skip(self))]
+    #[instrument(skip(self, template), fields(template = T::NAME))]
     fn render<T: Template>(&self, template: &T) -> anyhow::Result<String> {
+        tracing::trace!("call");
         let mut context = tera::Context::from_serialize(template)
             .with_context(|| format!("Failed to build tera context for template {}", T::NAME))?;
 

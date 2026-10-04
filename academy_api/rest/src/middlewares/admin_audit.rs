@@ -64,8 +64,9 @@ async fn middleware(
     };
 
     let method = RequestMethod::from_string_truncated(request.method().to_string());
-    // The query string may contain secrets and is therefore not recorded.
-    let path = RequestPath::from_string_truncated(request.uri().path().to_owned());
+    // Query values and finance path bearers must never reach audit storage or
+    // its instrumented services, including rejected methods and unknown routes.
+    let path = audit_path(request.uri().path());
     let route = request
         .extensions()
         .get::<MatchedPath>()
@@ -99,6 +100,17 @@ async fn middleware(
     }
 
     response
+}
+
+fn audit_path(path: &str) -> RequestPath {
+    for prefix in ["/finance/invoices/", "/finance/credit_notes/"] {
+        if path.starts_with(prefix) {
+            // A rejected route may repeat the bearer in other segments. Keep
+            // the operation, method, status and request id without its URI data.
+            return RequestPath::from_string_truncated(format!("{prefix}<redacted>"));
+        }
+    }
+    RequestPath::from_string_truncated(path.to_owned())
 }
 
 /// Whether the given request has to be recorded if it is authenticated with an

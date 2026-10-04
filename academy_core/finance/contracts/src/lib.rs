@@ -2,7 +2,7 @@ use std::future::Future;
 
 use academy_models::{
     auth::{AccessToken, AuthError},
-    finance::{FinancialDocument, FinancialDocumentKind},
+    finance::{FinanceDownloadToken, FinancialDocument, FinancialDocumentKind},
     pagination::PaginationSlice,
 };
 use thiserror::Error;
@@ -17,7 +17,7 @@ pub trait FinanceFeatureService: Send + Sync + 'static {
     fn recipient_download_token(
         &self,
         user: academy_models::user::UserId,
-    ) -> impl Future<Output = Result<String, FinanceGetDownloadTokenError>> + Send;
+    ) -> impl Future<Output = Result<FinanceDownloadToken, FinanceGetDownloadTokenError>> + Send;
     /// Return an existing owner-authorized original only. The internal caller
     /// must prove full recipient rights; this path never issues a new document.
     fn download_recipient_original(
@@ -32,19 +32,19 @@ pub trait FinanceFeatureService: Send + Sync + 'static {
     fn get_download_token(
         &self,
         token: &AccessToken,
-    ) -> impl Future<Output = Result<String, FinanceGetDownloadTokenError>> + Send;
+    ) -> impl Future<Output = Result<FinanceDownloadToken, FinanceGetDownloadTokenError>> + Send;
 
     /// Download the given invoice pdf.
     fn download_invoice(
         &self,
-        token: &str,
+        token: &FinanceDownloadToken,
         invoice_number: u64,
     ) -> impl Future<Output = Result<Vec<u8>, FinanceDownloadError>> + Send;
 
     /// Download the given credit note pdf.
     fn download_credit_note(
         &self,
-        token: &str,
+        token: &FinanceDownloadToken,
         year: i32,
         month: u32,
     ) -> impl Future<Output = Result<Vec<u8>, FinanceDownloadError>> + Send;

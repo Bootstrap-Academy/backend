@@ -56,6 +56,7 @@ academy_persistence_postgres.workspace = true
 academy_shared_contracts.workspace = true
 academy_shared_impl.workspace = true
 academy_templates_impl.workspace = true
+academy_templates_contracts.workspace = true
 academy_utils.workspace = true
 anyhow.workspace = true
 chrono.workspace = true

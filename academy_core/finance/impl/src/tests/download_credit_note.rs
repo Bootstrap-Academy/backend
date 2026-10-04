@@ -38,7 +38,7 @@ async fn ok() {
     };
 
     // Act
-    let result = sut.download_credit_note("the-jwt", 2024, 3).await;
+    let result = sut.download_credit_note(&"the-jwt".into(), 2024, 3).await;
 
     // Assert
     assert_eq!(result.unwrap(), expected);
@@ -56,7 +56,7 @@ async fn invalid_token() {
     };
 
     // Act
-    let result = sut.download_credit_note("the-jwt", 2024, 3).await;
+    let result = sut.download_credit_note(&"the-jwt".into(), 2024, 3).await;
 
     // Assert
     assert_matches!(result, Err(FinanceDownloadError::InvalidToken));
@@ -86,7 +86,7 @@ async fn not_found() {
     };
 
     // Act
-    let result = sut.download_credit_note("the-jwt", 2024, 3).await;
+    let result = sut.download_credit_note(&"the-jwt".into(), 2024, 3).await;
 
     // Assert
     assert_matches!(result, Err(FinanceDownloadError::NotFound));

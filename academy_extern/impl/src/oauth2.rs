@@ -28,12 +28,13 @@ pub struct OAuth2ApiServiceImpl {
 impl OAuth2ApiService for OAuth2ApiServiceImpl {
     // The request carries the state and the PKCE code verifier, the provider
     // its client secret.
-    #[trace_instrument(skip_all, fields(provider = %*provider.name))]
+    #[tracing::instrument(skip_all, fields(provider = %*provider.name))]
     fn generate_auth_url(
         &self,
         provider: &OAuth2Provider,
         request: &OAuth2AuthorizationRequest,
     ) -> Url {
+        trace!("call");
         let code_challenge = request.code_verifier.as_ref().map(pkce_challenge);
 
         let mut url = provider.auth_url.clone();

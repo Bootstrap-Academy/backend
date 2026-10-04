@@ -887,6 +887,10 @@ rec {
             packageId = "academy_shared_impl";
           }
           {
+            name = "academy_templates_contracts";
+            packageId = "academy_templates_contracts";
+          }
+          {
             name = "academy_templates_impl";
             packageId = "academy_templates_impl";
           }
@@ -4262,7 +4266,7 @@ rec {
             name = "lettre";
             packageId = "lettre";
             usesDefaultFeatures = false;
-            features = [ "builder" "hostname" "pool" "rustls-tls" "serde" "smtp-transport" "tokio1" "tokio1-rustls-tls" "tracing" ];
+            features = [ "builder" "hostname" "pool" "rustls-tls" "serde" "smtp-transport" "tokio1" "tokio1-rustls-tls" ];
           }
           {
             name = "tracing";
@@ -4502,7 +4506,7 @@ rec {
             name = "lettre";
             packageId = "lettre";
             usesDefaultFeatures = false;
-            features = [ "builder" "hostname" "pool" "rustls-tls" "serde" "smtp-transport" "tokio1" "tokio1-rustls-tls" "tracing" ];
+            features = [ "builder" "hostname" "pool" "rustls-tls" "serde" "smtp-transport" "tokio1" "tokio1-rustls-tls" ];
           }
           {
             name = "nutype";
@@ -11166,13 +11170,6 @@ rec {
             features = [ "logging" "tls12" ];
           }
           {
-            name = "tracing";
-            packageId = "tracing";
-            optional = true;
-            usesDefaultFeatures = false;
-            features = [ "std" ];
-          }
-          {
             name = "url";
             packageId = "url";
             optional = true;
@@ -11189,12 +11186,6 @@ rec {
             packageId = "tokio";
             rename = "tokio1_crate";
             features = [ "macros" "rt-multi-thread" ];
-          }
-          {
-            name = "tracing";
-            packageId = "tracing";
-            usesDefaultFeatures = false;
-            features = [ "std" ];
           }
         ];
         features = {
@@ -11231,7 +11222,7 @@ rec {
           "web" = [ "dep:web-time" ];
           "webpki-roots" = [ "dep:webpki-roots" ];
         };
-        resolvedDefaultFeatures = [ "builder" "hostname" "pool" "ring" "rustls" "rustls-tls" "serde" "smtp-transport" "tokio1" "tokio1-rustls" "tokio1-rustls-tls" "tracing" "webpki-roots" ];
+        resolvedDefaultFeatures = [ "builder" "hostname" "pool" "ring" "rustls" "rustls-tls" "serde" "smtp-transport" "tokio1" "tokio1-rustls" "tokio1-rustls-tls" "webpki-roots" ];
       };
       "libc" = rec {
         crateName = "libc";

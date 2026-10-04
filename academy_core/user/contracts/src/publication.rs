@@ -4,12 +4,24 @@ use academy_models::{
     auth::{AccessToken, AuthError, InternalToken},
     publication::{
         PublicationChoice, PublicationChoiceResult, PublicationEpoch, PublicationPreview,
-        PublicationSettings, PublicationSnapshot,
+        PublicationSettings, PublicationSnapshot, PublicationWithdrawal,
     },
+    user::UserId,
 };
 use thiserror::Error;
 
 pub trait PublicationFeatureService: Send + Sync + 'static {
+    fn support_settings(
+        &self,
+        token: &AccessToken,
+        user_id: UserId,
+    ) -> impl Future<Output = Result<PublicationSettings, PublicationError>> + Send;
+    fn support_withdraw(
+        &self,
+        token: &AccessToken,
+        user_id: UserId,
+        withdrawal: PublicationWithdrawal,
+    ) -> impl Future<Output = Result<PublicationChoiceResult, PublicationError>> + Send;
     fn settings(
         &self,
         token: &AccessToken,

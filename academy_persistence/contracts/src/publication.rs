@@ -3,13 +3,21 @@ use std::future::Future;
 use academy_models::{
     publication::{
         PublicationChoice, PublicationChoiceResult, PublicationEpoch, PublicationSettings,
-        PublicationSnapshot,
+        PublicationSnapshot, PublicationWithdrawal,
     },
     user::UserId,
 };
 use thiserror::Error;
 
 pub trait PublicationRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
+    /// Caller holds current admin authority. Source is always support; no share path.
+    fn withdraw(
+        &self,
+        txn: &mut Txn,
+        user_id: UserId,
+        withdrawal: &PublicationWithdrawal,
+        enabled: bool,
+    ) -> impl Future<Output = Result<PublicationChoiceResult, PublicationWriteError>> + Send;
     fn epoch(
         &self,
         txn: &mut Txn,

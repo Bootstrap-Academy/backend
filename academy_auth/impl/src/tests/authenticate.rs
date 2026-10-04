@@ -188,3 +188,49 @@ async fn stale_admin_and_mfa_claims_do_not_grant_current_privilege() {
     assert!(!actual.mfa_verified);
     assert!(actual.ensure_admin().is_err());
 }
+
+#[tokio::test]
+async fn write_authority_is_locked_and_rechecked_without_another_connection() {
+    for revoked in [false, true] {
+        let expected = Authentication {
+            user_id: FOO.user.id,
+            session_id: UUID1.into(),
+            refresh_token_hash: (*SHA256HASH1).into(),
+            admin: true,
+            email_verified: true,
+            mfa_verified: true,
+        };
+        let sut = AuthServiceImpl {
+            // The caller already owns a transaction; borrowing another is forbidden.
+            db: academy_persistence_contracts::MockDatabase::new(),
+            user_repo: academy_persistence_contracts::user::MockUserRepository::new()
+                .with_lock_account(FOO.user.id, true)
+                .with_get_composite(FOO.user.id, Some(FOO.clone())),
+            session_repo: academy_persistence_contracts::session::MockSessionRepository::new()
+                .with_get_by_refresh_token_hash_for_update(
+                    expected.refresh_token_hash,
+                    (!revoked).then(|| academy_models::session::Session {
+                        id: expected.session_id,
+                        ..academy_demo::session::FOO_1.clone()
+                    }),
+                ),
+            auth_access_token: MockAuthAccessTokenService::new()
+                .with_verify("my auth token".into(), Some(expected))
+                .with_is_invalidated(expected.refresh_token_hash, false),
+            ..Sut::default()
+        };
+        let result = sut
+            .authenticate_in_transaction(
+                &mut academy_persistence_contracts::MockTransaction::new(),
+                &"my auth token".into(),
+            )
+            .await;
+        if revoked {
+            assert_matches!(result, Err(AuthenticateError::InvalidToken));
+        } else {
+            let current = result.unwrap();
+            assert!(!current.admin);
+            assert!(!current.mfa_verified);
+        }
+    }
+}

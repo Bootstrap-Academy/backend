@@ -24,7 +24,9 @@ async fn ok() {
         ..FOO.user.clone()
     };
 
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
 
     let db = MockDatabase::build(true);
 
@@ -72,8 +74,9 @@ async fn ok_repeated() {
         ..FOO.user.clone()
     };
 
-    let auth =
-        MockAuthService::new().with_authenticate(Some((declined.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((declined.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((declined.user.clone(), FOO_1.clone())));
 
     let db = MockDatabase::build(true);
 
@@ -123,7 +126,9 @@ async fn unauthenticated() {
 #[tokio::test]
 async fn not_found() {
     // Arrange
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
 
     let db = MockDatabase::build(false);
 

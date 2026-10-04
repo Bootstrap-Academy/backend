@@ -332,19 +332,22 @@ where
         let mut txn = self.db.begin_transaction().await?;
 
         let password_changed = password.is_update();
-        if password_changed || email.is_update() {
-            if !self.user_repo.lock_account(&mut txn, user_id).await? {
-                return Err(UserUpdateError::NotFound);
-            }
-            // A reset may have revoked the caller while this request waited
-            // for the account lock. Never authorize a mutation with that snapshot.
-            auth = self
-                .auth
-                .authenticate_in_transaction(&mut txn, token)
-                .await
-                .map_auth_err()?;
-            auth.ensure_self_or_admin(user_id).map_auth_err()?;
+        if !academy_persistence_contracts::user::lock_accounts(
+            &self.user_repo,
+            &mut txn,
+            auth.user_id,
+            user_id,
+        )
+        .await?
+        {
+            return Err(UserUpdateError::NotFound);
         }
+        auth = self
+            .auth
+            .authenticate_in_transaction(&mut txn, token)
+            .await
+            .map_auth_err()?;
+        auth.ensure_self_or_admin(user_id).map_auth_err()?;
 
         // Fetch current user
         let UserComposite {
@@ -566,7 +569,7 @@ where
             age_confirmed,
         }: UserAcceptTermsRequest,
     ) -> Result<UserComposite, UserAcceptTermsError> {
-        let auth = self.auth.authenticate(token).await.map_auth_err()?;
+        self.auth.authenticate(token).await.map_auth_err()?;
 
         if !age_confirmed {
             return Err(UserAcceptTermsError::AgeNotConfirmed);
@@ -577,6 +580,12 @@ where
         }
 
         let mut txn = self.db.begin_transaction().await?;
+
+        let auth = self
+            .auth
+            .authenticate_in_transaction(&mut txn, token)
+            .await
+            .map_auth_err()?;
 
         let mut user_composite = self
             .user_repo
@@ -620,9 +629,15 @@ where
         &self,
         token: &AccessToken,
     ) -> Result<UserComposite, UserDeclineTermsError> {
-        let auth = self.auth.authenticate(token).await.map_auth_err()?;
+        self.auth.authenticate(token).await.map_auth_err()?;
 
         let mut txn = self.db.begin_transaction().await?;
+
+        let auth = self
+            .auth
+            .authenticate_in_transaction(&mut txn, token)
+            .await
+            .map_auth_err()?;
 
         let mut user_composite = self
             .user_repo
@@ -654,87 +669,10 @@ where
         if user_id != auth.user_id {
             return Err(UserDeleteError::ModerationRequired);
         }
-        self.recipient_delete(user_id).await
+        self.delete_for(user_id, Some(token)).await
     }
     async fn recipient_delete(&self, user_id: UserId) -> Result<(), UserDeleteError> {
-        let received_at = chrono::Utc::now();
-        let mut intake = self.db.begin_transaction().await?;
-        self.user_repo
-            .record_deletion_request(&mut intake, user_id, received_at)
-            .await
-            .context("Failed to preserve the authenticated erasure request")?;
-        intake.commit().await?;
-        let mut txn = self.db.begin_transaction().await?;
-
-        if !self.user_repo.lock_for_deletion(&mut txn, user_id).await? {
-            return Err(UserDeleteError::NotFound);
-        }
-
-        // Read while the sessions are still there; the access tokens are
-        // invalidated only after the deletion has been committed, because the
-        // cache is not transactional and a deletion that rolls back must not
-        // log the user out of every device.
-        let refresh_token_hashes = self
-            .auth
-            .list_refresh_token_hashes(&mut txn, user_id)
-            .await
-            .context("Failed to get the refresh token hashes of the user")?;
-
-        // The unused share of the purchased Morphcoins is recorded before the
-        // account is gone, so that it can still be refunded on request
-        // afterwards (AGB Ziffer 6.7). Its pdf is produced after the commit.
-        let final_statement = self
-            .finance_invoice
-            .create_final_statement(&mut txn, user_id)
-            .await
-            .context("Failed to create the final statement")?;
-
-        // Invoices and credit notes have to be kept even after the account has
-        // been deleted, so their records are pseudonymized instead: the
-        // customer details are replaced by a retention marker and the account
-        // reference is dropped when the account row is deleted. The final
-        // statement keeps its customer details, because a later refund can
-        // only be offered to somebody it still names.
-        self.document_repo
-            .pseudonymize(&mut txn, user_id, &[RETENTION_MARKER.into()])
-            .await
-            .context("Failed to pseudonymize financial documents")?;
-
-        if !self
-            .user_repo
-            .delete(&mut txn, user_id)
-            .await
-            .context("Failed to delete user from database")?
-        {
-            return Err(UserDeleteError::NotFound);
-        }
-
-        txn.commit().await?;
-
-        if let Err(err) = self
-            .auth
-            .invalidate_access_tokens_of(refresh_token_hashes)
-            .await
-        {
-            // Authentication also checks authoritative account existence. A cache outage
-            // cannot restore this account's authority or skip the committed erasure work.
-            warn!(error=%err, "Account deleted; cache invalidation failed");
-        }
-
-        // The record of the statement is committed and is what a later refund
-        // needs; its pdf is produced outside the transaction, because that
-        // means an http request to the render daemon.
-        if let Some(final_statement) = final_statement {
-            self.finance_invoice
-                .archive_final_statement(final_statement)
-                .await;
-        }
-
-        // The microservices are notified only after the user has actually been
-        // deleted from the database.
-        self.microservices_api.delete_user(user_id).await;
-
-        Ok(())
+        self.delete_for(user_id, None).await
     }
 
     // Not `trace_instrument`, because that logs the return value, which is
@@ -806,6 +744,25 @@ where
         auth.ensure_self_or_admin(user_id).map_auth_err()?;
 
         let mut txn = self.db.begin_transaction().await?;
+
+        if auth.user_id != user_id
+            && !academy_persistence_contracts::user::lock_accounts(
+                &self.user_repo,
+                &mut txn,
+                auth.user_id,
+                user_id,
+            )
+            .await?
+        {
+            return Err(UserRequestVerificationEmailError::NotFound);
+        }
+
+        let auth = self
+            .auth
+            .authenticate_in_transaction(&mut txn, token)
+            .await
+            .map_auth_err()?;
+        auth.ensure_self_or_admin(user_id).map_auth_err()?;
 
         let user_composite = self
             .user_repo
@@ -1000,8 +957,105 @@ impl<
         DocumentRepo,
     >
 where
+    Db: Database,
+    Auth: AuthService<Db::Transaction>,
+    MicroservicesApi: MicroservicesApiService,
+    FinanceInvoice: FinanceInvoiceService<Db::Transaction>,
+    UserRepo: UserRepository<Db::Transaction>,
+    DocumentRepo: FinancialDocumentRepository<Db::Transaction>,
     Cache: CacheService,
 {
+    async fn delete_for(
+        &self,
+        user_id: UserId,
+        token: Option<&AccessToken>,
+    ) -> Result<(), UserDeleteError> {
+        let received_at = chrono::Utc::now();
+        let mut intake = self.db.begin_transaction().await?;
+        if let Some(token) = token {
+            self.auth
+                .authenticate_in_transaction(&mut intake, token)
+                .await
+                .map_auth_err()?;
+        }
+        self.user_repo
+            .record_deletion_request(&mut intake, user_id, received_at)
+            .await
+            .context("Failed to preserve the authenticated erasure request")?;
+        intake.commit().await?;
+        let mut txn = self.db.begin_transaction().await?;
+
+        if !self.user_repo.lock_for_deletion(&mut txn, user_id).await? {
+            return Err(UserDeleteError::NotFound);
+        }
+
+        // Read while the sessions are still there; the access tokens are
+        // invalidated only after the deletion has been committed, because the
+        // cache is not transactional and a deletion that rolls back must not
+        // log the user out of every device.
+        let refresh_token_hashes = self
+            .auth
+            .list_refresh_token_hashes(&mut txn, user_id)
+            .await
+            .context("Failed to get the refresh token hashes of the user")?;
+
+        // The unused share of the purchased Morphcoins is recorded before the
+        // account is gone, so that it can still be refunded on request
+        // afterwards (AGB Ziffer 6.7). Its pdf is produced after the commit.
+        let final_statement = self
+            .finance_invoice
+            .create_final_statement(&mut txn, user_id)
+            .await
+            .context("Failed to create the final statement")?;
+
+        // Invoices and credit notes have to be kept even after the account has
+        // been deleted, so their records are pseudonymized instead: the
+        // customer details are replaced by a retention marker and the account
+        // reference is dropped when the account row is deleted. The final
+        // statement keeps its customer details, because a later refund can
+        // only be offered to somebody it still names.
+        self.document_repo
+            .pseudonymize(&mut txn, user_id, &[RETENTION_MARKER.into()])
+            .await
+            .context("Failed to pseudonymize financial documents")?;
+
+        if !self
+            .user_repo
+            .delete(&mut txn, user_id)
+            .await
+            .context("Failed to delete user from database")?
+        {
+            return Err(UserDeleteError::NotFound);
+        }
+
+        txn.commit().await?;
+
+        if let Err(err) = self
+            .auth
+            .invalidate_access_tokens_of(refresh_token_hashes)
+            .await
+        {
+            // Authentication also checks authoritative account existence. A cache outage
+            // cannot restore this account's authority or skip the committed erasure work.
+            warn!(error=%err, "Account deleted; cache invalidation failed");
+        }
+
+        // The record of the statement is committed and is what a later refund
+        // needs; its pdf is produced outside the transaction, because that
+        // means an http request to the render daemon.
+        if let Some(final_statement) = final_statement {
+            self.finance_invoice
+                .archive_final_statement(final_statement)
+                .await;
+        }
+
+        // The microservices are notified only after the user has actually been
+        // deleted from the database.
+        self.microservices_api.delete_user(user_id).await;
+
+        Ok(())
+    }
+
     /// Return an error if the given user has exported their data too recently,
     /// otherwise start a new rate limit window.
     ///

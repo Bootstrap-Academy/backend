@@ -188,17 +188,22 @@ where
         id: ContractDeclarationId,
         update: ContractDeclarationProcessingUpdate,
     ) -> Result<ContractDeclaration, ContractSetProcessedError> {
-        self.auth
-            .authenticate(token)
-            .await
-            .map_auth_err()?
-            .ensure_admin()
-            .map_auth_err()?;
+        let auth = self.auth.authenticate(token).await.map_auth_err()?;
+        auth.ensure_admin().map_auth_err()?;
         if update.note.is_none() || !update.identity_verified {
             return Err(ContractSetProcessedError::Invalid);
         }
         let mut txn = self.db.begin_transaction().await?;
         self.contract_repo.lock_request(&mut txn, id).await?;
+        self.contract_repo
+            .lock_session_processing(&mut txn, id, auth.user_id, update.verified_user_id)
+            .await?;
+        self.auth
+            .authenticate_in_transaction(&mut txn, token)
+            .await
+            .map_auth_err()?
+            .ensure_admin()
+            .map_auth_err()?;
         self.contract_repo.lock_processing(&mut txn, id).await?;
         let mut declaration = self
             .contract_repo

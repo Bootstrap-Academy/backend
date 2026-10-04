@@ -72,6 +72,14 @@ jobs:
               --pg-bin "$(dirname "$(command -v pg_ctl)")" \
               --valkey "$(command -v valkey-server)" \
               --output "$RUNNER_TEMP/academy-publication-test-evidence"'
+      - name: test revoked authority in sensitive writes through HTTP
+        run: |
+          nix shell --accept-flake-config --no-write-lock-file --inputs-from . \
+            nixpkgs#postgresql_18 nixpkgs#valkey -c bash -euo pipefail -c \
+            'python3 -B tests/sensitive-writes.py --binary target/debug/academy \
+              --pg-bin "$(dirname "$(command -v pg_ctl)")" \
+              --valkey "$(command -v valkey-server)" \
+              --output "$RUNNER_TEMP/academy-sensitive-writes-test-evidence"'
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -87,6 +95,11 @@ jobs:
         with:
           name: publication-test-evidence
           path: ${{ runner.temp }}/academy-publication-test-evidence
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sensitive-writes-test-evidence
+          path: ${{ runner.temp }}/academy-sensitive-writes-test-evidence
 
   valkey:
     runs-on: ubuntu-latest

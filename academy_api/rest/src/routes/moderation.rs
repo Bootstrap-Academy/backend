@@ -116,6 +116,21 @@ async fn admin(
 ) -> Response {
     match s.admin(&token.0, &operation, body).await {
         Ok(v) => response(v),
+        Err(e)
+            if e.downcast_ref::<academy_models::auth::AuthenticateError>()
+                .is_some() =>
+        {
+            error(StatusCode::UNAUTHORIZED, "Your session is no longer active")
+        }
+        Err(e)
+            if e.downcast_ref::<academy_models::auth::AuthorizeError>()
+                .is_some() =>
+        {
+            error(
+                StatusCode::FORBIDDEN,
+                "Current administrative authority is required",
+            )
+        }
         Err(_) => error(
             StatusCode::CONFLICT,
             "Decision incomplete, access denied or stale revision; reload the case",

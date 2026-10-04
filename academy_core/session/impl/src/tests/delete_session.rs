@@ -10,7 +10,9 @@ use academy_models::{
     auth::{AuthError, AuthenticateError, AuthorizeError},
     user::UserIdOrSelf,
 };
-use academy_persistence_contracts::{MockDatabase, session::MockSessionRepository};
+use academy_persistence_contracts::{
+    MockDatabase, session::MockSessionRepository, user::MockUserRepository,
+};
 use academy_utils::assert_matches;
 
 use crate::{SessionFeatureServiceImpl, tests::Sut};
@@ -20,7 +22,9 @@ async fn ok_current() {
     // Arrange
     let db = MockDatabase::build(true);
 
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
 
     let session_repo = MockSessionRepository::new().with_get(FOO_1.id, Some(FOO_1.clone()));
 
@@ -48,7 +52,9 @@ async fn ok_self() {
     // Arrange
     let db = MockDatabase::build(true);
 
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
 
     let session_repo = MockSessionRepository::new().with_get(FOO_2.id, Some(FOO_2.clone()));
 
@@ -76,18 +82,23 @@ async fn ok_admin() {
     // Arrange
     let db = MockDatabase::build(true);
 
-    let auth =
-        MockAuthService::new().with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())))
+        .with_authenticate_in_transaction(Some((ADMIN.user.clone(), ADMIN_1.clone())));
 
     let session_repo = MockSessionRepository::new().with_get(FOO_2.id, Some(FOO_2.clone()));
 
     let session = MockSessionService::new().with_delete(FOO_2.id, true);
+    let user_repo = MockUserRepository::new()
+        .with_lock_account(FOO.user.id, true)
+        .with_lock_account(ADMIN.user.id, true);
 
     let sut = SessionFeatureServiceImpl {
         db,
         auth,
         session_repo,
         session,
+        user_repo,
         ..Sut::default()
     };
 
@@ -153,15 +164,20 @@ async fn not_found() {
     // Arrange
     let db = MockDatabase::build(false);
 
-    let auth =
-        MockAuthService::new().with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())))
+        .with_authenticate_in_transaction(Some((ADMIN.user.clone(), ADMIN_1.clone())));
 
     let session_repo = MockSessionRepository::new().with_get(FOO_1.id, None);
+    let user_repo = MockUserRepository::new()
+        .with_lock_account(FOO.user.id, true)
+        .with_lock_account(ADMIN.user.id, true);
 
     let sut = SessionFeatureServiceImpl {
         db,
         auth,
         session_repo,
+        user_repo,
         ..Sut::default()
     };
 
@@ -179,15 +195,20 @@ async fn different_user() {
     // Arrange
     let db = MockDatabase::build(false);
 
-    let auth =
-        MockAuthService::new().with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())))
+        .with_authenticate_in_transaction(Some((ADMIN.user.clone(), ADMIN_1.clone())));
 
     let session_repo = MockSessionRepository::new().with_get(FOO_1.id, Some(FOO_1.clone()));
+    let user_repo = MockUserRepository::new()
+        .with_lock_account(BAR.user.id, true)
+        .with_lock_account(ADMIN.user.id, true);
 
     let sut = SessionFeatureServiceImpl {
         db,
         auth,
         session_repo,
+        user_repo,
         ..Sut::default()
     };
 

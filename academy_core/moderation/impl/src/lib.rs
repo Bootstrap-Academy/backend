@@ -8,16 +8,16 @@ use academy_core_purchase_contracts::PurchaseFeatureService;
 use academy_core_session_contracts::{
     SessionCreateCommand, SessionCreateError, SessionFeatureService,
 };
-use academy_core_user_contracts::UserFeatureService;
 use academy_core_user_contracts::export::UserExportService;
+use academy_core_user_contracts::{UserDeleteError, UserFeatureService};
 use academy_di::Build;
 use academy_email_contracts::EmailService;
 use academy_extern_contracts::microservices::MicroservicesApiService;
 use academy_models::{
     RecaptchaResponse,
-    auth::{AccessToken, InternalToken},
+    auth::{AccessToken, AuthError, InternalToken},
     email_address::EmailAddressWithName,
-    user::UserId,
+    user::{UserId, UserIdOrSelf},
 };
 use academy_persistence_contracts::{Database, Transaction, moderation::ModerationRepository};
 use academy_shared_contracts::{hash::HashService, secret::SecretService};
@@ -65,6 +65,18 @@ struct Principal {
     case_id: Option<String>,
     case_source: Option<String>,
     rights: bool,
+    ordinary: Option<AccessToken>,
+}
+
+fn operation_error(error: anyhow::Error) -> anyhow::Error {
+    if error
+        .downcast_ref::<academy_persistence_contracts::moderation::ModerationConflict>()
+        .is_some()
+    {
+        RecipientAccessError::Conflict.into()
+    } else {
+        error
+    }
 }
 impl<
     Db,
@@ -125,17 +137,62 @@ where
             .repo
             .operation(&mut tx, operation, actor, &body)
             .await
-            .map_err(|e| -> anyhow::Error {
-                if e.downcast_ref::<academy_persistence_contracts::moderation::ModerationConflict>()
-                    .is_some()
-                {
-                    RecipientAccessError::Conflict.into()
-                } else {
-                    e
-                }
-            })?;
+            .map_err(operation_error)?;
         tx.commit().await?;
         Ok(result)
+    }
+
+    async fn session_op(
+        &self,
+        token: &AccessToken,
+        actor: UserId,
+        commercial: bool,
+        admin: bool,
+        operation: &str,
+        mut body: Value,
+    ) -> anyhow::Result<Value> {
+        let mut tx = self.db.begin_transaction().await?;
+        self.repo
+            .lock_session_write(&mut tx, actor, commercial, operation, &body)
+            .await?;
+        let current = self
+            .auth
+            .authenticate_in_transaction(&mut tx, token)
+            .await?;
+        ensure!(current.user_id == actor, RecipientAccessError::Invalid);
+        if admin {
+            current.ensure_admin()?;
+            if commercial {
+                body["_staff_session"] = json!(current.session_id);
+                body["_staff_refresh_hash"] = json!(current.refresh_token_hash.to_string());
+            }
+        }
+        let result = if commercial {
+            self.repo
+                .commercial_operation(&mut tx, operation, Some(actor), &body)
+                .await
+        } else {
+            self.repo
+                .operation(&mut tx, operation, Some(actor), &body)
+                .await
+        }
+        .map_err(operation_error)?;
+        tx.commit().await?;
+        Ok(result)
+    }
+
+    async fn recipient_op(
+        &self,
+        principal: &Principal,
+        operation: &str,
+        body: Value,
+    ) -> anyhow::Result<Value> {
+        if let Some(token) = principal.ordinary.as_ref() {
+            self.session_op(token, principal.subject, false, false, operation, body)
+                .await
+        } else {
+            self.op(operation, Some(principal.subject), body).await
+        }
     }
     async fn principal(&self, credentials: RecipientCredentials) -> anyhow::Result<Principal> {
         if let Some(cap) = credentials.capability {
@@ -151,6 +208,7 @@ where
                 case_id: record["case_id"].as_str().map(str::to_owned),
                 case_source: record["source"].as_str().map(str::to_owned),
                 rights: record["scope"] == "rights",
+                ordinary: None,
             });
         }
         let token = credentials.ordinary.ok_or(RecipientAccessError::Invalid)?;
@@ -160,6 +218,7 @@ where
             case_id: None,
             case_source: None,
             rights: true,
+            ordinary: Some(token),
         })
     }
     async fn collect_inbox(&self, p: &Principal) -> anyhow::Result<Value> {
@@ -325,7 +384,12 @@ where
         );
         // No shared cache write precedes this commit. Session deletion is durable;
         // ordinary authentication checks it even if invalidation transport is down.
-        self.op(operation, Some(auth.user_id), body).await
+        if matches!(operation, "queue" | "case" | "delivery_queue") {
+            self.op(operation, Some(auth.user_id), body).await
+        } else {
+            self.session_op(access, auth.user_id, false, true, operation, body)
+                .await
+        }
     }
     async fn password_access(
         &self,
@@ -370,7 +434,7 @@ where
             RecipientAccessError::Scope
         );
         match source {
-            "backend" => self.op("opened", Some(p.subject), body).await,
+            "backend" => self.recipient_op(&p, "opened", body).await,
             "challenges" => {
                 self.services
                     .moderation("opened", Some(p.subject), body)
@@ -395,7 +459,20 @@ where
     async fn erase(&self, credentials: RecipientCredentials) -> anyhow::Result<Value> {
         let p = self.principal(credentials).await?;
         ensure!(p.rights, RecipientAccessError::Scope);
-        self.user_feature.recipient_delete(p.subject).await?;
+        if let Some(token) = p.ordinary.as_ref() {
+            self.user_feature
+                .delete_user(token, UserIdOrSelf::Slf)
+                .await
+                .map_err(|error| -> anyhow::Error {
+                    match error {
+                        UserDeleteError::Auth(AuthError::Authenticate(error)) => error.into(),
+                        UserDeleteError::Auth(AuthError::Authorize(error)) => error.into(),
+                        error => error.into(),
+                    }
+                })?;
+        } else {
+            self.user_feature.recipient_delete(p.subject).await?;
+        }
         Ok(
             json!({"status":"Account erasure committed; retained rights and service erasure work follow their documented workflows."}),
         )
@@ -456,7 +533,7 @@ where
             );
         }
         match source {
-            "backend" => self.op("complain", Some(p.subject), body).await,
+            "backend" => self.recipient_op(&p, "complain", body).await,
             "challenges" => {
                 self.services
                     .moderation("complain", Some(p.subject), body)

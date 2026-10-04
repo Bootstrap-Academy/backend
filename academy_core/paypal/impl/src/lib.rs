@@ -120,7 +120,12 @@ where
         self.purchase
             .cash_offer(token, self.coin_product(coins, &user))
             .await
-            .map_err(|e| anyhow!(e).into())
+            .map_err(|e| match e {
+                academy_core_purchase_contracts::PurchaseError::Auth(auth) => {
+                    PaypalCreateCoinOrderError::Auth(auth)
+                }
+                other => anyhow!(other).into(),
+            })
     }
     #[trace_instrument(skip(self))]
     fn get_client_id(&self) -> &str {
@@ -140,7 +145,12 @@ where
             .purchase
             .get(token, declaration.order_id)
             .await
-            .map_err(|_| PaypalCreateCoinOrderError::OfferChanged)?;
+            .map_err(|e| match e {
+                academy_core_purchase_contracts::PurchaseError::Auth(auth) => {
+                    PaypalCreateCoinOrderError::Auth(auth)
+                }
+                _ => PaypalCreateCoinOrderError::OfferChanged,
+            })?;
         if offered.offer.source != "paypal" || offered.offer.product.coins != coins {
             return Err(PaypalCreateCoinOrderError::OfferChanged);
         }
@@ -168,11 +178,22 @@ where
             .purchase
             .cash_accept(token, declaration)
             .await
-            .map_err(|_| PaypalCreateCoinOrderError::OfferChanged)?;
+            .map_err(|e| match e {
+                academy_core_purchase_contracts::PurchaseError::Auth(auth) => {
+                    PaypalCreateCoinOrderError::Auth(auth)
+                }
+                _ => PaypalCreateCoinOrderError::OfferChanged,
+            })?;
         if accepted.accepted_at.is_none() || accepted.state == "failed" {
             return Err(PaypalCreateCoinOrderError::OfferChanged);
         }
         let mut txn = self.db.begin_transaction().await?;
+        let auth = self
+            .auth
+            .authenticate_in_transaction(&mut txn, token)
+            .await
+            .map_auth_err()?;
+        auth.ensure_email_verified().map_auth_err()?;
         if let Some(existing) = self
             .paypal_repo
             .lock_contract_order(&mut txn, accepted.offer.id)
@@ -269,9 +290,22 @@ where
         token: &AccessToken,
         order_id: PaypalOrderId,
     ) -> Result<Balance, PaypalCaptureCoinOrderError> {
-        let auth = self.auth.authenticate(token).await.map_auth_err()?;
-        auth.ensure_email_verified().map_auth_err()?;
+        self.auth
+            .authenticate(token)
+            .await
+            .map_auth_err()?
+            .ensure_email_verified()
+            .map_auth_err()?;
+
         let mut txn = self.db.begin_transaction().await?;
+
+        let auth = self
+            .auth
+            .authenticate_in_transaction(&mut txn, token)
+            .await
+            .map_auth_err()?;
+        auth.ensure_email_verified().map_auth_err()?;
+
         let Some(mut payment) = self.paypal_repo.get_payment(&mut txn, &order_id).await? else {
             // A pre-migration order can already have an unrecorded capture. No blind adoption.
             let legacy = self.paypal_repo.get_coin_order(&mut txn, &order_id).await?;
@@ -467,6 +501,12 @@ where
                 status.confirmation_smtp_accepted_at.is_some() && status.state == "paid";
         }
         let mut txn = self.db.begin_transaction().await?;
+        // Settlement keeps its accepted-payment authority after a session
+        // reset, but uses the same account -> payment order as new captures.
+        // The immutable snapshot identifies the account before any row wait.
+        self.user_repo
+            .lock_account(&mut txn, payment.snapshot.order.user_id)
+            .await?;
         payment = self
             .paypal_repo
             .get_payment(&mut txn, id)

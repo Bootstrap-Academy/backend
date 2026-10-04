@@ -251,15 +251,7 @@ where
             .repo
             .commercial_operation(&mut tx, op, actor, &body)
             .await
-            .map_err(|e| -> anyhow::Error {
-                if e.downcast_ref::<academy_persistence_contracts::moderation::ModerationConflict>()
-                    .is_some()
-                {
-                    RecipientAccessError::Conflict.into()
-                } else {
-                    e
-                }
-            })?;
+            .map_err(super::operation_error)?;
         tx.commit().await?;
         Ok(result)
     }
@@ -500,6 +492,12 @@ where
                 return Err(RecipientAccessError::Scope.into());
             }
         }
+        let ordinary =
+            if credentials.claim_key.is_none() && credentials.recipient.capability.is_none() {
+                credentials.recipient.ordinary.clone()
+            } else {
+                None
+            };
         let user = self.commercial_principal(credentials).await?;
         if matches!(operation, "course_rights" | "course_successor") {
             let source_subject: UserId = if let Some(value) = body.get("source_subject") {
@@ -672,7 +670,14 @@ where
             body.as_object_mut().unwrap().remove("key");
             body["hash"] = json!(hash);
         }
-        self.commercial_op(operation, Some(user), body).await
+        if operation == "open"
+            && let Some(token) = ordinary.as_ref()
+        {
+            self.session_op(token, user, true, false, operation, body)
+                .await
+        } else {
+            self.commercial_op(operation, Some(user), body).await
+        }
     }
 
     async fn commercial_admin(
@@ -789,8 +794,13 @@ where
                 .map_err(|_| RecipientAccessError::Malformed)?;
             return self.commercial_op("export", Some(subject), json!({})).await;
         }
-        self.commercial_op(operation, Some(auth.user_id), body)
-            .await
+        if matches!(operation, "queue" | "hold_queue" | "retention_queue") {
+            self.commercial_op(operation, Some(auth.user_id), body)
+                .await
+        } else {
+            self.session_op(access, auth.user_id, true, true, operation, body)
+                .await
+        }
     }
 
     async fn commercial_internal(

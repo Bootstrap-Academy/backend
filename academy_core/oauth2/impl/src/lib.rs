@@ -239,6 +239,25 @@ where
 
         let mut txn = self.db.begin_transaction().await?;
 
+        if auth.user_id != user_id
+            && !academy_persistence_contracts::user::lock_accounts(
+                &self.user_repo,
+                &mut txn,
+                auth.user_id,
+                user_id,
+            )
+            .await?
+        {
+            return Err(OAuth2CreateLinkError::NotFound);
+        }
+
+        let auth = self
+            .auth
+            .authenticate_in_transaction(&mut txn, token)
+            .await
+            .map_auth_err()?;
+        auth.ensure_self_or_admin(user_id).map_auth_err()?;
+
         if !self
             .user_repo
             .exists(&mut txn, user_id)
@@ -295,6 +314,25 @@ where
         auth.ensure_self_or_admin(user_id).map_auth_err()?;
 
         let mut txn = self.db.begin_transaction().await?;
+
+        if auth.user_id != user_id
+            && !academy_persistence_contracts::user::lock_accounts(
+                &self.user_repo,
+                &mut txn,
+                auth.user_id,
+                user_id,
+            )
+            .await?
+        {
+            return Err(OAuth2DeleteLinkError::NotFound);
+        }
+
+        let auth = self
+            .auth
+            .authenticate_in_transaction(&mut txn, token)
+            .await
+            .map_auth_err()?;
+        auth.ensure_self_or_admin(user_id).map_auth_err()?;
 
         let link = self
             .oauth2_repo

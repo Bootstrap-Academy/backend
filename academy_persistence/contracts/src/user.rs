@@ -13,6 +13,27 @@ use academy_models::{
 use chrono::{DateTime, Utc};
 use thiserror::Error;
 
+/// Lock both accounts in one stable order before a cross-account mutation.
+/// Reauthenticate the caller in this transaction after all lock waits.
+pub async fn lock_accounts<Txn: Send + Sync + 'static>(
+    repo: &impl UserRepository<Txn>,
+    txn: &mut Txn,
+    actor: UserId,
+    target: UserId,
+) -> anyhow::Result<bool> {
+    let mut accounts = [actor, target];
+    accounts.sort_unstable();
+    for (index, user) in accounts.into_iter().enumerate() {
+        if index == 1 && actor == target {
+            break;
+        }
+        if !repo.lock_account(txn, user).await? {
+            return Ok(false);
+        }
+    }
+    Ok(true)
+}
+
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait UserRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static {
     /// Serialize credential changes with login, refresh and session creation.

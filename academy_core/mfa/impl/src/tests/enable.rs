@@ -27,7 +27,9 @@ async fn ok() {
     let expected = MfaRecoveryCode::try_new("PJVURV-QRK3YJ-O3U7T6-D50KAC").unwrap();
     let code = TotpCode::try_new("123456").unwrap();
 
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
 
     let db = MockDatabase::build(true);
 
@@ -114,12 +116,16 @@ async fn user_not_found() {
     // Arrange
     let code = TotpCode::try_new("123456").unwrap();
 
-    let auth =
-        MockAuthService::new().with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())))
+        .with_authenticate_in_transaction(Some((ADMIN.user.clone(), ADMIN_1.clone())));
 
     let db = MockDatabase::build(false);
 
-    let user_repo = MockUserRepository::new().with_exists(FOO.user.id, false);
+    let user_repo = MockUserRepository::new()
+        .with_lock_account(ADMIN.user.id, true)
+        .with_lock_account(FOO.user.id, true)
+        .with_exists(FOO.user.id, false);
 
     let sut = MfaFeatureServiceImpl {
         auth,
@@ -140,7 +146,9 @@ async fn already_enabled() {
     // Arrange
     let code = TotpCode::try_new("123456").unwrap();
 
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
 
     let db = MockDatabase::build(false);
 
@@ -171,7 +179,9 @@ async fn not_initialized() {
     // Arrange
     let code = TotpCode::try_new("123456").unwrap();
 
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
 
     let db = MockDatabase::build(false);
 
@@ -199,7 +209,9 @@ async fn invalid_code() {
     // Arrange
     let code = TotpCode::try_new("123456").unwrap();
 
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
 
     let db = MockDatabase::build(false);
 

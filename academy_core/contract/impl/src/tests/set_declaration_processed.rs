@@ -68,8 +68,9 @@ fn make_update() -> ContractDeclarationProcessingUpdate {
 #[tokio::test]
 async fn ok() {
     // Arrange
-    let auth =
-        MockAuthService::new().with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())))
+        .with_authenticate_in_transaction(Some((ADMIN.user.clone(), ADMIN_1.clone())));
 
     let db = MockDatabase::build(true);
     let time = MockTimeService::new().with_now(now());
@@ -97,6 +98,10 @@ async fn ok() {
         .expect_lock_request()
         .once()
         .return_once(|_, _| Box::pin(async { Ok(()) }));
+    contract_repo
+        .expect_lock_session_processing()
+        .once()
+        .return_once(|_, _, _, _| Box::pin(async { Ok(()) }));
     contract_repo
         .expect_lock_processing()
         .once()
@@ -138,8 +143,9 @@ async fn completion_requires_identity_and_resolution_evidence() {
 #[tokio::test]
 async fn not_found() {
     // Arrange
-    let auth =
-        MockAuthService::new().with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())))
+        .with_authenticate_in_transaction(Some((ADMIN.user.clone(), ADMIN_1.clone())));
 
     let db = MockDatabase::build(false);
     let time = MockTimeService::new();
@@ -150,6 +156,10 @@ async fn not_found() {
         .expect_lock_request()
         .once()
         .return_once(|_, _| Box::pin(async { Ok(()) }));
+    contract_repo
+        .expect_lock_session_processing()
+        .once()
+        .return_once(|_, _, _, _| Box::pin(async { Ok(()) }));
     contract_repo
         .expect_lock_processing()
         .once()
@@ -217,4 +227,93 @@ async fn unauthorized() {
             AuthorizeError::Admin
         )))
     );
+}
+
+#[tokio::test]
+async fn processing_rechecks_session_and_admin_mfa_after_request_and_account_waits() {
+    use academy_core_contract_contracts::ContractProcessingAction;
+    use std::sync::{
+        Arc,
+        atomic::{AtomicUsize, Ordering},
+    };
+
+    for schedule in [false, true] {
+        for denial in ["revoked", "demoted", "mfa"] {
+            let step = Arc::new(AtomicUsize::new(0));
+            let mut auth = MockAuthService::new()
+                .with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())));
+            let checked = Arc::clone(&step);
+            auth.expect_authenticate_in_transaction()
+                .once()
+                .return_once(move |_, token| {
+                    assert_eq!(token.as_str(), "token");
+                    assert_eq!(checked.load(Ordering::SeqCst), 2);
+                    let result = if denial == "revoked" {
+                        Err(AuthenticateError::InvalidToken)
+                    } else {
+                        Ok(academy_auth_contracts::Authentication {
+                            user_id: ADMIN.user.id,
+                            session_id: ADMIN_1.id,
+                            refresh_token_hash: (*academy_demo::SHA256HASH1).into(),
+                            admin: denial != "demoted",
+                            email_verified: true,
+                            mfa_verified: denial != "mfa",
+                        })
+                    };
+                    Box::pin(async move { result })
+                });
+            let mut repo = MockContractRepository::new();
+            let request = Arc::clone(&step);
+            repo.expect_lock_request().once().return_once(move |_, id| {
+                assert_eq!(id, make_declaration().id);
+                request.store(1, Ordering::SeqCst);
+                Box::pin(async { Ok(()) })
+            });
+            let accounts = Arc::clone(&step);
+            repo.expect_lock_session_processing().once().return_once(
+                move |_, id, actor, target| {
+                    assert_eq!(accounts.load(Ordering::SeqCst), 1);
+                    assert_eq!(id, make_declaration().id);
+                    assert_eq!(actor, ADMIN.user.id);
+                    assert_eq!(target, schedule.then_some(FOO.user.id));
+                    accounts.store(2, Ordering::SeqCst);
+                    Box::pin(async { Ok(()) })
+                },
+            );
+            repo.expect_lock_processing().never();
+            repo.expect_set_processed().never();
+            repo.expect_schedule_cancellation().never();
+            let sut = Sut {
+                auth,
+                db: MockDatabase::build(false),
+                contract_repo: repo,
+                ..Sut::default()
+            };
+            let mut update = make_update();
+            if schedule {
+                update.action = ContractProcessingAction::SchedulePremiumCancellation;
+                update.verified_user_id = Some(FOO.user.id);
+            }
+            let error = sut
+                .set_declaration_processed(&"token".into(), make_declaration().id, update)
+                .await
+                .unwrap_err();
+            match denial {
+                "revoked" => assert_matches!(
+                    error,
+                    ContractSetProcessedError::Auth(AuthError::Authenticate(
+                        AuthenticateError::InvalidToken
+                    ))
+                ),
+                "demoted" => assert_matches!(
+                    error,
+                    ContractSetProcessedError::Auth(AuthError::Authorize(AuthorizeError::Admin))
+                ),
+                _ => assert_matches!(
+                    error,
+                    ContractSetProcessedError::Auth(AuthError::Authorize(AuthorizeError::AdminMfa))
+                ),
+            }
+        }
+    }
 }

@@ -21,6 +21,8 @@ pub enum LearningPolicyError {
 
 #[derive(Debug, Error)]
 pub enum PurchaseError {
+    #[error(transparent)]
+    Auth(#[from] AuthError),
     #[error("Not found or not authorized")]
     NotFound,
     #[error("The offer changed, expired, or the required declarations are missing")]

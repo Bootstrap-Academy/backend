@@ -18,7 +18,9 @@ async fn update_profile() {
         ..FOO.clone()
     };
 
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
 
     let db = MockDatabase::build(true);
 
@@ -29,6 +31,7 @@ async fn update_profile() {
     };
 
     let user_repo = MockUserRepository::new()
+        .with_lock_account(FOO.user.id, true)
         .with_get_composite(FOO.user.id, Some(FOO.clone()))
         .with_update_profile(FOO.user.id, expected_patch, true);
 
@@ -58,11 +61,15 @@ async fn update_profile() {
 #[tokio::test]
 async fn update_profile_no_changes() {
     // Arrange
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
 
     let db = MockDatabase::build(false);
 
-    let user_repo = MockUserRepository::new().with_get_composite(FOO.user.id, Some(FOO.clone()));
+    let user_repo = MockUserRepository::new()
+        .with_lock_account(FOO.user.id, true)
+        .with_get_composite(FOO.user.id, Some(FOO.clone()));
 
     let sut = UserFeatureServiceImpl {
         auth,
@@ -98,11 +105,14 @@ async fn update_leaderboard_opt_out() {
         ..FOO.clone()
     };
 
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
 
     let db = MockDatabase::build(true);
 
     let user_repo = MockUserRepository::new()
+        .with_lock_account(FOO.user.id, true)
         .with_get_composite(FOO.user.id, Some(FOO.clone()))
         .with_update_profile(
             FOO.user.id,

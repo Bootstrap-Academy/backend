@@ -16,12 +16,15 @@ use crate::{UserFeatureServiceImpl, tests::Sut};
 async fn direct_admin_enable_and_disable_require_a_reasoned_case() {
     for (enabled, user_composite) in [(false, &*FOO), (true, &*BAR)] {
         // Arrange
-        let auth =
-            MockAuthService::new().with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())));
+        let auth = MockAuthService::new()
+            .with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())))
+            .with_authenticate_in_transaction(Some((ADMIN.user.clone(), ADMIN_1.clone())));
 
         let db = MockDatabase::build(false);
 
         let user_repo = MockUserRepository::new()
+            .with_lock_account(ADMIN.user.id, true)
+            .with_lock_account(user_composite.user.id, true)
             .with_get_composite(user_composite.user.id, Some(user_composite.clone()));
 
         let sut = UserFeatureServiceImpl {
@@ -54,13 +57,15 @@ async fn direct_admin_enable_and_disable_require_a_reasoned_case() {
 #[tokio::test]
 async fn disable_self() {
     // Arrange
-    let auth =
-        MockAuthService::new().with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())))
+        .with_authenticate_in_transaction(Some((ADMIN.user.clone(), ADMIN_1.clone())));
 
     let db = MockDatabase::build(false);
 
-    let user_repo =
-        MockUserRepository::new().with_get_composite(ADMIN.user.id, Some(ADMIN.clone()));
+    let user_repo = MockUserRepository::new()
+        .with_lock_account(ADMIN.user.id, true)
+        .with_get_composite(ADMIN.user.id, Some(ADMIN.clone()));
 
     let sut = UserFeatureServiceImpl {
         auth,

@@ -184,6 +184,25 @@ where
 
         let mut txn = self.db.begin_transaction().await?;
 
+        if auth.user_id != user_id
+            && !academy_persistence_contracts::user::lock_accounts(
+                &self.user_repo,
+                &mut txn,
+                auth.user_id,
+                user_id,
+            )
+            .await?
+        {
+            return Err(SessionImpersonateError::NotFound);
+        }
+
+        let auth = self
+            .auth
+            .authenticate_in_transaction(&mut txn, token)
+            .await
+            .map_auth_err()?;
+        auth.ensure_admin().map_auth_err()?;
+
         let user_composite = self
             .user_repo
             .get_composite(&mut txn, user_id)
@@ -268,6 +287,25 @@ where
 
         let mut txn = self.db.begin_transaction().await?;
 
+        if auth.user_id != user_id
+            && !academy_persistence_contracts::user::lock_accounts(
+                &self.user_repo,
+                &mut txn,
+                auth.user_id,
+                user_id,
+            )
+            .await?
+        {
+            return Err(SessionDeleteError::NotFound);
+        }
+
+        let auth = self
+            .auth
+            .authenticate_in_transaction(&mut txn, token)
+            .await
+            .map_auth_err()?;
+        auth.ensure_self_or_admin(user_id).map_auth_err()?;
+
         let session = self
             .session_repo
             .get(&mut txn, session_id)
@@ -291,9 +329,15 @@ where
         &self,
         token: &AccessToken,
     ) -> Result<(), SessionDeleteCurrentError> {
-        let auth = self.auth.authenticate(token).await.map_auth_err()?;
+        self.auth.authenticate(token).await.map_auth_err()?;
 
         let mut txn = self.db.begin_transaction().await?;
+
+        let auth = self
+            .auth
+            .authenticate_in_transaction(&mut txn, token)
+            .await
+            .map_auth_err()?;
 
         self.session
             .delete(&mut txn, auth.session_id)
@@ -316,6 +360,27 @@ where
         auth.ensure_self_or_admin(user_id).map_auth_err()?;
 
         let mut txn = self.db.begin_transaction().await?;
+
+        if auth.user_id != user_id
+            && !academy_persistence_contracts::user::lock_accounts(
+                &self.user_repo,
+                &mut txn,
+                auth.user_id,
+                user_id,
+            )
+            .await?
+        {
+            return Err(SessionDeleteByUserError::Other(anyhow::anyhow!(
+                "Account unavailable"
+            )));
+        }
+
+        let auth = self
+            .auth
+            .authenticate_in_transaction(&mut txn, token)
+            .await
+            .map_auth_err()?;
+        auth.ensure_self_or_admin(user_id).map_auth_err()?;
 
         self.session
             .delete_by_user(&mut txn, user_id)

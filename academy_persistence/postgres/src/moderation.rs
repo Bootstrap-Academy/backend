@@ -32,6 +32,71 @@ async fn purchase_owner(
 }
 
 impl ModerationRepository<PostgresTransaction> for PostgresModerationRepository {
+    async fn lock_session_write(
+        &self,
+        txn: &mut PostgresTransaction,
+        actor: UserId,
+        commercial: bool,
+        operation: &str,
+        body: &Value,
+    ) -> anyhow::Result<()> {
+        let id = |field: &str| {
+            body[field]
+                .as_str()
+                .and_then(|value| uuid::Uuid::parse_str(value).ok())
+        };
+        // Match the SQL dispatchers' command namespaces and ordering. Taking
+        // an account first could deadlock with a capability or recovery writer
+        // that already holds this command fence and is waiting for the account.
+        let command = if commercial {
+            id("command_id").map(|id| format!("commercial-command:{id}"))
+        } else {
+            match operation {
+                "decide" => {
+                    id("request_key").map(|id| format!("moderation-request:{}:{id}", *actor))
+                }
+                "complain" => id("id").map(|id| format!("complaint:{id}")),
+                "escalate" => id("id").map(|id| format!("escalation:{id}")),
+                "retention" => id("id").map(|id| format!("retention:{id}")),
+                _ => None,
+            }
+        };
+        if let Some(command) = command {
+            txn.txn()
+                .query_one(
+                    "SELECT pg_advisory_xact_lock(hashtextextended($1,0))",
+                    &[&command],
+                )
+                .await?;
+        }
+        // Discover immutable ownership without holding a case/resource lock.
+        // Erased target accounts are allowed: retained claims still exist, but
+        // the ordinary session actor must pass the following durable recheck.
+        let target = if !commercial && operation == "open" {
+            id("target_id")
+        } else if let Some(case) = id("case_id") {
+            let query = if commercial {
+                "SELECT subject FROM commercial_cases WHERE id=$1"
+            } else {
+                "SELECT target_id FROM moderation_cases WHERE id=$1 AND target_kind='account'"
+            };
+            txn.txn()
+                .query_opt(query, &[&case])
+                .await?
+                .map(|row| row.get::<_, uuid::Uuid>(0))
+        } else {
+            None
+        };
+        let mut accounts = vec![*actor];
+        accounts.extend(target);
+        txn.txn()
+            .query(
+                "SELECT id FROM users WHERE id=ANY($1) ORDER BY id FOR UPDATE",
+                &[&accounts],
+            )
+            .await?;
+        Ok(())
+    }
     async fn commercial_case_subject(
         &self,
         txn: &mut PostgresTransaction,

@@ -22,12 +22,16 @@ async fn ok() {
         refresh_token: "refresh token".into(),
     };
 
-    let auth =
-        MockAuthService::new().with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())))
+        .with_authenticate_in_transaction(Some((ADMIN.user.clone(), ADMIN_1.clone())));
 
     let db = MockDatabase::build(true);
 
-    let user_repo = MockUserRepository::new().with_get_composite(FOO.user.id, Some(FOO.clone()));
+    let user_repo = MockUserRepository::new()
+        .with_lock_account(ADMIN.user.id, true)
+        .with_lock_account(FOO.user.id, true)
+        .with_get_composite(FOO.user.id, Some(FOO.clone()));
 
     let session =
         MockSessionService::new().with_create(FOO.clone(), None, false, false, expected.clone());
@@ -94,12 +98,16 @@ async fn unauthorized() {
 #[tokio::test]
 async fn user_not_found() {
     // Arrange
-    let auth =
-        MockAuthService::new().with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())))
+        .with_authenticate_in_transaction(Some((ADMIN.user.clone(), ADMIN_1.clone())));
 
     let db = MockDatabase::build(false);
 
-    let user_repo = MockUserRepository::new().with_get_composite(FOO.user.id, None);
+    let user_repo = MockUserRepository::new()
+        .with_lock_account(ADMIN.user.id, true)
+        .with_lock_account(FOO.user.id, true)
+        .with_get_composite(FOO.user.id, None);
 
     let sut = SessionFeatureServiceImpl {
         auth,

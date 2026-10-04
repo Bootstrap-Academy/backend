@@ -21,7 +21,9 @@ use crate::{MfaFeatureServiceImpl, tests::Sut};
 #[tokio::test]
 async fn ok() {
     // Arrange
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
 
     let db = MockDatabase::build(true);
 
@@ -97,12 +99,16 @@ async fn unauthorized() {
 #[tokio::test]
 async fn user_not_found() {
     // Arrange
-    let auth =
-        MockAuthService::new().with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())))
+        .with_authenticate_in_transaction(Some((ADMIN.user.clone(), ADMIN_1.clone())));
 
     let db = MockDatabase::build(false);
 
-    let user_repo = MockUserRepository::new().with_exists(FOO.user.id, false);
+    let user_repo = MockUserRepository::new()
+        .with_lock_account(ADMIN.user.id, true)
+        .with_lock_account(FOO.user.id, true)
+        .with_exists(FOO.user.id, false);
 
     let sut = MfaFeatureServiceImpl {
         auth,
@@ -121,7 +127,9 @@ async fn user_not_found() {
 #[tokio::test]
 async fn not_initialized() {
     // Arrange
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
 
     let db = MockDatabase::build(false);
 
@@ -147,7 +155,9 @@ async fn not_initialized() {
 #[tokio::test]
 async fn not_enabled() {
     // Arrange
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
 
     let db = MockDatabase::build(false);
 

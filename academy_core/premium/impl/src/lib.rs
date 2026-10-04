@@ -143,6 +143,25 @@ where
 
         let mut txn = self.db.begin_transaction().await?;
 
+        if auth.user_id != user_id
+            && !academy_persistence_contracts::user::lock_accounts(
+                &self.user_repo,
+                &mut txn,
+                auth.user_id,
+                user_id,
+            )
+            .await?
+        {
+            return Err(PremiumGetStatusError::NotFound);
+        }
+
+        let auth = self
+            .auth
+            .authenticate_in_transaction(&mut txn, token)
+            .await
+            .map_auth_err()?;
+        auth.ensure_self_or_admin(user_id).map_auth_err()?;
+
         if !self.user_repo.exists(&mut txn, user_id).await? {
             return Err(PremiumGetStatusError::NotFound);
         }
@@ -190,11 +209,22 @@ where
             .ok_or(PremiumPurchaseError::WithdrawalConsentMissing)?
             .clone();
 
-        let auth = self.auth.authenticate(token).await.map_auth_err()?;
-        let user_id = auth.user_id;
-        auth.ensure_email_verified().map_auth_err()?;
+        self.auth
+            .authenticate(token)
+            .await
+            .map_auth_err()?
+            .ensure_email_verified()
+            .map_auth_err()?;
 
         let mut txn = self.db.begin_transaction().await?;
+
+        let auth = self
+            .auth
+            .authenticate_in_transaction(&mut txn, token)
+            .await
+            .map_auth_err()?;
+        let user_id = auth.user_id;
+        auth.ensure_email_verified().map_auth_err()?;
 
         let premium = self
             .premium_purchase
@@ -256,6 +286,7 @@ where
             return self
                 .renewal
                 .enable(
+                    token,
                     user_id,
                     consent.ok_or(PremiumUpdateSubscriptionError::RenewalConsentRequired)?,
                 )
@@ -264,8 +295,16 @@ where
         // Cancellation never invokes get_active: even at expiry it must not
         // trigger a new debit before switching renewal off.
         let mut txn = self.db.begin_transaction().await?;
+
+        let auth = self
+            .auth
+            .authenticate_in_transaction(&mut txn, token)
+            .await
+            .map_auth_err()?;
+        auth.ensure_email_verified().map_auth_err()?;
+
         self.premium_repo
-            .set_subscription(&mut txn, user_id, None)
+            .set_subscription(&mut txn, auth.user_id, None)
             .await?;
         txn.commit().await?;
         Ok(())

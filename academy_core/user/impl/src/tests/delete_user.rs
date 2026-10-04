@@ -60,6 +60,7 @@ async fn ok_self() {
     // Arrange
     let auth = MockAuthService::new()
         .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())))
         // The access tokens are invalidated only after the deletion has been
         // committed, so the hashes are read while the sessions still exist.
         .with_list_refresh_token_hashes(FOO.user.id, refresh_token_hashes())
@@ -164,7 +165,9 @@ async fn unauthorized() {
 
 #[tokio::test]
 async fn not_found() {
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
     let db = deletion_database(false);
     let user_repo = MockUserRepository::new()
         .with_record_deletion_request(FOO.user.id)
@@ -193,6 +196,7 @@ async fn cache_failure_after_commit_does_not_skip_fanout_or_final_statement() {
     // Arrange
     let mut auth = MockAuthService::new()
         .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())))
         // The access tokens are invalidated only after the deletion has been
         // committed, so the hashes are read while the sessions still exist.
         .with_list_refresh_token_hashes(FOO.user.id, refresh_token_hashes());

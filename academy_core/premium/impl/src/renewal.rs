@@ -1,5 +1,6 @@
 #[cfg(test)]
 use academy_assets::email::{AGB_2026_09_R4_PDF, WIDERRUFSBELEHRUNG_2026_09_R1_PDF};
+use academy_auth_contracts::{AuthResultExt, AuthService};
 use academy_core_premium_contracts::{
     PremiumUpdateSubscriptionError,
     renewal::{PremiumRenewalService, RenewalDocumentKind},
@@ -9,6 +10,7 @@ use academy_email_contracts::{
     AttachmentContentType, ContentType, Email, EmailAttachment, EmailService,
 };
 use academy_models::{
+    auth::AccessToken,
     learning_policy::{LearningMode, LearningPolicyConfig},
     premium::{PremiumRenewalAgreement, PremiumRenewalConsent, PremiumRenewalOffer},
     user::UserId,
@@ -26,8 +28,9 @@ pub const RENEWAL_TEXT_VERSION: &str = "premium-renewal-2026-09-v3";
 
 #[derive(Debug, Clone, Build)]
 #[cfg_attr(test, derive(Default))]
-pub struct PremiumRenewalServiceImpl<Db, Time, UserRepo, PremiumRepo, EmailS> {
+pub struct PremiumRenewalServiceImpl<Db, Auth, Time, UserRepo, PremiumRepo, EmailS> {
     db: Db,
+    auth: Auth,
     time: Time,
     user_repo: UserRepo,
     premium_repo: PremiumRepo,
@@ -36,10 +39,11 @@ pub struct PremiumRenewalServiceImpl<Db, Time, UserRepo, PremiumRepo, EmailS> {
     learning_policy_config: LearningPolicyConfig,
 }
 
-impl<Db, Time, UserRepo, PremiumRepo, EmailS> PremiumRenewalService
-    for PremiumRenewalServiceImpl<Db, Time, UserRepo, PremiumRepo, EmailS>
+impl<Db, Auth, Time, UserRepo, PremiumRepo, EmailS> PremiumRenewalService
+    for PremiumRenewalServiceImpl<Db, Auth, Time, UserRepo, PremiumRepo, EmailS>
 where
     Db: Database,
+    Auth: AuthService<Db::Transaction>,
     Time: TimeService,
     UserRepo: UserRepository<Db::Transaction>,
     PremiumRepo: PremiumRepository<Db::Transaction>,
@@ -79,6 +83,7 @@ where
 
     async fn enable(
         &self,
+        token: &AccessToken,
         user_id: UserId,
         consent: PremiumRenewalConsent,
     ) -> Result<(), PremiumUpdateSubscriptionError> {
@@ -92,6 +97,15 @@ where
             return Err(PremiumUpdateSubscriptionError::RenewalConsentRequired);
         }
         let mut txn = self.db.begin_transaction().await?;
+        let auth = self
+            .auth
+            .authenticate_in_transaction(&mut txn, token)
+            .await
+            .map_auth_err()?;
+        if auth.user_id != user_id {
+            return Err(PremiumUpdateSubscriptionError::RenewalConsentRequired);
+        }
+        auth.ensure_email_verified().map_auth_err()?;
         // This read takes the per-user lock: cancellation, purchase, renewal and
         // consent creation are serialized. It never triggers a renewal charge.
         let paid = self
@@ -223,8 +237,8 @@ where
     }
 }
 
-impl<Db, Time, UserRepo, PremiumRepo, EmailS>
-    PremiumRenewalServiceImpl<Db, Time, UserRepo, PremiumRepo, EmailS>
+impl<Db, Auth, Time, UserRepo, PremiumRepo, EmailS>
+    PremiumRenewalServiceImpl<Db, Auth, Time, UserRepo, PremiumRepo, EmailS>
 where
     Db: Database,
     UserRepo: UserRepository<Db::Transaction>,
@@ -315,7 +329,8 @@ fn build_offer(price: u64, documents: &PurchaseDocuments, daily: bool) -> Premiu
 #[cfg(test)]
 mod tests {
     use super::*;
-    use academy_demo::{UUID1, user::FOO};
+    use academy_auth_contracts::MockAuthService;
+    use academy_demo::{UUID1, session::FOO_1, user::FOO};
     use academy_email_contracts::MockEmailService;
     use academy_models::premium::Premium;
     use academy_persistence_contracts::{
@@ -326,6 +341,7 @@ mod tests {
 
     type Sut = PremiumRenewalServiceImpl<
         MockDatabase,
+        academy_auth_contracts::MockAuthService<MockTransaction>,
         MockTimeService,
         MockUserRepository<MockTransaction>,
         MockPremiumRepository<MockTransaction>,
@@ -368,7 +384,7 @@ mod tests {
             },
         ] {
             assert!(matches!(
-                sut.enable(FOO.user.id, c).await,
+                sut.enable(&"token".into(), FOO.user.id, c).await,
                 Err(PremiumUpdateSubscriptionError::RenewalConsentRequired)
             ));
         }
@@ -414,12 +430,16 @@ mod tests {
                 .return_once(|_| Box::pin(async { Ok(vec![]) }));
             let sut = Sut {
                 db,
+                auth: MockAuthService::new()
+                    .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone()))),
                 time: MockTimeService::new().with_now(paid().since),
                 user_repo: MockUserRepository::new().with_get_composite(FOO.user.id, Some(user)),
                 premium_repo: repo,
                 ..Sut::default()
             };
-            sut.enable(FOO.user.id, consent(&sut)).await.unwrap();
+            sut.enable(&"token".into(), FOO.user.id, consent(&sut))
+                .await
+                .unwrap();
         }
     }
 
@@ -448,10 +468,14 @@ mod tests {
             });
         let sut = Sut {
             db: MockDatabase::build(true),
+            auth: MockAuthService::new()
+                .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone()))),
             premium_repo: repo,
             ..Sut::default()
         };
-        sut.enable(FOO.user.id, consent(&sut)).await.unwrap();
+        sut.enable(&"token".into(), FOO.user.id, consent(&sut))
+            .await
+            .unwrap();
     }
 
     #[tokio::test]
@@ -459,7 +483,8 @@ mod tests {
         let mut sut = Sut::default();
         sut.config.monthly_price = 0;
         assert!(matches!(
-            sut.enable(FOO.user.id, consent(&sut)).await,
+            sut.enable(&"token".into(), FOO.user.id, consent(&sut))
+                .await,
             Err(PremiumUpdateSubscriptionError::RenewalConsentRequired)
         ));
         // All persistence mocks have no allowed calls: no agreement, debit or
@@ -475,14 +500,64 @@ mod tests {
             .return_once(|_, _| Box::pin(async { Ok(None) }));
         let sut = Sut {
             db: MockDatabase::build(false),
+            auth: MockAuthService::new()
+                .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone()))),
             time: MockTimeService::new().with_now(paid().until),
             premium_repo: repo,
             ..Sut::default()
         };
         assert!(matches!(
-            sut.enable(FOO.user.id, consent(&sut)).await,
+            sut.enable(&"token".into(), FOO.user.id, consent(&sut))
+                .await,
             Err(PremiumUpdateSubscriptionError::NoPremium)
         ));
+    }
+
+    #[tokio::test]
+    async fn enable_requires_current_owner_session_and_verified_email_before_any_contract_write() {
+        use academy_models::auth::{AuthError, AuthenticateError, AuthorizeError};
+
+        for denial in ["revoked", "different-owner", "email"] {
+            let mut current_user = FOO.user.clone();
+            let mut current_session = FOO_1.clone();
+            if denial == "different-owner" {
+                current_user = academy_demo::user::BAR.user.clone();
+                current_session = academy_demo::session::BAR_1.clone();
+            } else if denial == "email" {
+                current_user.email_verified = false;
+            }
+            let sut = Sut {
+                db: MockDatabase::build(false),
+                auth: MockAuthService::new().with_authenticate_in_transaction(
+                    (denial != "revoked").then_some((current_user, current_session)),
+                ),
+                ..Sut::default()
+            };
+            let result = sut
+                .enable(&"token".into(), FOO.user.id, consent(&sut))
+                .await;
+            match denial {
+                "revoked" => assert!(matches!(
+                    result,
+                    Err(PremiumUpdateSubscriptionError::Auth(
+                        AuthError::Authenticate(AuthenticateError::InvalidToken)
+                    ))
+                )),
+                "different-owner" => assert!(matches!(
+                    result,
+                    Err(PremiumUpdateSubscriptionError::RenewalConsentRequired)
+                )),
+                "email" => assert!(matches!(
+                    result,
+                    Err(PremiumUpdateSubscriptionError::Auth(AuthError::Authorize(
+                        AuthorizeError::EmailVerified
+                    )))
+                )),
+                _ => unreachable!(),
+            }
+            // Premium, renewal agreements, user data and confirmation work have
+            // no allowed calls; no accepted contract can be created or committed.
+        }
     }
 
     #[tokio::test]
@@ -567,7 +642,7 @@ mod tests {
             let mut old_consent = consent(&sut);
             old_consent.offer_id = old_id;
             assert!(matches!(
-                sut.enable(FOO.user.id, old_consent).await,
+                sut.enable(&"token".into(), FOO.user.id, old_consent).await,
                 Err(PremiumUpdateSubscriptionError::RenewalConsentRequired)
             ));
             // All mocks have zero allowed calls: this rejection neither loads nor
@@ -660,6 +735,8 @@ mod tests {
             .return_once(|_| Box::pin(async { Ok(vec![]) }));
         let sut = Sut {
             db,
+            auth: MockAuthService::new()
+                .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone()))),
             time: MockTimeService::new().with_now(paid().since),
             user_repo: MockUserRepository::new().with_get_composite(FOO.user.id, Some(user)),
             premium_repo: repo,
@@ -671,6 +748,7 @@ mod tests {
             ..Sut::default()
         };
         sut.enable(
+            &"token".into(),
             FOO.user.id,
             PremiumRenewalConsent {
                 offer_id: offer.id,
@@ -711,6 +789,8 @@ mod tests {
                 });
             let mut sut = Sut {
                 db: MockDatabase::build(existing),
+                auth: MockAuthService::new()
+                    .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone()))),
                 premium_repo: repo,
                 learning_policy_config: policy.clone(),
                 config: PremiumFeatureConfig {
@@ -726,6 +806,7 @@ mod tests {
             }
             let result = sut
                 .enable(
+                    &"token".into(),
                     FOO.user.id,
                     PremiumRenewalConsent {
                         offer_id: original_offer.id,

@@ -1,6 +1,6 @@
 #[cfg(test)]
 use academy_assets::email::{AGB_2026_09_R4_PDF, WIDERRUFSBELEHRUNG_2026_09_R1_PDF};
-use academy_auth_contracts::{AuthService, internal::AuthInternalService};
+use academy_auth_contracts::{AuthResultExt, AuthService, internal::AuthInternalService};
 use academy_core_heart_contracts::heart::HeartService;
 use academy_core_heart_impl::HeartFeatureConfig;
 pub use academy_core_premium_impl::documents::PurchaseDocuments;
@@ -127,11 +127,7 @@ where
     }
 
     async fn principal(&self, token: &AccessToken) -> Result<UserId, PurchaseError> {
-        let auth = self
-            .auth
-            .authenticate(token)
-            .await
-            .map_err(|_| PurchaseError::NotFound)?;
+        let auth = self.auth.authenticate(token).await.map_auth_err()?;
         Ok(auth.user_id)
     }
     fn internal(&self, token: &InternalToken) -> Result<(), PurchaseError> {
@@ -216,6 +212,7 @@ where
         user: UserId,
         source: &str,
         mut product: PurchaseProduct,
+        token: Option<&AccessToken>,
     ) -> Result<PurchaseStatus, PurchaseError> {
         if product.title.is_empty()
             || product.title.len() > 512
@@ -233,6 +230,12 @@ where
         let mut txn = self.db.begin_transaction().await?;
         if !self.purchase_repo.lock_user(&mut txn, *user).await? {
             return Err(PurchaseError::NotFound);
+        }
+        if let Some(token) = token {
+            self.auth
+                .authenticate_in_transaction(&mut txn, token)
+                .await
+                .map_auth_err()?;
         }
         if let Some(existing) = self.unresolved(&mut txn, user, source, &product).await? {
             txn.commit().await?;
@@ -381,9 +384,16 @@ where
         user: UserId,
         source: &str,
         a: PurchaseAcceptance,
+        token: Option<&AccessToken>,
     ) -> Result<PurchaseStatus, PurchaseError> {
         let mut txn = self.db.begin_transaction().await?;
         let exists = self.purchase_repo.lock_user(&mut txn, *user).await?;
+        if let Some(token) = token {
+            self.auth
+                .authenticate_in_transaction(&mut txn, token)
+                .await
+                .map_auth_err()?;
+        }
         let record = self
             .purchase_repo
             .get(&mut txn, a.order_id)
@@ -827,7 +837,7 @@ where
         if product.kind != "coins" {
             return Err(PurchaseError::Unavailable);
         }
-        self.issue(self.principal(token).await?, "paypal", product)
+        self.issue(self.principal(token).await?, "paypal", product, Some(token))
             .await
     }
     async fn cash_accept(
@@ -835,8 +845,13 @@ where
         token: &AccessToken,
         acceptance: PurchaseAcceptance,
     ) -> Result<PurchaseStatus, PurchaseError> {
-        self.accept_for(self.principal(token).await?, "paypal", acceptance)
-            .await
+        self.accept_for(
+            self.principal(token).await?,
+            "paypal",
+            acceptance,
+            Some(token),
+        )
+        .await
     }
     async fn cash_captured(
         &self,
@@ -1014,14 +1029,14 @@ where
         user: UserId,
         kind: &str,
     ) -> Result<PurchaseStatus, PurchaseError> {
-        self.issue(user, "backend", self.builtin(kind)?).await
+        self.issue(user, "backend", self.builtin(kind)?, None).await
     }
     async fn retained_accept(
         &self,
         user: UserId,
         acceptance: PurchaseAcceptance,
     ) -> Result<PurchaseStatus, PurchaseError> {
-        self.accept_for(user, "backend", acceptance).await
+        self.accept_for(user, "backend", acceptance, None).await
     }
     async fn retained_get(&self, user: UserId, id: Uuid) -> Result<PurchaseStatus, PurchaseError> {
         Ok(self.owned(user, id).await?.status)
@@ -1086,8 +1101,13 @@ where
         token: &AccessToken,
         kind: &str,
     ) -> Result<PurchaseStatus, PurchaseError> {
-        self.issue(self.principal(token).await?, "backend", self.builtin(kind)?)
-            .await
+        self.issue(
+            self.principal(token).await?,
+            "backend",
+            self.builtin(kind)?,
+            Some(token),
+        )
+        .await
     }
     async fn external_offer(
         &self,
@@ -1103,15 +1123,20 @@ where
         ) {
             return Err(PurchaseError::Unavailable);
         }
-        self.issue(user, source, product).await
+        self.issue(user, source, product, None).await
     }
     async fn accept(
         &self,
         token: &AccessToken,
         acceptance: PurchaseAcceptance,
     ) -> Result<PurchaseStatus, PurchaseError> {
-        self.accept_for(self.principal(token).await?, "backend", acceptance)
-            .await
+        self.accept_for(
+            self.principal(token).await?,
+            "backend",
+            acceptance,
+            Some(token),
+        )
+        .await
     }
     async fn external_accept(
         &self,
@@ -1124,7 +1149,7 @@ where
         if !matches!(source, "skills" | "events") {
             return Err(PurchaseError::Unavailable);
         }
-        self.accept_for(user, source, acceptance).await
+        self.accept_for(user, source, acceptance, None).await
     }
     async fn get(&self, token: &AccessToken, id: Uuid) -> Result<PurchaseStatus, PurchaseError> {
         Ok(self.owned(self.principal(token).await?, id).await?.status)

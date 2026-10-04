@@ -294,7 +294,8 @@ pub type PremiumFeature = PremiumFeatureServiceImpl<
     WithdrawalConsent,
     PremiumRenewal,
 >;
-pub type PremiumRenewal = PremiumRenewalServiceImpl<Database, Time, UserRepo, PremiumRepo, Email>;
+pub type PremiumRenewal =
+    PremiumRenewalServiceImpl<Database, Auth, Time, UserRepo, PremiumRepo, Email>;
 pub type PremiumPlan = PremiumPlanServiceImpl;
 pub type Premium = PremiumServiceImpl<Time, PremiumPurchase, PremiumRepo>;
 pub type PremiumPurchase = PremiumPurchaseServiceImpl<Id, Time, Coin, PremiumPlan, PremiumRepo>;

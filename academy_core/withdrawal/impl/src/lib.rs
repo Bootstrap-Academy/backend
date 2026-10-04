@@ -45,9 +45,15 @@ where
             .ok_or(WithdrawalRecordConsentError::ConsentMissing)?
             .clone();
 
-        let auth = self.auth.authenticate(token).await.map_auth_err()?;
+        self.auth.authenticate(token).await.map_auth_err()?;
 
         let mut txn = self.db.begin_transaction().await?;
+
+        let auth = self
+            .auth
+            .authenticate_in_transaction(&mut txn, token)
+            .await
+            .map_auth_err()?;
 
         let consent = self
             .withdrawal_consent

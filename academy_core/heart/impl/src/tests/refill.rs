@@ -33,7 +33,9 @@ async fn ok() {
 
     let db = MockDatabase::build(true);
 
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
 
     let heart = MockHeartService::new()
         .with_get(FOO.user.id, expected.with(|h| h.hearts = 4))
@@ -83,7 +85,9 @@ async fn ok_already_full() {
 
     let db = MockDatabase::build(false);
 
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
 
     let heart = MockHeartService::new().with_get(FOO.user.id, expected);
 
@@ -124,6 +128,26 @@ async fn unauthenticated() {
 }
 
 #[tokio::test]
+async fn revoked_session_after_initial_authentication_never_debits_or_refills() {
+    let sut = Sut {
+        db: MockDatabase::build(false),
+        auth: MockAuthService::new()
+            .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+            .with_authenticate_in_transaction(None),
+        ..Sut::default()
+    };
+
+    assert_matches!(
+        sut.refill(&"token".into(), declaration()).await,
+        Err(HeartRefillError::Auth(AuthError::Authenticate(
+            AuthenticateError::InvalidToken
+        )))
+    );
+    // No calls are allowed to hearts, coins or withdrawal consent, and the
+    // transaction cannot commit the obsolete authority.
+}
+
+#[tokio::test]
 async fn not_enough_coins() {
     // Arrange
     let expected = Hearts {
@@ -133,7 +157,9 @@ async fn not_enough_coins() {
 
     let db = MockDatabase::build(false);
 
-    let auth = MockAuthService::new().with_authenticate(Some((FOO.user.clone(), FOO_1.clone())));
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
 
     let heart = MockHeartService::new().with_get(FOO.user.id, expected);
 

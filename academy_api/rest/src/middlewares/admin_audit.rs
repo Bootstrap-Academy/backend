@@ -43,6 +43,7 @@ pub fn add<S: Clone + Send + Sync + 'static>(
 /// email address and the free text of every cancellation and withdrawal
 /// declaration, so both are of the same reach.
 const AUDITED_READ_ROUTES: &[&str] = &[
+    crate::routes::publication::SUPPORT_ROUTE,
     crate::routes::user::USERS_ROUTE,
     crate::routes::user::EXPORT_ROUTE,
     crate::routes::finance::DOCUMENTS_ROUTE,

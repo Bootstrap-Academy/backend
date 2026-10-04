@@ -491,10 +491,152 @@ def authority_outage_is_closed(f):
         }
 
 
+def support_admin(f):
+    admin = f.account(admin=True)
+    secret = f.request("/auth/users/me/mfa", "POST", token=f.token(admin))
+    f.request("/auth/users/me/mfa", "PUT", {"code": safety.totp(secret)}, f.token(admin))
+    admin.update(f.login(admin["name"], admin["password"], mfa_code=safety.totp(secret, offset=1)))
+    assert admin["session"]["mfa_verified"]
+    return admin
+
+
+def support_permissions_withdrawal_and_replay(f):
+    owner, ordinary, unverified_admin = f.account(), f.account(), f.account(admin=True)
+    admin = support_admin(f)
+    path = f"/auth/admin/users/{owner['id']}/publication"
+    command = {"expected_revision": 0, "request_id": str(uuid4())}
+    for token, expected in [(None, 401), (f.token(ordinary), 403), (f.token(unverified_admin), 403)]:
+        f.publication(path, token=token, expected=expected)
+        f.publication(path + "/withdraw", method="POST", body=command, token=token, expected=expected)
+    f.publication(path, token=f.auth, expected=401)
+    f.publication(path, token=f.token(admin))
+    baseline = f.counters()
+    preview, share_body = f.preview_choice(owner)
+    first = f.publication(method="PUT", body=share_body, token=f.token(owner))
+    command["expected_revision"] = first["current"]["visibility_revision"]
+    before = f.publication(ROOT + "epoch", token=f.auth)
+    for extra in [{"profile_visibility": "shared"}, {"source": "owner"}, {"preview_token": preview["preview_token"]}]:
+        f.publication(path + "/withdraw", method="POST", body={**command, **extra}, token=f.token(admin), expected=422)
+    f.publication(path, method="PUT", body=share_body, token=f.token(admin), expected=405)
+    f.publication(
+        path + "/withdraw", method="POST", body={**command, "expected_revision": 99}, token=f.token(admin), expected=409
+    )
+    withdrawn = f.publication(path + "/withdraw", method="POST", body=command, token=f.token(admin))
+    assert withdrawn["current"]["profile_visibility"] == "private"
+    assert withdrawn["receipt"]["source"] == "support"
+    assert withdrawn["receipt"]["profile_visibility"] == "private"
+    assert withdrawn["receipt"]["scope_version"] is None
+    assert f.publication(ROOT + "epoch", token=f.auth)["publication_epoch"] != before["publication_epoch"]
+    assert owner["id"] not in [p["user_id"] for p in f.publication(ROOT + "snapshot", token=f.auth)["participants"]]
+    replay = f.publication(path + "/withdraw", method="POST", body=command, token=f.token(admin))
+    assert replay["replayed"] and replay["receipt"] == withdrawn["receipt"]
+    assert (
+        f.publication(method="PUT", body=share_body, token=f.token(owner))["current"]["profile_visibility"] == "private"
+    )
+    _, new_share = f.preview_choice(owner)
+    reshared = f.publication(method="PUT", body=new_share, token=f.token(owner))
+    delayed = f.publication(path + "/withdraw", method="POST", body=command, token=f.token(admin))
+    assert delayed["replayed"] and delayed["current"] == reshared["current"]
+    assert delayed["receipt"] == withdrawn["receipt"]
+    # Deactivation and an unverified email do not remove support's ability to withdraw.
+    case_id = str(uuid4())
+    f.sql(
+        f"UPDATE users SET email_verified=false WHERE id='{owner['id']}';"
+        f"INSERT INTO moderation_targets(kind,id,subject) VALUES('account','{owner['id']}','{owner['id']}');"
+        f"INSERT INTO moderation_cases(id,target_kind,target_id,subject,source,private_evidence) VALUES('{case_id}','account','{owner['id']}','{owner['id']}','own_review','{{}}');"
+        f"INSERT INTO moderation_holds(case_id,target_kind,target_id,effect,starts_at) VALUES('{case_id}','account','{owner['id']}','restrict',clock_timestamp())"
+    )
+    current = f.publication(path, token=f.token(admin))
+    f.publication(
+        path + "/withdraw",
+        method="POST",
+        body={"expected_revision": current["visibility_revision"], "request_id": str(uuid4())},
+        token=f.token(admin),
+    )
+    assert f.counters() == baseline
+    f.publication(f"/auth/admin/users/{uuid4()}/publication", token=f.token(admin), expected=404)
+    # Disabled recovery never opens the old/public paths or accepts support writes.
+    f.publication_enabled = False
+    f.restart()
+    f.publication(path, token=f.token(admin), expected=503)
+    f.publication(path + "/withdraw", method="POST", body=command, token=f.token(admin), expected=503)
+    f.publication_enabled = True
+    f.restart()
+    audit = f.sql(f"SELECT count(*) FROM admin_audit_log WHERE path='{path}' AND method='GET' AND status=200")
+    assert int(audit) >= 1
+
+
+def support_queued_requests_recheck_current_authority(f):
+    owner = f.account()
+    _, share = f.preview_choice(owner)
+    state = f.publication(method="PUT", body=share, token=f.token(owner))["current"]
+    path = f"/auth/admin/users/{owner['id']}/publication/withdraw"
+    before = f.sql(f"SELECT row_to_json(p)::text FROM user_profiles p WHERE user_id='{owner['id']}'")
+    for restriction, expected in [("admin", 403), ("mfa", 403), ("session", 401)]:
+        admin = support_admin(f)
+        # Hold the same account lock as the request, then change authority before releasing it.
+        with subprocess.Popen(
+            [
+                str(f.args.pg_bin / "psql"),
+                "-XqAt",
+                "-v",
+                "ON_ERROR_STOP=1",
+                "-h",
+                "127.0.0.1",
+                "-p",
+                str(f.ports["pg"]),
+                "-U",
+                "safety",
+                "-d",
+                f.database,
+            ],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        ) as lock:
+            try:
+                lock.stdin.write(f"BEGIN; SELECT 1 FROM users WHERE id='{admin['id']}' FOR UPDATE;\n")
+                lock.stdin.flush()
+                assert lock.stdout.readline().strip() == "1"
+                with ThreadPoolExecutor(max_workers=1) as executor:
+                    pending = executor.submit(
+                        f.publication,
+                        path,
+                        method="POST",
+                        body={"expected_revision": state["visibility_revision"], "request_id": str(uuid4())},
+                        token=f.token(admin),
+                        expected=expected,
+                    )
+                    end = time.monotonic() + 10
+                    while (
+                        f.sql(
+                            "SELECT count(*) FROM pg_stat_activity WHERE wait_event_type='Lock' AND query LIKE '%SELECT id FROM users%'"
+                        )
+                        == "0"
+                    ):
+                        assert time.monotonic() < end, "support request did not reach the real account lock"
+                        time.sleep(0.03)
+                    statement = {
+                        "admin": f"UPDATE users SET admin=false WHERE id='{admin['id']}';",
+                        "mfa": f"UPDATE sessions SET mfa_verified=false WHERE user_id='{admin['id']}';",
+                        "session": f"DELETE FROM sessions WHERE user_id='{admin['id']}';",
+                    }[restriction]
+                    lock.stdin.write(statement + " COMMIT;\n")
+                    lock.stdin.flush()
+                    pending.result(timeout=20)
+            finally:
+                lock.stdin.close()
+                lock.wait(timeout=10)
+        assert f.sql(f"SELECT row_to_json(p)::text FROM user_profiles p WHERE user_id='{owner['id']}'") == before
+
+
 CASES = [
     disabled_contract_and_service_auth,
     owner_preview_and_exact_projection,
     race_replay_and_legacy_clients,
+    support_permissions_withdrawal_and_replay,
+    support_queued_requests_recheck_current_authority,
     reset_preserves_consent_and_revokes_publication_authority,
     queued_publication_cannot_gain_authority_after_reset,
     current_verification_withdrawal_and_export,

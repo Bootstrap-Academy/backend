@@ -2,13 +2,11 @@ use academy::commands::{
     admin::AdminCommand, email::EmailCommand, jwt::JwtCommand, migrate::MigrateCommand,
     serve::serve, tasks::TaskCommand,
 };
+use academy::telemetry;
 use academy_utils::{academy_version, bin_name};
 use anyhow::Context;
 use clap::{CommandFactory, Parser, Subcommand};
 use clap_complete::CompleteEnv;
-use sentry::integrations::tracing::EventFilter;
-use tracing::Level;
-use tracing_subscriber::{EnvFilter, Layer, layer::SubscriberExt, util::SubscriberInitExt};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -16,7 +14,7 @@ async fn main() -> anyhow::Result<()> {
 
     let cli = Cli::parse();
 
-    init_tracing();
+    telemetry::init_tracing();
 
     let config = academy_config::load().context("Failed to load config")?;
 
@@ -25,8 +23,7 @@ async fn main() -> anyhow::Result<()> {
             sentry_config.dsn.as_str(),
             sentry::ClientOptions {
                 release: Some(academy_version().into()),
-                attach_stacktrace: true,
-                ..Default::default()
+                ..telemetry::options()
             },
         ))
     });
@@ -94,24 +91,6 @@ enum Command {
         #[arg(short, long)]
         verbose: bool,
     },
-}
-
-fn init_tracing() {
-    let fmt_layer = tracing_subscriber::fmt::layer().with_writer(std::io::stderr);
-
-    #[cfg(tracing_pretty)]
-    let fmt_layer = fmt_layer.pretty();
-
-    tracing_subscriber::registry()
-        .with(fmt_layer.with_filter(EnvFilter::from_default_env()))
-        .with(
-            sentry::integrations::tracing::layer().event_filter(|meta| match *meta.level() {
-                Level::ERROR | Level::WARN => EventFilter::Event,
-                Level::INFO | Level::DEBUG => EventFilter::Breadcrumb,
-                Level::TRACE => EventFilter::Ignore,
-            }),
-        )
-        .init();
 }
 
 #[cfg(test)]

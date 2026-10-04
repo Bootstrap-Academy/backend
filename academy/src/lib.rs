@@ -4,3 +4,4 @@ pub mod database;
 mod deletions;
 pub mod email;
 pub mod environment;
+pub mod telemetry;

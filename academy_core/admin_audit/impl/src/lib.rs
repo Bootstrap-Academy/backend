@@ -5,7 +5,9 @@ use academy_core_admin_audit_contracts::{
 };
 use academy_di::Build;
 use academy_models::{admin_audit::AdminAuditLogEntry, auth::AccessToken};
-use academy_persistence_contracts::{Database, Transaction, admin_audit::AdminAuditRepository};
+use academy_persistence_contracts::{
+    Database, Transaction, admin_audit::AdminAuditRepository, session::SessionRepository,
+};
 use academy_shared_contracts::{id::IdService, time::TimeService};
 use academy_utils::trace_instrument;
 use anyhow::Context;
@@ -15,22 +17,24 @@ mod tests;
 
 #[derive(Debug, Clone, Build)]
 #[cfg_attr(test, derive(Default))]
-pub struct AdminAuditFeatureServiceImpl<Db, Auth, Id, Time, AdminAuditRepo> {
+pub struct AdminAuditFeatureServiceImpl<Db, Auth, Id, Time, AdminAuditRepo, SessionRepo> {
     db: Db,
     auth: Auth,
     id: Id,
     time: Time,
     admin_audit_repo: AdminAuditRepo,
+    session_repo: SessionRepo,
 }
 
-impl<Db, Auth, Id, Time, AdminAuditRepo> AdminAuditFeatureService
-    for AdminAuditFeatureServiceImpl<Db, Auth, Id, Time, AdminAuditRepo>
+impl<Db, Auth, Id, Time, AdminAuditRepo, SessionRepo> AdminAuditFeatureService
+    for AdminAuditFeatureServiceImpl<Db, Auth, Id, Time, AdminAuditRepo, SessionRepo>
 where
     Db: Database,
     Auth: AuthService<Db::Transaction>,
     Id: IdService,
     Time: TimeService,
     AdminAuditRepo: AdminAuditRepository<Db::Transaction>,
+    SessionRepo: SessionRepository<Db::Transaction>,
 {
     // The request carries the access token it was made with.
     #[trace_instrument(skip(self, request), fields(path = %*request.path))]
@@ -41,28 +45,43 @@ where
             return Ok(false);
         };
 
+        let mut txn = self.db.begin_transaction().await?;
+
+        // A session an administrator opened in someone else's account carries
+        // that account's token. Its requests are the administrator's and act
+        // on that account.
+        let impersonated_by = self
+            .session_repo
+            .get(&mut txn, auth.session_id)
+            .await
+            .context("Failed to get session from database")?
+            .and_then(|session| session.origin.impersonated_by());
+
+        let target_user_id = target_user_id(
+            &request.path,
+            request.route.as_deref().map(String::as_str),
+            auth.user_id,
+        );
+
         // The entry is written whenever the request was made with an
-        // administrator's token, including for requests that were rejected.
-        if !auth.admin {
-            return Ok(false);
-        }
+        // administrator's token or in a session an administrator opened,
+        // including for requests that were rejected.
+        let (admin_user_id, target_user_id) = match impersonated_by {
+            Some(admin) => (admin, target_user_id.or(Some(auth.user_id))),
+            None if auth.admin => (auth.user_id, target_user_id),
+            None => return Ok(false),
+        };
 
         let entry = AdminAuditLogEntry {
             id: self.id.generate(),
             at: self.time.now(),
-            admin_user_id: auth.user_id,
-            target_user_id: target_user_id(
-                &request.path,
-                request.route.as_deref().map(String::as_str),
-                auth.user_id,
-            ),
+            admin_user_id,
+            target_user_id,
             method: request.method,
             path: request.path,
             status: request.status,
             request_id: request.request_id,
         };
-
-        let mut txn = self.db.begin_transaction().await?;
 
         self.admin_audit_repo
             .create(&mut txn, &entry)

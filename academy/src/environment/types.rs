@@ -168,6 +168,7 @@ pub type UserFeature = UserFeatureServiceImpl<
     UserRepo,
     CoinRepo,
     DocumentRepo,
+    SessionRepo,
 >;
 pub type User = UserServiceImpl<Id, Time, Password, UserRepo, OAuth2Link>;
 pub type UserEmailConfirmation =
@@ -314,7 +315,8 @@ pub type Internal = InternalServiceImpl<
     HeartRepo,
 >;
 
-pub type AdminAuditFeature = AdminAuditFeatureServiceImpl<Database, Auth, Id, Time, AdminAuditRepo>;
+pub type AdminAuditFeature =
+    AdminAuditFeatureServiceImpl<Database, Auth, Id, Time, AdminAuditRepo, SessionRepo>;
 
 pub type PurchaseRepo = academy_persistence_postgres::purchase::PostgresPurchaseRepository;
 pub type PurchaseFeature = academy_core_purchase_impl::PurchaseFeatureServiceImpl<
@@ -357,4 +359,5 @@ pub type PublicationFeature = academy_core_user_impl::publication::PublicationFe
     Jwt,
     PublicationRepo,
     UserRepo,
+    SessionRepo,
 >;

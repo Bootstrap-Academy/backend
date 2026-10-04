@@ -18,7 +18,7 @@ use academy_models::{
         OAuth2Provider, OAuth2ProviderId, OAuth2ProviderSummary, OAuth2Registration,
         OAuth2UserInfo,
     },
-    session::DeviceName,
+    session::{DeviceName, SessionOrigin},
     url::Url,
     user::{UserId, UserIdOrSelf},
 };
@@ -423,7 +423,14 @@ where
         // session does not grant administrative privileges.
         let login = self
             .session
-            .create(&mut txn, user_composite, device_name, true, false)
+            .create(
+                &mut txn,
+                user_composite,
+                device_name,
+                true,
+                false,
+                SessionOrigin::SignIn,
+            )
             .await
             .context("Failed to create session")?;
 

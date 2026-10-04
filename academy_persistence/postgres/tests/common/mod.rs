@@ -62,15 +62,57 @@ pub async fn apply_through(db: &Db, last: Option<&str>) -> Vec<&'static str> {
 pub async fn seed(db: &Db) {
     let mut txn = db.begin_transaction().await.unwrap();
 
-    academy_demo::create(
-        &mut txn,
-        PostgresUserRepository,
-        PostgresSessionRepository,
-        PostgresMfaRepository,
-        PostgresOAuth2Repository,
-    )
-    .await
-    .unwrap();
+    let origin_recorded: bool = txn
+        .txn()
+        .query_one(
+            "SELECT EXISTS(SELECT 1 FROM information_schema.columns \
+             WHERE table_schema=current_schema() AND table_name='sessions' AND column_name='origin')",
+            &[],
+        )
+        .await
+        .unwrap()
+        .get(0);
+    if origin_recorded {
+        academy_demo::create(
+            &mut txn,
+            PostgresUserRepository,
+            PostgresSessionRepository,
+            PostgresMfaRepository,
+            PostgresOAuth2Repository,
+        )
+        .await
+        .unwrap();
+    } else {
+        // Historical boundaries precede recorded session origins. Their demo
+        // sessions keep the columns of that time and become legacy sessions
+        // once the origin migration runs, like real sessions did.
+        academy_demo::user::create(&mut txn, PostgresUserRepository)
+            .await
+            .unwrap();
+        for session in &*academy_demo::session::ALL_SESSIONS {
+            txn.txn()
+                .execute(
+                    "INSERT INTO sessions(id,user_id,device_name,created_at,updated_at,mfa_verified) \
+                     VALUES($1,$2,$3,$4,$5,$6)",
+                    &[
+                        &*session.id,
+                        &*session.user_id,
+                        &session.device_name.as_deref(),
+                        &session.created_at,
+                        &session.updated_at,
+                        &session.mfa_verified,
+                    ],
+                )
+                .await
+                .unwrap();
+        }
+        academy_demo::mfa::create(&mut txn, PostgresMfaRepository)
+            .await
+            .unwrap();
+        academy_demo::oauth2::create(&mut txn, PostgresOAuth2Repository)
+            .await
+            .unwrap();
+    }
 
     txn.commit().await.unwrap();
 }

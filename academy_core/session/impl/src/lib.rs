@@ -16,7 +16,7 @@ use academy_di::Build;
 use academy_models::{
     RecaptchaResponse,
     auth::{AccessToken, Login, RefreshToken},
-    session::{Session, SessionId},
+    session::{Session, SessionId, SessionOrigin},
     user::{UserId, UserIdOrSelf, UserNameOrEmailAddress},
 };
 use academy_persistence_contracts::{
@@ -151,7 +151,14 @@ where
 
         let login = self
             .session
-            .create(&mut txn, user_composite, device_name, true, mfa_verified)
+            .create(
+                &mut txn,
+                user_composite,
+                device_name,
+                true,
+                mfa_verified,
+                SessionOrigin::SignIn,
+            )
             .await
             .context("Failed to create session")?;
 
@@ -216,9 +223,20 @@ where
 
         // Impersonation never involves the second factor of the impersonated
         // user, so the new session does not grant administrative privileges.
+        // The session records the administrator, which keeps owner-only
+        // decisions out of its reach for its whole lifetime.
         let login = self
             .session
-            .create(&mut txn, user_composite, None, false, false)
+            .create(
+                &mut txn,
+                user_composite,
+                None,
+                false,
+                false,
+                SessionOrigin::Impersonation {
+                    admin: Some(auth.user_id),
+                },
+            )
             .await
             .context("Failed to create session")?;
 

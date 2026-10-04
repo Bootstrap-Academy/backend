@@ -2,7 +2,7 @@ use std::future::Future;
 
 use academy_models::{
     auth::Login,
-    session::{DeviceName, SessionId, SessionRefreshTokenHash},
+    session::{DeviceName, SessionId, SessionOrigin, SessionRefreshTokenHash},
     user::{UserComposite, UserId},
 };
 use thiserror::Error;
@@ -14,6 +14,9 @@ pub trait SessionService<Txn: Send + Sync + 'static>: Send + Sync + 'static {
     /// `mfa_verified` records whether the second factor of the user was
     /// verified before the session was created. Only sessions created with a
     /// verified second factor grant administrative privileges.
+    ///
+    /// `origin` records who signed in. It is stored with the session and
+    /// survives every refresh.
     fn create(
         &self,
         txn: &mut Txn,
@@ -21,6 +24,7 @@ pub trait SessionService<Txn: Send + Sync + 'static>: Send + Sync + 'static {
         device_name: Option<DeviceName>,
         update_last_login: bool,
         mfa_verified: bool,
+        origin: SessionOrigin,
     ) -> impl Future<Output = anyhow::Result<Login>> + Send;
 
     /// Refresh the given session by invalidating the current access/refresh
@@ -90,6 +94,7 @@ impl<Txn: Send + Sync + 'static> MockSessionService<Txn> {
         device_name: Option<DeviceName>,
         update_last_login: bool,
         mfa_verified: bool,
+        origin: SessionOrigin,
         result: Login,
     ) -> Self {
         self.expect_create()
@@ -100,8 +105,9 @@ impl<Txn: Send + Sync + 'static> MockSessionService<Txn> {
                 mockall::predicate::eq(device_name),
                 mockall::predicate::eq(update_last_login),
                 mockall::predicate::eq(mfa_verified),
+                mockall::predicate::eq(origin),
             )
-            .return_once(|_, _, _, _, _| Box::pin(std::future::ready(Ok(result))));
+            .return_once(|_, _, _, _, _, _| Box::pin(std::future::ready(Ok(result))));
         self
     }
 

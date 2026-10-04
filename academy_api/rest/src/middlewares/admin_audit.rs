@@ -1,5 +1,6 @@
 //! Record every state changing request made with an administrator's access
-//! token in the administrative audit log, plus the reads listed in
+//! token, or in a session an administrator opened in someone else's account, in
+//! the administrative audit log, plus the reads listed in
 //! [`AUDITED_READ_ROUTES`].
 
 use std::sync::Arc;

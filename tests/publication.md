@@ -36,6 +36,18 @@ user ID, display name, standard-avatar null and visibility revision; XP and
 rankings stay in their owning services. Error and success responses prevent
 HTTP storage. No public profile route or UI activation is included in this step.
 
+Sessions record who signed in (`sign_in`, `impersonation` with the
+administrator, or `legacy` for sessions from before origins were recorded).
+Only the owner's own sign-in can share, make private again or confirm the
+notice, on the publication route and through the old `leaderboard_opt_out`
+flag. A session an administrator opened in the account is refused with
+`owner_sign_in_required` right after it was issued, after a refresh and after a
+backend restart, and every refused attempt lands in the administrative audit
+log for that administrator. Legacy sessions with a device name act as the
+owner's sign-in; without one they are refused like an impersonation, since
+signing in to someone else's account has never set a device name. Support
+keeps withdrawing through its own route.
+
 PostgreSQL repository tests additionally cover old/import/demo defaults,
 schema-only rollback/reapply, incomplete receipts and transactional rollback.
 The existing migration preservation tests name their intended guard, allowing

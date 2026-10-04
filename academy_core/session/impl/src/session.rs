@@ -3,7 +3,7 @@ use academy_core_session_contracts::session::{SessionRefreshError, SessionServic
 use academy_di::Build;
 use academy_models::{
     auth::Login,
-    session::{DeviceName, Session, SessionId, SessionPatch},
+    session::{DeviceName, Session, SessionId, SessionOrigin, SessionPatch},
     user::{UserComposite, UserId, UserPatch},
 };
 use academy_persistence_contracts::{session::SessionRepository, user::UserRepository};
@@ -40,6 +40,7 @@ where
         device_name: Option<DeviceName>,
         update_last_login: bool,
         mfa_verified: bool,
+        origin: SessionOrigin,
     ) -> anyhow::Result<Login> {
         anyhow::ensure!(
             user_composite.user.enabled,
@@ -55,6 +56,7 @@ where
             created_at: now,
             updated_at: now,
             mfa_verified,
+            origin,
         };
 
         let tokens = self
@@ -259,6 +261,7 @@ mod tests {
                 created_at: FOO_1.created_at,
                 updated_at: FOO_1.created_at,
                 mfa_verified: true,
+                origin: SessionOrigin::SignIn,
             },
             access_token: tokens.access_token.clone(),
             refresh_token: tokens.refresh_token.clone(),
@@ -293,7 +296,14 @@ mod tests {
 
         // Act
         let result = sut
-            .create(&mut (), FOO.clone(), FOO_1.device_name.clone(), true, true)
+            .create(
+                &mut (),
+                FOO.clone(),
+                FOO_1.device_name.clone(),
+                true,
+                true,
+                SessionOrigin::SignIn,
+            )
             .await;
 
         // Assert
@@ -318,6 +328,7 @@ mod tests {
                 created_at: FOO_1.created_at,
                 updated_at: FOO_1.created_at,
                 mfa_verified: true,
+                origin: SessionOrigin::SignIn,
             },
             access_token: tokens.access_token.clone(),
             refresh_token: tokens.refresh_token.clone(),
@@ -348,7 +359,14 @@ mod tests {
 
         // Act
         let result = sut
-            .create(&mut (), FOO.clone(), FOO_1.device_name.clone(), false, true)
+            .create(
+                &mut (),
+                FOO.clone(),
+                FOO_1.device_name.clone(),
+                false,
+                true,
+                SessionOrigin::SignIn,
+            )
             .await;
 
         // Assert
@@ -470,6 +488,59 @@ mod tests {
 
         // Assert
         assert!(!result.unwrap().session.mfa_verified);
+    }
+
+    /// A session an administrator opened stays theirs: a refresh issues new
+    /// tokens for the stored row and never turns it into the owner's sign-in.
+    #[tokio::test]
+    async fn refresh_keeps_the_stored_origin() {
+        // Arrange
+        let tokens = Tokens {
+            access_token: "the new access token".into(),
+            refresh_token: "the new refresh token".into(),
+            refresh_token_hash: (*SHA256HASH2).into(),
+        };
+        let stored = Session {
+            device_name: None,
+            origin: SessionOrigin::Impersonation {
+                admin: Some(ADMIN.user.id),
+            },
+            ..FOO_1.clone()
+        };
+        let updated_at = FOO_1.updated_at + Duration::from_secs(3600);
+
+        let auth =
+            MockAuthService::new().with_issue_tokens(FOO.user.clone(), FOO_1.id, false, tokens);
+        let auth_access_token =
+            MockAuthAccessTokenService::new().with_invalidate((*SHA256HASH1).into());
+        let time = MockTimeService::new().with_now(updated_at);
+        let user_repo =
+            MockUserRepository::new().with_get_composite(FOO_1.user_id, Some(FOO.clone()));
+        let session_repo = MockSessionRepository::new()
+            .with_get_refresh_token_hash(FOO_1.id, Some((*SHA256HASH1).into()))
+            .with_get(FOO_1.id, Some(stored.clone()))
+            .with_update(
+                FOO_1.id,
+                SessionPatch::new().update_updated_at(updated_at),
+                true,
+            )
+            .with_save_refresh_token_hash(FOO_1.id, (*SHA256HASH2).into());
+
+        let sut = SessionServiceImpl {
+            auth,
+            auth_access_token,
+            time,
+            session_repo,
+            user_repo,
+            ..Sut::default()
+        };
+
+        // Act
+        let session = sut.refresh(&mut (), FOO_1.id).await.unwrap().session;
+
+        // Assert
+        assert_eq!(session.origin, stored.origin);
+        assert!(!session.is_owner_sign_in());
     }
 
     #[tokio::test]

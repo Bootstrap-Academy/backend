@@ -61,6 +61,8 @@ pub enum PublicationError {
     InvalidPreview,
     #[error("Verify the account email before sharing.")]
     Unverified,
+    #[error("Only the owner's own sign-in can change the publication.")]
+    NotOwnerSignIn,
     #[error(transparent)]
     Other(#[from] anyhow::Error),
 }

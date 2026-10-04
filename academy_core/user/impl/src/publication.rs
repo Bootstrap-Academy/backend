@@ -15,18 +15,20 @@ use academy_models::{
 use academy_persistence_contracts::{
     Database, Transaction,
     publication::{PublicationRepository, PublicationWriteError},
+    session::SessionRepository,
     user::UserRepository,
 };
 use academy_shared_contracts::jwt::JwtService;
 
 #[derive(Debug, Clone, Build)]
-pub struct PublicationFeatureServiceImpl<Db, Auth, AuthInternal, Jwt, Repo, UserRepo> {
+pub struct PublicationFeatureServiceImpl<Db, Auth, AuthInternal, Jwt, Repo, UserRepo, SessionRepo> {
     db: Db,
     auth: Auth,
     auth_internal: AuthInternal,
     jwt: Jwt,
     repo: Repo,
     user_repo: UserRepo,
+    session_repo: SessionRepo,
     config: PublicationConfig,
 }
 
@@ -41,8 +43,8 @@ fn publication_error(error: PublicationWriteError) -> PublicationError {
     }
 }
 
-impl<Db, Auth, AuthInternal, Jwt, Repo, UserRepo> PublicationFeatureService
-    for PublicationFeatureServiceImpl<Db, Auth, AuthInternal, Jwt, Repo, UserRepo>
+impl<Db, Auth, AuthInternal, Jwt, Repo, UserRepo, SessionRepo> PublicationFeatureService
+    for PublicationFeatureServiceImpl<Db, Auth, AuthInternal, Jwt, Repo, UserRepo, SessionRepo>
 where
     Db: Database,
     Auth: AuthService<Db::Transaction>,
@@ -50,6 +52,7 @@ where
     Jwt: JwtService,
     Repo: PublicationRepository<Db::Transaction>,
     UserRepo: UserRepository<Db::Transaction>,
+    SessionRepo: SessionRepository<Db::Transaction>,
 {
     async fn support_settings(
         &self,
@@ -201,6 +204,18 @@ where
             .authenticate_in_transaction(&mut txn, token)
             .await
             .map_auth_err()?;
+        // Sharing, making private again and confirming the notice are the
+        // owner's own decisions, recorded as such. A session someone else
+        // opened in the account never makes them, however often it is
+        // refreshed; support withdraws through its own route instead.
+        let owner_sign_in = self
+            .session_repo
+            .get(&mut txn, auth.session_id)
+            .await?
+            .is_some_and(|session| session.is_owner_sign_in());
+        if !owner_sign_in {
+            return Err(PublicationError::NotOwnerSignIn);
+        }
         let preview_valid = choice
             .preview_token
             .as_deref()

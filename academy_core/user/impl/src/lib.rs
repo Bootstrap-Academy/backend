@@ -28,12 +28,12 @@ use academy_models::{
     auth::{AccessToken, Login},
     email_address::EmailAddress,
     finance::RETENTION_MARKER,
-    session::DeviceName,
+    session::{DeviceName, SessionOrigin},
     user::{TermsVersion, UserComposite, UserId, UserIdOrSelf, UserInvoiceInfoPatch, UserPassword},
 };
 use academy_persistence_contracts::{
     Database, Transaction, coin::CoinRepository, finance::FinancialDocumentRepository,
-    user::UserRepository,
+    session::SessionRepository, user::UserRepository,
 };
 use academy_shared_contracts::captcha::{CaptchaCheckError, CaptchaService};
 use academy_utils::{
@@ -71,6 +71,7 @@ pub struct UserFeatureServiceImpl<
     UserRepo,
     CoinRepo,
     DocumentRepo,
+    SessionRepo,
 > {
     db: Db,
     auth: Auth,
@@ -88,6 +89,7 @@ pub struct UserFeatureServiceImpl<
     user_repo: UserRepo,
     coin_repo: CoinRepo,
     document_repo: DocumentRepo,
+    session_repo: SessionRepo,
     config: UserFeatureConfig,
 }
 
@@ -128,6 +130,7 @@ impl<
     UserRepo,
     CoinRepo,
     DocumentRepo,
+    SessionRepo,
 > UserFeatureService
     for UserFeatureServiceImpl<
         Db,
@@ -146,6 +149,7 @@ impl<
         UserRepo,
         CoinRepo,
         DocumentRepo,
+        SessionRepo,
     >
 where
     Db: Database,
@@ -164,6 +168,7 @@ where
     UserRepo: UserRepository<Db::Transaction>,
     CoinRepo: CoinRepository<Db::Transaction>,
     DocumentRepo: FinancialDocumentRepository<Db::Transaction>,
+    SessionRepo: SessionRepository<Db::Transaction>,
 {
     // The query carries the name and email address filters an administrator
     // typed.
@@ -280,7 +285,14 @@ where
 
         let result = self
             .session
-            .create(&mut txn, user, device_name, true, false)
+            .create(
+                &mut txn,
+                user,
+                device_name,
+                true,
+                false,
+                SessionOrigin::SignIn,
+            )
             .await
             .context("Failed to create session")?;
 
@@ -402,6 +414,21 @@ where
 
         if admin.is_update() && user_id == auth.user_id {
             return Err(UserUpdateError::CannotDemoteSelf);
+        }
+
+        // Changing the old opt-out flag shares or withdraws the profile, which
+        // only the owner's own sign-in decides (see the publication route).
+        // Support changes another account with its own token instead.
+        if profile_update.leaderboard_opt_out.is_update()
+            && user_id == auth.user_id
+            && !self
+                .session_repo
+                .get(&mut txn, auth.session_id)
+                .await
+                .context("Failed to get session from database")?
+                .is_some_and(|session| session.is_owner_sign_in())
+        {
+            return Err(UserUpdateError::NotOwnerSignIn);
         }
 
         if let PatchValue::Update(Some(vat_id)) = &invoice_info_update.vat_id
@@ -937,6 +964,7 @@ impl<
     UserRepo,
     CoinRepo,
     DocumentRepo,
+    SessionRepo,
 >
     UserFeatureServiceImpl<
         Db,
@@ -955,6 +983,7 @@ impl<
         UserRepo,
         CoinRepo,
         DocumentRepo,
+        SessionRepo,
     >
 where
     Db: Database,

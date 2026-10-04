@@ -1,6 +1,6 @@
 use academy_di::Build;
 use academy_models::{
-    session::{Session, SessionId, SessionPatchRef, SessionRefreshTokenHash},
+    session::{Session, SessionId, SessionOrigin, SessionPatchRef, SessionRefreshTokenHash},
     user::UserId,
 };
 use academy_persistence_contracts::session::SessionRepository;
@@ -134,6 +134,8 @@ impl SessionRepository<PostgresTransaction> for PostgresSessionRepository {
             created_at: session.created_at.into(),
             updated_at: session.updated_at.into(),
             mfa_verified: session.mfa_verified,
+            origin: encode_origin(session.origin),
+            impersonated_by: session.origin.impersonated_by().map(|admin| *admin),
         };
 
         queries::session::create()
@@ -286,5 +288,28 @@ fn decode_session(value: queries::session::Session) -> anyhow::Result<Session> {
         created_at: value.created_at.into(),
         updated_at: value.updated_at.into(),
         mfa_verified: value.mfa_verified,
+        origin: decode_origin(&value.origin, value.impersonated_by)?,
+    })
+}
+
+fn encode_origin(origin: SessionOrigin) -> &'static str {
+    match origin {
+        SessionOrigin::SignIn => "sign_in",
+        SessionOrigin::Impersonation { .. } => "impersonation",
+        SessionOrigin::Legacy => "legacy",
+    }
+}
+
+fn decode_origin(
+    origin: &str,
+    impersonated_by: Option<uuid::Uuid>,
+) -> anyhow::Result<SessionOrigin> {
+    Ok(match (origin, impersonated_by) {
+        ("sign_in", None) => SessionOrigin::SignIn,
+        ("impersonation", admin) => SessionOrigin::Impersonation {
+            admin: admin.map(Into::into),
+        },
+        ("legacy", None) => SessionOrigin::Legacy,
+        _ => anyhow::bail!("Invalid session origin {origin:?}"),
     })
 }

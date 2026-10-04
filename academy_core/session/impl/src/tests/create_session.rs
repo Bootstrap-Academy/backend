@@ -13,7 +13,9 @@ use academy_demo::{
     session::{BAR_1, FOO_1},
     user::{BAR, BAR_PASSWORD, FOO, FOO_PASSWORD},
 };
-use academy_models::{auth::Login, mfa::MfaAuthentication, user::UserNameOrEmailAddress};
+use academy_models::{
+    auth::Login, mfa::MfaAuthentication, session::SessionOrigin, user::UserNameOrEmailAddress,
+};
 use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
 use academy_shared_contracts::captcha::{CaptchaCheckError, MockCaptchaService};
 use academy_utils::{Apply, assert_matches};
@@ -63,6 +65,7 @@ async fn ok() {
         cmd.device_name.clone(),
         true,
         false,
+        SessionOrigin::SignIn,
         expected.clone(),
     );
 
@@ -141,6 +144,7 @@ async fn ok_mfa() {
         cmd.device_name.clone(),
         true,
         true,
+        SessionOrigin::SignIn,
         expected.clone(),
     );
 
@@ -225,6 +229,7 @@ async fn ok_mfa_reset() {
         cmd.device_name.clone(),
         true,
         false,
+        SessionOrigin::SignIn,
         expected.clone(),
     );
 
@@ -295,6 +300,7 @@ async fn ok_captcha() {
         cmd.device_name.clone(),
         true,
         false,
+        SessionOrigin::SignIn,
         expected.clone(),
     );
 

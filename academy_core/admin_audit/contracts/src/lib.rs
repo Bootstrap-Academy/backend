@@ -11,8 +11,10 @@ use thiserror::Error;
 pub trait AdminAuditFeatureService: Send + Sync + 'static {
     /// Record a request in the administrative audit log.
     ///
-    /// Requests that were not authenticated with an administrator's access
-    /// token are ignored. Returns whether an entry has been recorded.
+    /// Requests made in a session an administrator opened in someone else's
+    /// account are recorded for that administrator. Other requests that were
+    /// not authenticated with an administrator's access token are ignored.
+    /// Returns whether an entry has been recorded.
     fn record(
         &self,
         request: AdminAuditRequest,

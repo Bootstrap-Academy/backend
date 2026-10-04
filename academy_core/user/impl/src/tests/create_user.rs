@@ -12,6 +12,7 @@ use academy_demo::{
 use academy_models::{
     auth::Login,
     oauth2::{OAuth2Registration, OAuth2RegistrationToken},
+    session::SessionOrigin,
 };
 use academy_persistence_contracts::{MockDatabase, MockTransaction};
 use academy_shared_contracts::captcha::{CaptchaCheckError, MockCaptchaService};
@@ -53,6 +54,7 @@ async fn ok() {
         FOO_1.device_name.clone(),
         true,
         false,
+        SessionOrigin::SignIn,
         expected.clone(),
     );
 
@@ -147,6 +149,7 @@ async fn failed_commit_returns_error_instead_of_login() {
             None,
             true,
             false,
+            SessionOrigin::SignIn,
             Login {
                 user_composite: FOO.clone(),
                 session: FOO_1.clone(),
@@ -214,6 +217,7 @@ async fn ok_oauth2() {
         FOO_1.device_name.clone(),
         true,
         false,
+        SessionOrigin::SignIn,
         expected.clone(),
     );
 
@@ -280,6 +284,7 @@ async fn oauth2_registration_token_already_used() {
         FOO_1.device_name.clone(),
         true,
         false,
+        SessionOrigin::SignIn,
         Login {
             user_composite: FOO.clone(),
             session: FOO_1.clone(),
@@ -658,6 +663,7 @@ async fn registration_override_is_explicit_and_records_only_the_offered_version(
                 FOO_1.device_name.clone(),
                 true,
                 false,
+                SessionOrigin::SignIn,
                 expected.clone(),
             );
             assert_eq!(

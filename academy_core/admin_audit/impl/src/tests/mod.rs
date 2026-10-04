@@ -4,6 +4,7 @@ use academy_demo::{UUID1, user::ADMIN};
 use academy_models::admin_audit::AdminAuditLogEntry;
 use academy_persistence_contracts::{
     MockDatabase, MockTransaction, admin_audit::MockAdminAuditRepository,
+    session::MockSessionRepository,
 };
 use academy_shared_contracts::{id::MockIdService, time::MockTimeService};
 use chrono::{DateTime, TimeZone, Utc};
@@ -19,6 +20,7 @@ type Sut = AdminAuditFeatureServiceImpl<
     MockIdService,
     MockTimeService,
     MockAdminAuditRepository<MockTransaction>,
+    MockSessionRepository<MockTransaction>,
 >;
 
 fn now() -> DateTime<Utc> {

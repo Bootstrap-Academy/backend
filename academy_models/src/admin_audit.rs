@@ -12,7 +12,8 @@ id!(AdminAuditLogEntryId);
 pub const ADMIN_AUDIT_LOG_RETENTION_MONTHS: u32 = 12;
 
 /// A single state changing request that was authenticated with an
-/// administrator's access token.
+/// administrator's access token, or made in a session an administrator opened
+/// in someone else's account.
 ///
 /// Only request metadata is recorded, never request bodies.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -20,7 +21,8 @@ pub struct AdminAuditLogEntry {
     pub id: AdminAuditLogEntryId,
     /// Time at which the request was answered
     pub at: DateTime<Utc>,
-    /// The administrator whose access token authenticated the request
+    /// The administrator whose access token authenticated the request, or who
+    /// opened the session in someone else's account it was made in
     pub admin_user_id: UserId,
     /// HTTP method of the request
     pub method: RequestMethod,

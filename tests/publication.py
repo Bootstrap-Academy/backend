@@ -631,12 +631,132 @@ def support_queued_requests_recheck_current_authority(f):
         assert f.sql(f"SELECT row_to_json(p)::text FROM user_profiles p WHERE user_id='{owner['id']}'") == before
 
 
+REFUSED = {"detail": "owner_sign_in_required"}
+PROFILE_ROW = "SELECT row_to_json(p)::text FROM user_profiles p WHERE user_id='{}'"
+
+
+def impersonate(f, admin, owner):
+    login = f.request(f"/auth/sessions/{owner['id']}", "POST", token=f.token(admin))
+    assert login["user"]["id"] == owner["id"]
+    assert login["session"]["device_name"] is None and login["session"]["mfa_verified"] is False
+    stored = f.sql(f"SELECT origin||'|'||impersonated_by FROM sessions WHERE id='{login['session']['id']}'")
+    assert stored == f"impersonation|{admin['id']}", stored
+    return login
+
+
+def refresh(f, login):
+    renewed = f.request("/auth/session", "PUT", {"refresh_token": login["refresh_token"]})
+    assert renewed["session"]["id"] == login["session"]["id"]
+    return {**login, **renewed}
+
+
+def withdrawal(revision):
+    return {"profile_visibility": "private", "expected_revision": revision, "request_id": str(uuid4())}
+
+
+def impersonation_cannot_choose_even_after_refresh(f):
+    if not f.publication_enabled:
+        f.activate()
+    owner, admin = f.account(), support_admin(f)
+    audit = (
+        f"SELECT count(*) FROM admin_audit_log WHERE admin_user_id='{admin['id']}' "
+        f"AND target_user_id='{owner['id']}' AND method='PUT' AND path='{OWNER}' AND status=403"
+    )
+    session = impersonate(f, admin, owner)
+    before = f.sql(PROFILE_ROW.format(owner["id"]))
+    # Troubleshooting may still read the choice and the preview.
+    revision = f.publication(token=f.token(session))["visibility_revision"]
+    preview = f.publication(OWNER + "-preview", token=f.token(session))
+    share = {
+        "profile_visibility": "shared",
+        "expected_revision": revision,
+        "scope_version": preview["scope_version"],
+        "notice_hash": preview["notice_hash"],
+        "preview_token": preview["preview_token"],
+    }
+    attempts = 0
+    for step in ("issued", "refreshed", "restarted"):
+        for body in (share, withdrawal(revision)):
+            result = f.publication(
+                method="PUT", body={**body, "request_id": str(uuid4())}, token=f.token(session), expected=403
+            )
+            assert result == REFUSED, (step, result)
+            attempts += 1
+        # The old opt-out flag shares or withdraws as well and is refused alike.
+        f.request("/auth/users/me", "PATCH", {"leaderboard_opt_out": False}, token=f.token(session), expected=403)
+        if step == "refreshed":
+            f.restart()
+        session = refresh(f, session)
+    assert f.sql(PROFILE_ROW.format(owner["id"])) == before
+    assert f.sql(f"SELECT origin FROM sessions WHERE id='{session['session']['id']}'") == "impersonation"
+    assert owner["id"] not in [p["user_id"] for p in f.publication(ROOT + "snapshot", token=f.auth)["participants"]]
+    # Every refused attempt is recorded for the administrator, acting on the account.
+    assert int(f.sql(audit)) == attempts
+
+    # The owner's own sign-in shares, also after a refresh, recorded as the owner's.
+    owner = refresh(f, owner)
+    _, own = f.preview_choice(owner)
+    shared = f.publication(method="PUT", body=own, token=f.token(owner))
+    assert shared["receipt"]["source"] == "owner"
+    revision = shared["current"]["visibility_revision"]
+    # The administrator's session cannot withdraw it either.
+    assert f.publication(method="PUT", body=withdrawal(revision), token=f.token(session), expected=403) == REFUSED
+    f.request("/auth/users/me", "PATCH", {"leaderboard_opt_out": True}, token=f.token(session), expected=403)
+    assert f.publication(token=f.token(owner))["profile_visibility"] == "shared"
+    assert int(f.sql(audit)) == attempts + 1
+    # Support withdraws through its own route, recorded as support.
+    withdrawn = f.publication(
+        f"/auth/admin/users/{owner['id']}/publication/withdraw",
+        method="POST",
+        body={"expected_revision": revision, "request_id": str(uuid4())},
+        token=f.token(admin),
+    )
+    assert withdrawn["receipt"]["source"] == "support"
+    # The owner's own sign-in can withdraw too.
+    _, again = f.preview_choice(owner)
+    revision = f.publication(method="PUT", body=again, token=f.token(owner))["current"]["visibility_revision"]
+    private = f.publication(method="PUT", body=withdrawal(revision), token=f.token(owner))
+    assert private["current"]["profile_visibility"] == "private" and private["receipt"]["source"] == "owner"
+
+
+def legacy_sessions_follow_their_device_name(f):
+    if not f.publication_enabled:
+        f.activate()
+    owner, admin = f.account(), support_admin(f)
+    # The fixture signs in with a User-Agent, like every browser.
+    assert owner["session"]["device_name"]
+    session = impersonate(f, admin, owner)
+    ids = f"'{owner['session']['id']}','{session['session']['id']}'"
+    # Sessions from before the migration carry no recorded origin.
+    f.sql(f"UPDATE sessions SET origin='legacy', impersonated_by=NULL WHERE id IN ({ids})")
+    owner, session = refresh(f, owner), refresh(f, session)
+    assert f.sql(f"SELECT string_agg(origin, ',') FROM sessions WHERE id IN ({ids})") == "legacy,legacy"
+    before = f.sql(PROFILE_ROW.format(owner["id"]))
+    # Without a device name it may have been opened by an administrator.
+    revision = f.publication(token=f.token(session))["visibility_revision"]
+    _, share = f.preview_choice(session)
+    assert f.publication(method="PUT", body=share, token=f.token(session), expected=403) == REFUSED
+    assert f.publication(method="PUT", body=withdrawal(revision), token=f.token(session), expected=403) == REFUSED
+    f.request("/auth/users/me", "PATCH", {"leaderboard_opt_out": False}, token=f.token(session), expected=403)
+    assert f.sql(PROFILE_ROW.format(owner["id"])) == before
+    # With a device name it is the owner's own sign-in.
+    _, share = f.preview_choice(owner)
+    shared = f.publication(method="PUT", body=share, token=f.token(owner))
+    assert shared["receipt"]["source"] == "owner"
+    private = f.publication(
+        method="PUT", body=withdrawal(shared["current"]["visibility_revision"]), token=f.token(owner)
+    )
+    assert private["current"]["profile_visibility"] == "private"
+
+
 CASES = [
     disabled_contract_and_service_auth,
     owner_preview_and_exact_projection,
     race_replay_and_legacy_clients,
     support_permissions_withdrawal_and_replay,
     support_queued_requests_recheck_current_authority,
+    impersonation_cannot_choose_even_after_refresh,
+    legacy_sessions_follow_their_device_name,
     reset_preserves_consent_and_revokes_publication_authority,
     queued_publication_cannot_gain_authority_after_reset,
     current_verification_withdrawal_and_export,

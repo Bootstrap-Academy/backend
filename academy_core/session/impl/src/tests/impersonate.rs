@@ -6,7 +6,10 @@ use academy_demo::{
     session::{ADMIN_1, BAR_1, FOO_1},
     user::{ADMIN, BAR, FOO},
 };
-use academy_models::auth::{AuthError, AuthenticateError, AuthorizeError, Login};
+use academy_models::{
+    auth::{AuthError, AuthenticateError, AuthorizeError, Login},
+    session::SessionOrigin,
+};
 use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
 use academy_utils::assert_matches;
 
@@ -33,8 +36,16 @@ async fn ok() {
         .with_lock_account(FOO.user.id, true)
         .with_get_composite(FOO.user.id, Some(FOO.clone()));
 
-    let session =
-        MockSessionService::new().with_create(FOO.clone(), None, false, false, expected.clone());
+    let session = MockSessionService::new().with_create(
+        FOO.clone(),
+        None,
+        false,
+        false,
+        SessionOrigin::Impersonation {
+            admin: Some(ADMIN.user.id),
+        },
+        expected.clone(),
+    );
 
     let sut = SessionFeatureServiceImpl {
         auth,

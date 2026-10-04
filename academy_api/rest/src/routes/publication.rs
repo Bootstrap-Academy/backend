@@ -92,6 +92,7 @@ fn respond<T: Serialize>(result: Result<T, PublicationError>) -> Response {
             "publication_preview_required",
         ),
         PublicationError::Unverified => (StatusCode::FORBIDDEN, "email_not_verified"),
+        PublicationError::NotOwnerSignIn => (StatusCode::FORBIDDEN, "owner_sign_in_required"),
     };
     (status, Json(serde_json::json!({"detail":detail}))).into_response()
 }
@@ -165,6 +166,12 @@ fn preview_docs(op: TransformOperation) -> TransformOperation {
 }
 fn choice_docs(op: TransformOperation) -> TransformOperation {
     op.summary("Record an owner choice with CAS and bounded replay receipts.")
+        .description(
+            "Only a session from the owner's own sign-in can share, make private again or confirm \
+             the notice. A session an administrator opened in the account is refused with `403` \
+             and `owner_sign_in_required`, also after refreshes; so is a session from before \
+             origins were recorded that has no device name. Support uses the withdrawal route.",
+        )
         .add_response::<PublicationChoiceResult>(StatusCode::OK, None)
 }
 fn epoch_docs(op: TransformOperation) -> TransformOperation {

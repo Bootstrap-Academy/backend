@@ -912,6 +912,24 @@ def paypal_capture_and_recovery_queue(f):
     f.invoice(account)
     quote = f.cash_quote(account)
     oid = f.cash_create(account, quote)
+    pending_detail = (
+        "Your payment is still being checked. Please retry this order later; " "do not place a second order."
+    )
+    # Exercise the pending wire response on every run before the concurrent
+    # recovery. The local provider fails before charging this accepted order.
+    f.orders[oid]["mode"] = "fail_before"
+    pending_status, pending_body = f.request(
+        f"/shop/coins/paypal/orders/{oid}/capture", "POST", None, f.token(account), None
+    )
+    pending_state = f.state(account)
+    pending_proved = (
+        pending_status == 503
+        and pending_body == {"detail": pending_detail}
+        and f.orders[oid]["charges"] == 0
+        and pending_state["coins"] == 500
+        and pending_state["ledger_rows"] == 0
+        and pending_state["purchase_fulfillments"] == 0
+    )
     f.orders[oid]["mode"] = "crash"
     f.paid.clear()
     f.release.clear()
@@ -936,18 +954,16 @@ def paypal_capture_and_recovery_queue(f):
         # Confirmation delivery may still be in flight in another processor.
         # The API explicitly exposes that state as PaymentPendingError. Require
         # the original order to replay successfully after recovery completes.
-        pending_code = (
-            "Your payment is still being checked. Please retry this order later; " "do not place a second order."
-        )
         capture_replies_valid = all(
-            status == 200 or (status == 503 and body == {"code": pending_code}) for status, body in replies
+            status == 200 or (status == 503 and body == {"detail": pending_detail}) for status, body in replies
         )
         replay_status, _ = f.request(f"/shop/coins/paypal/orders/{oid}/capture", "POST", None, f.token(account), None)
         state = f.state(account)
         charges = f.orders[oid]["charges"]
         return {
             "passed": bool(
-                second_waiters
+                pending_proved
+                and second_waiters
                 and recovery_waiters
                 and capture_replies_valid
                 and replay_status == 200
@@ -957,6 +973,7 @@ def paypal_capture_and_recovery_queue(f):
                 and state["purchase_fulfillments"] == 1
             ),
             "capture_statuses": statuses,
+            "initial_pending_without_charge_or_credit_proved": pending_proved,
             "capture_replies_match_success_or_documented_pending": capture_replies_valid,
             "original_order_replay_after_recovery_status": replay_status,
             "native_recovery_completed": True,

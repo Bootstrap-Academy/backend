@@ -4,7 +4,7 @@
 pub struct CreateParams<T1: crate::StringSql, T2: crate::StringSql, T3: crate::StringSql> {
     pub id: uuid::Uuid,
     pub at: chrono::DateTime<chrono::FixedOffset>,
-    pub admin_user_id: uuid::Uuid,
+    pub admin_user_id: Option<uuid::Uuid>,
     pub method: T1,
     pub path: T2,
     pub target_user_id: Option<uuid::Uuid>,
@@ -27,7 +27,7 @@ pub struct CountParams {
 pub struct AdminAuditLogEntry {
     pub id: uuid::Uuid,
     pub at: chrono::DateTime<chrono::FixedOffset>,
-    pub admin_user_id: uuid::Uuid,
+    pub admin_user_id: Option<uuid::Uuid>,
     pub method: String,
     pub path: String,
     pub target_user_id: Option<uuid::Uuid>,
@@ -37,7 +37,7 @@ pub struct AdminAuditLogEntry {
 pub struct AdminAuditLogEntryBorrowed<'a> {
     pub id: uuid::Uuid,
     pub at: chrono::DateTime<chrono::FixedOffset>,
-    pub admin_user_id: uuid::Uuid,
+    pub admin_user_id: Option<uuid::Uuid>,
     pub method: &'a str,
     pub path: &'a str,
     pub target_user_id: Option<uuid::Uuid>,
@@ -231,7 +231,7 @@ impl CreateStmt {
         client: &'c C,
         id: &'a uuid::Uuid,
         at: &'a chrono::DateTime<chrono::FixedOffset>,
-        admin_user_id: &'a uuid::Uuid,
+        admin_user_id: &'a Option<uuid::Uuid>,
         method: &'a T1,
         path: &'a T2,
         target_user_id: &'a Option<uuid::Uuid>,

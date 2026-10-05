@@ -222,8 +222,8 @@ fn impersonate_docs(op: TransformOperation) -> TransformOperation {
 }
 
 #[derive(Deserialize, JsonSchema)]
-struct RefreshRequest {
-    refresh_token: RefreshToken,
+pub(crate) struct RefreshRequest {
+    pub(crate) refresh_token: RefreshToken,
 }
 
 async fn refresh(

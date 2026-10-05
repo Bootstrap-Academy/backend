@@ -12,7 +12,10 @@ use academy_models::{
     user::UserIdOrSelf,
 };
 use academy_persistence_contracts::{
-    Database, Transaction, mfa::MfaRepository, user::UserRepository,
+    Database, Transaction,
+    mfa::MfaRepository,
+    session::{SessionRepository, ensure_owner_sign_in},
+    user::UserRepository,
 };
 use academy_utils::trace_instrument;
 use anyhow::Context;
@@ -35,6 +38,7 @@ pub struct MfaFeatureServiceImpl<
     MfaRecovery,
     MfaDisable,
     MfaTotpDevice,
+    SessionRepo,
 > {
     db: Db,
     auth: Auth,
@@ -43,10 +47,21 @@ pub struct MfaFeatureServiceImpl<
     mfa_recovery: MfaRecovery,
     mfa_disable: MfaDisable,
     mfa_totp_device: MfaTotpDevice,
+    session_repo: SessionRepo,
 }
 
-impl<Db, Auth, UserRepo, MfaRepo, MfaRecovery, MfaDisable, MfaTotpDevice> MfaFeatureService
-    for MfaFeatureServiceImpl<Db, Auth, UserRepo, MfaRepo, MfaRecovery, MfaDisable, MfaTotpDevice>
+impl<Db, Auth, UserRepo, MfaRepo, MfaRecovery, MfaDisable, MfaTotpDevice, SessionRepo>
+    MfaFeatureService
+    for MfaFeatureServiceImpl<
+        Db,
+        Auth,
+        UserRepo,
+        MfaRepo,
+        MfaRecovery,
+        MfaDisable,
+        MfaTotpDevice,
+        SessionRepo,
+    >
 where
     Db: Database,
     Auth: AuthService<Db::Transaction>,
@@ -55,6 +70,7 @@ where
     MfaRecovery: MfaRecoveryService<Db::Transaction>,
     MfaDisable: MfaDisableService<Db::Transaction>,
     MfaTotpDevice: MfaTotpDeviceService<Db::Transaction>,
+    SessionRepo: SessionRepository<Db::Transaction>,
 {
     #[tracing::instrument(skip(self, token))]
     async fn initialize(
@@ -86,6 +102,7 @@ where
             .await
             .map_auth_err()?;
         auth.ensure_self_or_admin(user_id).map_auth_err()?;
+        ensure_owner_sign_in(&self.session_repo, &mut txn, auth.session_id).await?;
 
         trace!("check user existence");
         if !self
@@ -161,6 +178,7 @@ where
             .await
             .map_auth_err()?;
         auth.ensure_self_or_admin(user_id).map_auth_err()?;
+        ensure_owner_sign_in(&self.session_repo, &mut txn, auth.session_id).await?;
 
         trace!("check user existence");
         if !self
@@ -243,6 +261,7 @@ where
             .await
             .map_auth_err()?;
         auth.ensure_self_or_admin(user_id).map_auth_err()?;
+        ensure_owner_sign_in(&self.session_repo, &mut txn, auth.session_id).await?;
 
         trace!("check user existence");
         if !self

@@ -221,22 +221,27 @@ where
             return Err(SessionImpersonateError::NotFound);
         }
 
+        let origin = self
+            .session_repo
+            .get(&mut txn, auth.session_id)
+            .await?
+            .map(|session| match session.origin {
+                origin @ SessionOrigin::Impersonation { .. } => origin,
+                _ if !session.is_owner_sign_in() => SessionOrigin::Impersonation { admin: None },
+                _ => SessionOrigin::Impersonation {
+                    admin: Some(auth.user_id),
+                },
+            })
+            .ok_or(academy_models::auth::AuthenticateError::InvalidToken)
+            .map_auth_err()?;
+
         // Impersonation never involves the second factor of the impersonated
         // user, so the new session does not grant administrative privileges.
         // The session records the administrator, which keeps owner-only
         // decisions out of its reach for its whole lifetime.
         let login = self
             .session
-            .create(
-                &mut txn,
-                user_composite,
-                None,
-                false,
-                false,
-                SessionOrigin::Impersonation {
-                    admin: Some(auth.user_id),
-                },
-            )
+            .create(&mut txn, user_composite, None, false, false, origin)
             .await
             .context("Failed to create session")?;
 

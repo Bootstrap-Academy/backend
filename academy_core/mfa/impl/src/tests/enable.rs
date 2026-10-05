@@ -14,6 +14,7 @@ use academy_models::{
     mfa::{MfaRecoveryCode, TotpCode},
     user::UserIdOrSelf,
 };
+use academy_persistence_contracts::session::MockSessionRepository;
 use academy_persistence_contracts::{
     MockDatabase, mfa::MockMfaRepository, user::MockUserRepository,
 };
@@ -47,6 +48,13 @@ async fn ok() {
     let mfa_recovery = MockMfaRecoveryService::new().with_setup(FOO.user.id, expected.clone());
 
     let sut = MfaFeatureServiceImpl {
+        session_repo: {
+            let mut repo = MockSessionRepository::new();
+            repo.expect_get()
+                .times(0..=1)
+                .return_once(|_, _| Box::pin(std::future::ready(Ok(Some(FOO_1.clone())))));
+            repo
+        },
         auth,
         db,
         user_repo,
@@ -128,6 +136,13 @@ async fn user_not_found() {
         .with_exists(FOO.user.id, false);
 
     let sut = MfaFeatureServiceImpl {
+        session_repo: {
+            let mut repo = MockSessionRepository::new();
+            repo.expect_get()
+                .times(0..=1)
+                .return_once(|_, _| Box::pin(std::future::ready(Ok(Some(ADMIN_1.clone())))));
+            repo
+        },
         auth,
         db,
         user_repo,
@@ -160,6 +175,13 @@ async fn already_enabled() {
     );
 
     let sut = MfaFeatureServiceImpl {
+        session_repo: {
+            let mut repo = MockSessionRepository::new();
+            repo.expect_get()
+                .times(0..=1)
+                .return_once(|_, _| Box::pin(std::future::ready(Ok(Some(FOO_1.clone())))));
+            repo
+        },
         auth,
         db,
         user_repo,
@@ -190,6 +212,13 @@ async fn not_initialized() {
     let mfa_repo = MockMfaRepository::new().with_list_totp_devices_by_user(FOO.user.id, vec![]);
 
     let sut = MfaFeatureServiceImpl {
+        session_repo: {
+            let mut repo = MockSessionRepository::new();
+            repo.expect_get()
+                .times(0..=1)
+                .return_once(|_, _| Box::pin(std::future::ready(Ok(Some(FOO_1.clone())))));
+            repo
+        },
         auth,
         db,
         user_repo,
@@ -227,6 +256,13 @@ async fn invalid_code() {
     );
 
     let sut = MfaFeatureServiceImpl {
+        session_repo: {
+            let mut repo = MockSessionRepository::new();
+            repo.expect_get()
+                .times(0..=1)
+                .return_once(|_, _| Box::pin(std::future::ready(Ok(Some(FOO_1.clone())))));
+            repo
+        },
         auth,
         db,
         user_repo,

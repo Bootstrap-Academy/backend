@@ -52,6 +52,8 @@ async fn ok() {
         db,
         user_repo,
         session,
+        session_repo: academy_persistence_contracts::session::MockSessionRepository::new()
+            .with_get(ADMIN_1.id, Some(ADMIN_1.clone())),
         ..Sut::default()
     };
 

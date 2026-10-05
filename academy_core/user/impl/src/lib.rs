@@ -416,16 +416,16 @@ where
             return Err(UserUpdateError::CannotDemoteSelf);
         }
 
-        // Changing the old opt-out flag shares or withdraws the profile, which
-        // only the owner's own sign-in decides (see the publication route).
-        // Support changes another account with its own token instead.
-        if profile_update.leaderboard_opt_out.is_update()
-            && user_id == auth.user_id
+        // Credential changes would let the operator sign in as the owner later.
+        // Check every target, including the CLI's impersonated admin account.
+        if (password_changed
+            || email.is_update()
+            || email_verified.is_update()
+            || profile_update.leaderboard_opt_out.is_update())
             && !self
                 .session_repo
                 .get(&mut txn, auth.session_id)
-                .await
-                .context("Failed to get session from database")?
+                .await?
                 .is_some_and(|session| session.is_owner_sign_in())
         {
             return Err(UserUpdateError::NotOwnerSignIn);

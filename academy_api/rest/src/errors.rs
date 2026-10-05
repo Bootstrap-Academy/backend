@@ -26,6 +26,9 @@ pub fn auth_error(err: AuthError) -> Response {
             InvalidTokenError.into_response()
         }
         AuthError::Authenticate(AuthenticateError::Other(err)) => internal_server_error(err),
+        AuthError::Authorize(AuthorizeError::OwnerSignIn) => {
+            OwnerSignInRequiredError.into_response()
+        }
         AuthError::Authorize(AuthorizeError::Admin) => PermissionDeniedError.into_response(),
         AuthError::Authorize(AuthorizeError::AdminMfa) => AdminMfaRequiredError.into_response(),
         AuthError::Authorize(AuthorizeError::EmailVerified) => {
@@ -39,6 +42,7 @@ pub fn auth_error_docs(op: TransformOperation) -> TransformOperation {
         .with(internal_server_error_docs)
         .add_error::<PermissionDeniedError>()
         .add_error::<AdminMfaRequiredError>()
+        .add_error::<OwnerSignInRequiredError>()
         .add_error::<EmailNotVerifiedError>()
 }
 
@@ -66,6 +70,8 @@ error_code! {
     /// authenticated with a second factor. Log in again and provide the TOTP
     /// code, or set up two factor authentication first.
     pub AdminMfaRequiredError(FORBIDDEN, "Admin MFA required");
+    /// Only an owner sign-in can change credentials or profile visibility.
+    pub OwnerSignInRequiredError(FORBIDDEN, "Owner sign-in required");
     /// The authenticated user has not verified their email address.
     EmailNotVerifiedError(FORBIDDEN, "Email not verified");
 

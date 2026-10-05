@@ -23,7 +23,10 @@ use academy_models::{
     user::{UserId, UserIdOrSelf},
 };
 use academy_persistence_contracts::{
-    Database, Transaction, oauth2::OAuth2Repository, user::UserRepository,
+    Database, Transaction,
+    oauth2::OAuth2Repository,
+    session::{SessionRepository, ensure_owner_sign_in},
+    user::UserRepository,
 };
 use academy_utils::trace_instrument;
 use anyhow::Context;
@@ -48,6 +51,7 @@ pub struct OAuth2FeatureServiceImpl<
     OAuth2Login,
     OAuth2Registration,
     Session,
+    SessionRepo,
 > {
     db: Db,
     auth: Auth,
@@ -58,6 +62,7 @@ pub struct OAuth2FeatureServiceImpl<
     oauth2_login: OAuth2Login,
     oauth2_registration: OAuth2Registration,
     session: Session,
+    session_repo: SessionRepo,
     config: OAuth2FeatureConfig,
 }
 
@@ -83,6 +88,7 @@ impl<
     OAuth2LoginS,
     OAuth2RegistrationS,
     Session,
+    SessionRepo,
 > OAuth2FeatureService
     for OAuth2FeatureServiceImpl<
         Db,
@@ -94,6 +100,7 @@ impl<
         OAuth2LoginS,
         OAuth2RegistrationS,
         Session,
+        SessionRepo,
     >
 where
     Db: Database,
@@ -105,6 +112,7 @@ where
     OAuth2LoginS: OAuth2LoginService,
     OAuth2RegistrationS: OAuth2RegistrationService,
     Session: SessionService<Db::Transaction>,
+    SessionRepo: SessionRepository<Db::Transaction>,
 {
     async fn begin_recipient(
         &self,
@@ -257,6 +265,7 @@ where
             .await
             .map_auth_err()?;
         auth.ensure_self_or_admin(user_id).map_auth_err()?;
+        ensure_owner_sign_in(&self.session_repo, &mut txn, auth.session_id).await?;
 
         if !self
             .user_repo
@@ -333,6 +342,7 @@ where
             .await
             .map_auth_err()?;
         auth.ensure_self_or_admin(user_id).map_auth_err()?;
+        ensure_owner_sign_in(&self.session_repo, &mut txn, auth.session_id).await?;
 
         let link = self
             .oauth2_repo

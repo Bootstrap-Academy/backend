@@ -1,6 +1,6 @@
---: AdminAuditLogEntry (target_user_id?)
+--: AdminAuditLogEntry (admin_user_id?, target_user_id?)
 
---! create (target_user_id?)
+--! create (admin_user_id?, target_user_id?)
 insert into admin_audit_log (id, at, admin_user_id, method, path, target_user_id, status, request_id)
   values (:id, :at, :admin_user_id, :method, :path, :target_user_id, :status, :request_id);
 

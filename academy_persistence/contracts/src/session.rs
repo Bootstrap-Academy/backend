@@ -271,3 +271,23 @@ impl<Txn: Send + Sync + 'static> MockSessionRepository<Txn> {
         self
     }
 }
+
+/// Credentials and publication choices cannot be changed through an
+/// impersonation, including a CLI session and a legacy session of unknown origin.
+/// Call after authenticating in the same write transaction.
+pub async fn ensure_owner_sign_in<Txn: Send + Sync + 'static>(
+    repo: &impl SessionRepository<Txn>,
+    txn: &mut Txn,
+    session_id: SessionId,
+) -> Result<(), academy_models::auth::AuthError> {
+    if repo
+        .get(txn, session_id)
+        .await
+        .map_err(academy_models::auth::AuthenticateError::Other)?
+        .is_some_and(|session| session.is_owner_sign_in())
+    {
+        Ok(())
+    } else {
+        Err(academy_models::auth::AuthorizeError::OwnerSignIn.into())
+    }
+}

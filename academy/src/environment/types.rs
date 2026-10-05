@@ -226,6 +226,7 @@ pub type MfaFeature = MfaFeatureServiceImpl<
     MfaRecovery,
     MfaDisable,
     MfaTotpDevice,
+    SessionRepo,
 >;
 pub type MfaRecovery = MfaRecoveryServiceImpl<Secret, Hash, MfaRepo>;
 pub type MfaAuthenticate = MfaAuthenticateServiceImpl<Hash, Totp, MfaDisable, MfaRepo>;
@@ -242,6 +243,7 @@ pub type OAuth2Feature = OAuth2FeatureServiceImpl<
     OAuth2Login,
     OAuth2Registration,
     Session,
+    SessionRepo,
 >;
 pub type OAuth2Link = OAuth2LinkServiceImpl<Id, Time, OAuth2Repo>;
 pub type OAuth2Authorization = OAuth2AuthorizationServiceImpl<Secret, Cache, OAuth2Api>;
@@ -316,7 +318,7 @@ pub type Internal = InternalServiceImpl<
 >;
 
 pub type AdminAuditFeature =
-    AdminAuditFeatureServiceImpl<Database, Auth, Id, Time, AdminAuditRepo, SessionRepo>;
+    AdminAuditFeatureServiceImpl<Database, Auth, Id, Time, AdminAuditRepo, SessionRepo, UserRepo>;
 
 pub type PurchaseRepo = academy_persistence_postgres::purchase::PostgresPurchaseRepository;
 pub type PurchaseFeature = academy_core_purchase_impl::PurchaseFeatureServiceImpl<

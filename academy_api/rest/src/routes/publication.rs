@@ -71,6 +71,19 @@ async fn no_store(request: Request, next: Next) -> Response {
     response
 }
 
+/// Audit preparation is also part of the publication authority check. Keep
+/// the same unavailable contract and storage headers when it fails first.
+pub(crate) fn audit_unavailable(error: anyhow::Error) -> Response {
+    let mut response = respond::<()>(Err(PublicationError::Other(error)));
+    response
+        .headers_mut()
+        .insert(CACHE_CONTROL, HeaderValue::from_static("private, no-store"));
+    response
+        .headers_mut()
+        .append(VARY, HeaderValue::from_static("Authorization"));
+    response
+}
+
 fn respond<T: Serialize>(result: Result<T, PublicationError>) -> Response {
     let error = match result {
         Ok(value) => return Json(value).into_response(),

@@ -12,6 +12,7 @@ use academy_models::{
     mfa::TotpSetup,
     user::UserIdOrSelf,
 };
+use academy_persistence_contracts::session::MockSessionRepository;
 use academy_persistence_contracts::{
     MockDatabase, mfa::MockMfaRepository, user::MockUserRepository,
 };
@@ -40,6 +41,13 @@ async fn new() {
         MockMfaTotpDeviceService::new().with_create(FOO.user.id, expected.clone());
 
     let sut = MfaFeatureServiceImpl {
+        session_repo: {
+            let mut repo = MockSessionRepository::new();
+            repo.expect_get()
+                .times(0..=1)
+                .return_once(|_, _| Box::pin(std::future::ready(Ok(Some(FOO_1.clone())))));
+            repo
+        },
         auth,
         db,
         user_repo,
@@ -77,6 +85,13 @@ async fn reset_disabled() {
         MockMfaTotpDeviceService::new().with_reset(FOO_TOTP_1.id, expected.clone());
 
     let sut = MfaFeatureServiceImpl {
+        session_repo: {
+            let mut repo = MockSessionRepository::new();
+            repo.expect_get()
+                .times(0..=1)
+                .return_once(|_, _| Box::pin(std::future::ready(Ok(Some(FOO_1.clone())))));
+            repo
+        },
         auth,
         db,
         user_repo,
@@ -151,6 +166,13 @@ async fn user_not_found() {
         .with_exists(FOO.user.id, false);
 
     let sut = MfaFeatureServiceImpl {
+        session_repo: {
+            let mut repo = MockSessionRepository::new();
+            repo.expect_get()
+                .times(0..=1)
+                .return_once(|_, _| Box::pin(std::future::ready(Ok(Some(ADMIN_1.clone())))));
+            repo
+        },
         auth,
         db,
         user_repo,
@@ -181,6 +203,13 @@ async fn already_enabled() {
     );
 
     let sut = MfaFeatureServiceImpl {
+        session_repo: {
+            let mut repo = MockSessionRepository::new();
+            repo.expect_get()
+                .times(0..=1)
+                .return_once(|_, _| Box::pin(std::future::ready(Ok(Some(FOO_1.clone())))));
+            repo
+        },
         auth,
         db,
         user_repo,

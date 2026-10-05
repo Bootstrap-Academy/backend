@@ -113,6 +113,12 @@ where
             .await
             .map_auth_err()?;
         current_auth.ensure_admin().map_auth_err()?;
+        academy_persistence_contracts::session::ensure_owner_sign_in(
+            &self.session_repo,
+            &mut txn,
+            current_auth.session_id,
+        )
+        .await?;
         self.user_repo
             .get_composite(&mut txn, user_id)
             .await?

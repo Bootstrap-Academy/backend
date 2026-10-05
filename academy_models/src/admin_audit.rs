@@ -23,7 +23,8 @@ pub struct AdminAuditLogEntry {
     pub at: DateTime<Utc>,
     /// The administrator whose access token authenticated the request, or who
     /// opened the session in someone else's account it was made in
-    pub admin_user_id: UserId,
+    /// None identifies a server CLI operator with no known admin account.
+    pub admin_user_id: Option<UserId>,
     /// HTTP method of the request
     pub method: RequestMethod,
     /// Path of the request, without the query string

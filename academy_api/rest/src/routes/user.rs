@@ -359,6 +359,7 @@ async fn update(
             | UserUpdateError::NameChangeRateLimit { .. },
         ) => PermissionDeniedError.into_response(),
         Err(UserUpdateError::InvalidVatId) => InvalidVatIdError.into_response(),
+        Err(UserUpdateError::NotOwnerSignIn) => OwnerSignInRequiredError.into_response(),
         Err(UserUpdateError::Auth(err)) => auth_error(err),
         Err(UserUpdateError::Other(err)) => internal_server_error(err),
     }
@@ -372,6 +373,7 @@ fn update_docs(op: TransformOperation) -> TransformOperation {
         .add_error::<EmailAlreadyExistsError>()
         .add_error::<CannotDeleteLastLoginMethodError>()
         .add_error::<PermissionDeniedError>()
+        .add_error::<OwnerSignInRequiredError>()
         .add_error::<InvalidVatIdError>()
         .with(auth_error_docs)
         .with(internal_server_error_docs)
@@ -669,6 +671,9 @@ error_code! {
     pub UserDisabledError(FORBIDDEN, "User disabled");
     /// The last login method (password or OAuth2 link) cannot be deleted.
     pub CannotDeleteLastLoginMethodError(FORBIDDEN, "Cannot delete last login method");
+    /// Only the owner's own sign-in can change the profile visibility, never a
+    /// session an administrator opened in the account.
+    OwnerSignInRequiredError(FORBIDDEN, "Owner sign-in required");
     /// A user with this name already exists.
     UserAlreadyExistsError(CONFLICT, "User already exists");
     /// A user with this email address already exists.

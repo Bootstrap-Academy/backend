@@ -6,6 +6,7 @@ use academy_demo::{
     user::{ADMIN, BAR, FOO},
 };
 use academy_models::auth::{AuthError, AuthenticateError, AuthorizeError};
+use academy_persistence_contracts::session::MockSessionRepository;
 use academy_persistence_contracts::{
     MockDatabase, oauth2::MockOAuth2Repository, user::MockUserRepository,
 };
@@ -32,6 +33,13 @@ async fn ok() {
     );
 
     let sut = OAuth2FeatureServiceImpl {
+        session_repo: {
+            let mut repo = MockSessionRepository::new();
+            repo.expect_get()
+                .times(0..=1)
+                .return_once(|_, _| Box::pin(std::future::ready(Ok(Some(FOO_1.clone())))));
+            repo
+        },
         db,
         auth,
         oauth2_repo,
@@ -111,6 +119,13 @@ async fn not_found() {
         .with_lock_account(ADMIN.user.id, true);
 
     let sut = OAuth2FeatureServiceImpl {
+        session_repo: {
+            let mut repo = MockSessionRepository::new();
+            repo.expect_get()
+                .times(0..=1)
+                .return_once(|_, _| Box::pin(std::future::ready(Ok(Some(ADMIN_1.clone())))));
+            repo
+        },
         db,
         auth,
         oauth2_repo,
@@ -144,6 +159,13 @@ async fn user_id_mismatch() {
         .with_lock_account(ADMIN.user.id, true);
 
     let sut = OAuth2FeatureServiceImpl {
+        session_repo: {
+            let mut repo = MockSessionRepository::new();
+            repo.expect_get()
+                .times(0..=1)
+                .return_once(|_, _| Box::pin(std::future::ready(Ok(Some(ADMIN_1.clone())))));
+            repo
+        },
         db,
         auth,
         oauth2_repo,
@@ -182,6 +204,13 @@ async fn last_login_method() {
     );
 
     let sut = OAuth2FeatureServiceImpl {
+        session_repo: {
+            let mut repo = MockSessionRepository::new();
+            repo.expect_get()
+                .times(0..=1)
+                .return_once(|_, _| Box::pin(std::future::ready(Ok(Some(FOO_1.clone())))));
+            repo
+        },
         db,
         auth,
         oauth2_repo,

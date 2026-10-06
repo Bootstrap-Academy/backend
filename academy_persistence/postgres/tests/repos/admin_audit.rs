@@ -20,7 +20,7 @@ fn update_user() -> AdminAuditLogEntry {
     AdminAuditLogEntry {
         id: UUID1.into(),
         at: Utc.with_ymd_and_hms(2026, 9, 3, 12, 0, 0).unwrap(),
-        admin_user_id: ADMIN.user.id,
+        admin_user_id: Some(ADMIN.user.id),
         method: "PATCH".try_into().unwrap(),
         path: format!("/auth/users/{}", *FOO.user.id).try_into().unwrap(),
         target_user_id: Some(FOO.user.id),
@@ -34,7 +34,7 @@ fn purchase_premium() -> AdminAuditLogEntry {
     AdminAuditLogEntry {
         id: UUID2.into(),
         at: Utc.with_ymd_and_hms(2026, 9, 2, 12, 0, 0).unwrap(),
-        admin_user_id: ADMIN.user.id,
+        admin_user_id: Some(ADMIN.user.id),
         method: "POST".try_into().unwrap(),
         path: "/shop/premium".try_into().unwrap(),
         target_user_id: None,
@@ -47,7 +47,7 @@ fn delete_user() -> AdminAuditLogEntry {
     AdminAuditLogEntry {
         id: uuid!("f0e7c0f1-7e33-4c19-9a3b-2b2c5d4b8d21").into(),
         at: Utc.with_ymd_and_hms(2026, 9, 1, 12, 0, 0).unwrap(),
-        admin_user_id: FOO.user.id,
+        admin_user_id: Some(FOO.user.id),
         method: "DELETE".try_into().unwrap(),
         path: format!("/auth/users/{}", *ADMIN.user.id)
             .try_into()
@@ -212,5 +212,37 @@ async fn survives_user_deletion() {
             .await
             .unwrap(),
         [update_user(), purchase_premium(), delete_user()]
+    );
+}
+
+/// Operator attribution remains explicitly unknown when the repository reads it back.
+#[tokio::test]
+async fn operator_entry_round_trips_and_does_not_invent_an_admin() {
+    let db = setup().await;
+    let entry = AdminAuditLogEntry {
+        admin_user_id: None,
+        ..update_user()
+    };
+    let mut txn = db.begin_transaction().await.unwrap();
+    REPO.create(&mut txn, &entry).await.unwrap();
+    txn.commit().await.unwrap();
+    let mut txn = db.begin_transaction().await.unwrap();
+    assert_eq!(
+        REPO.list(&mut txn, AdminAuditLogFilter::default(), make_slice(10, 0))
+            .await
+            .unwrap(),
+        [entry]
+    );
+    assert_eq!(
+        REPO.count(
+            &mut txn,
+            AdminAuditLogFilter {
+                admin_user_id: Some(ADMIN.user.id),
+                ..Default::default()
+            }
+        )
+        .await
+        .unwrap(),
+        0
     );
 }

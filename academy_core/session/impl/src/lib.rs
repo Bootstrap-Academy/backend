@@ -16,7 +16,7 @@ use academy_di::Build;
 use academy_models::{
     RecaptchaResponse,
     auth::{AccessToken, Login, RefreshToken},
-    session::{Session, SessionId},
+    session::{Session, SessionId, SessionOrigin},
     user::{UserId, UserIdOrSelf, UserNameOrEmailAddress},
 };
 use academy_persistence_contracts::{
@@ -151,7 +151,14 @@ where
 
         let login = self
             .session
-            .create(&mut txn, user_composite, device_name, true, mfa_verified)
+            .create(
+                &mut txn,
+                user_composite,
+                device_name,
+                true,
+                mfa_verified,
+                SessionOrigin::SignIn,
+            )
             .await
             .context("Failed to create session")?;
 
@@ -214,11 +221,27 @@ where
             return Err(SessionImpersonateError::NotFound);
         }
 
+        let origin = self
+            .session_repo
+            .get(&mut txn, auth.session_id)
+            .await?
+            .map(|session| match session.origin {
+                origin @ SessionOrigin::Impersonation { .. } => origin,
+                _ if !session.is_owner_sign_in() => SessionOrigin::Impersonation { admin: None },
+                _ => SessionOrigin::Impersonation {
+                    admin: Some(auth.user_id),
+                },
+            })
+            .ok_or(academy_models::auth::AuthenticateError::InvalidToken)
+            .map_auth_err()?;
+
         // Impersonation never involves the second factor of the impersonated
         // user, so the new session does not grant administrative privileges.
+        // The session records the administrator, which keeps owner-only
+        // decisions out of its reach for its whole lifetime.
         let login = self
             .session
-            .create(&mut txn, user_composite, None, false, false)
+            .create(&mut txn, user_composite, None, false, false, origin)
             .await
             .context("Failed to create session")?;
 

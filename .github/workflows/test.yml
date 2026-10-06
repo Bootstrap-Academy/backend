@@ -103,6 +103,19 @@ jobs:
               --pg-bin "$(dirname "$(command -v pg_ctl)")" \
               --valkey "$(command -v valkey-server)" \
               --output "$RUNNER_TEMP/academy-sensitive-writes-test-evidence"'
+      - name: test impersonation provenance and durable request audit through HTTP and CLI
+        run: |
+          nix shell --accept-flake-config --no-write-lock-file --inputs-from . \
+            nixpkgs#postgresql_18 nixpkgs#valkey -c bash -euo pipefail -c \
+            'python3 -B tests/impersonation.py --binary target/debug/academy \
+              --pg-bin "$(dirname "$(command -v pg_ctl)")" \
+              --valkey "$(command -v valkey-server)" \
+              --output "$RUNNER_TEMP/academy-impersonation-test-evidence"'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: impersonation-test-evidence
+          path: ${{ runner.temp }}/academy-impersonation-test-evidence
       - uses: actions/upload-artifact@v4
         if: always()
         with:

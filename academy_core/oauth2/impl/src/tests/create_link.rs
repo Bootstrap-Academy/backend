@@ -15,6 +15,7 @@ use academy_models::{
     oauth2::OAuth2PendingAuthorization,
     user::UserIdOrSelf,
 };
+use academy_persistence_contracts::session::MockSessionRepository;
 use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
 use academy_utils::assert_matches;
 
@@ -50,6 +51,13 @@ async fn ok() {
     );
 
     let sut = OAuth2FeatureServiceImpl {
+        session_repo: {
+            let mut repo = MockSessionRepository::new();
+            repo.expect_get()
+                .times(0..=1)
+                .return_once(|_, _| Box::pin(std::future::ready(Ok(Some(FOO_1.clone())))));
+            repo
+        },
         db,
         auth,
         user_repo,
@@ -131,6 +139,13 @@ async fn not_found() {
         .with_exists(FOO.user.id, false);
 
     let sut = OAuth2FeatureServiceImpl {
+        session_repo: {
+            let mut repo = MockSessionRepository::new();
+            repo.expect_get()
+                .times(0..=1)
+                .return_once(|_, _| Box::pin(std::future::ready(Ok(Some(ADMIN_1.clone())))));
+            repo
+        },
         db,
         auth,
         user_repo,
@@ -163,6 +178,13 @@ async fn invalid_state() {
         MockOAuth2AuthorizationService::new().with_consume(STATE.try_into().unwrap(), None);
 
     let sut = OAuth2FeatureServiceImpl {
+        session_repo: {
+            let mut repo = MockSessionRepository::new();
+            repo.expect_get()
+                .times(0..=1)
+                .return_once(|_, _| Box::pin(std::future::ready(Ok(Some(FOO_1.clone())))));
+            repo
+        },
         db,
         auth,
         user_repo,
@@ -206,6 +228,13 @@ async fn invalid_provider() {
         .with_login(login, Err(OAuth2LoginServiceError::InvalidProvider));
 
     let sut = OAuth2FeatureServiceImpl {
+        session_repo: {
+            let mut repo = MockSessionRepository::new();
+            repo.expect_get()
+                .times(0..=1)
+                .return_once(|_, _| Box::pin(std::future::ready(Ok(Some(FOO_1.clone())))));
+            repo
+        },
         db,
         auth,
         user_repo,
@@ -243,6 +272,13 @@ async fn invalid_code() {
         .with_login(login(), Err(OAuth2LoginServiceError::InvalidCode));
 
     let sut = OAuth2FeatureServiceImpl {
+        session_repo: {
+            let mut repo = MockSessionRepository::new();
+            repo.expect_get()
+                .times(0..=1)
+                .return_once(|_, _| Box::pin(std::future::ready(Ok(Some(FOO_1.clone())))));
+            repo
+        },
         db,
         auth,
         user_repo,
@@ -287,6 +323,13 @@ async fn remote_already_linked() {
     );
 
     let sut = OAuth2FeatureServiceImpl {
+        session_repo: {
+            let mut repo = MockSessionRepository::new();
+            repo.expect_get()
+                .times(0..=1)
+                .return_once(|_, _| Box::pin(std::future::ready(Ok(Some(FOO_1.clone())))));
+            repo
+        },
         db,
         auth,
         user_repo,
@@ -325,6 +368,13 @@ async fn anonymous_authorization() {
         .with_consume(STATE.try_into().unwrap(), Some(pending_authorization()));
 
     let sut = OAuth2FeatureServiceImpl {
+        session_repo: {
+            let mut repo = MockSessionRepository::new();
+            repo.expect_get()
+                .times(0..=1)
+                .return_once(|_, _| Box::pin(std::future::ready(Ok(Some(FOO_1.clone())))));
+            repo
+        },
         db,
         auth,
         user_repo,
@@ -359,6 +409,13 @@ async fn authorization_of_another_account() {
     );
 
     let sut = OAuth2FeatureServiceImpl {
+        session_repo: {
+            let mut repo = MockSessionRepository::new();
+            repo.expect_get()
+                .times(0..=1)
+                .return_once(|_, _| Box::pin(std::future::ready(Ok(Some(FOO_1.clone())))));
+            repo
+        },
         db,
         auth,
         user_repo,

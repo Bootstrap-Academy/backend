@@ -5,6 +5,7 @@ use academy_core_user_contracts::{
 };
 use academy_demo::{session::FOO_1, user::FOO};
 use academy_models::user::{UserIdOrSelf, UserPassword};
+use academy_persistence_contracts::session::MockSessionRepository;
 use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
 use academy_utils::{Apply, assert_matches, patch::PatchValue};
 
@@ -30,6 +31,13 @@ async fn update_password() {
         MockUserUpdateService::new().with_update_password(FOO.user.id, new_password.clone());
 
     let sut = UserFeatureServiceImpl {
+        session_repo: {
+            let mut repo = MockSessionRepository::new();
+            repo.expect_get()
+                .times(0..=1)
+                .return_once(|_, _| Box::pin(std::future::ready(Ok(Some(FOO_1.clone())))));
+            repo
+        },
         auth,
         session: academy_core_session_contracts::session::MockSessionService::new()
             .with_revoke_by_user(FOO.user.id, Vec::new()),
@@ -77,6 +85,13 @@ async fn remove_password_oauth() {
         .with_remove_password_hash(FOO.user.id, true);
 
     let sut = UserFeatureServiceImpl {
+        session_repo: {
+            let mut repo = MockSessionRepository::new();
+            repo.expect_get()
+                .times(0..=1)
+                .return_once(|_, _| Box::pin(std::future::ready(Ok(Some(FOO_1.clone())))));
+            repo
+        },
         auth,
         session: academy_core_session_contracts::session::MockSessionService::new()
             .with_revoke_by_user(FOO.user.id, Vec::new()),
@@ -127,6 +142,13 @@ async fn remove_password_no_oauth() {
         );
 
     let sut = UserFeatureServiceImpl {
+        session_repo: {
+            let mut repo = MockSessionRepository::new();
+            repo.expect_get()
+                .times(0..=1)
+                .return_once(|_, _| Box::pin(std::future::ready(Ok(Some(FOO_1.clone())))));
+            repo
+        },
         auth,
         cache: academy_cache_contracts::MockCacheService::new().with_remove(
             crate::email_confirmation::reset_password_cache_key(FOO.user.id),

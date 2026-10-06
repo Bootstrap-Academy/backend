@@ -13,6 +13,7 @@ use academy_demo::{
 use academy_models::{
     auth::Login,
     oauth2::{OAuth2PendingAuthorization, OAuth2RegistrationToken},
+    session::SessionOrigin,
 };
 use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
 use academy_utils::{Apply, assert_matches};
@@ -47,8 +48,14 @@ async fn ok() {
             Some(FOO.clone()),
         );
 
-    let session =
-        MockSessionService::new().with_create(FOO.clone(), None, true, false, expected.clone());
+    let session = MockSessionService::new().with_create(
+        FOO.clone(),
+        None,
+        true,
+        false,
+        SessionOrigin::SignIn,
+        expected.clone(),
+    );
 
     let sut = OAuth2FeatureServiceImpl {
         db,

@@ -17,7 +17,8 @@ pub struct ApiAdminAuditLogEntry {
     /// Time at which the request was answered
     pub at: ApiTimestamp,
     /// The administrator whose access token authenticated the request
-    pub admin_user_id: UserId,
+    /// None identifies a server CLI operator with no known admin account.
+    pub admin_user_id: Option<UserId>,
     /// HTTP method of the request
     pub method: RequestMethod,
     /// Path of the request, without the query string

@@ -1,12 +1,14 @@
 use std::time::Duration;
 
 use academy_demo::{
-    SHA256HASH1, SHA256HASH2, UUID1,
+    SHA256HASH1, SHA256HASH2, UUID1, UUID2,
     session::{ADMIN_1, ALL_SESSIONS, FOO_1, FOO_2},
     user::{ADMIN, ALL_USERS, FOO},
 };
-use academy_models::session::{Session, SessionRefreshTokenHash};
-use academy_persistence_contracts::{Database, Transaction, session::SessionRepository};
+use academy_models::session::{Session, SessionOrigin, SessionRefreshTokenHash};
+use academy_persistence_contracts::{
+    Database, Transaction, session::SessionRepository, user::UserRepository,
+};
 use academy_persistence_postgres::session::PostgresSessionRepository;
 use academy_utils::patch::Patch;
 use pretty_assertions::assert_eq;
@@ -85,6 +87,7 @@ async fn create() {
         created_at: ADMIN.user.created_at + Duration::from_secs(10 * 3600),
         updated_at: ADMIN.user.created_at + Duration::from_secs(7 * 24 * 3600),
         mfa_verified: true,
+        origin: SessionOrigin::SignIn,
     };
 
     let mut txn = db.begin_transaction().await.unwrap();
@@ -95,6 +98,71 @@ async fn create() {
     assert_eq!(
         REPO.get(&mut txn, session.id).await.unwrap().unwrap(),
         session
+    );
+}
+
+/// The origin is stored once and read back unchanged, including who signed in
+/// to someone else's account.
+#[tokio::test]
+async fn create_impersonation() {
+    let db = setup().await;
+
+    for (id, admin) in [(UUID1, Some(ADMIN.user.id)), (UUID2, None)] {
+        let session = Session {
+            id: id.into(),
+            device_name: None,
+            mfa_verified: false,
+            origin: SessionOrigin::Impersonation { admin },
+            ..FOO_1.clone()
+        };
+
+        let mut txn = db.begin_transaction().await.unwrap();
+        REPO.create(&mut txn, &session).await.unwrap();
+        txn.commit().await.unwrap();
+
+        let mut txn = db.begin_transaction().await.unwrap();
+        let result = REPO.get(&mut txn, session.id).await.unwrap().unwrap();
+        assert_eq!(result, session);
+        assert!(!result.is_owner_sign_in());
+    }
+}
+
+/// Sessions an administrator opened in other accounts end together with the
+/// administrator's own account.
+#[tokio::test]
+async fn impersonation_sessions_end_with_the_admin_account() {
+    let db = setup().await;
+    let session = Session {
+        id: UUID1.into(),
+        device_name: None,
+        mfa_verified: false,
+        origin: SessionOrigin::Impersonation {
+            admin: Some(ADMIN.user.id),
+        },
+        ..FOO_1.clone()
+    };
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    REPO.create(&mut txn, &session).await.unwrap();
+    REPO.save_refresh_token_hash(&mut txn, session.id, (*SHA256HASH1).into())
+        .await
+        .unwrap();
+    txn.commit().await.unwrap();
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    assert!(
+        academy_persistence_postgres::user::PostgresUserRepository
+            .delete(&mut txn, ADMIN.user.id)
+            .await
+            .unwrap()
+    );
+    txn.commit().await.unwrap();
+
+    let mut txn = db.begin_transaction().await.unwrap();
+    assert_eq!(REPO.get(&mut txn, session.id).await.unwrap(), None);
+    assert_eq!(
+        REPO.get(&mut txn, FOO_1.id).await.unwrap().as_ref(),
+        Some(&*FOO_1)
     );
 }
 

@@ -8,6 +8,7 @@ use academy_demo::{
     user::{ADMIN, FOO},
 };
 use academy_models::user::{User, UserComposite, UserIdOrSelf};
+use academy_persistence_contracts::session::MockSessionRepository;
 use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
 use academy_utils::assert_matches;
 
@@ -43,6 +44,13 @@ async fn update_email_self() {
     );
 
     let sut = UserFeatureServiceImpl {
+        session_repo: {
+            let mut repo = MockSessionRepository::new();
+            repo.expect_get()
+                .times(0..=1)
+                .return_once(|_, _| Box::pin(std::future::ready(Ok(Some(FOO_1.clone())))));
+            repo
+        },
         auth,
         db,
         user_update,
@@ -103,6 +111,13 @@ async fn update_email_admin() {
     );
 
     let sut = UserFeatureServiceImpl {
+        session_repo: {
+            let mut repo = MockSessionRepository::new();
+            repo.expect_get()
+                .times(0..=1)
+                .return_once(|_, _| Box::pin(std::future::ready(Ok(Some(ADMIN_1.clone())))));
+            repo
+        },
         auth,
         db,
         user_update,
@@ -163,6 +178,13 @@ async fn update_email_admin_verified() {
     );
 
     let sut = UserFeatureServiceImpl {
+        session_repo: {
+            let mut repo = MockSessionRepository::new();
+            repo.expect_get()
+                .times(0..=1)
+                .return_once(|_, _| Box::pin(std::future::ready(Ok(Some(ADMIN_1.clone())))));
+            repo
+        },
         auth,
         db,
         user_update,
@@ -224,6 +246,13 @@ async fn update_email_admin_unverified() {
     );
 
     let sut = UserFeatureServiceImpl {
+        session_repo: {
+            let mut repo = MockSessionRepository::new();
+            repo.expect_get()
+                .times(0..=1)
+                .return_once(|_, _| Box::pin(std::future::ready(Ok(Some(ADMIN_1.clone())))));
+            repo
+        },
         auth,
         db,
         user_update,
@@ -287,6 +316,13 @@ async fn update_set_email_verified() {
     );
 
     let sut = UserFeatureServiceImpl {
+        session_repo: {
+            let mut repo = MockSessionRepository::new();
+            repo.expect_get()
+                .times(0..=1)
+                .return_once(|_, _| Box::pin(std::future::ready(Ok(Some(ADMIN_1.clone())))));
+            repo
+        },
         auth,
         db,
         user_update,
@@ -343,6 +379,13 @@ async fn update_set_email_unverified() {
     );
 
     let sut = UserFeatureServiceImpl {
+        session_repo: {
+            let mut repo = MockSessionRepository::new();
+            repo.expect_get()
+                .times(0..=1)
+                .return_once(|_, _| Box::pin(std::future::ready(Ok(Some(ADMIN_1.clone())))));
+            repo
+        },
         auth,
         db,
         user_update,
@@ -390,6 +433,13 @@ async fn update_email_conflict() {
     );
 
     let sut = UserFeatureServiceImpl {
+        session_repo: {
+            let mut repo = MockSessionRepository::new();
+            repo.expect_get()
+                .times(0..=1)
+                .return_once(|_, _| Box::pin(std::future::ready(Ok(Some(FOO_1.clone())))));
+            repo
+        },
         auth,
         db,
         user_update,

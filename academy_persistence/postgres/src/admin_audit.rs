@@ -30,7 +30,7 @@ impl AdminAuditRepository<PostgresTransaction> for PostgresAdminAuditRepository 
         let params = CreateParams {
             id: *entry.id,
             at: entry.at.into(),
-            admin_user_id: *entry.admin_user_id,
+            admin_user_id: entry.admin_user_id.map(|id| *id),
             method: &*entry.method,
             path: &*entry.path,
             target_user_id: entry.target_user_id.map(|user_id| *user_id),
@@ -106,7 +106,7 @@ fn decode_entry(
     Ok(AdminAuditLogEntry {
         id: value.id.into(),
         at: value.at.into(),
-        admin_user_id: value.admin_user_id.into(),
+        admin_user_id: value.admin_user_id.map(Into::into),
         method: value.method.try_into()?,
         path: value.path.try_into()?,
         target_user_id: value.target_user_id.map(Into::into),

@@ -4,7 +4,8 @@ use academy_core_mfa_contracts::{
     totp_device::MockMfaTotpDeviceService,
 };
 use academy_persistence_contracts::{
-    MockDatabase, MockTransaction, mfa::MockMfaRepository, user::MockUserRepository,
+    MockDatabase, MockTransaction, mfa::MockMfaRepository, session::MockSessionRepository,
+    user::MockUserRepository,
 };
 
 use crate::MfaFeatureServiceImpl;
@@ -21,4 +22,5 @@ type Sut = MfaFeatureServiceImpl<
     MockMfaRecoveryService<MockTransaction>,
     MockMfaDisableService<MockTransaction>,
     MockMfaTotpDeviceService<MockTransaction>,
+    MockSessionRepository<MockTransaction>,
 >;

@@ -32,6 +32,8 @@ pub enum AuthorizeError {
     Admin,
     #[error("The session of the administrator was not authenticated with a second factor.")]
     AdminMfa,
+    #[error("Only the owner's own sign-in can change credentials or profile visibility.")]
+    OwnerSignIn,
     #[error("The user's email address is not verified.")]
     EmailVerified,
 }

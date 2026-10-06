@@ -15,7 +15,8 @@ use academy_extern_contracts::{
 use academy_models::user::TermsVersion;
 use academy_persistence_contracts::{
     MockDatabase, MockTransaction, coin::MockCoinRepository,
-    finance::MockFinancialDocumentRepository, user::MockUserRepository,
+    finance::MockFinancialDocumentRepository, session::MockSessionRepository,
+    user::MockUserRepository,
 };
 use academy_shared_contracts::captcha::MockCaptchaService;
 
@@ -54,6 +55,7 @@ type Sut = UserFeatureServiceImpl<
     MockUserRepository<MockTransaction>,
     MockCoinRepository<MockTransaction>,
     MockFinancialDocumentRepository<MockTransaction>,
+    MockSessionRepository<MockTransaction>,
 >;
 
 impl Default for UserFeatureConfig {

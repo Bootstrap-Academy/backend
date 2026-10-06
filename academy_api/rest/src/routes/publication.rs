@@ -71,6 +71,19 @@ async fn no_store(request: Request, next: Next) -> Response {
     response
 }
 
+/// Audit preparation is also part of the publication authority check. Keep
+/// the same unavailable contract and storage headers when it fails first.
+pub(crate) fn audit_unavailable(error: anyhow::Error) -> Response {
+    let mut response = respond::<()>(Err(PublicationError::Other(error)));
+    response
+        .headers_mut()
+        .insert(CACHE_CONTROL, HeaderValue::from_static("private, no-store"));
+    response
+        .headers_mut()
+        .append(VARY, HeaderValue::from_static("Authorization"));
+    response
+}
+
 fn respond<T: Serialize>(result: Result<T, PublicationError>) -> Response {
     let error = match result {
         Ok(value) => return Json(value).into_response(),
@@ -92,6 +105,7 @@ fn respond<T: Serialize>(result: Result<T, PublicationError>) -> Response {
             "publication_preview_required",
         ),
         PublicationError::Unverified => (StatusCode::FORBIDDEN, "email_not_verified"),
+        PublicationError::NotOwnerSignIn => (StatusCode::FORBIDDEN, "owner_sign_in_required"),
     };
     (status, Json(serde_json::json!({"detail":detail}))).into_response()
 }
@@ -165,6 +179,12 @@ fn preview_docs(op: TransformOperation) -> TransformOperation {
 }
 fn choice_docs(op: TransformOperation) -> TransformOperation {
     op.summary("Record an owner choice with CAS and bounded replay receipts.")
+        .description(
+            "Only a session from the owner's own sign-in can share, make private again or confirm \
+             the notice. A session an administrator opened in the account is refused with `403` \
+             and `owner_sign_in_required`, also after refreshes; so is a session from before \
+             origins were recorded that has no device name. Support uses the withdrawal route.",
+        )
         .add_response::<PublicationChoiceResult>(StatusCode::OK, None)
 }
 fn epoch_docs(op: TransformOperation) -> TransformOperation {

@@ -2,17 +2,25 @@ use std::future::Future;
 
 use academy_models::{
     admin_audit::{AdminAuditLogEntry, AdminAuditLogFilter, RequestId, RequestMethod, RequestPath},
-    auth::{AccessToken, AuthError},
+    auth::{AccessToken, AuthError, RefreshToken},
     pagination::PaginationSlice,
     user::UserId,
 };
 use thiserror::Error;
 
 pub trait AdminAuditFeatureService: Send + Sync + 'static {
+    /// Capture durable attribution before the handler can rotate or revoke it.
+    fn capture(
+        &self,
+        credential: AdminAuditCredential<'_>,
+    ) -> impl Future<Output = anyhow::Result<AdminAuditCapture>> + Send;
+
     /// Record a request in the administrative audit log.
     ///
-    /// Requests that were not authenticated with an administrator's access
-    /// token are ignored. Returns whether an entry has been recorded.
+    /// Requests made in a session an administrator opened in someone else's
+    /// account are recorded for that administrator. Attribution has already
+    /// been captured; recording never authenticates the credential again.
+    /// Returns whether an entry has been recorded.
     fn record(
         &self,
         request: AdminAuditRequest,
@@ -28,11 +36,36 @@ pub trait AdminAuditFeatureService: Send + Sync + 'static {
     ) -> impl Future<Output = Result<AdminAuditListResult, AdminAuditListError>> + Send;
 }
 
+/// A credential used only before a handler runs; never persisted in the audit.
+pub enum AdminAuditCredential<'a> {
+    Access(&'a AccessToken),
+    Refresh(&'a RefreshToken),
+}
+
+/// Distinguish an invalid credential from a valid ordinary owner's credential.
+/// An unrelated bearer must never replace a valid refresh actor, even when the
+/// latter does not belong in the administrative audit.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AdminAuditCapture {
+    InvalidCredential,
+    Unrecorded,
+    Recorded(AdminAuditActor),
+}
+
+/// Server-side attribution retained independently of the session's lifetime.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct AdminAuditActor {
+    pub user_id: UserId,
+    /// None for an operator using the server CLI, whose identity is unknown.
+    pub admin_user_id: Option<UserId>,
+    pub impersonated: bool,
+}
+
 /// A request that has been answered and may need to be recorded.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AdminAuditRequest {
-    /// The access token the request was authenticated with
-    pub token: AccessToken,
+    /// Trusted attribution captured before the request handler
+    pub actor: AdminAuditActor,
     /// HTTP method of the request
     pub method: RequestMethod,
     /// Path of the request, without the query string

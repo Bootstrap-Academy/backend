@@ -1,6 +1,6 @@
 use std::{sync::LazyLock, time::Duration};
 
-use academy_models::session::Session;
+use academy_models::session::{Session, SessionOrigin};
 use academy_persistence_contracts::session::SessionRepository;
 use uuid::uuid;
 
@@ -16,6 +16,7 @@ pub static ADMIN_1: LazyLock<Session> = LazyLock::new(|| Session {
     updated_at: ADMIN.user.created_at + Duration::from_secs(1337),
     // administrative privileges require a session created with a second factor
     mfa_verified: true,
+    origin: SessionOrigin::SignIn,
 });
 
 pub static FOO_1: LazyLock<Session> = LazyLock::new(|| Session {
@@ -25,6 +26,7 @@ pub static FOO_1: LazyLock<Session> = LazyLock::new(|| Session {
     created_at: FOO.user.created_at + Duration::from_secs(42),
     updated_at: FOO.user.created_at + Duration::from_secs(1337),
     mfa_verified: false,
+    origin: SessionOrigin::SignIn,
 });
 
 pub static FOO_2: LazyLock<Session> = LazyLock::new(|| Session {
@@ -34,6 +36,7 @@ pub static FOO_2: LazyLock<Session> = LazyLock::new(|| Session {
     created_at: FOO.user.created_at,
     updated_at: FOO.user.created_at + Duration::from_secs(17),
     mfa_verified: false,
+    origin: SessionOrigin::SignIn,
 });
 
 pub static BAR_1: LazyLock<Session> = LazyLock::new(|| Session {
@@ -43,6 +46,7 @@ pub static BAR_1: LazyLock<Session> = LazyLock::new(|| Session {
     created_at: BAR.user.created_at,
     updated_at: BAR.user.created_at + Duration::from_secs(23),
     mfa_verified: false,
+    origin: SessionOrigin::SignIn,
 });
 
 pub async fn create<Txn: Send + Sync + 'static>(

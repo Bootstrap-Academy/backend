@@ -1,13 +1,15 @@
 // This file was generated with `clorinde`. Do not modify.
 
 #[derive(Debug)]
-pub struct CreateParams<T1: crate::StringSql> {
+pub struct CreateParams<T1: crate::StringSql, T2: crate::StringSql> {
     pub id: uuid::Uuid,
     pub user_id: uuid::Uuid,
     pub device_name: Option<T1>,
     pub created_at: chrono::DateTime<chrono::FixedOffset>,
     pub updated_at: chrono::DateTime<chrono::FixedOffset>,
     pub mfa_verified: bool,
+    pub origin: T2,
+    pub impersonated_by: Option<uuid::Uuid>,
 }
 #[derive(Debug)]
 pub struct UpdateParams<T1: crate::StringSql> {
@@ -29,6 +31,8 @@ pub struct Session {
     pub created_at: chrono::DateTime<chrono::FixedOffset>,
     pub updated_at: chrono::DateTime<chrono::FixedOffset>,
     pub mfa_verified: bool,
+    pub origin: String,
+    pub impersonated_by: Option<uuid::Uuid>,
 }
 pub struct SessionBorrowed<'a> {
     pub id: uuid::Uuid,
@@ -37,6 +41,8 @@ pub struct SessionBorrowed<'a> {
     pub created_at: chrono::DateTime<chrono::FixedOffset>,
     pub updated_at: chrono::DateTime<chrono::FixedOffset>,
     pub mfa_verified: bool,
+    pub origin: &'a str,
+    pub impersonated_by: Option<uuid::Uuid>,
 }
 impl<'a> From<SessionBorrowed<'a>> for Session {
     fn from(
@@ -47,6 +53,8 @@ impl<'a> From<SessionBorrowed<'a>> for Session {
             created_at,
             updated_at,
             mfa_verified,
+            origin,
+            impersonated_by,
         }: SessionBorrowed<'a>,
     ) -> Self {
         Self {
@@ -56,6 +64,8 @@ impl<'a> From<SessionBorrowed<'a>> for Session {
             created_at,
             updated_at,
             mfa_verified,
+            origin: origin.into(),
+            impersonated_by,
         }
     }
 }
@@ -220,6 +230,8 @@ impl GetStmt {
                         created_at: row.try_get(3)?,
                         updated_at: row.try_get(4)?,
                         mfa_verified: row.try_get(5)?,
+                        origin: row.try_get(6)?,
+                        impersonated_by: row.try_get(7)?,
                     })
                 },
             mapper: |it| Session::from(it),
@@ -260,6 +272,8 @@ impl GetByRefreshTokenHashStmt {
                         created_at: row.try_get(3)?,
                         updated_at: row.try_get(4)?,
                         mfa_verified: row.try_get(5)?,
+                        origin: row.try_get(6)?,
+                        impersonated_by: row.try_get(7)?,
                     })
                 },
             mapper: |it| Session::from(it),
@@ -300,6 +314,8 @@ impl GetByRefreshTokenHashForUpdateStmt {
                         created_at: row.try_get(3)?,
                         updated_at: row.try_get(4)?,
                         mfa_verified: row.try_get(5)?,
+                        origin: row.try_get(6)?,
+                        impersonated_by: row.try_get(7)?,
                     })
                 },
             mapper: |it| Session::from(it),
@@ -337,6 +353,8 @@ impl ListByUserStmt {
                         created_at: row.try_get(3)?,
                         updated_at: row.try_get(4)?,
                         mfa_verified: row.try_get(5)?,
+                        origin: row.try_get(6)?,
+                        impersonated_by: row.try_get(7)?,
                     })
                 },
             mapper: |it| Session::from(it),
@@ -346,7 +364,7 @@ impl ListByUserStmt {
 pub struct CreateStmt(&'static str, Option<tokio_postgres::Statement>);
 pub fn create() -> CreateStmt {
     CreateStmt(
-        "insert into sessions (id, user_id, device_name, created_at, updated_at, mfa_verified) values ($1, $2, $3, $4, $5, $6)",
+        "insert into sessions (id, user_id, device_name, created_at, updated_at, mfa_verified, origin, impersonated_by) values ($1, $2, $3, $4, $5, $6, $7, $8)",
         None,
     )
 }
@@ -358,7 +376,7 @@ impl CreateStmt {
         self.1 = Some(client.prepare(self.0).await?);
         Ok(self)
     }
-    pub async fn bind<'c, 'a, 's, C: GenericClient, T1: crate::StringSql>(
+    pub async fn bind<'c, 'a, 's, C: GenericClient, T1: crate::StringSql, T2: crate::StringSql>(
         &'s self,
         client: &'c C,
         id: &'a uuid::Uuid,
@@ -367,6 +385,8 @@ impl CreateStmt {
         created_at: &'a chrono::DateTime<chrono::FixedOffset>,
         updated_at: &'a chrono::DateTime<chrono::FixedOffset>,
         mfa_verified: &'a bool,
+        origin: &'a T2,
+        impersonated_by: &'a Option<uuid::Uuid>,
     ) -> Result<u64, tokio_postgres::Error> {
         client
             .execute(
@@ -378,17 +398,19 @@ impl CreateStmt {
                     created_at,
                     updated_at,
                     mfa_verified,
+                    origin,
+                    impersonated_by,
                 ],
             )
             .await
     }
 }
-impl<'a, C: GenericClient + Send + Sync, T1: crate::StringSql>
+impl<'a, C: GenericClient + Send + Sync, T1: crate::StringSql, T2: crate::StringSql>
     crate::client::async_::Params<
         'a,
         'a,
         'a,
-        CreateParams<T1>,
+        CreateParams<T1, T2>,
         std::pin::Pin<
             Box<dyn futures::Future<Output = Result<u64, tokio_postgres::Error>> + Send + 'a>,
         >,
@@ -398,7 +420,7 @@ impl<'a, C: GenericClient + Send + Sync, T1: crate::StringSql>
     fn params(
         &'a self,
         client: &'a C,
-        params: &'a CreateParams<T1>,
+        params: &'a CreateParams<T1, T2>,
     ) -> std::pin::Pin<
         Box<dyn futures::Future<Output = Result<u64, tokio_postgres::Error>> + Send + 'a>,
     > {
@@ -410,6 +432,8 @@ impl<'a, C: GenericClient + Send + Sync, T1: crate::StringSql>
             &params.created_at,
             &params.updated_at,
             &params.mfa_verified,
+            &params.origin,
+            &params.impersonated_by,
         ))
     }
 }

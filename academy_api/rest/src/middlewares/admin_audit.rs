@@ -1,20 +1,24 @@
 //! Record every state changing request made with an administrator's access
-//! token in the administrative audit log, plus the reads listed in
+//! token, or in a session an administrator opened in someone else's account, in
+//! the administrative audit log, plus the reads listed in
 //! [`AUDITED_READ_ROUTES`].
 
 use std::sync::Arc;
 
-use academy_core_admin_audit_contracts::{AdminAuditFeatureService, AdminAuditRequest};
+use academy_core_admin_audit_contracts::{
+    AdminAuditCapture, AdminAuditCredential, AdminAuditFeatureService, AdminAuditRequest,
+};
 use academy_models::{
     admin_audit::{RequestId as AuditRequestId, RequestMethod, RequestPath},
     auth::AccessToken,
 };
 use aide::axum::ApiRouter;
 use axum::{
+    body::{Body, to_bytes},
     extract::{MatchedPath, Request},
-    http::{Method, header::AUTHORIZATION},
+    http::{Method, StatusCode, header::AUTHORIZATION},
     middleware::{Next, from_fn},
-    response::Response,
+    response::{IntoResponse, Response},
 };
 use tracing::error;
 
@@ -59,10 +63,6 @@ async fn middleware(
         return next.run(request).await;
     }
 
-    let Some(token) = access_token(&request) else {
-        return next.run(request).await;
-    };
-
     let method = RequestMethod::from_string_truncated(request.method().to_string());
     // Query values and finance path bearers must never reach audit storage or
     // its instrumented services, including rejected methods and unknown routes.
@@ -76,7 +76,71 @@ async fn middleware(
         .get::<RequestId>()
         .map(|request_id| AuditRequestId::from_string_truncated(request_id.to_string()));
 
-    let response = next.run(request).await;
+    let mut rejected = None;
+    let (request, captured) =
+        if request.method() == Method::PUT && request.uri().path() == "/auth/session" {
+            let (parts, body) = request.into_parts();
+            let bytes = match to_bytes(body, 2 * 1024 * 1024).await {
+                Ok(bytes) => bytes,
+                Err(_) => {
+                    rejected = Some(StatusCode::PAYLOAD_TOO_LARGE.into_response());
+                    Default::default()
+                }
+            };
+            // Use the actual refresh credential even if an unrelated/expired
+            // bearer was supplied; it is the refresh credential that acts here.
+            let mut captured =
+                match serde_json::from_slice::<crate::routes::session::RefreshRequest>(&bytes) {
+                    Ok(body) => {
+                        service
+                            .capture(AdminAuditCredential::Refresh(&body.refresh_token))
+                            .await
+                    }
+                    Err(_) => Ok(AdminAuditCapture::InvalidCredential),
+                };
+            let request = Request::from_parts(parts, Body::from(bytes));
+            // Rejected refresh requests still retain a supplied administrative
+            // bearer. A valid ordinary refresh credential must take precedence.
+            if matches!(captured, Ok(AdminAuditCapture::InvalidCredential))
+                && let Some(token) = access_token(&request)
+            {
+                captured = service.capture(AdminAuditCredential::Access(&token)).await;
+            }
+            (request, captured)
+        } else {
+            let captured = match access_token(&request) {
+                Some(token) => service.capture(AdminAuditCredential::Access(&token)).await,
+                None => Ok(AdminAuditCapture::InvalidCredential),
+            };
+            (request, captured)
+        };
+    let actor = match captured {
+        Ok(AdminAuditCapture::Recorded(actor)) => Some(actor),
+        Ok(AdminAuditCapture::Unrecorded | AdminAuditCapture::InvalidCredential) => None,
+        Err(err) => {
+            error!("failed to capture administrative audit attribution: {err:#}");
+            if route.as_deref().is_some_and(|route| {
+                matches!(
+                    route.as_str(),
+                    "/auth/users/me/publication"
+                        | "/auth/admin/users/{user_id}/publication"
+                        | "/auth/admin/users/{user_id}/publication/withdraw"
+                )
+            }) {
+                return crate::routes::publication::audit_unavailable(err);
+            }
+            return crate::errors::internal_server_error(err);
+        }
+    };
+
+    let response = match rejected {
+        Some(response) => response,
+        None => next.run(request).await,
+    };
+
+    let Some(actor) = actor else {
+        return response;
+    };
 
     // Without a request id the entry could not be tied back to the logs, and
     // its absence means the request id middleware is missing.
@@ -87,7 +151,7 @@ async fn middleware(
 
     if let Err(err) = service
         .record(AdminAuditRequest {
-            token,
+            actor,
             method,
             path,
             route,

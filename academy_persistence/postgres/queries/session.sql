@@ -1,4 +1,4 @@
---: Session (device_name?)
+--: Session (device_name?, impersonated_by?)
 
 --! get : Session
 select * from sessions where id=:id;
@@ -19,9 +19,9 @@ select s.* from sessions s
 --! list_by_user : Session
 select * from sessions where user_id=:user_id;
 
---! create (device_name?)
-insert into sessions (id, user_id, device_name, created_at, updated_at, mfa_verified)
-  values (:id, :user_id, :device_name, :created_at, :updated_at, :mfa_verified);
+--! create (device_name?, impersonated_by?)
+insert into sessions (id, user_id, device_name, created_at, updated_at, mfa_verified, origin, impersonated_by)
+  values (:id, :user_id, :device_name, :created_at, :updated_at, :mfa_verified, :origin, :impersonated_by);
 
 --! update (device_name?, updated_at?)
 update sessions

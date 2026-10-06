@@ -142,7 +142,9 @@ async fn invoice_identity_forward_controls() {
                 "2026-09-12-170000_internal_heart_operations",
                 "2026-09-26-120000_daily_learning_heart_receipts",
                 "2026-10-03-140000_profile_publications",
-                "2026-10-04-070000_durable_totp_steps"
+                "2026-10-04-070000_durable_totp_steps",
+                "2026-10-04-175659_session_origin",
+                "2026-10-05-180000_operator_audit"
             ]
         );
     }
@@ -552,7 +554,9 @@ async fn pending_invoice_rich_export_controls() {
                 "2026-09-12-170000_internal_heart_operations",
                 "2026-09-26-120000_daily_learning_heart_receipts",
                 "2026-10-03-140000_profile_publications",
-                "2026-10-04-070000_durable_totp_steps"
+                "2026-10-04-070000_durable_totp_steps",
+                "2026-10-04-175659_session_origin",
+                "2026-10-05-180000_operator_audit"
             ]
         );
     }
@@ -705,7 +709,9 @@ async fn erased_owner_identity_conflict_controls() {
                 "2026-09-12-170000_internal_heart_operations",
                 "2026-09-26-120000_daily_learning_heart_receipts",
                 "2026-10-03-140000_profile_publications",
-                "2026-10-04-070000_durable_totp_steps"
+                "2026-10-04-070000_durable_totp_steps",
+                "2026-10-04-175659_session_origin",
+                "2026-10-05-180000_operator_audit"
             ]
         );
     }

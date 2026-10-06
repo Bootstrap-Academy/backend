@@ -9,7 +9,8 @@ use academy_core_session_contracts::session::MockSessionService;
 use academy_demo::oauth2::{TEST_OAUTH2_PROVIDER, TEST_OAUTH2_PROVIDER_ID};
 use academy_models::oauth2::{OAuth2Callback, OAuth2Login, OAuth2PendingAuthorization};
 use academy_persistence_contracts::{
-    MockDatabase, MockTransaction, oauth2::MockOAuth2Repository, user::MockUserRepository,
+    MockDatabase, MockTransaction, oauth2::MockOAuth2Repository, session::MockSessionRepository,
+    user::MockUserRepository,
 };
 
 use crate::{OAuth2FeatureConfig, OAuth2FeatureServiceImpl};
@@ -31,6 +32,7 @@ type Sut = OAuth2FeatureServiceImpl<
     MockOAuth2LoginService,
     MockOAuth2RegistrationService,
     MockSessionService<MockTransaction>,
+    MockSessionRepository<MockTransaction>,
 >;
 
 const STATE: &str = "vJyLhIytPtnPKfJVpTPdRVQdEuYSbcCwOTrnegrmwtIkVfSHiWMSuxaMYrgvhbTx";

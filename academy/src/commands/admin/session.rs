@@ -1,7 +1,7 @@
 use academy_config::Config;
 use academy_core_session_contracts::session::SessionService;
 use academy_di::Provide;
-use academy_models::user::UserName;
+use academy_models::{session::SessionOrigin, user::UserName};
 use academy_persistence_contracts::{Database as _, Transaction, user::UserRepository};
 use anyhow::{Context, anyhow};
 use clap::Subcommand;
@@ -46,8 +46,17 @@ async fn impersonate(config: Config, name: String) -> anyhow::Result<()> {
     let session_service: types::Session = provider.provide();
     let login = session_service
         // The CLI already requires access to the server, so the session is
-        // created as if the second factor had been verified.
-        .create(&mut txn, user_composite, None, false, true)
+        // created as if the second factor had been verified. It is still
+        // someone else's sign-in to the account; no administrator account is
+        // involved to record.
+        .create(
+            &mut txn,
+            user_composite,
+            None,
+            false,
+            true,
+            SessionOrigin::Impersonation { admin: None },
+        )
         .await
         .context("Failed to create session")?;
 

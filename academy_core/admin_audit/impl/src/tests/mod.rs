@@ -1,9 +1,10 @@
 use academy_auth_contracts::MockAuthService;
-use academy_core_admin_audit_contracts::AdminAuditRequest;
+use academy_core_admin_audit_contracts::{AdminAuditActor, AdminAuditRequest};
 use academy_demo::{UUID1, user::ADMIN};
 use academy_models::admin_audit::AdminAuditLogEntry;
 use academy_persistence_contracts::{
     MockDatabase, MockTransaction, admin_audit::MockAdminAuditRepository,
+    session::MockSessionRepository, user::MockUserRepository,
 };
 use academy_shared_contracts::{id::MockIdService, time::MockTimeService};
 use chrono::{DateTime, TimeZone, Utc};
@@ -19,6 +20,8 @@ type Sut = AdminAuditFeatureServiceImpl<
     MockIdService,
     MockTimeService,
     MockAdminAuditRepository<MockTransaction>,
+    MockSessionRepository<MockTransaction>,
+    MockUserRepository<MockTransaction>,
 >;
 
 fn now() -> DateTime<Utc> {
@@ -27,7 +30,11 @@ fn now() -> DateTime<Utc> {
 
 fn make_request() -> AdminAuditRequest {
     AdminAuditRequest {
-        token: "token".into(),
+        actor: AdminAuditActor {
+            user_id: ADMIN.user.id,
+            admin_user_id: Some(ADMIN.user.id),
+            impersonated: false,
+        },
         method: "PATCH".try_into().unwrap(),
         path: format!("/auth/users/{}", *ADMIN.user.id)
             .try_into()
@@ -43,7 +50,7 @@ fn make_entry() -> AdminAuditLogEntry {
     AdminAuditLogEntry {
         id: UUID1.into(),
         at: now(),
-        admin_user_id: ADMIN.user.id,
+        admin_user_id: Some(ADMIN.user.id),
         method: request.method,
         path: request.path,
         target_user_id: Some(ADMIN.user.id),

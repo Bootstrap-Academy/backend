@@ -7,7 +7,7 @@ use academy_core_session_contracts::{SessionFeatureService, session::SessionServ
 use academy_core_user_contracts::UserFeatureService;
 use academy_demo::user::{ADMIN, BAR, FOO};
 use academy_di::Provide;
-use academy_models::{VerificationCode, auth::Login, user::UserComposite};
+use academy_models::{VerificationCode, auth::Login, session::SessionOrigin, user::UserComposite};
 use academy_persistence_contracts::{Database, Transaction};
 
 #[path = "../../academy_persistence/postgres/tests/common/mod.rs"]
@@ -41,7 +41,14 @@ async fn login(
     let service: types::Session = provider.provide();
     let mut txn = db.begin_transaction().await.unwrap();
     let result = service
-        .create(&mut txn, user.clone(), None, false, mfa)
+        .create(
+            &mut txn,
+            user.clone(),
+            None,
+            false,
+            mfa,
+            SessionOrigin::SignIn,
+        )
         .await
         .unwrap();
     txn.commit().await.unwrap();

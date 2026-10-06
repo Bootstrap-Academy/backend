@@ -255,6 +255,8 @@ pub enum UserUpdateError {
     CannotDisableSelf,
     #[error("The user cannot change their own admin status.")]
     CannotDemoteSelf,
+    #[error("Only the owner's own sign-in can change the profile visibility.")]
+    NotOwnerSignIn,
     #[error("The user cannot change their name until {until}.")]
     NameChangeRateLimit { until: DateTime<Utc> },
     #[error("The vat id is invalid.")]

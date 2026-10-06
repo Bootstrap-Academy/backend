@@ -2,7 +2,7 @@ use academy_models::{
     Sha256Hash,
     mfa::{MfaRecoveryCodeHash, TotpDevice, TotpSecret},
     oauth2::{OAuth2Link, OAuth2UserInfo},
-    session::{Session, SessionRefreshTokenHash},
+    session::{Session, SessionOrigin, SessionRefreshTokenHash},
     user::{User, UserInvoiceInfo, UserProfile},
 };
 use academy_persistence_contracts::{
@@ -162,6 +162,8 @@ pub async fn load(db: PostgresDatabase, auth: DbConnection) -> anyhow::Result<()
             created_at: last_update.and_utc(),
             updated_at: last_update.and_utc(),
             mfa_verified: false,
+            // The previous system did not record who signed in.
+            origin: SessionOrigin::Legacy,
         };
 
         let refresh_token_hash = SessionRefreshTokenHash::new(Sha256Hash(

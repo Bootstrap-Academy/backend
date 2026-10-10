@@ -64,7 +64,14 @@ impl ClientIp {
         let Some(header_value) = header_value else {
             // client did not include the expected real ip header,
             // fall back to socket address
-            warn!(%client_ip, "real ip header not found");
+            if is_internal(request.uri().path()) {
+                // the other services of this host call the internal routes
+                // directly and from the address of the reverse proxy, which is
+                // expected and happens for every user they look up
+                debug!(%client_ip, "real ip header not found on an internal route");
+            } else {
+                warn!(%client_ip, "real ip header not found");
+            }
             return Self(client_ip);
         };
 
@@ -80,6 +87,12 @@ impl ClientIp {
 
         ClientIp(real_ip)
     }
+}
+
+/// Whether the path is an internal route (`/<area>/_internal/...`). These are
+/// called by the other services directly instead of through the reverse proxy.
+fn is_internal(path: &str) -> bool {
+    path.split('/').nth(2) == Some("_internal")
 }
 
 #[cfg(test)]
@@ -138,6 +151,17 @@ mod tests {
             ClientIp::from_request(&request, Some(&config())),
             ClientIp(PEER)
         );
+    }
+
+    /// Only the internal routes are expected without the header of the proxy.
+    #[test]
+    fn internal_routes() {
+        for path in ["/auth/_internal/users/1", "/shop/_internal/hearts/1"] {
+            assert!(is_internal(path), "{path}");
+        }
+        for path in ["/", "/health", "/auth/users/_internal", "/_internal/auth"] {
+            assert!(!is_internal(path), "{path}");
+        }
     }
 
     /// A missing or unparsable header falls back to the socket address instead

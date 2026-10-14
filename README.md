@@ -69,3 +69,9 @@ System tests are used to test a production build of the backend in an environmen
 For that we use the [NixOS test framework](https://nixos.org/manual/nixos/stable/#sec-nixos-tests) which spawns virtual machines containing a minimal NixOS system running the backend and then runs test scripts written in Python against these VMs.
 To run the system tests, use the command `nix build -L .#tests.composite` (if you are on darwin, you may need to set up a [linux builder](https://nixos.org/manual/nixpkgs/stable/#sec-darwin-builder)).
 You can also run individual system tests e.g. using `nix build -L .#tests.user`.
+
+## License
+
+Copyright (C) 2023–2026 Cedric Mössner
+
+This project is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. See [`LICENSE`](LICENSE) for the full license text.

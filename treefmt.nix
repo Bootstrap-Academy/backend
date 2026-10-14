@@ -12,6 +12,7 @@
     "*/.gitattributes"
     ".gitignore"
     "justfile"
+    "LICENSE"
     "*.lock"
     "*.md"
     "*.sql"

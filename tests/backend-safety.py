@@ -761,63 +761,102 @@ def answer(f, path, body=None, token=None):
         return response.status, response.headers.get("Retry-After"), json.loads(response.read())
 
 
+def unverified(f):
+    account = f.account()
+    f.sql(f"UPDATE users SET email_verified=false WHERE id='{account['id']}'")
+    return {key: account[key] for key in ("name", "access_token", "refresh_token")}
+
+
+def request_code(f, account):
+    return answer(f, "/auth/users/me/email", token=account["access_token"])
+
+
+def move_to(f, account, address):
+    # A changed address ends the access tokens of the account, so the session
+    # is renewed before the next code, as the web interface does.
+    f.request("/auth/users/me", "PATCH", {"email": address}, account["access_token"])
+    renewed = f.request("/auth/session", "PUT", {"refresh_token": account["refresh_token"]})
+    account.update({key: renewed[key] for key in ("access_token", "refresh_token")})
+
+
+def sent(f, result, mails):
+    assert result[0] == 200, f"expected an email, got {result}"
+    assert f.smtp.messages == mails, f"expected {mails} emails, counted {f.smtp.messages}"
+
+
+def refused(f, result, mails, at_least, at_most):
+    status, retry_after, body = result
+    assert status == 429, f"expected a refusal, got {result}"
+    assert body == {"detail": "Too many requests"}, body
+    assert retry_after is not None and at_least <= int(retry_after) <= at_most, retry_after
+    assert f.smtp.messages == mails, f"expected {mails} emails, counted {f.smtp.messages}"
+
+
 def code_emails_limited_per_address_and_account(f):
-    # Defaults of config.toml: one email per address and minute, five per
-    # address and five per account and hour.
-    user = f.account()
-    f.sql(f"UPDATE users SET email_verified=false WHERE id='{user['id']}'")
-    session = {key: user[key] for key in ("access_token", "refresh_token")}
-
-    def code():
-        return answer(f, "/auth/users/me/email", token=session["access_token"])
-
-    def sent(result, mails):
-        assert result[0] == 200, f"expected an email, got {result}"
-        assert f.smtp.messages == mails, f"expected {mails} emails, counted {f.smtp.messages}"
-
-    def refused(result, mails, at_least, at_most):
-        status, retry_after, body = result
-        assert status == 429, f"expected a refusal, got {result}"
-        assert body == {"detail": "Too many requests"}, body
-        assert retry_after is not None and at_least <= int(retry_after) <= at_most, retry_after
-        assert f.smtp.messages == mails, f"expected {mails} emails, counted {f.smtp.messages}"
-
-    def move_to(address):
-        # A changed address ends the access tokens of the account, so the
-        # session is renewed before the next code, as the web interface does.
-        f.request("/auth/users/me", "PATCH", {"email": address}, session["access_token"])
-        renewed = f.request("/auth/session", "PUT", {"refresh_token": session["refresh_token"]})
-        session.update({key: renewed[key] for key in session})
+    # Defaults of config.toml: one email per account and address and minute,
+    # five per account and address and five per account and hour.
+    user = unverified(f)
 
     # Normal use: the first code goes out, a second click sends nothing.
     mails = f.smtp.messages
-    sent(code(), mails + 1)
-    refused(code(), mails + 1, 1, 60)
+    sent(f, request_code(f, user), mails + 1)
+    refused(f, request_code(f, user), mails + 1, 1, 60)
 
     # A corrected address gets its code at once.
-    move_to(f"{user['name']}-corrected@example.com")
-    sent(code(), mails + 2)
+    move_to(f, user, f"{user['name']}-corrected@example.com")
+    sent(f, request_code(f, user), mails + 2)
 
     # Eight requests at the same moment send one email.
-    move_to(f"{user['name']}-burst@example.com")
-    statuses = sorted(status for status, _, _ in concurrent(*[code] * 8))
+    move_to(f, user, f"{user['name']}-burst@example.com")
+    statuses = sorted(status for status, _, _ in concurrent(*[lambda: request_code(f, user)] * 8))
     assert statuses == [200] + [429] * 7, statuses
     assert f.smtp.messages == mails + 3, f"expected {mails + 3} emails, counted {f.smtp.messages}"
 
     # The account's budget ends what moving to fresh addresses would allow.
     for n in range(2):
-        move_to(f"{user['name']}-fresh{n}@example.com")
-        sent(code(), mails + 4 + n)
-    move_to(f"{user['name']}-fresh2@example.com")
-    refused(code(), mails + 5, 3000, 3600)
+        move_to(f, user, f"{user['name']}-fresh{n}@example.com")
+        sent(f, request_code(f, user), mails + 4 + n)
+    move_to(f, user, f"{user['name']}-fresh2@example.com")
+    refused(f, request_code(f, user), mails + 5, 3000, 3600)
 
     # A password reset is counted on its own, and the address before it is
     # looked up: an address without an account is answered the same way.
     owner = f.account()
     for address, delivered in ((f"{owner['name']}@example.com", 1), (f"nobody-{uuid4().hex}@example.com", 0)):
         mails = f.smtp.messages
-        sent(answer(f, "/auth/password_reset", {"email": address}), mails + delivered)
-        refused(answer(f, "/auth/password_reset", {"email": address}), mails + delivered, 1, 60)
+        sent(f, answer(f, "/auth/password_reset", {"email": address}), mails + delivered)
+        refused(f, answer(f, "/auth/password_reset", {"email": address}), mails + delivered, 1, 60)
+
+
+def code_emails_of_others_do_not_lock_the_owner(f):
+    # Variant does not lock the owner: a reset for a variant finds no account,
+    # sends nothing and leaves the owner's reset alone.
+    owner = f.account()
+    mails = f.smtp.messages
+    sent(f, answer(f, "/auth/password_reset", {"email": f"{owner['name']}+x@example.com"}), mails)
+    sent(f, answer(f, "/auth/password_reset", {"email": f"{owner['name']}@example.com"}), mails + 1)
+
+    # Foreign account with a variant: its code goes out, and the owner of the
+    # address still gets its own right after.
+    victim, attacker = unverified(f), unverified(f)
+    move_to(f, attacker, f"{victim['name']}+x@example.com")
+    mails = f.smtp.messages
+    sent(f, request_code(f, attacker), mails + 1)
+    sent(f, request_code(f, victim), mails + 2)
+
+    # Account with exhausted budget: its refused requests for a variant cost
+    # the owner of the address nothing.
+    victim, attacker = unverified(f), unverified(f)
+    mails = f.smtp.messages
+    sent(f, request_code(f, attacker), mails + 1)
+    for n in range(4):
+        move_to(f, attacker, f"{attacker['name']}-own{n}@example.com")
+        sent(f, request_code(f, attacker), mails + 2 + n)
+    move_to(f, attacker, f"{victim['name']}+x@example.com")
+    refused(f, request_code(f, attacker), mails + 5, 3000, 3600)
+    for _ in range(2):
+        refused(f, request_code(f, attacker), mails + 5, 1, 3600)
+    sent(f, request_code(f, victim), mails + 6)
 
 
 def deletion_revokes_all_sessions_and_keeps_durable_work(f):
@@ -863,6 +902,7 @@ CASES = [
     mfa_setup_replay_and_recovery,
     export_isolated_partial_and_rate_limited,
     code_emails_limited_per_address_and_account,
+    code_emails_of_others_do_not_lock_the_owner,
     deletion_revokes_all_sessions_and_keeps_durable_work,
 ]
 

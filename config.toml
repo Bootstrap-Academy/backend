@@ -66,8 +66,15 @@ password_reset_redirect_url = "https://bootstrap.academy/auth/reset-password"
 # Limits of the emails that carry a code (`POST /auth/users/{user_id}/email`
 # and `POST /auth/password_reset`). Anybody can point an account's address, or
 # the address of a password reset, at somebody else's mailbox, so these emails
-# are counted per target address and per account, each kind of code on its own.
-# A refused request is answered with 429 and a `Retry-After` header.
+# are counted in buckets, each kind of code on its own. A refused request is
+# answered with 429 and a `Retry-After` header.
+#
+# A verification is counted per account and mailbox (cooldown and
+# `code_emails_per_address`), then per account, then per mailbox across all
+# accounts (`code_emails_per_mailbox`, well above what one account can fill), so
+# a refusal only ever costs the requesting account and one account cannot lock
+# anybody out. A password reset is counted per address, in the form the lookup
+# compares it, before it is known whether an account has it, then per account.
 #
 # The cooldown only applies per address, so a second click sends nothing while
 # an account that corrects a mistyped address gets a code to the corrected one
@@ -77,6 +84,7 @@ code_email_cooldown = "1m"
 code_email_window = "1h"
 code_emails_per_account = 5
 code_emails_per_address = 5
+code_emails_per_mailbox = 20
 
 [session]
 access_token_ttl = "5m"

@@ -15,7 +15,7 @@ use academy_core_user_contracts::{
         UserEmailConfirmationResetPasswordError, UserEmailConfirmationService,
         UserEmailConfirmationVerifyEmailError,
     },
-    email_limit::{UserEmailCodeKind, UserEmailLimitError, UserEmailLimitService},
+    email_limit::{UserEmailLimitError, UserEmailLimitService},
     export::{UserDataExport, UserExportService},
     update::{
         UserUpdateEmailError, UserUpdateNameError, UserUpdateNameRateLimitPolicy, UserUpdateService,
@@ -125,8 +125,11 @@ pub struct UserFeatureConfig {
     /// within the window.
     pub code_emails_per_account: u64,
     /// Maximum number of emails with a code of the same kind to one address
-    /// within the window.
+    /// within the window. A verification counts this per account.
     pub code_emails_per_address: u64,
+    /// Maximum number of verification emails to one mailbox within the
+    /// window, across all accounts.
+    pub code_emails_per_mailbox: u64,
 }
 
 impl<
@@ -826,26 +829,19 @@ where
             .email
             .ok_or(UserRequestVerificationEmailError::NoEmail)?;
 
-        // The address is counted first: a second click within the cooldown is
-        // the common refusal, and it must not use up the account's budget.
-        // Only an account that has used up its own budget consumes a share of
-        // the address's without an email being sent.
-        let limited = |err| match err {
-            UserEmailLimitError::Limited(retry_after) => {
-                UserRequestVerificationEmailError::RateLimit(retry_after)
-            }
-            UserEmailLimitError::Other(err) => err
-                .context("Failed to check the limit of verification emails")
-                .into(),
-        };
+        // Counted for the account the code is for, so a refusal never costs
+        // another account anything.
         self.user_email_limit
-            .reserve_address(UserEmailCodeKind::Verification, &email)
+            .reserve_verification(user_id, &email)
             .await
-            .map_err(limited)?;
-        self.user_email_limit
-            .reserve_account(UserEmailCodeKind::Verification, user_id)
-            .await
-            .map_err(limited)?;
+            .map_err(|err| match err {
+                UserEmailLimitError::Limited(retry_after) => {
+                    UserRequestVerificationEmailError::RateLimit(retry_after)
+                }
+                UserEmailLimitError::Other(err) => err
+                    .context("Failed to check the limit of verification emails")
+                    .into(),
+            })?;
 
         self.user_email_confirmation
             .request_verification(
@@ -901,7 +897,9 @@ where
             })?;
 
         // The address is counted before it is looked up, whether or not an
-        // account has it, so the answer never tells whether one does.
+        // account has it, so the limit does not tell whether one does. It can
+        // only tell for an account that changed its address within the
+        // window, whose own budget may run out before the new address's.
         let limited = |err| match err {
             UserEmailLimitError::Limited(retry_after) => {
                 UserRequestPasswordResetError::RateLimit(retry_after)
@@ -911,7 +909,7 @@ where
                 .into(),
         };
         self.user_email_limit
-            .reserve_address(UserEmailCodeKind::PasswordReset, &email)
+            .reserve_password_reset_address(&email)
             .await
             .map_err(limited)?;
 
@@ -950,7 +948,7 @@ where
             // stays the same, this budget runs out together with the
             // address's, so it tells nobody more than the address does.
             self.user_email_limit
-                .reserve_account(UserEmailCodeKind::PasswordReset, user_composite.user.id)
+                .reserve_password_reset_account(user_composite.user.id)
                 .await
                 .map_err(limited)?;
             self.user_email_confirmation

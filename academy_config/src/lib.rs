@@ -87,9 +87,12 @@ fn load_paths(paths: &[impl AsRef<Path>], overrides: &[&str]) -> anyhow::Result<
 fn validate(config: &Config) -> anyhow::Result<()> {
     config.learning_policy.validate()?;
     anyhow::ensure!(
-        config.user.code_emails_per_account >= 1 && config.user.code_emails_per_address >= 1,
-        "user.code_emails_per_account and user.code_emails_per_address have to be at least 1; \
-         the email that verifies an address or resets a password cannot be switched off this way"
+        config.user.code_emails_per_account >= 1
+            && config.user.code_emails_per_address >= 1
+            && config.user.code_emails_per_mailbox >= 1,
+        "user.code_emails_per_account, user.code_emails_per_address and \
+         user.code_emails_per_mailbox have to be at least 1; the email that verifies an \
+         address or resets a password cannot be switched off this way"
     );
     for (kind, seconds) in &config.purchase.provision_window_seconds {
         anyhow::ensure!(
@@ -242,8 +245,11 @@ pub struct UserConfig {
     /// within the window.
     pub code_emails_per_account: u64,
     /// Maximum number of emails with a code of the same kind to one address
-    /// within the window.
+    /// within the window. A verification counts this per account.
     pub code_emails_per_address: u64,
+    /// Maximum number of verification emails to one mailbox within the
+    /// window, across all accounts.
+    pub code_emails_per_mailbox: u64,
 }
 
 /// Rate limits of the consumer declaration endpoints.
@@ -535,10 +541,12 @@ mod tests {
         assert_eq!(config.user.code_email_window.0.as_secs(), 3600);
         assert_eq!(config.user.code_emails_per_account, 5);
         assert_eq!(config.user.code_emails_per_address, 5);
+        assert_eq!(config.user.code_emails_per_mailbox, 20);
 
         for zero in [
             "user.code_emails_per_account = 0",
             "user.code_emails_per_address = 0",
+            "user.code_emails_per_mailbox = 0",
         ] {
             let overrides = MINIMAL_OVERRIDES
                 .into_iter()

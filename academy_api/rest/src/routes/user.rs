@@ -562,11 +562,12 @@ async fn request_verification_email(
 fn request_verification_email_docs(op: TransformOperation) -> TransformOperation {
     op.summary("Request a verification email for the given user.")
         .description(
-            "Limited per address and per account (`[user]` in `docs/config.md`): at most one \
-             email to the same address per cooldown, and a budget of emails per address and per \
-             account within a window. A refused request is answered with `429`, and the \
-             `Retry-After` header gives the number of seconds after which another email can be \
-             sent. A code that was sent earlier stays valid, so it can still be used meanwhile.",
+            "Limited per account and address, per account and per mailbox across all accounts \
+             (`[user]` in `docs/config.md`): at most one email from the account to the same \
+             address per cooldown, and a budget of emails for each of the three within a window. \
+             A refused request is answered with `429`, and the `Retry-After` header gives the \
+             number of seconds after which another email can be sent. A code that was sent \
+             earlier stays valid, so it can still be used meanwhile.",
         )
         .add_response::<OkResponse>(
             StatusCode::OK,
@@ -657,11 +658,12 @@ fn request_password_reset_docs(op: TransformOperation) -> TransformOperation {
     op.summary("Request a password reset email.")
         .description(
             "Answers the same whether or not an account has the address. Limited per address \
-             and per account (`[user]` in `docs/config.md`); the address is counted before it is \
-             looked up, so a refusal does not tell whether an account has it either. A refused \
-             request is answered with `429`, and the `Retry-After` header gives the number of \
-             seconds after which another email can be sent. The code that was sent last stays \
-             valid meanwhile.",
+             and per account (`[user]` in `docs/config.md`). The address is counted before it is \
+             looked up, in the form the lookup compares it, so a refusal does not tell whether \
+             an account has it, unless that account changed its address within the window and \
+             used up its own budget first. A refused request is answered with `429`, and the \
+             `Retry-After` header gives the number of seconds after which another email can be \
+             sent. The code that was sent last stays valid meanwhile.",
         )
         .add_response::<OkResponse>(
             StatusCode::OK,

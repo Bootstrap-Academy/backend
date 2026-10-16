@@ -11,40 +11,45 @@ use thiserror::Error;
 /// names the address in the request. Without a limit such a mailbox could be
 /// sent any number of emails.
 ///
-/// The emails are counted per kind of code, once per target address and once
-/// per account, in the cache. Every bucket is updated atomically, so concurrent
-/// requests cannot slip past the limit together.
+/// The emails are counted in buckets in the cache, each kind of code on its
+/// own. Every bucket is updated atomically, so concurrent requests cannot slip
+/// past the limit together, and a bucket that refuses an email does not count
+/// it. The buckets are checked one after the other; a bucket checked earlier
+/// keeps its count when a later one refuses. The order is chosen so that such
+/// a count always lands in a bucket of the requester and never locks somebody
+/// else out.
 #[cfg_attr(feature = "mock", mockall::automock)]
 pub trait UserEmailLimitService: Send + Sync + 'static {
-    /// Count an email with a code of the given kind to the given address, or
-    /// refuse it if the address has received one within the cooldown or has
-    /// used up its budget for the window.
+    /// Count a verification email for the given account to the given address,
+    /// or refuse it.
     ///
-    /// A refused email is not counted.
-    fn reserve_address(
+    /// The buckets, in this order: the account together with the mailbox the
+    /// address delivers to (cooldown and budget per address), the account
+    /// (budget per account), and the mailbox across all accounts (budget per
+    /// mailbox, well above what one account can fill).
+    fn reserve_verification(
         &self,
-        kind: UserEmailCodeKind,
+        user_id: UserId,
         email: &EmailAddress,
     ) -> impl Future<Output = Result<(), UserEmailLimitError>> + Send;
 
-    /// Count an email with a code of the given kind for the given account, or
-    /// refuse it if the account has used up its budget for the window.
+    /// Count a password reset request for the given address before it is
+    /// known whether an account has it, or refuse it.
     ///
-    /// A refused email is not counted.
-    fn reserve_account(
+    /// The address is counted in the form in which the lookup compares it, so
+    /// only a request that reaches an account can fill the bucket of that
+    /// account's address.
+    fn reserve_password_reset_address(
         &self,
-        kind: UserEmailCodeKind,
+        email: &EmailAddress,
+    ) -> impl Future<Output = Result<(), UserEmailLimitError>> + Send;
+
+    /// Count a password reset email for the given account, or refuse it if the
+    /// account has used up its budget for the window.
+    fn reserve_password_reset_account(
+        &self,
         user_id: UserId,
     ) -> impl Future<Output = Result<(), UserEmailLimitError>> + Send;
-}
-
-/// The kind of code an email carries. Each kind is counted on its own.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum UserEmailCodeKind {
-    /// The code that verifies an email address.
-    Verification,
-    /// The code that resets a password.
-    PasswordReset,
 }
 
 #[derive(Debug, Error)]
@@ -58,15 +63,18 @@ pub enum UserEmailLimitError {
 
 #[cfg(feature = "mock")]
 impl MockUserEmailLimitService {
-    pub fn with_reserve_address(
+    pub fn with_reserve_verification(
         mut self,
-        kind: UserEmailCodeKind,
+        user_id: UserId,
         email: EmailAddress,
         result: Result<(), Duration>,
     ) -> Self {
-        self.expect_reserve_address()
+        self.expect_reserve_verification()
             .once()
-            .with(mockall::predicate::eq(kind), mockall::predicate::eq(email))
+            .with(
+                mockall::predicate::eq(user_id),
+                mockall::predicate::eq(email),
+            )
             .return_once(move |_, _| {
                 Box::pin(std::future::ready(
                     result.map_err(UserEmailLimitError::Limited),
@@ -75,19 +83,31 @@ impl MockUserEmailLimitService {
         self
     }
 
-    pub fn with_reserve_account(
+    pub fn with_reserve_password_reset_address(
         mut self,
-        kind: UserEmailCodeKind,
+        email: EmailAddress,
+        result: Result<(), Duration>,
+    ) -> Self {
+        self.expect_reserve_password_reset_address()
+            .once()
+            .with(mockall::predicate::eq(email))
+            .return_once(move |_| {
+                Box::pin(std::future::ready(
+                    result.map_err(UserEmailLimitError::Limited),
+                ))
+            });
+        self
+    }
+
+    pub fn with_reserve_password_reset_account(
+        mut self,
         user_id: UserId,
         result: Result<(), Duration>,
     ) -> Self {
-        self.expect_reserve_account()
+        self.expect_reserve_password_reset_account()
             .once()
-            .with(
-                mockall::predicate::eq(kind),
-                mockall::predicate::eq(user_id),
-            )
-            .return_once(move |_, _| {
+            .with(mockall::predicate::eq(user_id))
+            .return_once(move |_| {
                 Box::pin(std::future::ready(
                     result.map_err(UserEmailLimitError::Limited),
                 ))

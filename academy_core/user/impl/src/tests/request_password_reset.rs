@@ -2,8 +2,7 @@ use std::time::Duration;
 
 use academy_core_user_contracts::{
     UserFeatureService, UserRequestPasswordResetError,
-    email_confirmation::MockUserEmailConfirmationService,
-    email_limit::{MockUserEmailLimitService, UserEmailCodeKind},
+    email_confirmation::MockUserEmailConfirmationService, email_limit::MockUserEmailLimitService,
 };
 use academy_demo::user::FOO;
 use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
@@ -25,12 +24,8 @@ async fn ok() {
         .with_get_composite(FOO.user.id, Some(FOO.clone()));
 
     let user_email_limit = MockUserEmailLimitService::new()
-        .with_reserve_address(
-            UserEmailCodeKind::PasswordReset,
-            FOO.user.email.clone().unwrap(),
-            Ok(()),
-        )
-        .with_reserve_account(UserEmailCodeKind::PasswordReset, FOO.user.id, Ok(()));
+        .with_reserve_password_reset_address(FOO.user.email.clone().unwrap(), Ok(()))
+        .with_reserve_password_reset_account(FOO.user.id, Ok(()));
 
     let user_email_confirmation = MockUserEmailConfirmationService::new()
         .with_request_password_reset(
@@ -97,11 +92,8 @@ async fn user_not_found() {
         .with_get_composite_by_email(FOO.user.email.clone().unwrap(), None);
 
     // An address without an account is counted like any other.
-    let user_email_limit = MockUserEmailLimitService::new().with_reserve_address(
-        UserEmailCodeKind::PasswordReset,
-        FOO.user.email.clone().unwrap(),
-        Ok(()),
-    );
+    let user_email_limit = MockUserEmailLimitService::new()
+        .with_reserve_password_reset_address(FOO.user.email.clone().unwrap(), Ok(()));
 
     let sut = UserFeatureServiceImpl {
         db,
@@ -127,8 +119,7 @@ async fn address_limited() {
 
     // The refusal comes before the address is looked up, so it is the same
     // whether or not an account has the address.
-    let user_email_limit = MockUserEmailLimitService::new().with_reserve_address(
-        UserEmailCodeKind::PasswordReset,
+    let user_email_limit = MockUserEmailLimitService::new().with_reserve_password_reset_address(
         FOO.user.email.clone().unwrap(),
         Err(Duration::from_secs(42)),
     );
@@ -165,16 +156,8 @@ async fn account_limited() {
         .with_get_composite(FOO.user.id, Some(FOO.clone()));
 
     let user_email_limit = MockUserEmailLimitService::new()
-        .with_reserve_address(
-            UserEmailCodeKind::PasswordReset,
-            FOO.user.email.clone().unwrap(),
-            Ok(()),
-        )
-        .with_reserve_account(
-            UserEmailCodeKind::PasswordReset,
-            FOO.user.id,
-            Err(Duration::from_secs(600)),
-        );
+        .with_reserve_password_reset_address(FOO.user.email.clone().unwrap(), Ok(()))
+        .with_reserve_password_reset_account(FOO.user.id, Err(Duration::from_secs(600)));
 
     let sut = UserFeatureServiceImpl {
         db,

@@ -62,11 +62,11 @@ The authority ends with the second factor: removing it (`DELETE /auth/users/{use
 
 #### Emails with a Code
 `POST /auth/users/{user_id}/email` sends a verification code to the address of an account, and `POST /auth/password_reset` sends a password reset code to the address named in the request if an account has it.
-Anybody can point either address at somebody else's mailbox, so `UserEmailLimitService` limits both per target address and per account, each kind of code on its own (`[user]` in [`docs/config.md`](docs/config.md); one email per address and minute, five per address and five per account per hour by default).
+Anybody can point either address at somebody else's mailbox, so `UserEmailLimitService` counts both in buckets, each kind of code on its own (`[user]` in [`docs/config.md`](docs/config.md)).
 
-- The buckets live in the cache and are updated with compare-and-set, so concurrent requests cannot pass the limit together.
-- The address is counted before the account, so a second click within the cooldown does not use up the budget of the account.
-- A password reset counts the address before it is looked up, so a refusal does not tell whether an account has the address.
+- The buckets live in the cache and are updated with compare-and-set, so concurrent requests cannot pass the limit together. A bucket checked earlier keeps its count when a later one refuses, so the buckets of the requester come first.
+- A verification is checked against the account together with the mailbox (one email per minute, five per hour by default), then the account (five per hour), then the mailbox across all accounts (twenty per hour). A refusal only costs the requesting account, and one account alone cannot lock anybody out of the confirmation.
+- A password reset counts the address before it is looked up, in the form the lookup compares it, and then the account it found. A variant of the address leaves the owner's bucket alone. The limit only tells whether an account has the address when that account changed its address within the window and runs out of its own budget first.
 - A refusal is `429 Too many requests` with a `Retry-After` header. A refusal leaves the codes that were already sent valid, so whoever is refused can still use the code they received.
 
 #### Tracing

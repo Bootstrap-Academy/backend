@@ -78,6 +78,7 @@ impl Default for UserFeatureConfig {
             code_email_window: Duration::from_secs(3600),
             code_emails_per_account: 5,
             code_emails_per_address: 5,
+            code_emails_per_mailbox: 20,
         }
     }
 }

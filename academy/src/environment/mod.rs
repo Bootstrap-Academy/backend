@@ -300,6 +300,7 @@ impl ConfigProvider {
             code_email_window: config.user.code_email_window.into(),
             code_emails_per_account: config.user.code_emails_per_account,
             code_emails_per_address: config.user.code_emails_per_address,
+            code_emails_per_mailbox: config.user.code_emails_per_mailbox,
         };
 
         let paypal_feature_config = PaypalFeatureConfig {

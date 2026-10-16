@@ -1,9 +1,7 @@
 use std::time::Duration;
 
 use academy_cache_contracts::CacheService;
-use academy_core_user_contracts::email_limit::{
-    UserEmailCodeKind, UserEmailLimitError, UserEmailLimitService,
-};
+use academy_core_user_contracts::email_limit::{UserEmailLimitError, UserEmailLimitService};
 use academy_di::Build;
 use academy_models::{email_address::EmailAddress, user::UserId};
 use academy_shared_contracts::{hash::HashService, time::TimeService};
@@ -44,18 +42,55 @@ where
 {
     // The address does not belong in the logs.
     #[trace_instrument(skip(self, email))]
-    async fn reserve_address(
+    async fn reserve_verification(
         &self,
-        kind: UserEmailCodeKind,
+        user_id: UserId,
         email: &EmailAddress,
     ) -> Result<(), UserEmailLimitError> {
-        let key = format!(
-            "email_code_limit:{}:address:{}",
-            kind_key(kind),
-            hex::encode(self.hash.sha256(&mailbox(email)).0)
-        );
+        let user_id = user_id.hyphenated();
+        let mailbox = hex::encode(self.hash.sha256(&mailbox(email)).0);
+
+        // The buckets of the requesting account come first, so whatever a
+        // refusal leaves counted belongs to the requester. A second click
+        // within the cooldown is refused by the first bucket and costs the
+        // account nothing. The cooldown belongs to the address, so an account
+        // that corrects a mistyped address gets a code to the corrected one at
+        // once.
         self.reserve(
-            &key,
+            &format!("email_code_limit:verification:address:{user_id}:{mailbox}"),
+            self.config.code_email_cooldown,
+            self.config.code_emails_per_address,
+        )
+        .await?;
+        self.reserve(
+            &format!("email_code_limit:verification:account:{user_id}"),
+            Duration::ZERO,
+            self.config.code_emails_per_account,
+        )
+        .await?;
+        // Only emails that are actually sent reach the shared bucket, and its
+        // budget is well above what one account can fill, so one account alone
+        // cannot lock anybody out of the confirmation.
+        self.reserve(
+            &format!("email_code_limit:verification:mailbox:{mailbox}"),
+            Duration::ZERO,
+            self.config.code_emails_per_mailbox,
+        )
+        .await
+    }
+
+    // The address does not belong in the logs.
+    #[trace_instrument(skip(self, email))]
+    async fn reserve_password_reset_address(
+        &self,
+        email: &EmailAddress,
+    ) -> Result<(), UserEmailLimitError> {
+        // The lookup compares `lower(email)`. A variant of the address finds no
+        // account, sends nothing and must not fill the bucket of the address
+        // it is a variant of.
+        let address = hex::encode(self.hash.sha256(&email.as_str().to_lowercase()).0);
+        self.reserve(
+            &format!("email_code_limit:password_reset:address:{address}"),
             self.config.code_email_cooldown,
             self.config.code_emails_per_address,
         )
@@ -63,20 +98,19 @@ where
     }
 
     #[trace_instrument(skip(self))]
-    async fn reserve_account(
+    async fn reserve_password_reset_account(
         &self,
-        kind: UserEmailCodeKind,
         user_id: UserId,
     ) -> Result<(), UserEmailLimitError> {
-        let key = format!(
-            "email_code_limit:{}:account:{}",
-            kind_key(kind),
-            user_id.hyphenated()
-        );
-        // The cooldown belongs to the address, so an account that corrects a
-        // mistyped address gets a code to the corrected one at once.
-        self.reserve(&key, Duration::ZERO, self.config.code_emails_per_account)
-            .await
+        self.reserve(
+            &format!(
+                "email_code_limit:password_reset:account:{}",
+                user_id.hyphenated()
+            ),
+            Duration::ZERO,
+            self.config.code_emails_per_account,
+        )
+        .await
     }
 }
 
@@ -165,31 +199,27 @@ fn after(time: DateTime<Utc>, duration: Duration) -> DateTime<Utc> {
         .unwrap_or(DateTime::<Utc>::MAX_UTC)
 }
 
-fn kind_key(kind: UserEmailCodeKind) -> &'static str {
-    match kind {
-        UserEmailCodeKind::Verification => "verification",
-        UserEmailCodeKind::PasswordReset => "password_reset",
-    }
-}
-
-/// The mailbox an address delivers to, as far as the limit is concerned.
+/// The mailbox an address delivers to, as far as the verification limit is
+/// concerned.
 ///
-/// Case does not matter, and neither does a `+tag` in the local part, which
-/// most providers deliver to the mailbox without it. Gmail also ignores dots in
-/// the local part and delivers `googlemail.com` to the same mailbox as
-/// `gmail.com`. Otherwise every variant of one address would come with a
-/// budget of its own.
+/// ASCII case does not matter, and neither does a `+tag` in an unquoted local
+/// part, which most providers deliver to the mailbox without it. Gmail also
+/// ignores dots in the local part and delivers `googlemail.com` to the same
+/// mailbox as `gmail.com`. Otherwise every variant of one address would come
+/// with a budget of its own. The domain is lowercased as a whole; its Unicode
+/// and its punycode spelling still count apart.
 fn mailbox(email: &EmailAddress) -> String {
-    let user = email.0.user().to_lowercase();
+    let user = email.0.user().to_ascii_lowercase();
+    let quoted = user.starts_with('"');
     let mut user = match user.split_once('+') {
-        Some((base, _)) if !base.is_empty() => base.to_owned(),
+        Some((base, _)) if !quoted && !base.is_empty() => base.to_owned(),
         _ => user,
     };
     let mut domain = email.0.domain().to_lowercase();
     if domain == "googlemail.com" {
         domain = "gmail.com".into();
     }
-    if domain == "gmail.com" {
+    if domain == "gmail.com" && !quoted {
         user.retain(|c| c != '.');
     }
     format!("{user}@{domain}")
@@ -203,7 +233,10 @@ mod tests {
     };
 
     use academy_cache_contracts::MockCacheService;
-    use academy_demo::{SHA256HASH1, SHA256HASH1_HEX, user::FOO};
+    use academy_demo::{
+        SHA256HASH1, SHA256HASH1_HEX,
+        user::{ADMIN, ADMIN2, BAR, FOO},
+    };
     use academy_models::Sha256Hash;
     use academy_shared_contracts::{hash::MockHashService, time::MockTimeService};
     use academy_utils::assert_matches;
@@ -212,6 +245,7 @@ mod tests {
     use super::*;
 
     type Sut = UserEmailLimitServiceImpl<MockTimeService, MockHashService, MockCacheService>;
+    type Store = Arc<Mutex<HashMap<String, (SentCodes, DateTime<Utc>)>>>;
 
     const MINUTE: Duration = Duration::from_secs(60);
     const HOUR: Duration = Duration::from_secs(3600);
@@ -237,27 +271,28 @@ mod tests {
         }
     }
 
+    /// Distinct addresses of up to 32 bytes give distinct keys; which hash is
+    /// used is pinned by the `*_keys` tests.
+    fn fake_hash(data: &str) -> Sha256Hash {
+        let mut hash = [0; 32];
+        for (i, byte) in data.bytes().enumerate() {
+            hash[i % 32] ^= byte;
+        }
+        Sha256Hash(hash)
+    }
+
     /// The service with a cache that keeps its buckets in memory and lets
     /// them expire with the test's clock, the way the real cache does.
-    fn sut(clock: &Clock) -> Sut {
+    fn sut(clock: &Clock) -> (Sut, Store) {
         let mut time = MockTimeService::new();
         let now = clock.clone();
         time.expect_now().returning(move || now.now());
 
-        // Distinct addresses of up to 32 bytes give distinct keys; which hash
-        // is used is pinned by `address_key_is_the_hash_of_the_mailbox`.
         let mut hash = MockHashService::new();
-        hash.expect_sha256::<String>().returning(|data| {
-            let mut hash = [0; 32];
-            for (i, byte) in data.bytes().enumerate() {
-                hash[i % 32] ^= byte;
-            }
-            Sha256Hash(hash)
-        });
+        hash.expect_sha256::<String>()
+            .returning(|data| fake_hash(data));
 
-        let store = Arc::new(Mutex::new(
-            HashMap::<String, (SentCodes, DateTime<Utc>)>::new(),
-        ));
+        let store = Store::default();
         let live = {
             let (store, clock) = (Arc::clone(&store), clock.clone());
             move |key: &str| {
@@ -274,7 +309,7 @@ mod tests {
             move |key| Box::pin(std::future::ready(Ok(live(key))))
         });
         cache.expect_compare_and_set::<SentCodes>().returning({
-            let clock = clock.clone();
+            let (store, clock) = (Arc::clone(&store), clock.clone());
             move |key, expected, value, ttl| {
                 let updated = live(key) == *expected;
                 if updated {
@@ -287,12 +322,13 @@ mod tests {
             }
         });
 
-        Sut {
+        let sut = Sut {
             time,
             hash,
             cache,
             config: config(),
-        }
+        };
+        (sut, store)
     }
 
     fn config() -> UserFeatureConfig {
@@ -301,12 +337,26 @@ mod tests {
             code_email_window: HOUR,
             code_emails_per_account: 5,
             code_emails_per_address: 3,
+            code_emails_per_mailbox: 4,
             ..Default::default()
         }
     }
 
     fn address(address: &str) -> EmailAddress {
         address.parse().unwrap()
+    }
+
+    /// The number of emails counted in the shared bucket of a mailbox.
+    fn mailbox_count(store: &Store, mailbox: &str) -> u64 {
+        let key = format!(
+            "email_code_limit:verification:mailbox:{}",
+            hex::encode(fake_hash(mailbox).0)
+        );
+        store
+            .lock()
+            .unwrap()
+            .get(&key)
+            .map_or(0, |(value, _)| value.count)
     }
 
     fn refused(result: Result<(), UserEmailLimitError>) -> Duration {
@@ -319,67 +369,50 @@ mod tests {
     #[tokio::test]
     async fn an_address_gets_one_code_per_cooldown() {
         let clock = Clock::new();
-        let sut = sut(&clock);
+        let (sut, _) = sut(&clock);
         let to = address("learner@example.com");
 
-        sut.reserve_address(UserEmailCodeKind::Verification, &to)
-            .await
-            .unwrap();
+        sut.reserve_verification(FOO.user.id, &to).await.unwrap();
 
         // a second click a few seconds later sends nothing
         clock.advance(Duration::from_secs(20));
-        let retry_after = refused(
-            sut.reserve_address(UserEmailCodeKind::Verification, &to)
-                .await,
-        );
+        let retry_after = refused(sut.reserve_verification(FOO.user.id, &to).await);
         assert_eq!(retry_after, Duration::from_secs(40));
 
         // once the cooldown is over the next code goes out
         clock.advance(Duration::from_secs(40));
-        sut.reserve_address(UserEmailCodeKind::Verification, &to)
-            .await
-            .unwrap();
+        sut.reserve_verification(FOO.user.id, &to).await.unwrap();
     }
 
     #[tokio::test]
     async fn an_address_has_a_budget_per_window() {
         let clock = Clock::new();
-        let sut = sut(&clock);
+        let (sut, _) = sut(&clock);
         let to = address("learner@example.com");
 
         for _ in 0..3 {
-            sut.reserve_address(UserEmailCodeKind::Verification, &to)
-                .await
-                .unwrap();
+            sut.reserve_verification(FOO.user.id, &to).await.unwrap();
             clock.advance(2 * MINUTE);
         }
 
         // the budget is used up until the window that began with the first
         // email has passed, although the cooldown is long over
-        let retry_after = refused(
-            sut.reserve_address(UserEmailCodeKind::Verification, &to)
-                .await,
-        );
+        let retry_after = refused(sut.reserve_verification(FOO.user.id, &to).await);
         assert_eq!(retry_after, HOUR - 6 * MINUTE);
 
         // a refused email is not counted and does not extend the window
         clock.advance(HOUR - 6 * MINUTE);
-        sut.reserve_address(UserEmailCodeKind::Verification, &to)
-            .await
-            .unwrap();
+        sut.reserve_verification(FOO.user.id, &to).await.unwrap();
     }
 
     #[tokio::test]
-    async fn the_variants_of_an_address_share_its_budget() {
+    async fn the_variants_of_an_address_share_its_budget_within_an_account() {
         let clock = Clock::new();
-        let sut = sut(&clock);
+        let (sut, _) = sut(&clock);
 
-        sut.reserve_address(
-            UserEmailCodeKind::Verification,
-            &address("first.last@gmail.com"),
-        )
-        .await
-        .unwrap();
+        sut.reserve_verification(FOO.user.id, &address("first.last@gmail.com"))
+            .await
+            .unwrap();
 
         for variant in [
             "First.Last@Gmail.com",
@@ -388,31 +421,170 @@ mod tests {
             "f.i.r.s.t.l.a.s.t+x@googlemail.com",
         ] {
             refused(
-                sut.reserve_address(UserEmailCodeKind::Verification, &address(variant))
+                sut.reserve_verification(FOO.user.id, &address(variant))
                     .await,
             );
         }
 
         // outside of Gmail a dot is part of the address
-        sut.reserve_address(
-            UserEmailCodeKind::Verification,
-            &address("firstlast@example.com"),
-        )
-        .await
-        .unwrap();
+        sut.reserve_verification(FOO.user.id, &address("firstlast@example.com"))
+            .await
+            .unwrap();
         refused(
-            sut.reserve_address(
-                UserEmailCodeKind::Verification,
-                &address("firstlast+tag@example.com"),
-            )
-            .await,
+            sut.reserve_verification(FOO.user.id, &address("firstlast+tag@example.com"))
+                .await,
         );
-        sut.reserve_address(
-            UserEmailCodeKind::Verification,
-            &address("first.last@example.com"),
-        )
-        .await
-        .unwrap();
+        sut.reserve_verification(FOO.user.id, &address("first.last@example.com"))
+            .await
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn another_account_with_a_variant_does_not_lock_the_owner() {
+        let clock = Clock::new();
+        let (sut, store) = sut(&clock);
+
+        sut.reserve_verification(BAR.user.id, &address("victim+x@example.com"))
+            .await
+            .unwrap();
+        sut.reserve_verification(FOO.user.id, &address("victim@example.com"))
+            .await
+            .unwrap();
+
+        assert_eq!(mailbox_count(&store, "victim@example.com"), 2);
+    }
+
+    #[tokio::test]
+    async fn a_refusal_costs_only_the_requesters_buckets() {
+        let clock = Clock::new();
+        let (sut, store) = sut(&clock);
+
+        // The attacker uses up the budget of its account on its own addresses
+        // and then keeps asking for a variant of the victim's address.
+        for n in 0..5 {
+            sut.reserve_verification(BAR.user.id, &address(&format!("bar{n}@example.com")))
+                .await
+                .unwrap();
+        }
+        for _ in 0..3 {
+            refused(
+                sut.reserve_verification(BAR.user.id, &address("victim+x@example.com"))
+                    .await,
+            );
+            clock.advance(2 * MINUTE);
+        }
+        assert_eq!(mailbox_count(&store, "victim@example.com"), 0);
+
+        sut.reserve_verification(FOO.user.id, &address("victim@example.com"))
+            .await
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn the_mailbox_has_a_budget_across_accounts() {
+        let clock = Clock::new();
+        let (sut, _) = sut(&clock);
+
+        // one account sends as many codes to the mailbox as it may
+        for _ in 0..3 {
+            sut.reserve_verification(BAR.user.id, &address("victim+x@example.com"))
+                .await
+                .unwrap();
+            clock.advance(2 * MINUTE);
+        }
+        refused(
+            sut.reserve_verification(BAR.user.id, &address("victim+x@example.com"))
+                .await,
+        );
+
+        // and leaves the owner of the mailbox room for its own code
+        sut.reserve_verification(FOO.user.id, &address("victim@example.com"))
+            .await
+            .unwrap();
+
+        // a further account finds the shared budget used up until the window
+        // that began with the first email has passed
+        let retry_after = refused(
+            sut.reserve_verification(ADMIN.user.id, &address("Victim+y@example.com"))
+                .await,
+        );
+        assert_eq!(retry_after, HOUR - 6 * MINUTE);
+
+        // once that window is over the mailbox takes codes again
+        clock.advance(retry_after);
+        sut.reserve_verification(ADMIN2.user.id, &address("victim@example.com"))
+            .await
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn an_account_has_a_budget_but_no_cooldown() {
+        let clock = Clock::new();
+        let (sut, _) = sut(&clock);
+
+        // five codes in quick succession, one per corrected address
+        for n in 0..5 {
+            sut.reserve_verification(FOO.user.id, &address(&format!("typo{n}@example.com")))
+                .await
+                .unwrap();
+            clock.advance(Duration::from_secs(5));
+        }
+
+        let retry_after = refused(
+            sut.reserve_verification(FOO.user.id, &address("typo5@example.com"))
+                .await,
+        );
+        assert_eq!(retry_after, HOUR - Duration::from_secs(25));
+    }
+
+    #[tokio::test]
+    async fn a_password_reset_counts_the_address_as_the_lookup_compares_it() {
+        let clock = Clock::new();
+        let (sut, _) = sut(&clock);
+
+        // a variant finds no account and does not touch the owner's bucket
+        for variant in [
+            "owner+x@gmail.com",
+            "o.wner@gmail.com",
+            "owner@googlemail.com",
+        ] {
+            sut.reserve_password_reset_address(&address(variant))
+                .await
+                .unwrap();
+        }
+        sut.reserve_password_reset_address(&address("owner@gmail.com"))
+            .await
+            .unwrap();
+
+        // the same address in other case is the same address to the lookup
+        refused(
+            sut.reserve_password_reset_address(&address("Owner@Gmail.COM"))
+                .await,
+        );
+    }
+
+    #[tokio::test]
+    async fn each_kind_of_code_is_counted_on_its_own() {
+        let clock = Clock::new();
+        let (sut, _) = sut(&clock);
+        let to = address("learner@example.com");
+
+        sut.reserve_verification(FOO.user.id, &to).await.unwrap();
+        sut.reserve_password_reset_address(&to).await.unwrap();
+        refused(sut.reserve_password_reset_address(&to).await);
+
+        for n in 1..5 {
+            sut.reserve_verification(FOO.user.id, &address(&format!("l{n}@example.com")))
+                .await
+                .unwrap();
+        }
+        refused(
+            sut.reserve_verification(FOO.user.id, &address("l5@example.com"))
+                .await,
+        );
+        sut.reserve_password_reset_account(FOO.user.id)
+            .await
+            .unwrap();
     }
 
     #[test]
@@ -425,67 +597,61 @@ mod tests {
             ("First.Last@GoogleMail.com", "firstlast@gmail.com"),
             // an address that is nothing but a tag keeps it
             ("+tag@example.com", "+tag@example.com"),
+            // a `+` inside quotes is part of the local part
+            ("\"A+b\"@example.com", "\"a+b\"@example.com"),
+            // only ASCII letters are folded in the local part
+            ("\u{212A}evin@example.com", "\u{212A}evin@example.com"),
+            ("a@B\u{dc}CHER.example", "a@b\u{fc}cher.example"),
         ] {
             assert_eq!(mailbox(&address(input)), expected, "{input}");
         }
     }
 
     #[tokio::test]
-    async fn an_account_has_a_budget_but_no_cooldown() {
-        let clock = Clock::new();
-        let sut = sut(&clock);
+    async fn verification_keys() {
+        let now = Utc.with_ymd_and_hms(2026, 10, 16, 12, 0, 0).unwrap();
+        let user_id = FOO.user.id.hyphenated();
+        let first = SentCodes {
+            count: 1,
+            window_ends: after(now, HOUR),
+            last_sent: now,
+        };
 
-        // five codes in quick succession, one per corrected address
-        for _ in 0..5 {
-            sut.reserve_account(UserEmailCodeKind::Verification, FOO.user.id)
-                .await
-                .unwrap();
-            clock.advance(Duration::from_secs(5));
+        let mut cache = MockCacheService::new();
+        for key in [
+            format!("email_code_limit:verification:address:{user_id}:{SHA256HASH1_HEX}"),
+            format!("email_code_limit:verification:account:{user_id}"),
+            format!("email_code_limit:verification:mailbox:{SHA256HASH1_HEX}"),
+        ] {
+            cache = cache
+                .with_get(key.clone(), None::<SentCodes>)
+                .with_compare_and_set(key, None, first, HOUR, true);
         }
+        let mut time = MockTimeService::new();
+        time.expect_now().times(3).return_const(now);
 
-        let retry_after = refused(
-            sut.reserve_account(UserEmailCodeKind::Verification, FOO.user.id)
-                .await,
-        );
-        assert_eq!(retry_after, HOUR - Duration::from_secs(25));
-    }
+        let sut = Sut {
+            time,
+            hash: MockHashService::new()
+                .with_sha256("firstlast@gmail.com".to_owned(), *SHA256HASH1),
+            cache,
+            config: config(),
+        };
 
-    #[tokio::test]
-    async fn each_kind_of_code_is_counted_on_its_own() {
-        let clock = Clock::new();
-        let sut = sut(&clock);
-        let to = address("learner@example.com");
-
-        sut.reserve_address(UserEmailCodeKind::Verification, &to)
-            .await
-            .unwrap();
-        sut.reserve_address(UserEmailCodeKind::PasswordReset, &to)
-            .await
-            .unwrap();
-        refused(
-            sut.reserve_address(UserEmailCodeKind::PasswordReset, &to)
-                .await,
-        );
-
-        for _ in 0..5 {
-            sut.reserve_account(UserEmailCodeKind::Verification, FOO.user.id)
-                .await
-                .unwrap();
-        }
-        sut.reserve_account(UserEmailCodeKind::PasswordReset, FOO.user.id)
+        sut.reserve_verification(FOO.user.id, &address("First.Last+x@googlemail.com"))
             .await
             .unwrap();
     }
 
     #[tokio::test]
-    async fn address_key_is_the_hash_of_the_mailbox() {
+    async fn password_reset_address_key() {
         let now = Utc.with_ymd_and_hms(2026, 10, 16, 12, 0, 0).unwrap();
         let key = format!("email_code_limit:password_reset:address:{SHA256HASH1_HEX}");
 
         let sut = Sut {
             time: MockTimeService::new().with_now(now),
             hash: MockHashService::new()
-                .with_sha256("firstlast@gmail.com".to_owned(), *SHA256HASH1),
+                .with_sha256("first.last+x@googlemail.com".to_owned(), *SHA256HASH1),
             cache: MockCacheService::new()
                 .with_get(key.clone(), None::<SentCodes>)
                 .with_compare_and_set(
@@ -502,12 +668,9 @@ mod tests {
             config: config(),
         };
 
-        sut.reserve_address(
-            UserEmailCodeKind::PasswordReset,
-            &address("First.Last+x@googlemail.com"),
-        )
-        .await
-        .unwrap();
+        sut.reserve_password_reset_address(&address("First.Last+x@GoogleMail.com"))
+            .await
+            .unwrap();
     }
 
     #[tokio::test]
@@ -515,7 +678,7 @@ mod tests {
         let first = Utc.with_ymd_and_hms(2026, 10, 16, 12, 0, 0).unwrap();
         let second = after(first, Duration::from_millis(5));
         let key = format!(
-            "email_code_limit:verification:account:{}",
+            "email_code_limit:password_reset:account:{}",
             FOO.user.id.hyphenated()
         );
         let concurrent = SentCodes {
@@ -557,9 +720,7 @@ mod tests {
             ..Sut::default()
         };
 
-        let result = sut
-            .reserve_account(UserEmailCodeKind::Verification, FOO.user.id)
-            .await;
+        let result = sut.reserve_password_reset_account(FOO.user.id).await;
 
         assert_matches!(result, Err(UserEmailLimitError::Limited(left)) if *left == HOUR - Duration::from_millis(5));
     }

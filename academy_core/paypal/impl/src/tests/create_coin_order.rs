@@ -39,6 +39,7 @@ fn accepted() -> PurchaseStatus {
             text: "Original contract text".into(),
             declaration: "Original explicit request".into(),
             provision_window_seconds: None,
+            summary: None,
         },
         state: "awaiting_payment".into(),
         accepted_at: Some(now),
@@ -216,4 +217,32 @@ async fn accepted_offer_creates_snapshot_from_original_tax_recipient_and_declara
             .as_str(),
         "CREATED"
     );
+}
+
+#[test]
+fn coin_product_is_short_and_keeps_invoice_details_in_its_facts() {
+    use academy_core_finance_contracts::coin::{CoinPrices, MockFinanceCoinService};
+    let prices = CoinPrices {
+        net_unit: dec!(0.0084),
+        net_total: dec!(8.4034),
+        vat_total: dec!(1.5966),
+        gross_total: dec!(10.00),
+    };
+    let sut = Sut {
+        finance_coin: MockFinanceCoinService::new()
+            .with_get_price(1000, prices)
+            .with_vat_percent(dec!(19)),
+        ..Sut::default()
+    };
+    let product = sut.coin_product(1000, &FOO);
+    assert_eq!(product.kind, "coins");
+    assert_eq!(product.title, "1.000 Morphcoins");
+    // The order page states the invoice details once; the offer text does not repeat them.
+    assert_eq!(
+        product.description,
+        "Guthaben für Angebote auf Bootstrap Academy, einmaliger Kauf."
+    );
+    assert_eq!(product.facts["gross_total"], "10.00");
+    assert_eq!(product.facts["vat_percent"], "19");
+    assert!(product.facts["customer_details"].is_array());
 }

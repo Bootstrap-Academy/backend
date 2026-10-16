@@ -102,9 +102,13 @@ assert decode_mail_header(mail["Subject"]) == "Deine Vertragsbestätigung – Bo
 payload, invoice, terms, revocation_policy = get_mail_parts(mail)
 content = decode_mail_part(payload).decode()
 assert content == decode_mail_part(confirmation_body).decode()
-assert offer["offer"]["text"] in content
 assert offer["offer"]["declaration"] in content
-assert "13.37 EUR" in content
+# The mail reproduces the short offer with the provider in front and the payment way after
+# it; the total price stands once, with its VAT note (no-break spaces before € and %).
+assert f"\nAnbieter: bootstrap academy GmbH.\n{offer['offer']['text']}\nZahlungsweg: PayPal" in content
+assert "Gesamtpreis: 13,37\u00a0€ inkl. 19\u00a0% MwSt., keine weiteren Kosten." in offer["offer"]["text"]
+assert content.count("Gesamtpreis") == 1
+assert "Rechnungsangaben" not in content
 assert invoice.get_filename() == "Rechnung-R0000001.pdf"
 assert invoice["Content-Type"] == "application/pdf"
 invoice_pdf = decode_mail_part(invoice)

@@ -13,7 +13,7 @@ use academy_models::{
     auth::AccessToken,
     coin::Balance,
     paypal::{PaypalOrderId, PaypalPayment, PaypalPaymentSnapshot, PaypalRemoteOrder},
-    purchase::{PurchaseAcceptance, PurchaseProduct, PurchaseStatus},
+    purchase::{PurchaseAcceptance, PurchaseProduct, PurchaseStatus, group_digits},
     user::UserComposite,
 };
 use academy_persistence_contracts::{
@@ -389,18 +389,10 @@ where
         PurchaseProduct {
             kind: "coins".into(),
             reference: coins.to_string(),
-            title: format!("{coins} MorphCoins"),
-            description: format!(
-                "Du kaufst einmalig {coins} MorphCoins für Angebote auf Bootstrap Academy. Kein Abo.\nRechnungsangaben: {}",
-                facts["customer_details"]
-                    .as_array()
-                    .map(|a| a
-                        .iter()
-                        .filter_map(|v| v.as_str())
-                        .collect::<Vec<_>>()
-                        .join(", "))
-                    .unwrap_or_default()
-            ),
+            // The invoice details stay in the facts; the order page states them once, so
+            // the offer text does not repeat them.
+            title: format!("{} Morphcoins", group_digits(coins, '.')),
+            description: "Guthaben für Angebote auf Bootstrap Academy, einmaliger Kauf.".into(),
             coins,
             revision: format!("{:x}", Sha256::digest(facts.to_string().as_bytes())),
             facts,

@@ -35,12 +35,22 @@ use uuid::Uuid;
 #[derive(Debug, Clone)]
 pub struct PurchaseFeatureConfig {
     pub provision_window_seconds: std::collections::HashMap<String, u64>,
+    /// The VAT rate the order summary names, as configured (`finance.vat_percent`), e.g. `19`.
+    pub vat_percent: String,
 }
 
 // An early-performance request is recorded; this release does not assert that
 // unresolved product classification or a checkbox extinguishes withdrawal rights.
 const DECLARATION: &str = "Ich verlange ausdrücklich, dass mit der bestellten Leistung vor Ablauf der Widerrufsfrist begonnen wird. Meine gesetzlichen Widerrufs- und Mängelrechte bleiben unberührt.";
-const COMMENCEMENT: &str = "Dein neuer Premium-Zeitraum beginnt nach der Vertragsbestätigung. Bereits bezahlte Premium-Zeit läuft zuerst ab. Du erhältst den gesamten gekauften Kalenderzeitraum; bis zum Beginn wird davon keine Zeit abgezogen. Dein bestehender Zugang und eine bestehende automatische Verlängerung bleiben unverändert.";
+/// `DECLARATION` for the English interface. The German wording is the one agreed.
+const DECLARATION_EN: &str = "I expressly request that the ordered service begins before the withdrawal period ends. My statutory withdrawal and warranty rights remain unaffected.";
+/// Wording revision of the short order summary, part of every builtin product revision.
+const SUMMARY_REVISION: &str = "purchase-2026-10-s1";
+/// All courses are free for everyone (owner, 16.10.2026), so Premium promises unlimited hearts.
+const PREMIUM_BENEFIT: &str = "Unbegrenzte Herzen.";
+const PREMIUM_BENEFIT_DAILY: &str = "Du kannst jeden Tag beliebig viele neue Lektionen anfangen.";
+/// The confirmation mail names the provider; the order summary leaves it to the terms.
+const PROVIDER: &str = "Anbieter: bootstrap academy GmbH.";
 
 #[derive(Debug, Clone, Build)]
 pub struct PurchaseFeatureServiceImpl<
@@ -136,11 +146,27 @@ where
             .map_err(|_| PurchaseError::NotFound)
     }
     fn builtin(&self, kind: &str) -> Result<PurchaseProduct, PurchaseError> {
-        let (title,description,coins,facts)=match kind {
-            "premium_monthly"=>("Premium für einen Kalendermonat",format!("Zugriff auf alle Kurse und Übungen ohne Verbrauch von Herzen. {COMMENCEMENT}"),self.premium_config.monthly_price,json!({"months":1,"automatic_renewal":false})),
-            "premium_yearly"=>("Premium für zwölf Kalendermonate",format!("Zugriff auf alle Kurse und Übungen ohne Verbrauch von Herzen. {COMMENCEMENT}"),self.premium_config.yearly_price,json!({"months":12,"automatic_renewal":false})),
-            "hearts"=>("Herzen auffüllen","Du füllst deine Herzen einmalig bis zur angegebenen Höchstzahl auf. Kein Abo. Die tägliche kostenlose Auffüllung bleibt bestehen.".into(),self.heart_config.hearts_refill_price,json!({"maximum":self.heart_config.hearts_max,"unit":"half_heart"})),
-            _=>return Err(PurchaseError::Unavailable),
+        let (title, description, coins, facts) = match kind {
+            "premium_monthly" => (
+                "Premium für einen Monat",
+                PREMIUM_BENEFIT.into(),
+                self.premium_config.monthly_price,
+                json!({"months":1,"automatic_renewal":false}),
+            ),
+            "premium_yearly" => (
+                "Premium für ein Jahr",
+                PREMIUM_BENEFIT.into(),
+                self.premium_config.yearly_price,
+                json!({"months":12,"automatic_renewal":false}),
+            ),
+            // The quote replaces the description with the quantity it agrees on.
+            "hearts" => (
+                "Herzen auffüllen",
+                "Du füllst deine Herzen einmalig bis zum Höchstbestand auf.".into(),
+                self.heart_config.hearts_refill_price,
+                json!({"maximum":self.heart_config.hearts_max,"unit":"half_heart"}),
+            ),
+            _ => return Err(PurchaseError::Unavailable),
         };
         Ok(PurchaseProduct {
             kind: kind.into(),
@@ -150,7 +176,7 @@ where
             coins,
             facts,
             revision: format!(
-                "purchase-2026-09-v1:{coins}:{}",
+                "{SUMMARY_REVISION}:{coins}:{}",
                 self.heart_config.hearts_max
             ),
             service_starts_at: None,
@@ -167,13 +193,252 @@ where
         Ok(PurchaseDocuments::legacy())
     }
 
+    /// The monthly renewal the account ordered separately, as a Premium offer states it:
+    /// `{"monthly_price": …}`, or `null` without one. A running renewal and one that still
+    /// awaits its confirmation both go on after the purchased period (AGB 8.4), so the
+    /// offer names either. Bound into the product, a renewal that changes between offer
+    /// and acceptance makes the acceptance fail without a charge.
+    ///
+    /// The state is reconciled first: a renewal whose confirmation was not sent before
+    /// its deadline is switched off (AGB 8.4), so the offer never names it.
+    async fn renewal_fact(
+        &self,
+        txn: &mut Db::Transaction,
+        user: UserId,
+    ) -> Result<serde_json::Value, PurchaseError> {
+        self.premium_repo.get_latest_by_user_id(txn, user).await?;
+        if self
+            .premium_repo
+            .get_subscription(txn, user)
+            .await?
+            .is_none()
+        {
+            return Ok(serde_json::Value::Null);
+        }
+        Ok(self.premium_repo.get_renewal(txn, user).await?.map_or(
+            serde_json::Value::Null,
+            |renewal| json!({ "monthly_price": renewal.monthly_price }),
+        ))
+    }
+
     fn adapt_premium_product(&self, product: &mut PurchaseProduct, mode: LearningMode) {
         if mode == LearningMode::Daily && product.kind.starts_with("premium_") {
-            product.description = format!(
-                "Du kannst jeden Tag beliebig viele neue Lektionen anfangen. {COMMENCEMENT}"
-            );
+            product.description = PREMIUM_BENEFIT_DAILY.into();
             product.revision.push_str(":daily");
         }
+    }
+
+    /// The order summary of Morphcoins, Premium and a heart refill, in German and English:
+    /// what is bought, further characteristics, the term of Premium, when it is provided,
+    /// the total price with VAT and how it is paid. Each fact is stated once; the terms,
+    /// the withdrawal policy and the confirmation mail carry the rest (AGB 6.2, 8.2, 9,
+    /// 11). The German lines become the offer text.
+    fn summary(
+        &self,
+        product: &PurchaseProduct,
+        window: Option<u64>,
+        mode: LearningMode,
+    ) -> Result<OfferSummary, PurchaseError> {
+        use OfferLineRole::*;
+        let line = |role, text: String| OfferLine { role, text };
+        let seconds = window.ok_or(PurchaseError::Unavailable)?;
+        let (within_de, within_en) = (duration_de(seconds), duration_en(seconds));
+        let vat = product.facts["vat_percent"]
+            .as_str()
+            .unwrap_or(self.purchase_config.vat_percent.as_str())
+            .to_owned();
+        let (vat_de, vat_en) = (vat.replace('.', ","), vat);
+        let coin_word = if product.coins == 1 {
+            "Morphcoin"
+        } else {
+            "Morphcoins"
+        };
+        let (coins_de, coins_en) = (
+            format!("{} {coin_word}", group_digits(product.coins, '.')),
+            format!("{} {coin_word}", group_digits(product.coins, ',')),
+        );
+        // 100 Morphcoins are 1 € (AGB 6.2), so a coin price in cents is its coin count.
+        let price = |cents: u64, per_month: Option<u64>| {
+            let (month_de, month_en) = per_month.map_or((String::new(), String::new()), |m| {
+                (
+                    format!("; {} je Monat", euros_de(m)),
+                    format!("; {} per month", euros_en(m)),
+                )
+            });
+            (
+                format!(
+                    "Gesamtpreis: {coins_de} ({} inkl. {vat_de}\u{a0}% MwSt.{month_de}), keine weiteren Kosten.",
+                    euros_de(cents)
+                ),
+                format!(
+                    "Total price: {coins_en} ({} incl. {vat_en}% VAT{month_en}), no further costs.",
+                    euros_en(cents)
+                ),
+            )
+        };
+        let paid_from_balance = (
+            "Du zahlst aus deinem Guthaben.",
+            "You pay from your balance.",
+        );
+        let (de, en) = match product.kind.as_str() {
+            "hearts" => {
+                let units = product.facts["refill_units"]
+                    .as_u64()
+                    .ok_or(PurchaseError::Unavailable)?;
+                let maximum = product.facts["maximum"]
+                    .as_u64()
+                    .ok_or(PurchaseError::Unavailable)?;
+                let (quantity, maximum) = (
+                    display_hearts(units).replace(',', "."),
+                    display_hearts(maximum).replace(',', "."),
+                );
+                let noun = if units == 2 { "heart" } else { "hearts" };
+                let (price_de, price_en) = price(product.coins, None);
+                (
+                    vec![
+                        line(Product, product.title.clone()),
+                        line(
+                            Detail,
+                            format!(
+                                "{} Wir füllen direkt nach der Bestätigungsmail auf, spätestens in {within_de}.",
+                                product.description
+                            ),
+                        ),
+                        line(Price, price_de),
+                        line(Payment, paid_from_balance.0.into()),
+                    ],
+                    vec![
+                        line(Product, "Refill hearts".into()),
+                        line(
+                            Detail,
+                            format!(
+                                "You get {quantity} more {noun} and then have {maximum} of {maximum}. We refill right after the confirmation email, within {within_en} at the latest."
+                            ),
+                        ),
+                        line(Price, price_en),
+                        line(Payment, paid_from_balance.1.into()),
+                    ],
+                )
+            }
+            "premium_monthly" | "premium_yearly" => {
+                let yearly = product.facts["months"].as_u64() == Some(12);
+                let (price_de, price_en) =
+                    price(product.coins, yearly.then(|| (product.coins + 6) / 12));
+                // The term, and a monthly renewal the account ordered separately, which goes
+                // on after the purchased period (AGB 8.4, 11.1).
+                let (unit_de, unit_en) = if yearly {
+                    ("Jahr", "year")
+                } else {
+                    ("Monat", "month")
+                };
+                let (term_de, term_en) = match product.facts["renewal"]["monthly_price"].as_u64() {
+                    Some(monthly) => (
+                        format!(
+                            "Laufzeit: 1 {unit_de}. Danach läuft deine monatliche Verlängerung weiter ({} Morphcoins je Monat).",
+                            group_digits(monthly, '.')
+                        ),
+                        format!(
+                            "Term: 1 {unit_en}. After that, your monthly renewal continues ({} Morphcoins per month).",
+                            group_digits(monthly, ',')
+                        ),
+                    ),
+                    None => (
+                        format!("Laufzeit: 1 {unit_de}, ohne automatische Verlängerung."),
+                        format!("Term: 1 {unit_en}, no automatic renewal."),
+                    ),
+                };
+                let benefit_en = if mode == LearningMode::Daily {
+                    "You can start as many new lessons as you like every day."
+                } else {
+                    "Unlimited hearts."
+                };
+                (
+                    vec![
+                        line(Product, product.title.clone()),
+                        line(Detail, product.description.clone()),
+                        line(Term, term_de),
+                        line(
+                            Detail,
+                            format!(
+                                "Premium startet direkt nach der Bestätigungsmail, spätestens in {within_de}. Läuft schon Premium, schließt die neue Zeit daran an."
+                            ),
+                        ),
+                        line(Price, price_de),
+                        line(Payment, paid_from_balance.0.into()),
+                    ],
+                    vec![
+                        line(
+                            Product,
+                            format!("Premium for one {}", if yearly { "year" } else { "month" }),
+                        ),
+                        line(Detail, benefit_en.into()),
+                        line(Term, term_en),
+                        line(
+                            Detail,
+                            format!(
+                                "Premium starts right after the confirmation email, within {within_en} at the latest. If Premium is already running, the new period follows it."
+                            ),
+                        ),
+                        line(Price, price_en),
+                        line(Payment, paid_from_balance.1.into()),
+                    ],
+                )
+            }
+            "coins" => {
+                let cents = product.facts["gross_total"]
+                    .as_str()
+                    .and_then(cents_of)
+                    .ok_or(PurchaseError::Unavailable)?;
+                (
+                    vec![
+                        line(Product, product.title.clone()),
+                        line(
+                            Detail,
+                            format!(
+                                "{} Die Morphcoins sind nach der Zahlung und der Bestätigungsmail auf deinem Konto, spätestens in {within_de}.",
+                                product.description
+                            ),
+                        ),
+                        line(
+                            Price,
+                            format!(
+                                "Gesamtpreis: {} inkl. {vat_de}\u{a0}% MwSt., keine weiteren Kosten.",
+                                euros_de(cents)
+                            ),
+                        ),
+                        line(Payment, "Du zahlst mit PayPal.".into()),
+                    ],
+                    vec![
+                        line(Product, coins_en.clone()),
+                        line(
+                            Detail,
+                            format!(
+                                "Balance for offers on Bootstrap Academy, one-time purchase. The Morphcoins are in your account after payment and the confirmation email, within {within_en} at the latest."
+                            ),
+                        ),
+                        line(
+                            Price,
+                            format!(
+                                "Total price: {} incl. {vat_en}% VAT, no further costs.",
+                                euros_en(cents)
+                            ),
+                        ),
+                        line(Payment, "You pay with PayPal.".into()),
+                    ],
+                )
+            }
+            _ => return Err(PurchaseError::Unavailable),
+        };
+        Ok(OfferSummary {
+            de: OfferWording {
+                lines: de,
+                declaration: DECLARATION.into(),
+            },
+            en: OfferWording {
+                lines: en,
+                declaration: DECLARATION_EN.into(),
+            },
+        })
     }
 
     async fn unresolved(
@@ -279,11 +544,17 @@ where
                 return Err(PurchaseError::Unavailable);
             }
             product.facts["refill_units"] = json!(units);
+            // The quantity and the maximum the account then holds (AGB 9.2); the rules of
+            // the hearts stand in AGB 9.1 and 9.2.
+            let maximum = display_hearts(self.heart_config.hearts_max);
             product.description = format!(
-                "Du kaufst einmalig {} zusätzliche Herzen, höchstens {} Herzen insgesamt. Nur eine falsche Lösung kostet ein ganzes Herz. Richtige Lösungen und technische Fehler sind kostenlos. Du erhältst deine Herzen nach der Vertragsbestätigung. Falls durch die tägliche kostenlose Auffüllung nicht mehr genug Platz für die gekaufte Menge ist, bleibt deine bezahlte Bestellung in der Bestellübersicht. Kein Abo. Deine Herzen werden weiterhin täglich automatisch und kostenlos aufgefüllt.",
+                "Du bekommst {} {} dazu und hast dann {maximum} von {maximum}.",
                 display_hearts(units),
-                display_hearts(self.heart_config.hearts_max)
+                if units == 2 { "Herz" } else { "Herzen" },
             );
+        }
+        if product.kind.starts_with("premium_") {
+            product.facts["renewal"] = self.renewal_fact(&mut txn, user).await?;
         }
         let now = Utc::now();
         let expires_at = product
@@ -294,38 +565,32 @@ where
         if expires_at <= now {
             return Err(PurchaseError::Unavailable);
         }
-        let mut text = if source == "paypal" {
-            format!(
-                "Anbieter: bootstrap academy GmbH.\n{}\n{}\nGesamtpreis: {} EUR einschließlich Umsatzsteuer ({} EUR). Du zahlst mit PayPal. Es gibt keine weiteren Bestellkosten. Du erhältst dein Guthaben nach Zahlungseingang und Vertragsbestätigung.\nSprache: Deutsch. Die beigefügten AGB und Widerrufsinformationen gelten für diese Bestellung.",
-                product.title,
-                product.description,
-                product.facts["gross_total"].as_str().unwrap_or(""),
-                product.facts["vat_total"].as_str().unwrap_or("")
-            )
+        // Coins, Premium and hearts get the short summary; the offers of the other services
+        // keep the full text they always had.
+        let summary = if matches!(source, "backend" | "paypal") {
+            Some(self.summary(&product, provision_window_seconds, mode)?)
         } else {
-            format!(
+            None
+        };
+        let text = if let Some(summary) = &summary {
+            summary.de.text()
+        } else {
+            let mut text = format!(
                 "Anbieter: bootstrap academy GmbH.\nDein Kauf: {}\n{}\nPreis: {} MorphCoins ({:.2} EUR einschließlich Umsatzsteuer; 100 MorphCoins = 1 EUR). Es gibt keine weiteren Bestellkosten. Du zahlst nur aus deinem vorhandenen MorphCoin-Guthaben.\nSprache: Deutsch. Die beigefügten AGB und Widerrufsinformationen gelten für diese Bestellung.\nWiderruf: https://bootstrap.academy/vertrag-widerrufen. Kündigung: https://bootstrap.academy/vertrag-kuendigen. Beides geht auch per E-Mail an hallo@bootstrap.academy.\n",
                 product.title,
                 product.description,
                 product.coins,
                 product.coins as f64 / 100.0
-            )
-        };
-        if let Some(seconds) = provision_window_seconds {
-            let duration = if seconds == 3600 {
-                "1 Stunde".to_owned()
-            } else if seconds > 0 && seconds.is_multiple_of(3600) {
-                format!("{} Stunden", seconds / 3600)
-            } else {
-                format!("{seconds} Sekunden")
-            };
-            if matches!(product.kind.as_str(), "premium_monthly" | "premium_yearly") {
-                text.push_str(&format!("\nDu erhältst die Vertragsbestätigung innerhalb von {duration} nach Eingang deiner Bestellung. In dieser Frist wird auch dein gesamter gekaufter Premium-Zeitraum für dich gebucht."));
-            } else {
-                text.push_str(&format!("\nDu erhältst die Vertragsbestätigung und deine Leistung innerhalb von {duration} nach Eingang deiner Bestellung."));
+            );
+            if let Some(seconds) = provision_window_seconds {
+                text.push_str(&format!(
+                    "\nDu erhältst die Vertragsbestätigung und deine Leistung innerhalb von {} nach Eingang deiner Bestellung.",
+                    duration_de(seconds)
+                ));
+                text.push_str(" Nach Ablauf der Frist wird eine noch ausstehende Bereitstellung nicht automatisch nachgeholt. Deine Bestellung und Zahlung bleiben in der Bestellübersicht; deine Ansprüche bleiben bestehen. Bei Fragen: hallo@bootstrap.academy. Die Frist gilt auch, wenn deine Zahlung noch aussteht.");
             }
-            text.push_str(" Nach Ablauf der Frist wird eine noch ausstehende Bereitstellung nicht automatisch nachgeholt. Deine Bestellung und Zahlung bleiben in der Bestellübersicht; deine Ansprüche bleiben bestehen. Bei Fragen: hallo@bootstrap.academy. Die Frist gilt auch, wenn deine Zahlung noch aussteht.");
-        }
+            text
+        };
         let mut offer = PurchaseOffer {
             id: Uuid::new_v4(),
             user_id: *user,
@@ -339,6 +604,7 @@ where
             text,
             declaration: DECLARATION.into(),
             provision_window_seconds,
+            summary,
         };
         offer.hash = format!(
             "{:x}",
@@ -466,6 +732,8 @@ where
             && o.product.kind.starts_with("premium_")
         {
             self.adapt_premium_product(expected, mode);
+            // The renewal the offer named must still be the account's renewal.
+            expected.facts["renewal"] = self.renewal_fact(&mut txn, user).await?;
         }
         if let Some(ref mut expected) = expected
             && o.product.kind == "hearts"
@@ -547,14 +815,7 @@ where
         let body = format!(
             "Hallo,\n\nhier ist die Vertragsbestätigung für deine Bestellung „{}“. Den Stand findest du unter https://bootstrap.academy/orders.\n\nDein vereinbartes Angebot:\n{}\n\nDeine Erklärung zum vorzeitigen Beginn:\n{}\n\nDie vereinbarten AGB und Widerrufsinformationen findest du als PDF im Anhang.\n\nViele Grüße\nDein Bootstrap Academy Team\n\nBestellnummer: {}\nEmpfänger: {}\nBestellt am: {}",
             o.product.title,
-            if source == "paypal" {
-                format!(
-                    "{}\nZahlungsweg: PayPal; keine Abbuchung vorhandener MorphCoins.",
-                    o.text
-                )
-            } else {
-                o.text.clone()
-            },
+            agreed_offer(o),
             if a.early_performance_requested {
                 &o.declaration
             } else {
@@ -1331,6 +1592,79 @@ where
         }
         Ok(())
     }
+}
+
+/// The offer as the confirmation mail reproduces it. An offer with an order summary gets
+/// the provider in front, which the dialog leaves to the terms; a PayPal offer gets how it
+/// is paid.
+fn agreed_offer(o: &PurchaseOffer) -> String {
+    let text = if o.summary.is_some() {
+        format!("{PROVIDER}\n{}", o.text)
+    } else {
+        o.text.clone()
+    };
+    if o.source == "paypal" {
+        format!("{text}\nZahlungsweg: PayPal; keine Abbuchung vorhandener MorphCoins.")
+    } else {
+        text
+    }
+}
+
+/// A provision window in German words, e.g. `24 Stunden`.
+fn duration_de(seconds: u64) -> String {
+    if seconds == 3600 {
+        "1 Stunde".to_owned()
+    } else if seconds > 0 && seconds.is_multiple_of(3600) {
+        format!("{} Stunden", seconds / 3600)
+    } else {
+        format!("{seconds} Sekunden")
+    }
+}
+
+/// A provision window in English words, e.g. `24 hours`.
+fn duration_en(seconds: u64) -> String {
+    if seconds == 3600 {
+        "1 hour".to_owned()
+    } else if seconds > 0 && seconds.is_multiple_of(3600) {
+        format!("{} hours", seconds / 3600)
+    } else {
+        format!("{seconds} seconds")
+    }
+}
+
+/// An amount of cents in German notation, e.g. `1.000,00 €`, with a no-break space before
+/// the sign, so that a line never breaks between amount and currency.
+fn euros_de(cents: u64) -> String {
+    format!(
+        "{},{:02}\u{a0}€",
+        group_digits(cents / 100, '.'),
+        cents % 100
+    )
+}
+
+/// An amount of cents in English notation, e.g. `€1,000.00`.
+fn euros_en(cents: u64) -> String {
+    format!("€{}.{:02}", group_digits(cents / 100, ','), cents % 100)
+}
+
+/// A decimal Euro amount such as `10.00` in cents. More than two decimals are accepted
+/// only as trailing zeros, so a stated price is never rounded.
+fn cents_of(amount: &str) -> Option<u64> {
+    let (euros, fraction) = amount.split_once('.').unwrap_or((amount, ""));
+    let digits = |s: &str| !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit());
+    if !digits(euros) || !(fraction.is_empty() || digits(fraction)) {
+        return None;
+    }
+    let (cents, rest) = fraction.split_at(fraction.len().min(2));
+    if rest.bytes().any(|b| b != b'0') {
+        return None;
+    }
+    let cents = format!("{cents:0<2}").parse::<u64>().ok()?;
+    euros
+        .parse::<u64>()
+        .ok()?
+        .checked_mul(100)?
+        .checked_add(cents)
 }
 
 #[cfg(test)]

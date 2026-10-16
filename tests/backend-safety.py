@@ -605,6 +605,69 @@ def premium_unconfirmed_and_unfunded_renewal(f):
         assert f.sql(f"SELECT count(*) FROM transactions WHERE user_id='{user['id']}'") == "1"
 
 
+def premium_offer_reads_reconciled_renewal(f):
+    """A Premium offer names a separately ordered renewal only while it can still run.
+
+    A renewal whose confirmation was not sent before the end of the period paid at its
+    order is switched off (AGB 8.4). The offer reconciles first, so it does not promise
+    a renewal that has already ended; an offer issued before that fails without a charge.
+    """
+    user = f.account(coins=5000)
+    f.accept(user, f.quote(user, "premium_monthly"))
+    f.sql(f"UPDATE premium SET until=now()+interval '3 seconds' WHERE user_id='{user['id']}'")
+    offer = f.request("/shop/premium/renewal-offer/me", token=f.token(user))
+    monthly = offer["monthly_price"]
+    line = (
+        "Laufzeit: 1 Monat. Danach läuft deine monatliche Verlängerung weiter "
+        f"({format(monthly, ',').replace(',', '.')} Morphcoins je Monat)."
+    )
+    f.request(
+        "/shop/premium/autopay",
+        "PUT",
+        {
+            "plan": "MONTHLY",
+            "consent": {
+                "request_id": str(uuid4()),
+                "offer_id": offer["id"],
+                "accepted": True,
+                "withdrawal_consent": True,
+            },
+        },
+        f.token(user),
+    )
+    # An owned fixture simulates the confirmation never having been delivered.
+    f.sql(
+        "UPDATE premium_renewal_delivery SET sent_at=NULL WHERE agreement_id IN "
+        f"(SELECT id FROM premium_renewal_agreements WHERE user_id='{user['id']}')"
+    )
+    # While the deadline is ahead, the ordered renewal goes on after the period: named.
+    ahead = f.quote(user, "premium_monthly")
+    assert line in ahead["offer"]["text"].splitlines(), ahead["offer"]["text"]
+    assert ahead["offer"]["product"]["facts"]["renewal"] == {"monthly_price": monthly}
+    time.sleep(5)
+    passed = f.sql(
+        "SELECT bool_and(confirmation_deadline < now()) FROM premium_renewal_agreements "
+        f"WHERE user_id='{user['id']}'"
+    )
+    assert passed == "t", passed
+    # The deadline passed unconfirmed: the offer reconciles and names no renewal.
+    quote = f.quote(user, "premium_monthly")
+    assert quote["offer"]["product"]["facts"]["renewal"] is None
+    assert "Laufzeit: 1 Monat, ohne automatische Verlängerung." in quote["offer"]["text"].splitlines()
+    assert line not in quote["offer"]["text"]
+    status = f.request("/shop/premium/me", token=f.token(user))
+    assert status["autopay"] is None and status.get("renewal") is None, status
+    # The offer that still named the renewal is refused without a charge.
+    balance = f.balance(user)
+    refused = f.accept(user, ahead)
+    assert refused["state"] == "failed", refused["state"]
+    assert refused["review_reason"] == "Offer expired or changed; no charge", refused["review_reason"]
+    assert f.balance(user) == balance
+    bought = f.accept(user, quote)
+    assert bought["state"] in ("paid", "fulfilled"), bought["state"]
+    assert f.balance(user) == balance - quote["offer"]["product"]["coins"]
+
+
 def policy_auth_and_read_only(f):
     user = f.account(coins=100)
     public = f.request("/shop/learning/policy", token=f.token(user))
@@ -904,6 +967,7 @@ CASES = [
     premium_purchase_replay_and_expiry,
     premium_confirmed_renewal_only,
     premium_unconfirmed_and_unfunded_renewal,
+    premium_offer_reads_reconciled_renewal,
     policy_auth_and_read_only,
     policy_cohorts_preserve_legacy_and_daily_is_free,
     refresh_logout_and_owner_boundaries,

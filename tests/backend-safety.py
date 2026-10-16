@@ -742,6 +742,84 @@ def export_isolated_partial_and_rate_limited(f):
     f.request("/auth/users/me/export", token=f.token(user), expected=429)
 
 
+def answer(f, path, body=None, token=None):
+    """Status, `Retry-After` header and body of a POST, whatever its status."""
+    headers = {"Content-Type": "application/json"}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    request = urllib.request.Request(
+        f"http://127.0.0.1:{f.ports['api']}{path}",
+        method="POST",
+        headers=headers,
+        data=None if body is None else json.dumps(body).encode(),
+    )
+    try:
+        response = urllib.request.urlopen(request, timeout=15)
+    except urllib.error.HTTPError as error:
+        response = error
+    with response:
+        return response.status, response.headers.get("Retry-After"), json.loads(response.read())
+
+
+def code_emails_limited_per_address_and_account(f):
+    # Defaults of config.toml: one email per address and minute, five per
+    # address and five per account and hour.
+    user = f.account()
+    f.sql(f"UPDATE users SET email_verified=false WHERE id='{user['id']}'")
+    session = {key: user[key] for key in ("access_token", "refresh_token")}
+
+    def code():
+        return answer(f, "/auth/users/me/email", token=session["access_token"])
+
+    def sent(result, mails):
+        assert result[0] == 200, f"expected an email, got {result}"
+        assert f.smtp.messages == mails, f"expected {mails} emails, counted {f.smtp.messages}"
+
+    def refused(result, mails, at_least, at_most):
+        status, retry_after, body = result
+        assert status == 429, f"expected a refusal, got {result}"
+        assert body == {"detail": "Too many requests"}, body
+        assert retry_after is not None and at_least <= int(retry_after) <= at_most, retry_after
+        assert f.smtp.messages == mails, f"expected {mails} emails, counted {f.smtp.messages}"
+
+    def move_to(address):
+        # A changed address ends the access tokens of the account, so the
+        # session is renewed before the next code, as the web interface does.
+        f.request("/auth/users/me", "PATCH", {"email": address}, session["access_token"])
+        renewed = f.request("/auth/session", "PUT", {"refresh_token": session["refresh_token"]})
+        session.update({key: renewed[key] for key in session})
+
+    # Normal use: the first code goes out, a second click sends nothing.
+    mails = f.smtp.messages
+    sent(code(), mails + 1)
+    refused(code(), mails + 1, 1, 60)
+
+    # A corrected address gets its code at once.
+    move_to(f"{user['name']}-corrected@example.com")
+    sent(code(), mails + 2)
+
+    # Eight requests at the same moment send one email.
+    move_to(f"{user['name']}-burst@example.com")
+    statuses = sorted(status for status, _, _ in concurrent(*[code] * 8))
+    assert statuses == [200] + [429] * 7, statuses
+    assert f.smtp.messages == mails + 3, f"expected {mails + 3} emails, counted {f.smtp.messages}"
+
+    # The account's budget ends what moving to fresh addresses would allow.
+    for n in range(2):
+        move_to(f"{user['name']}-fresh{n}@example.com")
+        sent(code(), mails + 4 + n)
+    move_to(f"{user['name']}-fresh2@example.com")
+    refused(code(), mails + 5, 3000, 3600)
+
+    # A password reset is counted on its own, and the address before it is
+    # looked up: an address without an account is answered the same way.
+    owner = f.account()
+    for address, delivered in ((f"{owner['name']}@example.com", 1), (f"nobody-{uuid4().hex}@example.com", 0)):
+        mails = f.smtp.messages
+        sent(answer(f, "/auth/password_reset", {"email": address}), mails + delivered)
+        refused(answer(f, "/auth/password_reset", {"email": address}), mails + delivered, 1, 60)
+
+
 def deletion_revokes_all_sessions_and_keeps_durable_work(f):
     user = f.account()
     another = f.login(user["name"], user["password"])
@@ -784,6 +862,7 @@ CASES = [
     refresh_logout_and_owner_boundaries,
     mfa_setup_replay_and_recovery,
     export_isolated_partial_and_rate_limited,
+    code_emails_limited_per_address_and_account,
     deletion_revokes_all_sessions_and_keeps_durable_work,
 ]
 

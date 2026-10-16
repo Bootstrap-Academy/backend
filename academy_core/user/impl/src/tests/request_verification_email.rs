@@ -1,7 +1,10 @@
 use academy_auth_contracts::MockAuthService;
+use std::time::Duration;
+
 use academy_core_user_contracts::{
     UserFeatureService, UserRequestVerificationEmailError,
     email_confirmation::MockUserEmailConfirmationService,
+    email_limit::{MockUserEmailLimitService, UserEmailCodeKind},
 };
 use academy_demo::{
     session::{ADMIN_1, BAR_1, FOO_1},
@@ -30,6 +33,8 @@ async fn ok_self() {
         Some(FOO.clone().with(|u| u.user.email_verified = false)),
     );
 
+    let user_email_limit = foo_within_limit();
+
     let user_email_confirmation = MockUserEmailConfirmationService::new()
         .with_request_verification(
             FOO.user.id,
@@ -45,6 +50,7 @@ async fn ok_self() {
         db,
         user_repo,
         user_email_confirmation,
+        user_email_limit,
         ..Sut::default()
     };
 
@@ -74,6 +80,9 @@ async fn ok_admin() {
             Some(FOO.clone().with(|u| u.user.email_verified = false)),
         );
 
+    // The email is counted for the account it is for, not the administrator's.
+    let user_email_limit = foo_within_limit();
+
     let user_email_confirmation = MockUserEmailConfirmationService::new()
         .with_request_verification(
             FOO.user.id,
@@ -89,6 +98,7 @@ async fn ok_admin() {
         db,
         user_repo,
         user_email_confirmation,
+        user_email_limit,
         ..Sut::default()
     };
 
@@ -234,4 +244,103 @@ async fn no_email() {
 
     // Assert
     assert_matches!(result, Err(UserRequestVerificationEmailError::NoEmail));
+}
+
+#[tokio::test]
+async fn address_limited() {
+    // Arrange
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
+
+    let db = MockDatabase::build(false);
+
+    let user_repo = MockUserRepository::new().with_get_composite(
+        FOO.user.id,
+        Some(FOO.clone().with(|u| u.user.email_verified = false)),
+    );
+
+    // Neither the account is counted nor an email sent.
+    let user_email_limit = MockUserEmailLimitService::new().with_reserve_address(
+        UserEmailCodeKind::Verification,
+        FOO.user.email.clone().unwrap(),
+        Err(Duration::from_secs(42)),
+    );
+
+    let sut = UserFeatureServiceImpl {
+        auth,
+        db,
+        user_repo,
+        user_email_limit,
+        ..Sut::default()
+    };
+
+    // Act
+    let result = sut
+        .request_verification_email(&"token".into(), UserIdOrSelf::Slf)
+        .await;
+
+    // Assert
+    assert_matches!(
+        result,
+        Err(UserRequestVerificationEmailError::RateLimit(retry_after))
+            if *retry_after == Duration::from_secs(42)
+    );
+}
+
+#[tokio::test]
+async fn account_limited() {
+    // Arrange
+    let auth = MockAuthService::new()
+        .with_authenticate(Some((FOO.user.clone(), FOO_1.clone())))
+        .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone())));
+
+    let db = MockDatabase::build(false);
+
+    let user_repo = MockUserRepository::new().with_get_composite(
+        FOO.user.id,
+        Some(FOO.clone().with(|u| u.user.email_verified = false)),
+    );
+
+    let user_email_limit = MockUserEmailLimitService::new()
+        .with_reserve_address(
+            UserEmailCodeKind::Verification,
+            FOO.user.email.clone().unwrap(),
+            Ok(()),
+        )
+        .with_reserve_account(
+            UserEmailCodeKind::Verification,
+            FOO.user.id,
+            Err(Duration::from_secs(600)),
+        );
+
+    let sut = UserFeatureServiceImpl {
+        auth,
+        db,
+        user_repo,
+        user_email_limit,
+        ..Sut::default()
+    };
+
+    // Act
+    let result = sut
+        .request_verification_email(&"token".into(), UserIdOrSelf::Slf)
+        .await;
+
+    // Assert
+    assert_matches!(
+        result,
+        Err(UserRequestVerificationEmailError::RateLimit(retry_after))
+            if *retry_after == Duration::from_secs(600)
+    );
+}
+
+fn foo_within_limit() -> MockUserEmailLimitService {
+    MockUserEmailLimitService::new()
+        .with_reserve_address(
+            UserEmailCodeKind::Verification,
+            FOO.user.email.clone().unwrap(),
+            Ok(()),
+        )
+        .with_reserve_account(UserEmailCodeKind::Verification, FOO.user.id, Ok(()))
 }

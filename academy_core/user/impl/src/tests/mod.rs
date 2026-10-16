@@ -6,8 +6,8 @@ use academy_core_finance_contracts::invoice::MockFinanceInvoiceService;
 use academy_core_oauth2_contracts::registration::MockOAuth2RegistrationService;
 use academy_core_session_contracts::session::MockSessionService;
 use academy_core_user_contracts::{
-    email_confirmation::MockUserEmailConfirmationService, export::MockUserExportService,
-    update::MockUserUpdateService, user::MockUserService,
+    email_confirmation::MockUserEmailConfirmationService, email_limit::MockUserEmailLimitService,
+    export::MockUserExportService, update::MockUserUpdateService, user::MockUserService,
 };
 use academy_extern_contracts::{
     microservices::MockMicroservicesApiService, vat::MockVatApiService,
@@ -47,6 +47,7 @@ type Sut = UserFeatureServiceImpl<
     MockMicroservicesApiService,
     MockUserService<MockTransaction>,
     MockUserEmailConfirmationService<MockTransaction>,
+    MockUserEmailLimitService,
     MockUserExportService<MockTransaction>,
     MockUserUpdateService<MockTransaction>,
     MockSessionService<MockTransaction>,
@@ -73,6 +74,10 @@ impl Default for UserFeatureConfig {
                 .to_owned()
                 .into(),
             password_reset_verification_code_ttl: Duration::from_secs(3600),
+            code_email_cooldown: Duration::from_secs(60),
+            code_email_window: Duration::from_secs(3600),
+            code_emails_per_account: 5,
+            code_emails_per_address: 5,
         }
     }
 }

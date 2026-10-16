@@ -60,6 +60,15 @@ A recovery code disables MFA instead of proving possession of the second factor,
 Endpoints that only need the account itself (including the MFA setup endpoints under `/auth/users/{user_id}/mfa`) are unaffected, so an administrator without an authenticator can still log in, set one up and then log in again with a code.
 The authority ends with the second factor: removing it (`DELETE /auth/users/{user_id}/mfa`, and a login with a recovery code, which does the same) clears `mfa_verified` on every session of that account and invalidates its access tokens, so the next refresh issues a token without the flag.
 
+#### Emails with a Code
+`POST /auth/users/{user_id}/email` sends a verification code to the address of an account, and `POST /auth/password_reset` sends a password reset code to the address named in the request if an account has it.
+Anybody can point either address at somebody else's mailbox, so `UserEmailLimitService` limits both per target address and per account, each kind of code on its own (`[user]` in [`docs/config.md`](docs/config.md); one email per address and minute, five per address and five per account per hour by default).
+
+- The buckets live in the cache and are updated with compare-and-set, so concurrent requests cannot pass the limit together.
+- The address is counted before the account, so a second click within the cooldown does not use up the budget of the account.
+- A password reset counts the address before it is looked up, so a refusal does not tell whether an account has the address.
+- A refusal is `429 Too many requests` with a `Retry-After` header. A refusal leaves the codes that were already sent valid, so whoever is refused can still use the code they received.
+
 #### Tracing
 Each incoming request is assigned a unique request id (Base64 encoded UUIDv7).
 This id is automatically attached to any logs associated with the corresponding request and is also returned to the client in the `X-Request-Id` response header.

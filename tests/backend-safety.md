@@ -1,9 +1,10 @@
 # Native backend safety regressions
 
-These 13 scenarios exercise the ordinary HTTP router, PostgreSQL transactions and
+These 14 scenarios exercise the ordinary HTTP router, PostgreSQL transactions and
 Valkey-backed sessions using synthetic accounts. They cover hearts/reset/refill,
 coin idempotence and ledger rollback, Premium purchase/confirmed renewal/expiry,
-public and internal learning policy, refresh/logout/MFA, export and deletion retry.
+public and internal learning policy, refresh/logout/MFA, export, the limit of the
+emails with a verification or password reset code, and deletion retry.
 
 Build the ordinary backend and run as an unprivileged user with PostgreSQL 18 and
 Valkey available. The runner starts its own loopback services, config and disposable

@@ -27,6 +27,8 @@ academy_templates_contracts.workspace = true
 academy_utils.workspace = true
 anyhow.workspace = true
 chrono.workspace = true
+hex.workspace = true
+serde.workspace = true
 tracing.workspace = true
 serde_json.workspace = true
 

@@ -1,6 +1,9 @@
+use std::time::Duration;
+
 use academy_core_user_contracts::{
     UserFeatureService, UserRequestPasswordResetError,
     email_confirmation::MockUserEmailConfirmationService,
+    email_limit::{MockUserEmailLimitService, UserEmailCodeKind},
 };
 use academy_demo::user::FOO;
 use academy_persistence_contracts::{MockDatabase, user::MockUserRepository};
@@ -21,6 +24,14 @@ async fn ok() {
         .with_lock_account(FOO.user.id, true)
         .with_get_composite(FOO.user.id, Some(FOO.clone()));
 
+    let user_email_limit = MockUserEmailLimitService::new()
+        .with_reserve_address(
+            UserEmailCodeKind::PasswordReset,
+            FOO.user.email.clone().unwrap(),
+            Ok(()),
+        )
+        .with_reserve_account(UserEmailCodeKind::PasswordReset, FOO.user.id, Ok(()));
+
     let user_email_confirmation = MockUserEmailConfirmationService::new()
         .with_request_password_reset(
             FOO.user.id,
@@ -36,6 +47,7 @@ async fn ok() {
         captcha,
         user_repo,
         user_email_confirmation,
+        user_email_limit,
         ..Sut::default()
     };
 
@@ -84,10 +96,18 @@ async fn user_not_found() {
     let user_repo = MockUserRepository::new()
         .with_get_composite_by_email(FOO.user.email.clone().unwrap(), None);
 
+    // An address without an account is counted like any other.
+    let user_email_limit = MockUserEmailLimitService::new().with_reserve_address(
+        UserEmailCodeKind::PasswordReset,
+        FOO.user.email.clone().unwrap(),
+        Ok(()),
+    );
+
     let sut = UserFeatureServiceImpl {
         db,
         captcha,
         user_repo,
+        user_email_limit,
         ..Sut::default()
     };
 
@@ -98,4 +118,81 @@ async fn user_not_found() {
 
     // Assert
     result.unwrap();
+}
+
+#[tokio::test]
+async fn address_limited() {
+    // Arrange
+    let captcha = MockCaptchaService::new().with_check(None, Ok(()));
+
+    // The refusal comes before the address is looked up, so it is the same
+    // whether or not an account has the address.
+    let user_email_limit = MockUserEmailLimitService::new().with_reserve_address(
+        UserEmailCodeKind::PasswordReset,
+        FOO.user.email.clone().unwrap(),
+        Err(Duration::from_secs(42)),
+    );
+
+    let sut = UserFeatureServiceImpl {
+        captcha,
+        user_email_limit,
+        ..Sut::default()
+    };
+
+    // Act
+    let result = sut
+        .request_password_reset(FOO.user.email.clone().unwrap(), None)
+        .await;
+
+    // Assert
+    assert_matches!(
+        result,
+        Err(UserRequestPasswordResetError::RateLimit(retry_after))
+            if *retry_after == Duration::from_secs(42)
+    );
+}
+
+#[tokio::test]
+async fn account_limited() {
+    // Arrange
+    let db = MockDatabase::build(false);
+
+    let captcha = MockCaptchaService::new().with_check(None, Ok(()));
+
+    let user_repo = MockUserRepository::new()
+        .with_get_composite_by_email(FOO.user.email.clone().unwrap(), Some(FOO.clone()))
+        .with_lock_account(FOO.user.id, true)
+        .with_get_composite(FOO.user.id, Some(FOO.clone()));
+
+    let user_email_limit = MockUserEmailLimitService::new()
+        .with_reserve_address(
+            UserEmailCodeKind::PasswordReset,
+            FOO.user.email.clone().unwrap(),
+            Ok(()),
+        )
+        .with_reserve_account(
+            UserEmailCodeKind::PasswordReset,
+            FOO.user.id,
+            Err(Duration::from_secs(600)),
+        );
+
+    let sut = UserFeatureServiceImpl {
+        db,
+        captcha,
+        user_repo,
+        user_email_limit,
+        ..Sut::default()
+    };
+
+    // Act
+    let result = sut
+        .request_password_reset(FOO.user.email.clone().unwrap(), None)
+        .await;
+
+    // Assert
+    assert_matches!(
+        result,
+        Err(UserRequestPasswordResetError::RateLimit(retry_after))
+            if *retry_after == Duration::from_secs(600)
+    );
 }

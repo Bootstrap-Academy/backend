@@ -81,6 +81,12 @@ The audiences are `auth` and `shop` (incoming, verified by the `_internal` endpo
 | `verification_redirect_url` | `"https://bootstrap.academy/auth/verify-account"` | Target of the link in the verification email. |
 | `password_reset_code_ttl` | `"4h"` | Lifetime of a password reset code. |
 | `password_reset_redirect_url` | `"https://bootstrap.academy/auth/reset-password"` | Target of the link in the password reset email. |
+| `code_email_cooldown` | `"1m"` | Minimum time between two emails with a code of the same kind (verification, password reset) to the same address. Applies per address only, so an account that corrects a mistyped address gets a code to the corrected one at once. |
+| `code_email_window` | `"1h"` | Window in which the emails with a code are counted. It starts with the first email counted in it and is not extended by the ones that follow. |
+| `code_emails_per_account` | `5` | Maximum number of emails with a code of the same kind for one account within the window. At least `1`. |
+| `code_emails_per_address` | `5` | Maximum number of emails with a code of the same kind to one address within the window. At least `1`. Case, a `+tag` in the local part and, for Gmail, dots and the `googlemail.com` domain do not make a separate address. |
+
+Anybody can point the address of an account, or the address named in a password reset, at somebody else's mailbox. The last four properties therefore limit `POST /auth/users/{user_id}/email` and `POST /auth/password_reset`: each kind of code is counted on its own, per target address and per account, in the cache. A password reset counts the address before it is looked up, so the answer does not tell whether an account has it. A bucket that refuses a request does not count it, and the request is answered with `429` and a `Retry-After` header. A refusal leaves the codes that were already sent valid, so whoever is refused can still use the code they received.
 
 ## `[session]`
 | Property | Default | Description |

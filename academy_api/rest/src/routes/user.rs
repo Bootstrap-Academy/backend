@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
 
 use academy_core_user_contracts::{
     PasswordUpdate, UserAcceptTermsError, UserAcceptTermsRequest, UserCreateError,
@@ -26,7 +26,7 @@ use aide::{
 use axum::{
     Json,
     extract::{Path, Query, State},
-    http::StatusCode,
+    http::{StatusCode, header::RETRY_AFTER},
     response::{IntoResponse, Response},
 };
 use schemars::JsonSchema;
@@ -551,6 +551,9 @@ async fn request_verification_email(
             EmailAlreadyVerifiedError.into_response()
         }
         Err(UserRequestVerificationEmailError::NoEmail) => InvalidEmailError.into_response(),
+        Err(UserRequestVerificationEmailError::RateLimit(retry_after)) => {
+            too_many_code_emails(retry_after)
+        }
         Err(UserRequestVerificationEmailError::Auth(err)) => auth_error(err),
         Err(UserRequestVerificationEmailError::Other(err)) => internal_server_error(err),
     }
@@ -558,6 +561,13 @@ async fn request_verification_email(
 
 fn request_verification_email_docs(op: TransformOperation) -> TransformOperation {
     op.summary("Request a verification email for the given user.")
+        .description(
+            "Limited per address and per account (`[user]` in `docs/config.md`): at most one \
+             email to the same address per cooldown, and a budget of emails per address and per \
+             account within a window. A refused request is answered with `429`, and the \
+             `Retry-After` header gives the number of seconds after which another email can be \
+             sent. A code that was sent earlier stays valid, so it can still be used meanwhile.",
+        )
         .add_response::<OkResponse>(
             StatusCode::OK,
             "The user has been sent a verification email.",
@@ -565,8 +575,23 @@ fn request_verification_email_docs(op: TransformOperation) -> TransformOperation
         .add_error::<UserNotFoundError>()
         .add_error::<EmailAlreadyVerifiedError>()
         .add_error::<NoEmailError>()
+        .add_error::<TooManyRequestsError>()
         .with(auth_error_docs)
         .with(internal_server_error_docs)
+}
+
+/// Refuse an email with a code and tell the client when another one can be
+/// sent.
+///
+/// The header is rounded up to whole seconds and is never `0`, so a client that
+/// obeys it always waits.
+fn too_many_code_emails(retry_after: Duration) -> Response {
+    let seconds = retry_after.as_secs() + u64::from(retry_after.subsec_nanos() > 0);
+    (
+        [(RETRY_AFTER, seconds.max(1).to_string())],
+        TooManyRequestsError,
+    )
+        .into_response()
 }
 
 #[derive(Deserialize, JsonSchema)]
@@ -621,17 +646,29 @@ async fn request_password_reset(
     {
         Ok(()) => Json(OkResponse).into_response(),
         Err(UserRequestPasswordResetError::Recaptcha) => RecaptchaFailedError.into_response(),
+        Err(UserRequestPasswordResetError::RateLimit(retry_after)) => {
+            too_many_code_emails(retry_after)
+        }
         Err(UserRequestPasswordResetError::Other(err)) => internal_server_error(err),
     }
 }
 
 fn request_password_reset_docs(op: TransformOperation) -> TransformOperation {
     op.summary("Request a password reset email.")
+        .description(
+            "Answers the same whether or not an account has the address. Limited per address \
+             and per account (`[user]` in `docs/config.md`); the address is counted before it is \
+             looked up, so a refusal does not tell whether an account has it either. A refused \
+             request is answered with `429`, and the `Retry-After` header gives the number of \
+             seconds after which another email can be sent. The code that was sent last stays \
+             valid meanwhile.",
+        )
         .add_response::<OkResponse>(
             StatusCode::OK,
             "The user has been sent a password reset email.",
         )
         .add_error::<RecaptchaFailedError>()
+        .add_error::<TooManyRequestsError>()
         .with(internal_server_error_docs)
 }
 
@@ -714,6 +751,28 @@ error_code! {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A refused email says when the next one can be sent, in whole seconds
+    /// and never `0`, with the body every other limit answers with.
+    #[tokio::test]
+    async fn too_many_code_emails_names_the_wait() {
+        for (retry_after, header) in [
+            (Duration::from_secs(42), "42"),
+            (Duration::from_millis(41_001), "42"),
+            (Duration::ZERO, "1"),
+        ] {
+            let response = too_many_code_emails(retry_after);
+            assert_eq!(response.status(), StatusCode::TOO_MANY_REQUESTS);
+            assert_eq!(response.headers()[RETRY_AFTER], header);
+            let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+                .await
+                .unwrap();
+            assert_eq!(
+                serde_json::from_slice::<serde_json::Value>(&body).unwrap(),
+                serde_json::json!({"detail": "Too many requests"})
+            );
+        }
+    }
 
     /// `recaptcha_response` must not be advertised as required, so that clients
     /// can omit it when reCAPTCHA is disabled.

@@ -296,6 +296,11 @@ impl ConfigProvider {
             verification_verification_code_ttl: config.user.verification_code_ttl.into(),
             password_reset_redirect_url: config.user.password_reset_redirect_url.clone().into(),
             password_reset_verification_code_ttl: config.user.password_reset_code_ttl.into(),
+            code_email_cooldown: config.user.code_email_cooldown.into(),
+            code_email_window: config.user.code_email_window.into(),
+            code_emails_per_account: config.user.code_emails_per_account,
+            code_emails_per_address: config.user.code_emails_per_address,
+            code_emails_per_mailbox: config.user.code_emails_per_mailbox,
         };
 
         let paypal_feature_config = PaypalFeatureConfig {

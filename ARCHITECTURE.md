@@ -60,6 +60,15 @@ A recovery code disables MFA instead of proving possession of the second factor,
 Endpoints that only need the account itself (including the MFA setup endpoints under `/auth/users/{user_id}/mfa`) are unaffected, so an administrator without an authenticator can still log in, set one up and then log in again with a code.
 The authority ends with the second factor: removing it (`DELETE /auth/users/{user_id}/mfa`, and a login with a recovery code, which does the same) clears `mfa_verified` on every session of that account and invalidates its access tokens, so the next refresh issues a token without the flag.
 
+#### Emails with a Code
+`POST /auth/users/{user_id}/email` sends a verification code to the address of an account, and `POST /auth/password_reset` sends a password reset code to the address named in the request if an account has it.
+Anybody can point either address at somebody else's mailbox, so `UserEmailLimitService` counts both in buckets, each kind of code on its own (`[user]` in [`docs/config.md`](docs/config.md)).
+
+- The buckets live in the cache and are updated with compare-and-set, so concurrent requests cannot pass the limit together. A bucket checked earlier keeps its count when a later one refuses, so the buckets of the requester come first.
+- A verification first looks at the mailbox across all accounts without counting, and is refused before anything is counted once that budget is used up. It is then checked against the account together with the mailbox (one email per minute, five per hour by default), the account (five per hour) and the mailbox across all accounts (twenty per hour). A refusal only costs the requesting account. One account can put at most nine emails into one window of a mailbox, and the configuration has to keep the shared budget at least twice the per-account budget, so one account alone cannot lock anybody out of the confirmation.
+- A password reset counts the address exactly as requested, before it is looked up, and then the account it found. The code only goes out when the requested address equals the stored one exactly, so any other spelling sends nothing and leaves the owner's bucket alone. The limit only tells whether an account has the address when that account changed its address within the window and runs out of its own budget first.
+- A refusal is `429 Too many requests` with a `Retry-After` header. A refusal leaves the codes that were already sent valid, so whoever is refused can still use the code they received.
+
 #### Tracing
 Each incoming request is assigned a unique request id (Base64 encoded UUIDv7).
 This id is automatically attached to any logs associated with the corresponding request and is also returned to the client in the `X-Request-Id` response header.

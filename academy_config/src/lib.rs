@@ -86,6 +86,30 @@ fn load_paths(paths: &[impl AsRef<Path>], overrides: &[&str]) -> anyhow::Result<
 /// document that was produced with it, or not at all.
 fn validate(config: &Config) -> anyhow::Result<()> {
     config.learning_policy.validate()?;
+    anyhow::ensure!(
+        config.user.code_emails_per_account >= 1
+            && config.user.code_emails_per_address >= 1
+            && config.user.code_emails_per_mailbox >= 1,
+        "user.code_emails_per_account, user.code_emails_per_address and \
+         user.code_emails_per_mailbox have to be at least 1; the email that verifies an \
+         address or resets a password cannot be switched off this way"
+    );
+    // One account can put up to 2 * b - 1 verification emails into one window of
+    // a mailbox, with b the smaller of its two budgets, because its own windows
+    // can lie across the mailbox's. Below that, one account alone could lock
+    // the owner of an address out of the confirmation.
+    let per_account_and_mailbox = config
+        .user
+        .code_emails_per_address
+        .min(config.user.code_emails_per_account);
+    anyhow::ensure!(
+        config.user.code_emails_per_mailbox >= per_account_and_mailbox.saturating_mul(2),
+        "user.code_emails_per_mailbox is {}, but has to be at least twice the smaller of \
+         user.code_emails_per_address and user.code_emails_per_account ({}), so that one \
+         account alone cannot use up the shared budget of a mailbox",
+        config.user.code_emails_per_mailbox,
+        per_account_and_mailbox.saturating_mul(2)
+    );
     for (kind, seconds) in &config.purchase.provision_window_seconds {
         anyhow::ensure!(
             matches!(
@@ -228,6 +252,20 @@ pub struct UserConfig {
     pub verification_redirect_url: String,
     pub password_reset_code_ttl: Duration,
     pub password_reset_redirect_url: String,
+    /// Minimum time between two emails with a code of the same kind to the
+    /// same address.
+    pub code_email_cooldown: Duration,
+    /// Window in which the emails with a code are counted.
+    pub code_email_window: Duration,
+    /// Maximum number of emails with a code of the same kind for one account
+    /// within the window.
+    pub code_emails_per_account: u64,
+    /// Maximum number of emails with a code of the same kind to one address
+    /// within the window. A verification counts this per account.
+    pub code_emails_per_address: u64,
+    /// Maximum number of verification emails to one mailbox within the
+    /// window, across all accounts.
+    pub code_emails_per_mailbox: u64,
 }
 
 /// Rate limits of the consumer declaration endpoints.
@@ -509,6 +547,69 @@ mod tests {
 
             super::load_paths(&[] as &[&str], &overrides)
                 .unwrap_or_else(|err| panic!("{vat_percent} was rejected: {err}"));
+        }
+    }
+
+    #[test]
+    fn code_email_limits_default_on_and_cannot_be_zero() {
+        let config = super::load_paths(&[] as &[&str], &MINIMAL_OVERRIDES).unwrap();
+        assert_eq!(config.user.code_email_cooldown.0.as_secs(), 60);
+        assert_eq!(config.user.code_email_window.0.as_secs(), 3600);
+        assert_eq!(config.user.code_emails_per_account, 5);
+        assert_eq!(config.user.code_emails_per_address, 5);
+        assert_eq!(config.user.code_emails_per_mailbox, 20);
+
+        for zero in [
+            "user.code_emails_per_account = 0",
+            "user.code_emails_per_address = 0",
+            "user.code_emails_per_mailbox = 0",
+        ] {
+            let overrides = MINIMAL_OVERRIDES
+                .into_iter()
+                .chain([zero])
+                .collect::<Vec<_>>();
+            let err = super::load_paths(&[] as &[&str], &overrides)
+                .unwrap_err()
+                .to_string();
+            assert!(
+                err.contains("code_emails_per_"),
+                "{zero} was accepted: {err}"
+            );
+        }
+    }
+
+    #[test]
+    fn code_emails_per_mailbox_stays_above_what_one_account_can_send() {
+        for (extra, accepted) in [
+            (&["user.code_emails_per_mailbox = 10"][..], true),
+            (&["user.code_emails_per_mailbox = 9"][..], false),
+            (
+                &[
+                    "user.code_emails_per_address = 20",
+                    "user.code_emails_per_account = 3",
+                    "user.code_emails_per_mailbox = 6",
+                ][..],
+                true,
+            ),
+            (
+                &[
+                    "user.code_emails_per_address = 20",
+                    "user.code_emails_per_account = 20",
+                ][..],
+                false,
+            ),
+        ] {
+            let overrides = MINIMAL_OVERRIDES
+                .into_iter()
+                .chain(extra.iter().copied())
+                .collect::<Vec<_>>();
+            match super::load_paths(&[] as &[&str], &overrides) {
+                Ok(_) => assert!(accepted, "{extra:?} was accepted"),
+                Err(err) => assert!(
+                    !accepted && err.to_string().contains("code_emails_per_mailbox"),
+                    "{extra:?} was rejected: {err}"
+                ),
+            }
         }
     }
 

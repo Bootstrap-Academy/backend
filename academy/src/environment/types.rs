@@ -37,7 +37,8 @@ use academy_core_session_impl::{
 };
 use academy_core_user_impl::{
     UserFeatureServiceImpl, email_confirmation::UserEmailConfirmationServiceImpl,
-    export::UserExportServiceImpl, update::UserUpdateServiceImpl, user::UserServiceImpl,
+    email_limit::UserEmailLimitServiceImpl, export::UserExportServiceImpl,
+    update::UserUpdateServiceImpl, user::UserServiceImpl,
 };
 use academy_core_withdrawal_impl::{
     WithdrawalFeatureServiceImpl, consent::WithdrawalConsentServiceImpl,
@@ -160,6 +161,7 @@ pub type UserFeature = UserFeatureServiceImpl<
     MicroservicesApi,
     User,
     UserEmailConfirmation,
+    UserEmailLimit,
     UserExport,
     UserUpdate,
     Session,
@@ -173,6 +175,7 @@ pub type UserFeature = UserFeatureServiceImpl<
 pub type User = UserServiceImpl<Id, Time, Password, UserRepo, OAuth2Link>;
 pub type UserEmailConfirmation =
     UserEmailConfirmationServiceImpl<Secret, TemplateEmail, Cache, Password, UserRepo>;
+pub type UserEmailLimit = UserEmailLimitServiceImpl<Time, Hash, Cache>;
 pub type UserExport = UserExportServiceImpl<
     UserRepo,
     SessionRepo,

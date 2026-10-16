@@ -927,7 +927,26 @@ mod tests {
         for text in [&offer.text, &daily.text] {
             assert!(!text.contains("Kurs"), "{text}");
         }
-        // The offer identity follows its text, so an offer shown before the change is renewed.
-        assert_ne!(offer.id, daily.id);
+        // The offer identity follows its text: an offer shown with the previous text (v3) has
+        // another identity, so it cannot be confirmed and is shown again.
+        let v3 = offer
+            .text
+            .replacen(
+                "Premium: Unbegrenzte Herzen.",
+                "Premium: Zugriff auf alle Kurse und Übungen ohne Verbrauch von Herzen.",
+                1,
+            )
+            .replace("premium-renewal-2026-10-v4", "premium-renewal-2026-09-v3");
+        let mut hash = Sha256::new();
+        for bytes in [
+            v3.as_bytes(),
+            &documents.terms_pdf,
+            &documents.withdrawal_pdf,
+        ] {
+            hash.update(bytes);
+        }
+        let v3_id = format!("{:x}", hash.finalize());
+        assert_eq!(v3.lines().count(), offer.text.lines().count());
+        assert_ne!(offer.id, v3_id);
     }
 }

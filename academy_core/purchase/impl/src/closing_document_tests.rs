@@ -217,6 +217,10 @@ fn subject() -> UserId {
 fn renewal_repo(monthly: Option<u64>) -> MockPremiumRepository<MockTransaction> {
     use academy_models::premium::{PremiumPlan, PremiumRenewalStatus};
     let mut repo = MockPremiumRepository::new();
+    // The reconciliation that switches off a renewal with a missed confirmation deadline;
+    // the state it leaves is what the two reads below return.
+    repo.expect_get_latest_by_user_id()
+        .returning(|_, _| Box::pin(std::future::ready(Ok(None))));
     repo.expect_get_subscription().returning(move |_, _| {
         Box::pin(std::future::ready(
             Ok(monthly.map(|_| PremiumPlan::Monthly)),
@@ -1171,6 +1175,25 @@ async fn premium_offer_names_a_separately_ordered_renewal_in_its_term_line_and_m
     assert!(yearly.status.offer.text.contains(
         "\nLaufzeit: 1 Jahr. Danach läuft deine monatliche Verlängerung weiter (1.000 Morphcoins je Monat).\n"
     ));
+    // The line names the price agreed for the renewal, which a later price change of
+    // Premium does not touch (AGB 8.4).
+    let agreed = premium_offer("premium_monthly", Some(750)).await;
+    let agreed_summary = agreed.status.offer.summary.as_ref().unwrap();
+    assert_eq!(agreed.status.offer.product.coins, 1000);
+    assert_eq!(
+        lines(&agreed_summary.de)[2],
+        (
+            Term,
+            "Laufzeit: 1 Monat. Danach läuft deine monatliche Verlängerung weiter (750 Morphcoins je Monat)."
+        )
+    );
+    assert_eq!(
+        lines(&agreed_summary.en)[2],
+        (
+            Term,
+            "Term: 1 month. After that, your monthly renewal continues (750 Morphcoins per month)."
+        )
+    );
     // Without a renewal the facts say so and the term line says the period does not renew.
     let plain = premium_offer("premium_monthly", None).await;
     assert_eq!(plain.status.offer.product.facts["renewal"], json!(null));

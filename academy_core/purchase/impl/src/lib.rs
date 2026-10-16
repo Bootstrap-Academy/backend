@@ -198,11 +198,15 @@ where
     /// awaits its confirmation both go on after the purchased period (AGB 8.4), so the
     /// offer names either. Bound into the product, a renewal that changes between offer
     /// and acceptance makes the acceptance fail without a charge.
+    ///
+    /// The state is reconciled first: a renewal whose confirmation was not sent before
+    /// its deadline is switched off (AGB 8.4), so the offer never names it.
     async fn renewal_fact(
         &self,
         txn: &mut Db::Transaction,
         user: UserId,
     ) -> Result<serde_json::Value, PurchaseError> {
+        self.premium_repo.get_latest_by_user_id(txn, user).await?;
         if self
             .premium_repo
             .get_subscription(txn, user)

@@ -24,7 +24,8 @@ use sha2::{Digest, Sha256};
 use crate::{PremiumFeatureConfig, documents::PurchaseDocuments};
 
 pub const RENEWAL_TERMS_VERSION: &str = "2026-09-r4";
-pub const RENEWAL_TEXT_VERSION: &str = "premium-renewal-2026-09-v3";
+/// Since 2026-10 the renewal no longer promises course access: all courses are free.
+pub const RENEWAL_TEXT_VERSION: &str = "premium-renewal-2026-10-v4";
 
 #[derive(Debug, Clone, Build)]
 #[cfg_attr(test, derive(Default))]
@@ -276,13 +277,13 @@ where
 fn build_offer(price: u64, documents: &PurchaseDocuments, daily: bool) -> PremiumRenewalOffer {
     let terms_version = &documents.terms_version;
     let text_version = if daily {
-        "premium-renewal-daily-2026-09-v1"
+        "premium-renewal-daily-2026-10-v2"
     } else {
         RENEWAL_TEXT_VERSION
     };
     let euros = price as f64 / 100.0;
     let mut text = format!(
-        "Premium: Zugriff auf alle Kurse und Übungen ohne Verbrauch von Herzen.\n\n\
+        "Premium: Unbegrenzte Herzen.\n\n\
              Monatliche automatische Verlängerung für {price} MorphCoins ({euros:.2} EUR einschließlich Umsatzsteuer) je Kalendermonat. \
              Die Verlängerung läuft auf unbestimmte Zeit. Du zahlst nur aus deinem vorhandenen MorphCoin-Guthaben. \
              Der Coin-Preis bleibt für diese Verlängerung fest. Es gibt keine automatische Zahlung über PayPal. Du musst keine Coins nachkaufen.\n\n\
@@ -303,7 +304,7 @@ fn build_offer(price: u64, documents: &PurchaseDocuments, daily: bool) -> Premiu
     );
     if daily {
         text = text.replacen(
-            "Premium: Zugriff auf alle Kurse und Übungen ohne Verbrauch von Herzen.",
+            "Premium: Unbegrenzte Herzen.",
             "Premium: Du kannst jeden Tag beliebig viele neue Lektionen anfangen.",
             1,
         );
@@ -902,5 +903,31 @@ mod tests {
                 .await,
             Err(PremiumUpdateSubscriptionError::RenewalConsentRequired)
         ));
+    }
+
+    #[test]
+    fn renewal_offer_promises_unlimited_hearts_and_no_course_access() {
+        let documents = PurchaseDocuments::legacy();
+        let offer = build_offer(1000, &documents, false);
+        assert!(offer.text.starts_with("Premium: Unbegrenzte Herzen.\n\n"));
+        assert!(
+            offer
+                .text
+                .ends_with("Erklärungsversion: premium-renewal-2026-10-v4.")
+        );
+        let daily = build_offer(1000, &documents, true);
+        assert!(daily.text.starts_with(
+            "Premium: Du kannst jeden Tag beliebig viele neue Lektionen anfangen.\n\n"
+        ));
+        assert!(
+            daily
+                .text
+                .ends_with("Erklärungsversion: premium-renewal-daily-2026-10-v2.")
+        );
+        for text in [&offer.text, &daily.text] {
+            assert!(!text.contains("Kurs"), "{text}");
+        }
+        // The offer identity follows its text, so an offer shown before the change is renewed.
+        assert_ne!(offer.id, daily.id);
     }
 }

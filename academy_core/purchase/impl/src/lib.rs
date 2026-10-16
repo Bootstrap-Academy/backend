@@ -46,7 +46,8 @@ const DECLARATION: &str = "Ich verlange ausdrücklich, dass mit der bestellten L
 const DECLARATION_EN: &str = "I expressly request that the ordered service begins before the withdrawal period ends. My statutory withdrawal and warranty rights remain unaffected.";
 /// Wording revision of the short order summary, part of every builtin product revision.
 const SUMMARY_REVISION: &str = "purchase-2026-10-s1";
-const PREMIUM_BENEFIT: &str = "Unbegrenzte Herzen und Zugriff auf alle Kurse.";
+/// All courses are free for everyone (owner, 16.10.2026), so Premium promises unlimited hearts.
+const PREMIUM_BENEFIT: &str = "Unbegrenzte Herzen.";
 const PREMIUM_BENEFIT_DAILY: &str = "Du kannst jeden Tag beliebig viele neue Lektionen anfangen.";
 /// The confirmation mail names the provider; the order summary leaves it to the terms.
 const PROVIDER: &str = "Anbieter: bootstrap academy GmbH.";
@@ -192,6 +193,30 @@ where
         Ok(PurchaseDocuments::legacy())
     }
 
+    /// The monthly renewal the account ordered separately, as a Premium offer states it:
+    /// `{"monthly_price": …}`, or `null` without one. A running renewal and one that still
+    /// awaits its confirmation both go on after the purchased period (AGB 8.4), so the
+    /// offer names either. Bound into the product, a renewal that changes between offer
+    /// and acceptance makes the acceptance fail without a charge.
+    async fn renewal_fact(
+        &self,
+        txn: &mut Db::Transaction,
+        user: UserId,
+    ) -> Result<serde_json::Value, PurchaseError> {
+        if self
+            .premium_repo
+            .get_subscription(txn, user)
+            .await?
+            .is_none()
+        {
+            return Ok(serde_json::Value::Null);
+        }
+        Ok(self.premium_repo.get_renewal(txn, user).await?.map_or(
+            serde_json::Value::Null,
+            |renewal| json!({ "monthly_price": renewal.monthly_price }),
+        ))
+    }
+
     fn adapt_premium_product(&self, product: &mut PurchaseProduct, mode: LearningMode) {
         if mode == LearningMode::Daily && product.kind.starts_with("premium_") {
             product.description = PREMIUM_BENEFIT_DAILY.into();
@@ -295,22 +320,39 @@ where
                 let yearly = product.facts["months"].as_u64() == Some(12);
                 let (price_de, price_en) =
                     price(product.coins, yearly.then(|| (product.coins + 6) / 12));
+                // The term, and a monthly renewal the account ordered separately, which goes
+                // on after the purchased period (AGB 8.4, 11.1).
+                let (unit_de, unit_en) = if yearly {
+                    ("Jahr", "year")
+                } else {
+                    ("Monat", "month")
+                };
+                let (term_de, term_en) = match product.facts["renewal"]["monthly_price"].as_u64() {
+                    Some(monthly) => (
+                        format!(
+                            "Laufzeit: 1 {unit_de}. Danach läuft deine monatliche Verlängerung weiter ({} Morphcoins je Monat).",
+                            group_digits(monthly, '.')
+                        ),
+                        format!(
+                            "Term: 1 {unit_en}. After that, your monthly renewal continues ({} Morphcoins per month).",
+                            group_digits(monthly, ',')
+                        ),
+                    ),
+                    None => (
+                        format!("Laufzeit: 1 {unit_de}, ohne automatische Verlängerung."),
+                        format!("Term: 1 {unit_en}, no automatic renewal."),
+                    ),
+                };
                 let benefit_en = if mode == LearningMode::Daily {
                     "You can start as many new lessons as you like every day."
                 } else {
-                    "Unlimited hearts and access to all courses."
+                    "Unlimited hearts."
                 };
                 (
                     vec![
                         line(Product, product.title.clone()),
                         line(Detail, product.description.clone()),
-                        line(
-                            Term,
-                            format!(
-                                "Laufzeit: 1 {}, ohne automatische Verlängerung.",
-                                if yearly { "Jahr" } else { "Monat" }
-                            ),
-                        ),
+                        line(Term, term_de),
                         line(
                             Detail,
                             format!(
@@ -326,13 +368,7 @@ where
                             format!("Premium for one {}", if yearly { "year" } else { "month" }),
                         ),
                         line(Detail, benefit_en.into()),
-                        line(
-                            Term,
-                            format!(
-                                "Term: 1 {}, no automatic renewal.",
-                                if yearly { "year" } else { "month" }
-                            ),
-                        ),
+                        line(Term, term_en),
                         line(
                             Detail,
                             format!(
@@ -513,6 +549,9 @@ where
                 if units == 2 { "Herz" } else { "Herzen" },
             );
         }
+        if product.kind.starts_with("premium_") {
+            product.facts["renewal"] = self.renewal_fact(&mut txn, user).await?;
+        }
         let now = Utc::now();
         let expires_at = product
             .service_starts_at
@@ -689,6 +728,8 @@ where
             && o.product.kind.starts_with("premium_")
         {
             self.adapt_premium_product(expected, mode);
+            // The renewal the offer named must still be the account's renewal.
+            expected.facts["renewal"] = self.renewal_fact(&mut txn, user).await?;
         }
         if let Some(ref mut expected) = expected
             && o.product.kind == "hearts"

@@ -658,12 +658,12 @@ fn request_password_reset_docs(op: TransformOperation) -> TransformOperation {
     op.summary("Request a password reset email.")
         .description(
             "Answers the same whether or not an account has the address. Limited per address \
-             and per account (`[user]` in `docs/config.md`). The address is counted before it is \
-             looked up, in the form the lookup compares it, so a refusal does not tell whether \
-             an account has it, unless that account changed its address within the window and \
-             used up its own budget first. A refused request is answered with `429`, and the \
-             `Retry-After` header gives the number of seconds after which another email can be \
-             sent. The code that was sent last stays valid meanwhile.",
+             and per account (`[user]` in `docs/config.md`). The address is counted exactly as \
+             requested, before it is looked up, so a refusal does not tell whether an account \
+             has it, unless that account changed its address within the window and used up its \
+             own budget first. A refused request is answered with `429`, and the `Retry-After` \
+             header gives the number of seconds after which another email can be sent. The code \
+             that was sent last stays valid meanwhile.",
         )
         .add_response::<OkResponse>(
             StatusCode::OK,

@@ -23,10 +23,11 @@ pub trait UserEmailLimitService: Send + Sync + 'static {
     /// Count a verification email for the given account to the given address,
     /// or refuse it.
     ///
-    /// The buckets, in this order: the account together with the mailbox the
-    /// address delivers to (cooldown and budget per address), the account
-    /// (budget per account), and the mailbox across all accounts (budget per
-    /// mailbox, well above what one account can fill).
+    /// A mailbox whose shared budget is used up refuses before anything is
+    /// counted. Then the buckets, in this order: the account together with the
+    /// mailbox the address delivers to (cooldown and budget per address), the
+    /// account (budget per account), and the mailbox across all accounts
+    /// (budget per mailbox, above what one account can fill).
     fn reserve_verification(
         &self,
         user_id: UserId,
@@ -36,9 +37,10 @@ pub trait UserEmailLimitService: Send + Sync + 'static {
     /// Count a password reset request for the given address before it is
     /// known whether an account has it, or refuse it.
     ///
-    /// The address is counted in the form in which the lookup compares it, so
-    /// only a request that reaches an account can fill the bucket of that
-    /// account's address.
+    /// The address is counted exactly as requested. The code only goes out
+    /// when the requested address equals the stored one exactly, so only a
+    /// request that reaches the owner can fill the bucket of the owner's
+    /// address.
     fn reserve_password_reset_address(
         &self,
         email: &EmailAddress,

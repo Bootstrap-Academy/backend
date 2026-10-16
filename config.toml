@@ -71,10 +71,12 @@ password_reset_redirect_url = "https://bootstrap.academy/auth/reset-password"
 #
 # A verification is counted per account and mailbox (cooldown and
 # `code_emails_per_address`), then per account, then per mailbox across all
-# accounts (`code_emails_per_mailbox`, well above what one account can fill), so
-# a refusal only ever costs the requesting account and one account cannot lock
-# anybody out. A password reset is counted per address, in the form the lookup
-# compares it, before it is known whether an account has it, then per account.
+# accounts (`code_emails_per_mailbox`), so a refusal only ever costs the
+# requesting account. `code_emails_per_mailbox` has to be at least twice the
+# smaller of the two other budgets, because one account can put up to twice its
+# budget minus one into one window of a mailbox; then one account cannot lock
+# anybody out. A password reset is counted per address exactly as requested,
+# before it is known whether an account has it, then per account.
 #
 # The cooldown only applies per address, so a second click sends nothing while
 # an account that corrects a mistyped address gets a code to the corrected one

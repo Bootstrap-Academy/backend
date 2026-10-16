@@ -829,12 +829,20 @@ def code_emails_limited_per_address_and_account(f):
 
 
 def code_emails_of_others_do_not_lock_the_owner(f):
-    # Variant does not lock the owner: a reset for a variant finds no account,
+    # Variant does not lock the owner: a reset for another spelling of the
+    # address (a tag, other case, a Kelvin sign that Unicode lowercases to `k`)
     # sends nothing and leaves the owner's reset alone.
     owner = f.account()
+    stored = f"k{owner['name']}@example.com"
+    f.sql(f"UPDATE users SET email='{stored}' WHERE id='{owner['id']}'")
     mails = f.smtp.messages
-    sent(f, answer(f, "/auth/password_reset", {"email": f"{owner['name']}+x@example.com"}), mails)
-    sent(f, answer(f, "/auth/password_reset", {"email": f"{owner['name']}@example.com"}), mails + 1)
+    for variant in (
+        f"k{owner['name']}+x@example.com",
+        f"K{owner['name'].upper()}@example.com",
+        f"\u212a{owner['name']}@example.com",
+    ):
+        sent(f, answer(f, "/auth/password_reset", {"email": variant}), mails)
+    sent(f, answer(f, "/auth/password_reset", {"email": stored}), mails + 1)
 
     # Foreign account with a variant: its code goes out, and the owner of the
     # address still gets its own right after.

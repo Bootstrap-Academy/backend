@@ -94,6 +94,22 @@ fn validate(config: &Config) -> anyhow::Result<()> {
          user.code_emails_per_mailbox have to be at least 1; the email that verifies an \
          address or resets a password cannot be switched off this way"
     );
+    // One account can put up to 2 * b - 1 verification emails into one window of
+    // a mailbox, with b the smaller of its two budgets, because its own windows
+    // can lie across the mailbox's. Below that, one account alone could lock
+    // the owner of an address out of the confirmation.
+    let per_account_and_mailbox = config
+        .user
+        .code_emails_per_address
+        .min(config.user.code_emails_per_account);
+    anyhow::ensure!(
+        config.user.code_emails_per_mailbox >= per_account_and_mailbox.saturating_mul(2),
+        "user.code_emails_per_mailbox is {}, but has to be at least twice the smaller of \
+         user.code_emails_per_address and user.code_emails_per_account ({}), so that one \
+         account alone cannot use up the shared budget of a mailbox",
+        config.user.code_emails_per_mailbox,
+        per_account_and_mailbox.saturating_mul(2)
+    );
     for (kind, seconds) in &config.purchase.provision_window_seconds {
         anyhow::ensure!(
             matches!(
@@ -559,6 +575,41 @@ mod tests {
                 err.contains("code_emails_per_"),
                 "{zero} was accepted: {err}"
             );
+        }
+    }
+
+    #[test]
+    fn code_emails_per_mailbox_stays_above_what_one_account_can_send() {
+        for (extra, accepted) in [
+            (&["user.code_emails_per_mailbox = 10"][..], true),
+            (&["user.code_emails_per_mailbox = 9"][..], false),
+            (
+                &[
+                    "user.code_emails_per_address = 20",
+                    "user.code_emails_per_account = 3",
+                    "user.code_emails_per_mailbox = 6",
+                ][..],
+                true,
+            ),
+            (
+                &[
+                    "user.code_emails_per_address = 20",
+                    "user.code_emails_per_account = 20",
+                ][..],
+                false,
+            ),
+        ] {
+            let overrides = MINIMAL_OVERRIDES
+                .into_iter()
+                .chain(extra.iter().copied())
+                .collect::<Vec<_>>();
+            match super::load_paths(&[] as &[&str], &overrides) {
+                Ok(_) => assert!(accepted, "{extra:?} was accepted"),
+                Err(err) => assert!(
+                    !accepted && err.to_string().contains("code_emails_per_mailbox"),
+                    "{extra:?} was rejected: {err}"
+                ),
+            }
         }
     }
 

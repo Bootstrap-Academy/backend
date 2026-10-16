@@ -896,10 +896,11 @@ where
                 CaptchaCheckError::Other(err) => err.context("Failed to check captcha").into(),
             })?;
 
-        // The address is counted before it is looked up, whether or not an
-        // account has it, so the limit does not tell whether one does. It can
-        // only tell for an account that changed its address within the
-        // window, whose own budget may run out before the new address's.
+        // The address is counted exactly as requested, before it is looked up
+        // and whether or not an account has it, so the limit does not tell
+        // whether one does. It can only tell for an account that changed its
+        // address within the window, whose own budget may run out before the
+        // new address's.
         let limited = |err| match err {
             UserEmailLimitError::Limited(retry_after) => {
                 UserRequestPasswordResetError::RateLimit(retry_after)

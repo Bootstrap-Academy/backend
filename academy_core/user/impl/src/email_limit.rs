@@ -49,6 +49,19 @@ where
     ) -> Result<(), UserEmailLimitError> {
         let user_id = user_id.hyphenated();
         let mailbox = hex::encode(self.hash.sha256(&mailbox(email)).0);
+        let shared = format!("email_code_limit:verification:mailbox:{mailbox}");
+
+        // A mailbox that has used up its shared budget refuses before anything
+        // is counted, so the owner of an address that others have filled keeps
+        // its own budget for the time after. Only a request that races another
+        // one to the last place in the shared budget can still be refused by
+        // the shared bucket after counting in the requester's buckets.
+        if let Some(retry_after) = self
+            .refused(&shared, Duration::ZERO, self.config.code_emails_per_mailbox)
+            .await?
+        {
+            return Err(UserEmailLimitError::Limited(retry_after));
+        }
 
         // The buckets of the requesting account come first, so whatever a
         // refusal leaves counted belongs to the requester. A second click
@@ -69,14 +82,10 @@ where
         )
         .await?;
         // Only emails that are actually sent reach the shared bucket, and its
-        // budget is well above what one account can fill, so one account alone
+        // budget is above what one account can fill, so one account alone
         // cannot lock anybody out of the confirmation.
-        self.reserve(
-            &format!("email_code_limit:verification:mailbox:{mailbox}"),
-            Duration::ZERO,
-            self.config.code_emails_per_mailbox,
-        )
-        .await
+        self.reserve(&shared, Duration::ZERO, self.config.code_emails_per_mailbox)
+            .await
     }
 
     // The address does not belong in the logs.
@@ -85,10 +94,11 @@ where
         &self,
         email: &EmailAddress,
     ) -> Result<(), UserEmailLimitError> {
-        // The lookup compares `lower(email)`. A variant of the address finds no
-        // account, sends nothing and must not fill the bucket of the address
-        // it is a variant of.
-        let address = hex::encode(self.hash.sha256(&email.as_str().to_lowercase()).0);
+        // The address is counted exactly as requested. The lookup finds the
+        // account case-insensitively, but the code is only sent when the
+        // stored address equals the requested one exactly. Any other spelling
+        // sends nothing and must not fill the bucket of the owner's address.
+        let address = hex::encode(self.hash.sha256(&email.as_str().to_owned()).0);
         self.reserve(
             &format!("email_code_limit:password_reset:address:{address}"),
             self.config.code_email_cooldown,
@@ -119,6 +129,27 @@ where
     Time: TimeService,
     Cache: CacheService,
 {
+    /// How long the bucket under `key` still refuses another email, if it
+    /// does, without counting anything.
+    async fn refused(
+        &self,
+        key: &str,
+        cooldown: Duration,
+        budget: u64,
+    ) -> Result<Option<Duration>, UserEmailLimitError> {
+        let previous = self
+            .cache
+            .get::<SentCodes>(key)
+            .await
+            .context("Failed to get the email limit from cache")?;
+        Ok(refusal(
+            previous.as_ref(),
+            self.time.now(),
+            cooldown,
+            budget,
+        ))
+    }
+
     /// Count an email in the bucket under `key`, unless the last one was
     /// counted less than `cooldown` ago or the bucket already holds `budget`
     /// emails in its window.
@@ -183,12 +214,11 @@ fn refusal(
     budget: u64,
 ) -> Option<Duration> {
     let previous = previous?;
-    let cooldown_ends = after(previous.last_sent, cooldown);
-    let until = if previous.count >= budget {
-        cooldown_ends.max(previous.window_ends)
-    } else {
-        cooldown_ends
-    };
+    // A concurrent request may have written the bucket with a time a little
+    // after `now`. A bucket without a cooldown must not refuse for that.
+    let cooldown_ends = (!cooldown.is_zero()).then(|| after(previous.last_sent, cooldown));
+    let budget_ends = (previous.count >= budget).then_some(previous.window_ends);
+    let until = cooldown_ends.max(budget_ends)?;
     (until - now).to_std().ok().filter(|left| !left.is_zero())
 }
 
@@ -538,29 +568,104 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn a_password_reset_counts_the_address_as_the_lookup_compares_it() {
+    async fn a_password_reset_counts_the_address_exactly_as_requested() {
         let clock = Clock::new();
         let (sut, _) = sut(&clock);
 
-        // a variant finds no account and does not touch the owner's bucket
+        // No other spelling reaches the owner's code, so none of them touches
+        // the owner's bucket: neither a tag, dots or the other Gmail domain,
+        // nor other case or a Kelvin sign that Unicode lowercases to `k`.
         for variant in [
-            "owner+x@gmail.com",
-            "o.wner@gmail.com",
-            "owner@googlemail.com",
+            "kowner+x@gmail.com",
+            "k.owner@gmail.com",
+            "kowner@googlemail.com",
+            "KOwner@Gmail.COM",
+            "\u{212A}owner@gmail.com",
         ] {
             sut.reserve_password_reset_address(&address(variant))
                 .await
                 .unwrap();
         }
-        sut.reserve_password_reset_address(&address("owner@gmail.com"))
+        sut.reserve_password_reset_address(&address("kowner@gmail.com"))
             .await
             .unwrap();
 
-        // the same address in other case is the same address to the lookup
+        // the same spelling again is the same address
         refused(
-            sut.reserve_password_reset_address(&address("Owner@Gmail.COM"))
+            sut.reserve_password_reset_address(&address("kowner@gmail.com"))
                 .await,
         );
+    }
+
+    #[tokio::test]
+    async fn a_full_mailbox_refuses_before_counting_anything() {
+        let clock = Clock::new();
+        let (sut, store) = sut(&clock);
+
+        // Two other accounts fill the shared budget of the mailbox.
+        for _ in 0..3 {
+            sut.reserve_verification(BAR.user.id, &address("victim+x@example.com"))
+                .await
+                .unwrap();
+            clock.advance(2 * MINUTE);
+        }
+        sut.reserve_verification(ADMIN.user.id, &address("victim+y@example.com"))
+            .await
+            .unwrap();
+
+        // The owner is refused until the shared window is over, and its own
+        // buckets stay untouched for the time after.
+        let owner = FOO.user.id.hyphenated().to_string();
+        for _ in 0..5 {
+            let retry_after = refused(
+                sut.reserve_verification(FOO.user.id, &address("victim@example.com"))
+                    .await,
+            );
+            assert_eq!(retry_after, HOUR - 6 * MINUTE);
+        }
+        assert!(!store.lock().unwrap().keys().any(|key| key.contains(&owner)));
+
+        clock.advance(HOUR - 6 * MINUTE);
+        sut.reserve_verification(FOO.user.id, &address("victim@example.com"))
+            .await
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn a_bucket_without_cooldown_ignores_a_write_a_little_ahead() {
+        let clock = Clock::new();
+        let (sut, store) = sut(&clock);
+
+        // A concurrent request wrote the shared bucket and the account bucket
+        // with a time a few milliseconds after this request's clock.
+        let ahead = SentCodes {
+            count: 1,
+            window_ends: after(clock.now(), HOUR),
+            last_sent: after(clock.now(), Duration::from_millis(5)),
+        };
+        for key in [
+            format!(
+                "email_code_limit:verification:mailbox:{}",
+                hex::encode(fake_hash("victim@example.com").0)
+            ),
+            format!(
+                "email_code_limit:password_reset:account:{}",
+                FOO.user.id.hyphenated()
+            ),
+        ] {
+            store
+                .lock()
+                .unwrap()
+                .insert(key, (ahead, after(clock.now(), HOUR)));
+        }
+
+        sut.reserve_verification(FOO.user.id, &address("victim@example.com"))
+            .await
+            .unwrap();
+        sut.reserve_password_reset_account(FOO.user.id)
+            .await
+            .unwrap();
+        assert_eq!(mailbox_count(&store, "victim@example.com"), 2);
     }
 
     #[tokio::test]
@@ -617,18 +722,26 @@ mod tests {
             last_sent: now,
         };
 
+        let shared = format!("email_code_limit:verification:mailbox:{SHA256HASH1_HEX}");
         let mut cache = MockCacheService::new();
+        // The shared bucket is looked at once before anything is counted.
+        let peek = shared.clone();
+        cache
+            .expect_get::<SentCodes>()
+            .once()
+            .withf(move |key| key == peek)
+            .return_once(|_| Box::pin(std::future::ready(Ok(None))));
         for key in [
             format!("email_code_limit:verification:address:{user_id}:{SHA256HASH1_HEX}"),
             format!("email_code_limit:verification:account:{user_id}"),
-            format!("email_code_limit:verification:mailbox:{SHA256HASH1_HEX}"),
+            shared,
         ] {
             cache = cache
                 .with_get(key.clone(), None::<SentCodes>)
                 .with_compare_and_set(key, None, first, HOUR, true);
         }
         let mut time = MockTimeService::new();
-        time.expect_now().times(3).return_const(now);
+        time.expect_now().times(4).return_const(now);
 
         let sut = Sut {
             time,
@@ -651,7 +764,7 @@ mod tests {
         let sut = Sut {
             time: MockTimeService::new().with_now(now),
             hash: MockHashService::new()
-                .with_sha256("first.last+x@googlemail.com".to_owned(), *SHA256HASH1),
+                .with_sha256("First.Last+x@GoogleMail.com".to_owned(), *SHA256HASH1),
             cache: MockCacheService::new()
                 .with_get(key.clone(), None::<SentCodes>)
                 .with_compare_and_set(

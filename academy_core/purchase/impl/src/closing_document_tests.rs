@@ -226,6 +226,7 @@ fn sut_with_database(
         learning_policy_config: LearningPolicyConfig::default(),
         purchase_config: PurchaseFeatureConfig {
             provision_window_seconds: [("premium_monthly".into(), 600)].into(),
+            vat_percent: "19".into(),
         },
     }
 }
@@ -325,12 +326,12 @@ async fn issued_kind_with_window(kind: &str, seconds: u64) -> PurchaseRecord {
 }
 #[tokio::test]
 async fn offer_context_is_product_specific_without_changing_price_or_acceptance() {
-    for (kind, price, premium) in [
+    for (kind, price, summary) in [
         ("premium_monthly", 1000, true),
         ("premium_yearly", 10000, true),
-        ("hearts", 100, false),
+        ("hearts", 100, true),
         ("course", 1337, false),
-        ("coins", 1337, false),
+        ("coins", 1337, true),
     ] {
         let record = issued_kind_with_window(kind, 86400).await;
         let offer = record.status.offer;
@@ -341,28 +342,61 @@ async fn offer_context_is_product_specific_without_changing_price_or_acceptance(
         assert_eq!(offer.provision_window_seconds, Some(86400));
         assert_eq!(offer.declaration, DECLARATION);
         assert!(offer.text.contains("24 Stunden"));
-        assert_eq!(offer.text.contains("Premium-Zeitraum"), premium);
-        if kind == "coins" {
-            assert!(offer.text.contains("13.37 EUR"));
-            assert!(offer.text.contains("2.13 EUR"));
-        } else {
-            assert!(offer.text.contains(&format!("{price} MorphCoins")));
+        assert_eq!(offer.summary.is_some(), summary, "{kind}");
+        if let Some(summary) = &offer.summary {
+            // The offer text is the German summary, and the German declaration is the agreed one.
+            assert_eq!(offer.text, summary.de.text());
+            assert_eq!(summary.de.declaration, offer.declaration);
+            assert_eq!(summary.en.declaration, DECLARATION_EN);
+            assert_eq!(summary.de.lines.len(), summary.en.lines.len());
+            for (de, en) in summary.de.lines.iter().zip(&summary.en.lines) {
+                assert_eq!(de.role, en.role);
+            }
+            assert!(offer.text.contains("keine weiteren Kosten"));
+            assert!(!offer.text.contains("Anbieter"));
+            assert!(!offer.text.contains("Sprache: Deutsch"));
+            assert!(!offer.text.contains("hallo@bootstrap.academy"));
+        }
+        match kind {
+            "coins" => {
+                assert!(
+                    offer
+                        .text
+                        .contains("Gesamtpreis: 13,37\u{a0}€ inkl. 19\u{a0}% MwSt.")
+                );
+                assert!(offer.text.contains("Du zahlst mit PayPal."));
+            }
+            "course" => {
+                // The offers of the other services keep their full text.
+                assert!(
+                    offer
+                        .text
+                        .starts_with("Anbieter: bootstrap academy GmbH.\n")
+                );
+                assert!(offer.text.contains("1337 MorphCoins (13.37 EUR"));
+                assert!(
+                    offer
+                        .text
+                        .contains("Widerruf: https://bootstrap.academy/vertrag-widerrufen")
+                );
+                assert!(offer.text.contains(
+                    "Du erhältst die Vertragsbestätigung und deine Leistung innerhalb von 24 Stunden nach Eingang deiner Bestellung."
+                ));
+            }
+            _ => {
+                assert!(offer.text.contains(&format!(
+                    "Gesamtpreis: {} Morphcoins",
+                    group_digits(price, '.')
+                )));
+                assert!(offer.text.contains("Du zahlst aus deinem Guthaben."));
+            }
         }
         if kind == "hearts" {
             assert_eq!(offer.product.facts["refill_units"], 7);
-            assert!(offer.text.contains("3,5 zusätzliche Herzen"));
-            assert!(offer.text.contains("5 Herzen insgesamt"));
-            assert!(
-                offer
-                    .text
-                    .contains("Nur eine falsche Lösung kostet ein ganzes Herz")
+            assert_eq!(
+                offer.product.description,
+                "Du bekommst 3,5 Herzen dazu und hast dann 5 von 5."
             );
-            assert!(
-                offer
-                    .text
-                    .contains("Richtige Lösungen und technische Fehler sind kostenlos")
-            );
-            assert!(!offer.text.contains("auch bei richtiger Lösung"));
         }
     }
 }
@@ -381,18 +415,22 @@ async fn closing_new_offer_binds_r4_terms_and_exact_r1_withdrawal_without_accoun
 }
 #[tokio::test]
 async fn closing_offer_displays_exact_whole_hours_and_hashes_the_stored_text() {
-    for (seconds, duration) in [
-        (600, "600 Sekunden"),
-        (3600, "1 Stunde"),
-        (3601, "3601 Sekunden"),
-        (86400, "24 Stunden"),
+    for (seconds, duration, english) in [
+        (600, "600 Sekunden", "600 seconds"),
+        (3600, "1 Stunde", "1 hour"),
+        (3601, "3601 Sekunden", "3601 seconds"),
+        (86400, "24 Stunden", "24 hours"),
     ] {
         let r = issued_with_window(seconds).await;
         let mut offer = r.status.offer;
         assert_eq!(offer.provision_window_seconds, Some(seconds));
         assert!(offer.text.contains(&format!(
-            "Vertragsbestätigung innerhalb von {duration} nach Eingang deiner Bestellung."
+            "Premium startet direkt nach der Bestätigungsmail, spätestens in {duration}."
         )));
+        assert!(offer.summary.as_ref().unwrap().en.text().contains(&format!(
+            "Premium starts right after the confirmation email, within {english} at the latest."
+        )));
+        // The hash covers the text and both wordings of the summary.
         let hash = std::mem::take(&mut offer.hash);
         assert_eq!(
             hash,
@@ -400,6 +438,276 @@ async fn closing_offer_displays_exact_whole_hours_and_hashes_the_stored_text() {
         );
     }
 }
+
+/// An offer issued with the settings of the live platform: three hearts drawn as six half
+/// hearts, 50 Morphcoins a refill, Premium at 1.000 and 10.000 Morphcoins, 24 hours.
+async fn live_offer(kind: &str, hearts: u64) -> PurchaseOffer {
+    let saved = Arc::new(Mutex::new(Saved::default()));
+    let mut s = sut(Arc::clone(&saved), true, true, true);
+    s.heart_config.hearts_max = 6;
+    s.heart_config.hearts_refill_price = 50;
+    s.purchase_config
+        .provision_window_seconds
+        .insert(kind.into(), 86400);
+    s.user_repo = MockUserRepository::new().with_get_purchase_composite(subject(), Some(account()));
+    if kind == "hearts" {
+        s.heart = MockHeartService::new().with_get(
+            subject(),
+            academy_models::heart::Hearts {
+                hearts,
+                last_refill: Utc::now(),
+            },
+        );
+    }
+    let (source, product) = if kind == "coins" {
+        (
+            "paypal",
+            PurchaseProduct {
+                kind: "coins".into(),
+                reference: "1000".into(),
+                title: "1.000 Morphcoins".into(),
+                description: "Guthaben für Angebote auf Bootstrap Academy, einmaliger Kauf.".into(),
+                coins: 1000,
+                facts: serde_json::json!({"gross_total":"10.00","net_unit":"0.0084","net_total":"8.40","vat_total":"1.60","vat_percent":"19","customer_details":["Synthetic","Deutschland"]}),
+                revision: "synthetic".into(),
+                service_starts_at: None,
+            },
+        )
+    } else {
+        ("backend", s.builtin(kind).unwrap())
+    };
+    s.issue(subject(), source, product, None)
+        .await
+        .unwrap()
+        .offer
+}
+
+fn lines(wording: &OfferWording) -> Vec<(OfferLineRole, &str)> {
+    wording
+        .lines
+        .iter()
+        .map(|line| (line.role, line.text.as_str()))
+        .collect()
+}
+
+#[tokio::test]
+async fn short_summary_states_each_fact_once_in_german_and_english() {
+    use OfferLineRole::*;
+    let hearts = live_offer("hearts", 1).await;
+    let summary = hearts.summary.as_ref().unwrap();
+    assert_eq!(
+        lines(&summary.de),
+        [
+            (Product, "Herzen auffüllen"),
+            (
+                Detail,
+                "Du bekommst 2,5 Herzen dazu und hast dann 3 von 3. Wir füllen direkt nach der Bestätigungsmail auf, spätestens in 24 Stunden."
+            ),
+            (
+                Price,
+                "Gesamtpreis: 50 Morphcoins (0,50\u{a0}€ inkl. 19\u{a0}% MwSt.), keine weiteren Kosten."
+            ),
+            (Payment, "Du zahlst aus deinem Guthaben."),
+        ]
+    );
+    assert_eq!(
+        lines(&summary.en),
+        [
+            (Product, "Refill hearts"),
+            (
+                Detail,
+                "You get 2.5 more hearts and then have 3 of 3. We refill right after the confirmation email, within 24 hours at the latest."
+            ),
+            (
+                Price,
+                "Total price: 50 Morphcoins (€0.50 incl. 19% VAT), no further costs."
+            ),
+            (Payment, "You pay from your balance."),
+        ]
+    );
+    // One whole heart is one heart.
+    let one = live_offer("hearts", 4).await;
+    assert!(
+        one.text
+            .contains("Du bekommst 1 Herz dazu und hast dann 3 von 3.")
+    );
+    assert!(
+        one.summary
+            .unwrap()
+            .en
+            .text()
+            .contains("You get 1 more heart and then have 3 of 3.")
+    );
+
+    let monthly = live_offer("premium_monthly", 6).await;
+    let summary = monthly.summary.as_ref().unwrap();
+    assert_eq!(
+        lines(&summary.de),
+        [
+            (Product, "Premium für einen Monat"),
+            (Detail, "Unbegrenzte Herzen und Zugriff auf alle Kurse."),
+            (Term, "Laufzeit: 1 Monat, ohne automatische Verlängerung."),
+            (
+                Detail,
+                "Premium startet direkt nach der Bestätigungsmail, spätestens in 24 Stunden. Läuft schon Premium, schließt die neue Zeit daran an."
+            ),
+            (
+                Price,
+                "Gesamtpreis: 1.000 Morphcoins (10,00\u{a0}€ inkl. 19\u{a0}% MwSt.), keine weiteren Kosten."
+            ),
+            (Payment, "Du zahlst aus deinem Guthaben."),
+        ]
+    );
+    assert_eq!(
+        lines(&summary.en),
+        [
+            (Product, "Premium for one month"),
+            (Detail, "Unlimited hearts and access to all courses."),
+            (Term, "Term: 1 month, no automatic renewal."),
+            (
+                Detail,
+                "Premium starts right after the confirmation email, within 24 hours at the latest. If Premium is already running, the new period follows it."
+            ),
+            (
+                Price,
+                "Total price: 1,000 Morphcoins (€10.00 incl. 19% VAT), no further costs."
+            ),
+            (Payment, "You pay from your balance."),
+        ]
+    );
+
+    // The yearly price also names its monthly amount (Art. 246a § 1 Abs. 1 Nr. 8 EGBGB).
+    let yearly = live_offer("premium_yearly", 6).await;
+    let summary = yearly.summary.as_ref().unwrap();
+    assert_eq!(lines(&summary.de)[0], (Product, "Premium für ein Jahr"));
+    assert_eq!(
+        lines(&summary.de)[2],
+        (Term, "Laufzeit: 1 Jahr, ohne automatische Verlängerung.")
+    );
+    assert_eq!(
+        lines(&summary.de)[4],
+        (
+            Price,
+            "Gesamtpreis: 10.000 Morphcoins (100,00\u{a0}€ inkl. 19\u{a0}% MwSt.; 8,33\u{a0}€ je Monat), keine weiteren Kosten."
+        )
+    );
+    assert_eq!(
+        lines(&summary.en)[4],
+        (
+            Price,
+            "Total price: 10,000 Morphcoins (€100.00 incl. 19% VAT; €8.33 per month), no further costs."
+        )
+    );
+
+    let coins = live_offer("coins", 6).await;
+    let summary = coins.summary.as_ref().unwrap();
+    assert_eq!(
+        lines(&summary.de),
+        [
+            (Product, "1.000 Morphcoins"),
+            (
+                Detail,
+                "Guthaben für Angebote auf Bootstrap Academy, einmaliger Kauf. Die Morphcoins sind nach der Zahlung und der Bestätigungsmail auf deinem Konto, spätestens in 24 Stunden."
+            ),
+            (
+                Price,
+                "Gesamtpreis: 10,00\u{a0}€ inkl. 19\u{a0}% MwSt., keine weiteren Kosten."
+            ),
+            (Payment, "Du zahlst mit PayPal."),
+        ]
+    );
+    assert_eq!(
+        lines(&summary.en),
+        [
+            (Product, "1,000 Morphcoins"),
+            (
+                Detail,
+                "Balance for offers on Bootstrap Academy, one-time purchase. The Morphcoins are in your account after payment and the confirmation email, within 24 hours at the latest."
+            ),
+            (
+                Price,
+                "Total price: €10.00 incl. 19% VAT, no further costs."
+            ),
+            (Payment, "You pay with PayPal."),
+        ]
+    );
+    // The invoice details stay in the facts and are not repeated in the text.
+    assert!(!coins.text.contains("Synthetic"));
+
+    for offer in [&hearts, &monthly, &yearly, &coins] {
+        let summary = offer.summary.as_ref().unwrap();
+        assert_eq!(offer.text, summary.de.text());
+        assert_eq!(offer.declaration, DECLARATION);
+        assert_eq!(summary.de.declaration, DECLARATION);
+        assert_eq!(summary.en.declaration, DECLARATION_EN);
+        // Each fact once: one price, one deadline.
+        assert_eq!(offer.text.matches("Gesamtpreis").count(), 1);
+        assert_eq!(offer.text.matches("24 Stunden").count(), 1);
+        assert_eq!(
+            offer.text.matches("€").count(),
+            1 + usize::from(offer.product.kind == "premium_yearly")
+        );
+    }
+}
+
+#[test]
+fn confirmation_mail_names_the_provider_in_front_of_a_short_offer() {
+    let offer = |source: &str, summary: bool| {
+        let wording = OfferWording {
+            lines: vec![OfferLine {
+                role: OfferLineRole::Product,
+                text: "Kurz".into(),
+            }],
+            declaration: DECLARATION.into(),
+        };
+        let mut offer: PurchaseOffer = serde_json::from_value(serde_json::json!({
+            "id": Uuid::nil(), "user_id": Uuid::nil(), "source": source,
+            "created_at": "2026-10-16T00:00:00Z", "expires_at": "2026-10-16T00:20:00Z",
+            "recipient": "synthetic@example.invalid",
+            "product": {"kind":"coins","reference":"1000","title":"t","description":"d","coins":1000,"facts":{},"revision":"r","service_starts_at":null},
+            "document_hash": "d", "hash": "h", "text": "Kurz", "declaration": DECLARATION
+        }))
+        .unwrap();
+        if summary {
+            offer.summary = Some(OfferSummary {
+                de: wording.clone(),
+                en: wording,
+            });
+        }
+        offer
+    };
+    assert_eq!(
+        agreed_offer(&offer("backend", true)),
+        "Anbieter: bootstrap academy GmbH.\nKurz"
+    );
+    assert_eq!(
+        agreed_offer(&offer("paypal", true)),
+        "Anbieter: bootstrap academy GmbH.\nKurz\nZahlungsweg: PayPal; keine Abbuchung vorhandener MorphCoins."
+    );
+    // An offer with its own full text keeps it as it is.
+    assert_eq!(agreed_offer(&offer("skills", false)), "Kurz");
+}
+
+#[test]
+fn amounts_are_written_in_each_language_without_rounding() {
+    assert_eq!(euros_de(50), "0,50\u{a0}€");
+    assert_eq!(euros_de(100_000_000), "1.000.000,00\u{a0}€");
+    assert_eq!(euros_en(833), "€8.33");
+    assert_eq!(euros_en(100_000_000), "€1,000,000.00");
+    assert_eq!(cents_of("10.00"), Some(1000));
+    assert_eq!(cents_of("13.37"), Some(1337));
+    assert_eq!(cents_of("5"), Some(500));
+    assert_eq!(cents_of("5.5"), Some(550));
+    assert_eq!(cents_of("10.0000"), Some(1000));
+    assert_eq!(cents_of("10.001"), None);
+    assert_eq!(cents_of("-1.00"), None);
+    assert_eq!(cents_of(".50"), None);
+    assert_eq!(cents_of("1.2.3"), None);
+    assert_eq!(cents_of(""), None);
+    assert_eq!(duration_de(86400), "24 Stunden");
+    assert_eq!(duration_en(3600), "1 hour");
+}
+
 async fn historical() -> PurchaseRecord {
     let mut r = issued().await;
     r.status.offer.text = "Original offer from before the copy change".into();
@@ -608,6 +916,12 @@ async fn daily_premium_keeps_coin_price_and_duration_and_describes_actual_benefi
             .contains("beliebig viele neue Lektionen")
     );
     assert!(!offer.product.description.contains("Herzen"));
+    let summary = offer.summary.as_ref().unwrap();
+    assert_eq!(summary.de.lines[1].text, PREMIUM_BENEFIT_DAILY);
+    assert_eq!(
+        summary.en.lines[1].text,
+        "You can start as many new lessons as you like every day."
+    );
     let saved = saved.lock().unwrap();
     let record = saved.record.as_ref().unwrap();
     assert_eq!(record.terms_pdf, b"%PDF-1.7 synthetic new terms");

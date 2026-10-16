@@ -14,6 +14,20 @@ pub fn display_hearts(units: u64) -> String {
     }
 }
 
+/// A whole number with a separator between groups of three digits, e.g. `10.000` for
+/// German and `10,000` for English.
+pub fn group_digits(number: u64, separator: char) -> String {
+    let digits = number.to_string();
+    let mut grouped = String::with_capacity(digits.len() + digits.len() / 3);
+    for (i, digit) in digits.chars().enumerate() {
+        if i > 0 && (digits.len() - i).is_multiple_of(3) {
+            grouped.push(separator);
+        }
+        grouped.push(digit);
+    }
+    grouped
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PurchaseProduct {
     pub kind: String,
@@ -42,6 +56,63 @@ pub struct PurchaseOffer {
     pub declaration: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub provision_window_seconds: Option<u64>,
+    /// The order summary line by line, for offers whose `text` is built from it. Older
+    /// offers and the offers of other services have none and keep their own `text`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub summary: Option<OfferSummary>,
+}
+
+/// An offer's order summary in German and in English.
+///
+/// The German wording is the agreed one: `PurchaseOffer::text` consists of exactly its
+/// lines, one per line, and its declaration is `PurchaseOffer::declaration`. The English
+/// wording translates it for the English interface; the German one is binding (AGB 1.4).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct OfferSummary {
+    pub de: OfferWording,
+    pub en: OfferWording,
+}
+
+/// The lines of an order summary in one language, in the order the order dialog shows
+/// them, and the request for an early start in the same language.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct OfferWording {
+    pub lines: Vec<OfferLine>,
+    pub declaration: String,
+}
+
+impl OfferWording {
+    /// The lines as one text, one per line.
+    pub fn text(&self) -> String {
+        self.lines
+            .iter()
+            .map(|line| line.text.as_str())
+            .collect::<Vec<_>>()
+            .join("\n")
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct OfferLine {
+    pub role: OfferLineRole,
+    pub text: String,
+}
+
+/// What a line of an order summary states. The dialog highlights the product, the term
+/// and the price, which § 312j Abs. 2 BGB wants right above the order button.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum OfferLineRole {
+    /// What is bought, with its quantity or period.
+    Product,
+    /// A further characteristic, or when it is provided.
+    Detail,
+    /// The term of a Premium period.
+    Term,
+    /// The total price including VAT, and that nothing else is charged.
+    Price,
+    /// How the order is paid.
+    Payment,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
@@ -91,4 +162,50 @@ pub struct PurchaseRecord {
     pub delivery_generation: i64,
     pub submission: Option<PurchaseAcceptance>,
     pub message_metadata: Option<Value>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn digits_are_grouped_by_three() {
+        assert_eq!(group_digits(0, '.'), "0");
+        assert_eq!(group_digits(500, '.'), "500");
+        assert_eq!(group_digits(1000, '.'), "1.000");
+        assert_eq!(group_digits(10000, ','), "10,000");
+        assert_eq!(group_digits(1_000_000, '.'), "1.000.000");
+    }
+
+    #[test]
+    fn offers_without_summary_serialize_as_before() {
+        let wording = OfferWording {
+            lines: vec![
+                OfferLine {
+                    role: OfferLineRole::Product,
+                    text: "Herzen auffüllen".into(),
+                },
+                OfferLine {
+                    role: OfferLineRole::Price,
+                    text: "Gesamtpreis".into(),
+                },
+            ],
+            declaration: "Erklärung".into(),
+        };
+        assert_eq!(wording.text(), "Herzen auffüllen\nGesamtpreis");
+        let line = serde_json::to_value(&wording.lines[0]).unwrap();
+        assert_eq!(
+            line,
+            serde_json::json!({"role":"product","text":"Herzen auffüllen"})
+        );
+        // A stored offer from before the summary reads back without one and writes no field.
+        let stored = serde_json::json!({"id":Uuid::nil(),"user_id":Uuid::nil(),"source":"backend",
+            "created_at":"2026-10-01T00:00:00Z","expires_at":"2026-10-01T00:20:00Z","recipient":"r",
+            "product":{"kind":"hearts","reference":"hearts","title":"t","description":"d","coins":50,
+                "facts":{},"revision":"r","service_starts_at":null},
+            "document_hash":"d","hash":"h","text":"t","declaration":"e"});
+        let offer: PurchaseOffer = serde_json::from_value(stored.clone()).unwrap();
+        assert!(offer.summary.is_none());
+        assert_eq!(serde_json::to_value(&offer).unwrap(), stored);
+    }
 }

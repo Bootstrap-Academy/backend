@@ -324,6 +324,7 @@ impl ConfigProvider {
         };
         let purchase_feature_config = PurchaseFeatureConfig {
             provision_window_seconds: config.purchase.provision_window_seconds.clone(),
+            vat_percent: config.finance.vat_percent.normalize().to_string(),
         };
 
         Ok(Self {

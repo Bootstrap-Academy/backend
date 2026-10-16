@@ -15,6 +15,7 @@ use academy_core_user_contracts::{
         UserEmailConfirmationResetPasswordError, UserEmailConfirmationService,
         UserEmailConfirmationVerifyEmailError,
     },
+    email_limit::{UserEmailLimitError, UserEmailLimitService},
     export::{UserDataExport, UserExportService},
     update::{
         UserUpdateEmailError, UserUpdateNameError, UserUpdateNameRateLimitPolicy, UserUpdateService,
@@ -44,6 +45,7 @@ use anyhow::{Context, anyhow};
 use tracing::{info, instrument, trace, warn};
 
 pub mod email_confirmation;
+pub mod email_limit;
 pub mod export;
 pub mod publication;
 pub mod update;
@@ -63,6 +65,7 @@ pub struct UserFeatureServiceImpl<
     MicroservicesApi,
     User,
     UserEmailConfirmation,
+    UserEmailLimit,
     UserExport,
     UserUpdate,
     Session,
@@ -81,6 +84,7 @@ pub struct UserFeatureServiceImpl<
     microservices_api: MicroservicesApi,
     user: User,
     user_email_confirmation: UserEmailConfirmation,
+    user_email_limit: UserEmailLimit,
     user_export: UserExport,
     user_update: UserUpdate,
     session: Session,
@@ -111,6 +115,21 @@ pub struct UserFeatureConfig {
     pub verification_verification_code_ttl: Duration,
     pub password_reset_redirect_url: Arc<String>,
     pub password_reset_verification_code_ttl: Duration,
+    /// Minimum time between two emails with a code of the same kind to the
+    /// same address.
+    pub code_email_cooldown: Duration,
+    /// Window in which the emails with a code are counted. It starts with the
+    /// first email counted in it.
+    pub code_email_window: Duration,
+    /// Maximum number of emails with a code of the same kind for one account
+    /// within the window.
+    pub code_emails_per_account: u64,
+    /// Maximum number of emails with a code of the same kind to one address
+    /// within the window. A verification counts this per account.
+    pub code_emails_per_address: u64,
+    /// Maximum number of verification emails to one mailbox within the
+    /// window, across all accounts.
+    pub code_emails_per_mailbox: u64,
 }
 
 impl<
@@ -122,6 +141,7 @@ impl<
     MicroservicesApi,
     UserS,
     UserEmailConfirmation,
+    UserEmailLimit,
     UserExport,
     UserUpdate,
     Session,
@@ -141,6 +161,7 @@ impl<
         MicroservicesApi,
         UserS,
         UserEmailConfirmation,
+        UserEmailLimit,
         UserExport,
         UserUpdate,
         Session,
@@ -160,6 +181,7 @@ where
     MicroservicesApi: MicroservicesApiService,
     UserS: UserService<Db::Transaction>,
     UserEmailConfirmation: UserEmailConfirmationService<Db::Transaction>,
+    UserEmailLimit: UserEmailLimitService,
     UserExport: UserExportService<Db::Transaction>,
     UserUpdate: UserUpdateService<Db::Transaction>,
     Session: SessionService<Db::Transaction>,
@@ -807,6 +829,20 @@ where
             .email
             .ok_or(UserRequestVerificationEmailError::NoEmail)?;
 
+        // Counted for the account the code is for, so a refusal never costs
+        // another account anything.
+        self.user_email_limit
+            .reserve_verification(user_id, &email)
+            .await
+            .map_err(|err| match err {
+                UserEmailLimitError::Limited(retry_after) => {
+                    UserRequestVerificationEmailError::RateLimit(retry_after)
+                }
+                UserEmailLimitError::Other(err) => err
+                    .context("Failed to check the limit of verification emails")
+                    .into(),
+            })?;
+
         self.user_email_confirmation
             .request_verification(
                 user_id,
@@ -860,6 +896,24 @@ where
                 CaptchaCheckError::Other(err) => err.context("Failed to check captcha").into(),
             })?;
 
+        // The address is counted exactly as requested, before it is looked up
+        // and whether or not an account has it, so the limit does not tell
+        // whether one does. It can only tell for an account that changed its
+        // address within the window, whose own budget may run out before the
+        // new address's.
+        let limited = |err| match err {
+            UserEmailLimitError::Limited(retry_after) => {
+                UserRequestPasswordResetError::RateLimit(retry_after)
+            }
+            UserEmailLimitError::Other(err) => err
+                .context("Failed to check the limit of password reset emails")
+                .into(),
+        };
+        self.user_email_limit
+            .reserve_password_reset_address(&email)
+            .await
+            .map_err(limited)?;
+
         let mut txn = self.db.begin_transaction().await?;
 
         if let Some(user_composite) = self
@@ -890,6 +944,14 @@ where
                     email.as_str()
                 )
             })?;
+            // An account that keeps changing its address could otherwise
+            // collect a fresh budget with every address. While the address
+            // stays the same, this budget runs out together with the
+            // address's, so it tells nobody more than the address does.
+            self.user_email_limit
+                .reserve_password_reset_account(user_composite.user.id)
+                .await
+                .map_err(limited)?;
             self.user_email_confirmation
                 .request_password_reset(
                     user_composite.user.id,
@@ -956,6 +1018,7 @@ impl<
     MicroservicesApi,
     UserS,
     UserEmailConfirmation,
+    UserEmailLimit,
     UserExport,
     UserUpdate,
     Session,
@@ -975,6 +1038,7 @@ impl<
         MicroservicesApi,
         UserS,
         UserEmailConfirmation,
+        UserEmailLimit,
         UserExport,
         UserUpdate,
         Session,

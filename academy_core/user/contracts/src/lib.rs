@@ -1,4 +1,4 @@
-use std::future::Future;
+use std::{future::Future, time::Duration};
 
 use academy_models::{
     RecaptchaResponse, VerificationCode,
@@ -18,6 +18,7 @@ use thiserror::Error;
 use user::{UserListQuery, UserListResult};
 
 pub mod email_confirmation;
+pub mod email_limit;
 pub mod export;
 pub mod publication;
 pub mod update;
@@ -129,6 +130,8 @@ pub trait UserFeatureService: Send + Sync + 'static {
     /// address.
     ///
     /// Requires admin privileges if not used on the authenticated user.
+    /// Limited per address and per account, see
+    /// [`email_limit::UserEmailLimitService`].
     fn request_verification_email(
         &self,
         token: &AccessToken,
@@ -142,6 +145,9 @@ pub trait UserFeatureService: Send + Sync + 'static {
     ) -> impl Future<Output = Result<(), UserVerifyEmailError>> + Send;
 
     /// Request an email with a verification code to reset a user's password.
+    ///
+    /// Limited per address, counted whether or not an account has the
+    /// address, and per account, see [`email_limit::UserEmailLimitService`].
     fn request_password_reset(
         &self,
         email: EmailAddress,
@@ -332,6 +338,9 @@ pub enum UserRequestVerificationEmailError {
     AlreadyVerified,
     #[error("The user does not have an email address.")]
     NoEmail,
+    /// No further verification email is sent before the given time has passed.
+    #[error("Too many verification emails have been requested.")]
+    RateLimit(Duration),
     #[error(transparent)]
     Other(#[from] anyhow::Error),
 }
@@ -348,6 +357,10 @@ pub enum UserVerifyEmailError {
 pub enum UserRequestPasswordResetError {
     #[error("Invalid recaptcha response")]
     Recaptcha,
+    /// No further password reset email is sent before the given time has
+    /// passed.
+    #[error("Too many password reset emails have been requested.")]
+    RateLimit(Duration),
     #[error(transparent)]
     Other(#[from] anyhow::Error),
 }

@@ -3904,6 +3904,18 @@ rec {
             features = [ "serde" "clock" ];
           }
           {
+            name = "hex";
+            packageId = "hex";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "serde";
+            packageId = "serde";
+            usesDefaultFeatures = false;
+            features = [ "derive" "std" ];
+          }
+          {
             name = "serde_json";
             packageId = "serde_json";
             usesDefaultFeatures = false;

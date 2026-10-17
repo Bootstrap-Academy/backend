@@ -3,9 +3,10 @@
 Run from the multi-repository workspace. Existing accepted purchase/renewal PDF
 snapshots are stored independently; this changes prospective embedded assets only.
 
-Release 2026-10 is bound through a configured document bundle with absolute paths
-and pinned SHA-256 values, so its PDFs are written to an output directory outside
-this repository together with a manifest. Steps: docs/legal-documents-2026-10.md.
+Release 2026-10 is bound through a manifest the backend configuration pins by path
+and SHA-256 (`[purchase.stage2]`), so its PDFs are written to an output directory
+outside this repository together with that manifest, which records the start, the
+terms version and the SHA-256 of both PDFs. Steps: docs/legal-documents-2026-10.md.
 """
 
 import argparse
@@ -159,8 +160,8 @@ def render_2026_10(args):
         print(f"PASS {stem}: {len(blocks)} exact source blocks and the whole text in {output}")
         print(f"     SHA-256 {pdf_sha256}")
     terms, withdrawal = manifest["documents"]
-    # The values of the configured bundle (`LearningDocumentBundleConfig`); the paths become the
-    # absolute paths of these files where they are deployed.
+    # What the backend binds (`[purchase.stage2]` reads this manifest): the terms version and
+    # the two files next to the manifest with their SHA-256; the start is `effective_from`.
     manifest["bundle"] = {
         "terms_version": "2026-10",
         "terms_pdf": terms["pdf"],
@@ -168,10 +169,19 @@ def render_2026_10(args):
         "withdrawal_pdf": withdrawal["pdf"],
         "withdrawal_sha256": withdrawal["pdf_sha256"],
     }
-    (output_dir / "purchase-document-manifest-2026-10.json").write_text(
-        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n"
-    )
-    print(f"PASS manifest {output_dir / 'purchase-document-manifest-2026-10.json'}")
+    path = output_dir / "purchase-document-manifest-2026-10.json"
+    path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
+    manifest_sha256 = hashlib.sha256(path.read_bytes()).hexdigest()
+    print(f"PASS manifest {path}")
+    print(f"     SHA-256 {manifest_sha256}")
+    print("Backend configuration, with the directory these three files are copied to on the host:")
+    print("  [purchase.stage2]")
+    print(f'  manifest_path = "<directory>/{path.name}"')
+    print(f'  manifest_sha256 = "{manifest_sha256}"')
+    print("  [user]")
+    print('  registration_terms_version = "2026-10"')
+    print(f'  registration_terms_from = "{args.effective_date}"')
+    print(f"Frontend build: NUXT_PUBLIC_TERMS_2026_10_FROM={args.effective_date}")
 
 
 parser = argparse.ArgumentParser(description=__doc__)

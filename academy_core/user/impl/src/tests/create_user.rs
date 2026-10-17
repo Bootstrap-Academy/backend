@@ -17,9 +17,10 @@ use academy_models::{
 use academy_persistence_contracts::{MockDatabase, MockTransaction};
 use academy_shared_contracts::captcha::{CaptchaCheckError, MockCaptchaService};
 use academy_utils::assert_matches;
+use chrono::{DateTime, TimeDelta, Utc};
 
 use crate::{
-    UserFeatureServiceImpl,
+    UserFeatureConfig, UserFeatureServiceImpl,
     tests::{Sut, TERMS_VERSION},
 };
 
@@ -679,4 +680,86 @@ async fn registration_override_is_explicit_and_records_only_the_offered_version(
             ));
         }
     }
+}
+
+/// With a configured moment, account creation asks for the version in force
+/// before it and for the registration version from it on. Each side refuses
+/// the other version and records the one it asked for.
+#[tokio::test]
+async fn registration_version_applies_only_from_its_configured_moment() {
+    let registration_version: academy_models::user::TermsVersion = "2026-10".try_into().unwrap();
+    for (from, asked) in [
+        (Utc::now() + TimeDelta::hours(1), TERMS_VERSION.clone()),
+        (
+            Utc::now() - TimeDelta::hours(1),
+            registration_version.clone(),
+        ),
+    ] {
+        for sent in [TERMS_VERSION.clone(), registration_version.clone()] {
+            let request = UserCreateRequest {
+                name: FOO.user.name.clone(),
+                display_name: FOO.profile.display_name.clone(),
+                email: FOO.user.email.clone().unwrap(),
+                password: Some("secure password".try_into().unwrap()),
+                oauth2_registration_token: None,
+                age_confirmed: true,
+                terms_version: sent.clone(),
+            };
+            let mut sut = Sut::default();
+            sut.config.registration_terms_version = Some(registration_version.clone());
+            sut.config.registration_terms_from = Some(from);
+            if sent != asked {
+                assert_matches!(
+                    sut.create_user(request, None, None).await,
+                    Err(UserCreateError::TermsVersionMismatch)
+                );
+                continue;
+            }
+            let mut command = req_to_cmd(&request);
+            command.terms_version = Some(asked.clone());
+            let mut account = FOO.clone();
+            account.user.terms_version = Some(asked.clone());
+            let expected = Login {
+                user_composite: account.clone(),
+                session: FOO_1.clone(),
+                access_token: "synthetic".into(),
+                refresh_token: "synthetic".into(),
+            };
+            sut.db = MockDatabase::build(true);
+            sut.captcha = MockCaptchaService::new().with_check(None, Ok(()));
+            sut.user = MockUserService::new().with_create(command, Ok(account.clone()));
+            sut.session = MockSessionService::new().with_create(
+                account,
+                FOO_1.device_name.clone(),
+                true,
+                false,
+                SessionOrigin::SignIn,
+                expected.clone(),
+            );
+            assert_eq!(
+                sut.create_user(request, FOO_1.device_name.clone(), None)
+                    .await
+                    .unwrap(),
+                expected
+            );
+        }
+    }
+}
+
+/// The switch happens exactly at the configured moment, and a registration
+/// version without a moment applies at once.
+#[test]
+fn registration_version_begins_exactly_at_its_moment() {
+    let registration_version: academy_models::user::TermsVersion = "2026-10".try_into().unwrap();
+    let from = DateTime::parse_from_rfc3339("2026-11-15T23:00:00Z")
+        .unwrap()
+        .to_utc();
+    let before = from - TimeDelta::nanoseconds(1);
+    let mut config = UserFeatureConfig::default();
+    assert_eq!(config.registration_terms_at(from), &*TERMS_VERSION);
+    config.registration_terms_version = Some(registration_version.clone());
+    assert_eq!(config.registration_terms_at(before), &registration_version);
+    config.registration_terms_from = Some(from);
+    assert_eq!(config.registration_terms_at(before), &*TERMS_VERSION);
+    assert_eq!(config.registration_terms_at(from), &registration_version);
 }

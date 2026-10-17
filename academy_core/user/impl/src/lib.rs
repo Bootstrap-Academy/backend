@@ -108,6 +108,10 @@ pub struct UserFeatureConfig {
     /// Optional terms version offered only when creating a new account.
     /// Existing-account acceptance keeps using `terms_version`.
     pub registration_terms_version: Option<TermsVersion>,
+    /// Moment from which account creation asks for
+    /// `registration_terms_version`; before it, `terms_version` applies.
+    /// Unset means the registration version applies at once.
+    pub registration_terms_from: Option<chrono::DateTime<chrono::Utc>>,
     pub name_change_rate_limit: Duration,
     /// Minimum time between two data exports of the same user.
     pub export_rate_limit: Duration,
@@ -130,6 +134,16 @@ pub struct UserFeatureConfig {
     /// Maximum number of verification emails to one mailbox within the
     /// window, across all accounts.
     pub code_emails_per_mailbox: u64,
+}
+
+impl UserFeatureConfig {
+    /// The terms version a new account is created with at `now`.
+    fn registration_terms_at(&self, now: chrono::DateTime<chrono::Utc>) -> &TermsVersion {
+        self.registration_terms_version
+            .as_ref()
+            .filter(|_| self.registration_terms_from.is_none_or(|from| now >= from))
+            .unwrap_or(&self.terms_version)
+    }
 }
 
 impl<
@@ -246,11 +260,7 @@ where
             return Err(UserCreateError::AgeNotConfirmed);
         }
 
-        let registration_terms = self
-            .config
-            .registration_terms_version
-            .as_ref()
-            .unwrap_or(&self.config.terms_version);
+        let registration_terms = self.config.registration_terms_at(chrono::Utc::now());
         if &request.terms_version != registration_terms {
             return Err(UserCreateError::TermsVersionMismatch);
         }

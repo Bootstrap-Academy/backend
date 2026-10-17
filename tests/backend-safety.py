@@ -117,6 +117,7 @@ class Fixture:
         self.env["RUST_LOG"] = "error"
         self.env["ACADEMY_CONFIG"] = f"{self.base}/fixture.toml:{REPO}/config.dev.toml"
         self.policy = 'mode = "legacy"'
+        self.user_extra = ""
 
     def command(self, *args, label=None):
         result = subprocess.run(
@@ -169,6 +170,7 @@ auth = "isolated-auth-secret"
 [user]
 terms_version = "safety-test-terms"
 export_rate_limit = "1h"
+{self.user_extra}
 [session]
 login_fails_before_lock = 100
 login_fails_per_ip = 1000
@@ -286,11 +288,13 @@ final_statements_archive = "{self.base}/statements"
         self.backend = self.spawn("backend", [self.args.binary, "serve"])
         self.wait_port("api", self.backend)
 
-    def restart(self, policy=None):
+    def restart(self, policy=None, user=None):
         self.backend.terminate()
         self.backend.wait(timeout=15)
         if policy is not None:
             self.policy = policy
+        if user is not None:
+            self.user_extra = user
         self.write_config()
         self.start_backend()
 
@@ -936,7 +940,9 @@ def code_emails_of_others_do_not_lock_the_owner(f):
 
 def stage_two_manifest(f, day, sha256=None):
     """`[purchase.stage2]` pinning a manifest of synthetic PDFs that starts at 00:00 in Berlin on
-    `day`. The PDFs exist only for this fixture and make no claim about the legal texts."""
+    `day`, and the registration terms with the same start in `[user]`, which the backend requires
+    together with it. The PDFs exist only for this fixture and make no claim about the legal
+    texts."""
     import datetime
     import zoneinfo
 
@@ -971,6 +977,7 @@ def stage_two_manifest(f, day, sha256=None):
         hash_of_documents.update(data)
     pinned = sha256 or hashlib.sha256(manifest).hexdigest()
     config = f'[purchase.stage2]\nmanifest_path = "{path}"\nmanifest_sha256 = "{pinned}"'
+    f.user_extra = f'registration_terms_version = "2026-10"\nregistration_terms_from = "{start}"'
     return config, start, hash_of_documents.hexdigest()
 
 
@@ -1043,7 +1050,7 @@ def stage_two_switches_on_at_the_start_in_its_manifest(f):
             raise AssertionError("the backend started with a manifest that is not the pinned one")
     finally:
         f.purchase_extra = ""
-        f.restart()
+        f.restart(user="")
 
 
 def deletion_revokes_all_sessions_and_keeps_durable_work(f):
@@ -1075,6 +1082,59 @@ def deletion_revokes_all_sessions_and_keeps_durable_work(f):
     assert pending == "0", "deletion delivery did not recover after restart"
 
 
+def registration_terms_switch_at_their_moment(f):
+    """Account creation asks for the registration version only from its configured moment, which
+    is the start of purchase stage 2: 00:00 in Berlin, the same moment and version in both places,
+    or the backend does not start."""
+    import datetime
+    import zoneinfo
+
+    today = datetime.datetime.now(zoneinfo.ZoneInfo("Europe/Berlin")).date()
+
+    def register(version):
+        name = "safety" + uuid4().hex[:12]
+        body = {
+            "name": name,
+            "display_name": name,
+            "email": f"{name}@example.com",
+            "password": "synthetic test password",
+            "terms_version": version,
+            "age_confirmed": True,
+        }
+        return f.request("/auth/users", "POST", body, expected=None)
+
+    def switch(day, registration_day=None):
+        f.purchase_extra, start, _ = stage_two_manifest(f, day)
+        if registration_day is not None:
+            _, start, _ = stage_two_manifest(f, registration_day)
+        f.user_extra = f'registration_terms_version = "2026-10"\nregistration_terms_from = "{start}"'
+
+    try:
+        for day, asked, other in (
+            (today + datetime.timedelta(days=1), "safety-test-terms", "2026-10"),
+            (today, "2026-10", "safety-test-terms"),
+        ):
+            switch(day)
+            f.restart()
+            status, _ = register(other)
+            assert status == 422, f"{other} with the start on {day}: {status}"
+            status, login = register(asked)
+            assert status == 200 and login["user"]["terms_version"] == asked, (day, status, login)
+        # Two different starts: check-config and the start refuse the configuration.
+        switch(today, today + datetime.timedelta(days=1))
+        code, said = check_config(f)
+        assert code != 0 and "differ" in said, said
+        try:
+            f.restart()
+        except RuntimeError:
+            pass
+        else:
+            raise AssertionError("the backend started with two different starts")
+    finally:
+        f.purchase_extra = ""
+        f.restart(user="")
+
+
 CASES = [
     hearts_replay_and_last_heart,
     heart_reset_and_refill,
@@ -1093,6 +1153,7 @@ CASES = [
     code_emails_limited_per_address_and_account,
     code_emails_of_others_do_not_lock_the_owner,
     deletion_revokes_all_sessions_and_keeps_durable_work,
+    registration_terms_switch_at_their_moment,
 ]
 
 

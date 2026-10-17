@@ -64,6 +64,7 @@ impl Default for UserFeatureConfig {
         Self {
             terms_version: TERMS_VERSION.clone(),
             registration_terms_version: None,
+            registration_terms_from: None,
             name_change_rate_limit: Duration::from_secs(30 * 24 * 3600),
             export_rate_limit: Duration::from_secs(600),
             verification_redirect_url: "https://bootstrap.academy/auth/verify-account"

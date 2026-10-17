@@ -45,7 +45,8 @@ const DECLARATION: &str = "Ich verlange ausdrücklich, dass mit der bestellten L
 /// `DECLARATION` for the English interface. The German wording is the one agreed.
 const DECLARATION_EN: &str = "I expressly request that the ordered service begins before the withdrawal period ends. My statutory withdrawal and warranty rights remain unaffected.";
 /// Wording revision of the short order summary, part of every builtin product revision.
-const SUMMARY_REVISION: &str = "purchase-2026-10-s1";
+/// `s2`: the product line of Premium leaves the term to the term line.
+const SUMMARY_REVISION: &str = "purchase-2026-10-s2";
 /// All courses are free for everyone (owner, 16.10.2026), so Premium promises unlimited hearts.
 const PREMIUM_BENEFIT: &str = "Unbegrenzte Herzen.";
 const PREMIUM_BENEFIT_DAILY: &str = "Du kannst jeden Tag beliebig viele neue Lektionen anfangen.";
@@ -352,9 +353,10 @@ where
                 } else {
                     "Unlimited hearts."
                 };
+                // The term stands once, in the term line; the title keeps it for the order list.
                 (
                     vec![
-                        line(Product, product.title.clone()),
+                        line(Product, "Premium".into()),
                         line(Detail, product.description.clone()),
                         line(Term, term_de),
                         line(
@@ -367,10 +369,7 @@ where
                         line(Payment, paid_from_balance.0.into()),
                     ],
                     vec![
-                        line(
-                            Product,
-                            format!("Premium for one {}", if yearly { "year" } else { "month" }),
-                        ),
+                        line(Product, "Premium".into()),
                         line(Detail, benefit_en.into()),
                         line(Term, term_en),
                         line(
@@ -1595,18 +1594,21 @@ where
 }
 
 /// The offer as the confirmation mail reproduces it. An offer with an order summary gets
-/// the provider in front, which the dialog leaves to the terms; a PayPal offer gets how it
-/// is paid.
+/// the provider in front, which the dialog leaves to the terms. A PayPal offer gets the
+/// note that the balance is not charged; its order summary already names PayPal, an older
+/// full text does not.
 fn agreed_offer(o: &PurchaseOffer) -> String {
-    let text = if o.summary.is_some() {
-        format!("{PROVIDER}\n{}", o.text)
-    } else {
-        o.text.clone()
-    };
-    if o.source == "paypal" {
-        format!("{text}\nZahlungsweg: PayPal; keine Abbuchung vorhandener MorphCoins.")
-    } else {
-        text
+    match (o.summary.is_some(), o.source == "paypal") {
+        (true, true) => format!(
+            "{PROVIDER}\n{}\nKeine Abbuchung vorhandener Morphcoins.",
+            o.text
+        ),
+        (true, false) => format!("{PROVIDER}\n{}", o.text),
+        (false, true) => format!(
+            "{}\nZahlungsweg: PayPal; keine Abbuchung vorhandener MorphCoins.",
+            o.text
+        ),
+        (false, false) => o.text.clone(),
     }
 }
 

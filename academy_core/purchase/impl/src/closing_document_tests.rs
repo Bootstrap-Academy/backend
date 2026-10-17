@@ -655,7 +655,7 @@ async fn short_summary_states_each_fact_once_in_german_and_english() {
     assert_eq!(
         lines(&summary.de),
         [
-            (Product, "Premium für einen Monat"),
+            (Product, "Premium"),
             (Detail, "Unbegrenzte Herzen."),
             (Term, "Laufzeit: 1 Monat, ohne automatische Verlängerung."),
             (
@@ -672,7 +672,7 @@ async fn short_summary_states_each_fact_once_in_german_and_english() {
     assert_eq!(
         lines(&summary.en),
         [
-            (Product, "Premium for one month"),
+            (Product, "Premium"),
             (Detail, "Unlimited hearts."),
             (Term, "Term: 1 month, no automatic renewal."),
             (
@@ -690,11 +690,24 @@ async fn short_summary_states_each_fact_once_in_german_and_english() {
     // The yearly price also names its monthly amount (Art. 246a § 1 Abs. 1 Nr. 8 EGBGB).
     let yearly = live_offer("premium_yearly", 6).await;
     let summary = yearly.summary.as_ref().unwrap();
-    assert_eq!(lines(&summary.de)[0], (Product, "Premium für ein Jahr"));
+    assert_eq!(lines(&summary.de)[0], (Product, "Premium"));
+    assert_eq!(lines(&summary.en)[0], (Product, "Premium"));
     assert_eq!(
         lines(&summary.de)[2],
         (Term, "Laufzeit: 1 Jahr, ohne automatische Verlängerung.")
     );
+    // The term stands once, in the term line; the title keeps it for the order list.
+    assert_eq!(yearly.product.title, "Premium für ein Jahr");
+    assert_eq!(monthly.product.title, "Premium für einen Monat");
+    let monthly_en = monthly.summary.as_ref().unwrap().en.text();
+    for (text, unit) in [
+        (&monthly.text, "Monat"),
+        (&monthly_en, "month"),
+        (&yearly.text, "Jahr"),
+        (&summary.en.text(), "year"),
+    ] {
+        assert_eq!(text.matches(unit).count(), 1, "{text}");
+    }
     assert_eq!(
         lines(&summary.de)[4],
         (
@@ -794,12 +807,19 @@ fn confirmation_mail_names_the_provider_in_front_of_a_short_offer() {
         agreed_offer(&offer("backend", true)),
         "Anbieter: bootstrap academy GmbH.\nKurz"
     );
+    // The order summary of a PayPal offer names PayPal; the mail only adds that the
+    // balance is not charged.
     assert_eq!(
         agreed_offer(&offer("paypal", true)),
-        "Anbieter: bootstrap academy GmbH.\nKurz\nZahlungsweg: PayPal; keine Abbuchung vorhandener MorphCoins."
+        "Anbieter: bootstrap academy GmbH.\nKurz\nKeine Abbuchung vorhandener Morphcoins."
     );
-    // An offer with its own full text keeps it as it is.
+    // An offer with its own full text keeps it as it is; an older PayPal text does not
+    // name PayPal, so the mail adds the way of payment.
     assert_eq!(agreed_offer(&offer("skills", false)), "Kurz");
+    assert_eq!(
+        agreed_offer(&offer("paypal", false)),
+        "Kurz\nZahlungsweg: PayPal; keine Abbuchung vorhandener MorphCoins."
+    );
 }
 
 #[test]
@@ -1213,7 +1233,7 @@ async fn premium_offer_names_a_separately_ordered_renewal_in_its_term_line_and_m
         (accepted.body.clone().unwrap(), accepted.calls.clone())
     };
     assert!(body.contains(
-        "Dein vereinbartes Angebot:\nAnbieter: bootstrap academy GmbH.\nPremium für einen Monat\nUnbegrenzte Herzen.\nLaufzeit: 1 Monat. Danach läuft deine monatliche Verlängerung weiter (1.000 Morphcoins je Monat).\nPremium startet direkt nach der Bestätigungsmail"
+        "Dein vereinbartes Angebot:\nAnbieter: bootstrap academy GmbH.\nPremium\nUnbegrenzte Herzen.\nLaufzeit: 1 Monat. Danach läuft deine monatliche Verlängerung weiter (1.000 Morphcoins je Monat).\nPremium startet direkt nach der Bestätigungsmail"
     ));
     assert!(body.contains(DECLARATION));
     assert!(calls.contains(&"record_debit"));
@@ -1239,25 +1259,36 @@ async fn premium_offer_names_a_separately_ordered_renewal_in_its_term_line_and_m
 #[tokio::test]
 async fn an_offer_of_the_previous_revision_is_rejected_without_a_charge() {
     // A heart refill quoted before the switch differs from a current one only in its
-    // revision: the description and the quantity are taken from the offer itself.
-    let mut record = issued_kind_with_window("hearts", 600).await;
-    let offer = &mut record.status.offer;
-    assert!(offer.product.revision.starts_with("purchase-2026-10-s1:"));
-    offer.product.revision = offer
-        .product
-        .revision
-        .replace("purchase-2026-10-s1", "purchase-2026-09-v1");
-    offer.hash.clear();
-    offer.hash = format!("{:x}", Sha256::digest(serde_json::to_vec(&*offer).unwrap()));
-    let (status, saved) = accept_record(record, None, false).await;
-    assert_eq!(status.state, "failed");
-    assert_eq!(
-        status.review_reason.as_deref(),
-        Some("Offer expired or changed; no charge")
-    );
-    let saved = saved.lock().unwrap();
-    assert!(saved.body.is_none());
-    assert!(!saved.calls.contains(&"accept") && !saved.calls.contains(&"record_debit"));
+    // revision: the description and the quantity are taken from the offer itself. A
+    // Premium offer of stage 1 also named the term in its product line.
+    let hearts = issued_kind_with_window("hearts", 600).await;
+    let premium = premium_offer("premium_monthly", None).await;
+    for (mut record, product_line) in [(hearts, None), (premium, Some("Premium für einen Monat"))]
+    {
+        let offer = &mut record.status.offer;
+        assert!(offer.product.revision.starts_with("purchase-2026-10-s2:"));
+        offer.product.revision = offer
+            .product
+            .revision
+            .replace("purchase-2026-10-s2", "purchase-2026-10-s1");
+        if let Some(old) = product_line {
+            let summary = offer.summary.as_mut().unwrap();
+            summary.de.lines[0].text = old.into();
+            offer.text = summary.de.text();
+            assert!(offer.text.starts_with("Premium für einen Monat\n"));
+        }
+        offer.hash.clear();
+        offer.hash = format!("{:x}", Sha256::digest(serde_json::to_vec(&*offer).unwrap()));
+        let (status, saved) = accept_record(record, None, false).await;
+        assert_eq!(status.state, "failed");
+        assert_eq!(
+            status.review_reason.as_deref(),
+            Some("Offer expired or changed; no charge")
+        );
+        let saved = saved.lock().unwrap();
+        assert!(saved.body.is_none());
+        assert!(!saved.calls.contains(&"accept") && !saved.calls.contains(&"record_debit"));
+    }
 }
 
 #[tokio::test]

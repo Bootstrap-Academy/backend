@@ -155,6 +155,8 @@ impl PurchaseRepository<MockTransaction> for Repo {
         let status = &mut saved.record.as_mut().unwrap().status;
         status.state = state.into();
         status.review_reason = reason.map(Into::into);
+        // As the PostgreSQL repository reads it back.
+        status.refusal = PurchaseRefusal::of(state, reason);
         Ok(())
     }
     async fn fulfill(
@@ -256,6 +258,15 @@ async fn accept_record(
     renewal: Option<u64>,
     debit: bool,
 ) -> (PurchaseStatus, Arc<Mutex<Saved>>) {
+    accept_with(record, renewal, debit, None).await
+}
+/// `accept_record` for an account that holds `hearts` half hearts at the acceptance.
+async fn accept_with(
+    record: PurchaseRecord,
+    renewal: Option<u64>,
+    debit: bool,
+    hearts: Option<u64>,
+) -> (PurchaseStatus, Arc<Mutex<Saved>>) {
     let acceptance = PurchaseAcceptance {
         order_id: record.status.offer.id,
         offer_hash: record.status.offer.hash.clone(),
@@ -270,6 +281,14 @@ async fn accept_record(
     let mut s = sut_with_database(Arc::clone(&saved), false, true, database_any());
     s.purchase_repo.accepting = true;
     s.premium_repo = renewal_repo(renewal);
+    if let Some(hearts) = hearts {
+        s.heart.expect_get().returning(move |_, _| {
+            Box::pin(std::future::ready(Ok(academy_models::heart::Hearts {
+                hearts,
+                last_refill: Utc::now(),
+            })))
+        });
+    }
     // The confirmation records the sender; nothing is sent from here.
     s.mail.expect_sender().returning(|| None);
     let mut users = MockUserRepository::new();
@@ -1275,9 +1294,55 @@ async fn an_offer_of_the_previous_revision_is_rejected_without_a_charge() {
         status.review_reason.as_deref(),
         Some("Offer expired or changed; no charge")
     );
+    // Clients read why without matching the sentence: a new offer can be asked for.
+    assert_eq!(status.refusal, Some(PurchaseRefusal::OfferChanged));
     let saved = saved.lock().unwrap();
     assert!(saved.body.is_none());
     assert!(!saved.calls.contains(&"accept") && !saved.calls.contains(&"record_debit"));
+}
+
+#[tokio::test]
+async fn a_heart_refill_is_accepted_only_while_it_ends_at_the_promised_count() {
+    // Quoted at 3 of 10 half hearts: "Du bekommst 3,5 Herzen dazu und hast dann 5 von 5."
+    let record = issued_kind_with_window("hearts", 600).await;
+    assert_eq!(record.status.offer.product.facts["refill_units"], json!(7));
+    assert!(record.status.offer.text.contains("und hast dann 5 von 5."));
+    // Unchanged: accepted once, with one debit.
+    let (status, saved) = accept_with(record.clone(), None, true, Some(3)).await;
+    assert_eq!(status.state, "paid");
+    assert_eq!(status.refusal, None);
+    {
+        let saved = saved.lock().unwrap();
+        assert!(saved.body.is_some());
+        assert_eq!(
+            saved
+                .calls
+                .iter()
+                .filter(|call| **call == "record_debit")
+                .count(),
+            1
+        );
+    }
+    // Hearts lost or regained while the dialog was open: the quantity no longer leads to
+    // 5 of 5, so the offer is refused as changed, without a charge.
+    for hearts in [0, 2, 4, 9] {
+        let (status, saved) = accept_with(record.clone(), None, false, Some(hearts)).await;
+        assert_eq!(status.state, "failed", "{hearts}");
+        assert_eq!(status.review_reason.as_deref(), Some(OFFER_CHANGED_REASON));
+        assert_eq!(status.refusal, Some(PurchaseRefusal::OfferChanged));
+        let saved = saved.lock().unwrap();
+        assert!(saved.body.is_none());
+        assert!(!saved.calls.contains(&"accept") && !saved.calls.contains(&"record_debit"));
+    }
+    // Already full: nothing to refill, and no new offer to ask for.
+    let (status, saved) = accept_with(record, None, false, Some(10)).await;
+    assert_eq!(status.state, "failed");
+    assert_eq!(
+        status.review_reason.as_deref(),
+        Some("No refill necessary; no charge")
+    );
+    assert_eq!(status.refusal, None);
+    assert!(!saved.lock().unwrap().calls.contains(&"record_debit"));
 }
 
 #[tokio::test]

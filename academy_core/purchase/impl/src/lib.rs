@@ -623,6 +623,7 @@ where
                 provision_deadline: None,
                 provision_timing: None,
                 document_corrections: Vec::new(),
+                refusal: None,
             },
             terms_pdf: documents.terms_pdf,
             withdrawal_pdf: documents.withdrawal_pdf,
@@ -747,12 +748,7 @@ where
             || expected.is_some_and(|v| v != o.product)
         {
             self.purchase_repo
-                .state(
-                    &mut txn,
-                    o.id,
-                    "failed",
-                    Some("Offer expired or changed; no charge"),
-                )
+                .state(&mut txn, o.id, "failed", Some(OFFER_CHANGED_REASON))
                 .await?;
             txn.commit().await?;
             return Ok(self.owned(user, o.id).await?.status);
@@ -787,19 +783,19 @@ where
         }
         let hearts = if o.product.kind == "hearts" {
             let current = self.heart.get(&mut txn, user).await?;
-            if current.hearts as u64
-                + o.product.facts["refill_units"]
-                    .as_u64()
-                    .context("Missing refill quantity")?
-                > self.heart_config.hearts_max
-            {
+            let units = o.product.facts["refill_units"]
+                .as_u64()
+                .context("Missing refill quantity")?;
+            // The offer says how many hearts the account then holds: the maximum. It is
+            // accepted only while the agreed quantity still leads exactly there.
+            if current.hearts as u64 + units != self.heart_config.hearts_max {
+                let reason = if current.hearts as u64 >= self.heart_config.hearts_max {
+                    "No refill necessary; no charge"
+                } else {
+                    OFFER_CHANGED_REASON
+                };
                 self.purchase_repo
-                    .state(
-                        &mut txn,
-                        o.id,
-                        "failed",
-                        Some("No refill necessary; no charge"),
-                    )
+                    .state(&mut txn, o.id, "failed", Some(reason))
                     .await?;
                 txn.commit().await?;
                 return Ok(self.owned(user, o.id).await?.status);

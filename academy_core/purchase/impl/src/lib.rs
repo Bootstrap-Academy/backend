@@ -44,7 +44,10 @@ pub struct PurchaseFeatureConfig {
 const DECLARATION: &str = "Ich verlange ausdrücklich, dass mit der bestellten Leistung vor Ablauf der Widerrufsfrist begonnen wird. Meine gesetzlichen Widerrufs- und Mängelrechte bleiben unberührt.";
 /// `DECLARATION` for the English interface. The German wording is the one agreed.
 const DECLARATION_EN: &str = "I expressly request that the ordered service begins before the withdrawal period ends. My statutory withdrawal and warranty rights remain unaffected.";
-/// Wording revision of the short order summary, part of every builtin product revision.
+/// Revision of the short order summary, part of every builtin product revision. It rises
+/// when an offer issued before would promise something other than today's product, so that
+/// accepting it fails without a charge. A change of the wording that keeps every promise
+/// keeps the revision: such an offer is confirmed with its own stored text.
 const SUMMARY_REVISION: &str = "purchase-2026-10-s1";
 /// All courses are free for everyone (owner, 16.10.2026), so Premium promises unlimited hearts.
 const PREMIUM_BENEFIT: &str = "Unbegrenzte Herzen.";
@@ -352,9 +355,10 @@ where
                 } else {
                     "Unlimited hearts."
                 };
+                // The term stands once, in the term line; the title keeps it for the order list.
                 (
                     vec![
-                        line(Product, product.title.clone()),
+                        line(Product, "Premium".into()),
                         line(Detail, product.description.clone()),
                         line(Term, term_de),
                         line(
@@ -367,10 +371,7 @@ where
                         line(Payment, paid_from_balance.0.into()),
                     ],
                     vec![
-                        line(
-                            Product,
-                            format!("Premium for one {}", if yearly { "year" } else { "month" }),
-                        ),
+                        line(Product, "Premium".into()),
                         line(Detail, benefit_en.into()),
                         line(Term, term_en),
                         line(
@@ -622,6 +623,7 @@ where
                 provision_deadline: None,
                 provision_timing: None,
                 document_corrections: Vec::new(),
+                refusal: None,
             },
             terms_pdf: documents.terms_pdf,
             withdrawal_pdf: documents.withdrawal_pdf,
@@ -746,12 +748,7 @@ where
             || expected.is_some_and(|v| v != o.product)
         {
             self.purchase_repo
-                .state(
-                    &mut txn,
-                    o.id,
-                    "failed",
-                    Some("Offer expired or changed; no charge"),
-                )
+                .state(&mut txn, o.id, "failed", Some(OFFER_CHANGED_REASON))
                 .await?;
             txn.commit().await?;
             return Ok(self.owned(user, o.id).await?.status);
@@ -786,19 +783,19 @@ where
         }
         let hearts = if o.product.kind == "hearts" {
             let current = self.heart.get(&mut txn, user).await?;
-            if current.hearts as u64
-                + o.product.facts["refill_units"]
-                    .as_u64()
-                    .context("Missing refill quantity")?
-                > self.heart_config.hearts_max
-            {
+            let units = o.product.facts["refill_units"]
+                .as_u64()
+                .context("Missing refill quantity")?;
+            // The offer says how many hearts the account then holds: the maximum. It is
+            // accepted only while the agreed quantity still leads exactly there.
+            if current.hearts as u64 + units != self.heart_config.hearts_max {
+                let reason = if current.hearts as u64 >= self.heart_config.hearts_max {
+                    "No refill necessary; no charge"
+                } else {
+                    OFFER_CHANGED_REASON
+                };
                 self.purchase_repo
-                    .state(
-                        &mut txn,
-                        o.id,
-                        "failed",
-                        Some("No refill necessary; no charge"),
-                    )
+                    .state(&mut txn, o.id, "failed", Some(reason))
                     .await?;
                 txn.commit().await?;
                 return Ok(self.owned(user, o.id).await?.status);
@@ -814,7 +811,7 @@ where
             .or(o.product.service_starts_at);
         let body = format!(
             "Hallo,\n\nhier ist die Vertragsbestätigung für deine Bestellung „{}“. Den Stand findest du unter https://bootstrap.academy/orders.\n\nDein vereinbartes Angebot:\n{}\n\nDeine Erklärung zum vorzeitigen Beginn:\n{}\n\nDie vereinbarten AGB und Widerrufsinformationen findest du als PDF im Anhang.\n\nViele Grüße\nDein Bootstrap Academy Team\n\nBestellnummer: {}\nEmpfänger: {}\nBestellt am: {}",
-            o.product.title,
+            order_name(o),
             agreed_offer(o),
             if a.early_performance_requested {
                 &o.declaration
@@ -1594,19 +1591,38 @@ where
     }
 }
 
+/// What the first sentence of the confirmation mail calls the order: the product line of the
+/// order summary, or the product title of an offer without one. The term of Premium stands
+/// in the term line of the summary, so the mail names it once; the order list keeps the title.
+fn order_name(o: &PurchaseOffer) -> &str {
+    o.summary
+        .as_ref()
+        .and_then(|summary| {
+            summary
+                .de
+                .lines
+                .iter()
+                .find(|line| line.role == OfferLineRole::Product)
+        })
+        .map_or(o.product.title.as_str(), |line| line.text.as_str())
+}
+
 /// The offer as the confirmation mail reproduces it. An offer with an order summary gets
-/// the provider in front, which the dialog leaves to the terms; a PayPal offer gets how it
-/// is paid.
+/// the provider in front, which the dialog leaves to the terms. A PayPal offer gets the
+/// note that the balance is not charged; its order summary already names PayPal, an older
+/// full text does not.
 fn agreed_offer(o: &PurchaseOffer) -> String {
-    let text = if o.summary.is_some() {
-        format!("{PROVIDER}\n{}", o.text)
-    } else {
-        o.text.clone()
-    };
-    if o.source == "paypal" {
-        format!("{text}\nZahlungsweg: PayPal; keine Abbuchung vorhandener MorphCoins.")
-    } else {
-        text
+    match (o.summary.is_some(), o.source == "paypal") {
+        (true, true) => format!(
+            "{PROVIDER}\n{}\nKeine Abbuchung vorhandener Morphcoins.",
+            o.text
+        ),
+        (true, false) => format!("{PROVIDER}\n{}", o.text),
+        (false, true) => format!(
+            "{}\nZahlungsweg: PayPal; keine Abbuchung vorhandener MorphCoins.",
+            o.text
+        ),
+        (false, false) => o.text.clone(),
     }
 }
 

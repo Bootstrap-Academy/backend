@@ -138,6 +138,31 @@ pub struct PurchaseStatus {
     pub provision_timing: Option<Value>,
     #[serde(default)]
     pub document_corrections: Vec<String>,
+    /// Why the order failed without a charge, in words a client can act on. Absent for any
+    /// other state or reason.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub refusal: Option<PurchaseRefusal>,
+}
+
+/// `review_reason` of an order whose offer expired or no longer matches the product or the
+/// account when it was accepted.
+pub const OFFER_CHANGED_REASON: &str = "Offer expired or changed; no charge";
+
+/// Why an order failed without a charge, for clients.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PurchaseRefusal {
+    /// The offer expired or no longer matches the product or the account: nothing was
+    /// ordered, and a new offer can be asked for.
+    OfferChanged,
+}
+
+impl PurchaseRefusal {
+    /// The refusal that a stored state and review reason stand for.
+    pub fn of(state: &str, review_reason: Option<&str>) -> Option<Self> {
+        (state == "failed" && review_reason == Some(OFFER_CHANGED_REASON))
+            .then_some(Self::OfferChanged)
+    }
 }
 
 impl PurchaseStatus {
@@ -175,6 +200,49 @@ mod tests {
         assert_eq!(group_digits(1000, '.'), "1.000");
         assert_eq!(group_digits(10000, ','), "10,000");
         assert_eq!(group_digits(1_000_000, '.'), "1.000.000");
+    }
+
+    #[test]
+    fn a_refusal_is_named_only_for_a_changed_offer_and_old_statuses_still_read() {
+        assert_eq!(
+            PurchaseRefusal::of("failed", Some(OFFER_CHANGED_REASON)),
+            Some(PurchaseRefusal::OfferChanged)
+        );
+        for (state, reason) in [
+            ("failed", Some("No refill necessary; no charge")),
+            ("failed", None),
+            ("review", Some(OFFER_CHANGED_REASON)),
+            ("fulfilled", None),
+        ] {
+            assert_eq!(
+                PurchaseRefusal::of(state, reason),
+                None,
+                "{state} {reason:?}"
+            );
+        }
+        let status = serde_json::json!({
+            "offer":{"id":Uuid::nil(),"user_id":Uuid::nil(),"source":"backend",
+                "created_at":"2026-10-17T00:00:00Z","expires_at":"2026-10-17T00:20:00Z",
+                "recipient":"synthetic@example.invalid","product":{"kind":"hearts","reference":"hearts","title":"t","description":"d","coins":50,"facts":{},"revision":"r","service_starts_at":null},
+                "document_hash":"d","hash":"h","text":"t","declaration":"d"},
+            "state":"failed","accepted_at":null,"confirmation_smtp_accepted_at":null,
+            "fulfillment":null,"financial_evidence":null,"review_reason":OFFER_CHANGED_REASON
+        });
+        // A status written before the field reads without it, and writes no field while
+        // there is no refusal.
+        let mut read: PurchaseStatus = serde_json::from_value(status).unwrap();
+        assert_eq!(read.refusal, None);
+        assert!(
+            serde_json::to_value(&read)
+                .unwrap()
+                .get("refusal")
+                .is_none()
+        );
+        read.refusal = Some(PurchaseRefusal::OfferChanged);
+        assert_eq!(
+            serde_json::to_value(&read).unwrap()["refusal"],
+            serde_json::json!("offer_changed")
+        );
     }
 
     #[test]

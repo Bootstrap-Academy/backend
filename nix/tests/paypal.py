@@ -103,9 +103,16 @@ payload, invoice, terms, revocation_policy = get_mail_parts(mail)
 content = decode_mail_part(payload).decode()
 assert content == decode_mail_part(confirmation_body).decode()
 assert offer["offer"]["declaration"] in content
-# The mail reproduces the short offer with the provider in front and the payment way after
-# it; the total price stands once, with its VAT note (no-break spaces before € and %).
-assert f"\nAnbieter: bootstrap academy GmbH.\n{offer['offer']['text']}\nZahlungsweg: PayPal" in content
+# The mail reproduces the short offer with the provider in front and the note after it that
+# the balance is not charged; PayPal and the total price stand once each, the price with its
+# VAT note (no-break spaces before € and %).
+assert (
+    f"\nAnbieter: bootstrap academy GmbH.\n{offer['offer']['text']}\nKeine Abbuchung vorhandener Morphcoins.\n"
+    in content
+)
+assert offer["offer"]["text"].endswith("\nDu zahlst mit PayPal.")
+assert content.count("PayPal") == 1
+assert "Zahlungsweg" not in content
 assert "Gesamtpreis: 13,37\u00a0€ inkl. 19\u00a0% MwSt., keine weiteren Kosten." in offer["offer"]["text"]
 assert content.count("Gesamtpreis") == 1
 assert "Rechnungsangaben" not in content

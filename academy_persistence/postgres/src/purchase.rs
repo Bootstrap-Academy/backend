@@ -1,7 +1,7 @@
 use crate::PostgresTransaction;
 use academy_di::Build;
 use academy_models::{
-    purchase::{PurchaseRecord, PurchaseStatus, display_hearts},
+    purchase::{PurchaseRecord, PurchaseRefusal, PurchaseStatus, display_hearts},
     user::UserId,
 };
 use academy_persistence_contracts::{
@@ -49,6 +49,7 @@ pub(crate) async fn commercial_status(
                 .transpose()?,
             document_corrections: serde_json::from_str(row.get(10))?,
             provision_deadline: None,
+            refusal: None,
         };
         anyhow::ensure!(
             row.get::<_, Uuid>(0) == id
@@ -58,6 +59,7 @@ pub(crate) async fn commercial_status(
             "Stored original offer identity differs from its admitted owner"
         );
         status.provision_deadline = status.provision_deadline();
+        status.refusal = PurchaseRefusal::of(&status.state, status.review_reason.as_deref());
         Ok(status)
     };
     decode().map_err(|_| CommercialPurchaseReadError::Unavailable)
@@ -74,6 +76,7 @@ fn decode(r: Row) -> anyhow::Result<PurchaseRecord> {
             confirmation_smtp_accepted_at: r.get(5),
             accepted_at: r.get(7),
             provision_deadline: None,
+            refusal: None,
             document_corrections: serde_json::from_str(r.get(14))?,
             provision_timing: r
                 .get::<_, Option<String>>(13)
@@ -102,6 +105,8 @@ fn decode(r: Row) -> anyhow::Result<PurchaseRecord> {
             .transpose()?,
     };
     record.status.provision_deadline = record.status.provision_deadline();
+    record.status.refusal =
+        PurchaseRefusal::of(&record.status.state, record.status.review_reason.as_deref());
     Ok(record)
 }
 

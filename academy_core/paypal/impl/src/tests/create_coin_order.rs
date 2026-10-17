@@ -50,6 +50,7 @@ fn accepted() -> PurchaseStatus {
         provision_deadline: None,
         provision_timing: None,
         document_corrections: Vec::new(),
+        refusal: None,
     }
 }
 fn request(s: &PurchaseStatus) -> PurchaseAcceptance {

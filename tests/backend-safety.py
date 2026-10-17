@@ -662,9 +662,12 @@ def premium_offer_reads_reconciled_renewal(f):
     refused = f.accept(user, ahead)
     assert refused["state"] == "failed", refused["state"]
     assert refused["review_reason"] == "Offer expired or changed; no charge", refused["review_reason"]
+    # Clients read the refusal as a code; a paid order carries none.
+    assert refused.get("refusal") == "offer_changed", refused.get("refusal")
     assert f.balance(user) == balance
     bought = f.accept(user, quote)
     assert bought["state"] in ("paid", "fulfilled"), bought["state"]
+    assert "refusal" not in bought, bought.get("refusal")
     assert f.balance(user) == balance - quote["offer"]["product"]["coins"]
 
 

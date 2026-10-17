@@ -155,6 +155,8 @@ impl PurchaseRepository<MockTransaction> for Repo {
         let status = &mut saved.record.as_mut().unwrap().status;
         status.state = state.into();
         status.review_reason = reason.map(Into::into);
+        // As the PostgreSQL repository reads it back.
+        status.refusal = PurchaseRefusal::of(state, reason);
         Ok(())
     }
     async fn fulfill(
@@ -256,6 +258,15 @@ async fn accept_record(
     renewal: Option<u64>,
     debit: bool,
 ) -> (PurchaseStatus, Arc<Mutex<Saved>>) {
+    accept_with(record, renewal, debit, None).await
+}
+/// `accept_record` for an account that holds `hearts` half hearts at the acceptance.
+async fn accept_with(
+    record: PurchaseRecord,
+    renewal: Option<u64>,
+    debit: bool,
+    hearts: Option<u64>,
+) -> (PurchaseStatus, Arc<Mutex<Saved>>) {
     let acceptance = PurchaseAcceptance {
         order_id: record.status.offer.id,
         offer_hash: record.status.offer.hash.clone(),
@@ -270,6 +281,14 @@ async fn accept_record(
     let mut s = sut_with_database(Arc::clone(&saved), false, true, database_any());
     s.purchase_repo.accepting = true;
     s.premium_repo = renewal_repo(renewal);
+    if let Some(hearts) = hearts {
+        s.heart.expect_get().returning(move |_, _| {
+            Box::pin(std::future::ready(Ok(academy_models::heart::Hearts {
+                hearts,
+                last_refill: Utc::now(),
+            })))
+        });
+    }
     // The confirmation records the sender; nothing is sent from here.
     s.mail.expect_sender().returning(|| None);
     let mut users = MockUserRepository::new();
@@ -655,7 +674,7 @@ async fn short_summary_states_each_fact_once_in_german_and_english() {
     assert_eq!(
         lines(&summary.de),
         [
-            (Product, "Premium für einen Monat"),
+            (Product, "Premium"),
             (Detail, "Unbegrenzte Herzen."),
             (Term, "Laufzeit: 1 Monat, ohne automatische Verlängerung."),
             (
@@ -672,7 +691,7 @@ async fn short_summary_states_each_fact_once_in_german_and_english() {
     assert_eq!(
         lines(&summary.en),
         [
-            (Product, "Premium for one month"),
+            (Product, "Premium"),
             (Detail, "Unlimited hearts."),
             (Term, "Term: 1 month, no automatic renewal."),
             (
@@ -690,11 +709,24 @@ async fn short_summary_states_each_fact_once_in_german_and_english() {
     // The yearly price also names its monthly amount (Art. 246a § 1 Abs. 1 Nr. 8 EGBGB).
     let yearly = live_offer("premium_yearly", 6).await;
     let summary = yearly.summary.as_ref().unwrap();
-    assert_eq!(lines(&summary.de)[0], (Product, "Premium für ein Jahr"));
+    assert_eq!(lines(&summary.de)[0], (Product, "Premium"));
+    assert_eq!(lines(&summary.en)[0], (Product, "Premium"));
     assert_eq!(
         lines(&summary.de)[2],
         (Term, "Laufzeit: 1 Jahr, ohne automatische Verlängerung.")
     );
+    // The term stands once, in the term line; the title keeps it for the order list.
+    assert_eq!(yearly.product.title, "Premium für ein Jahr");
+    assert_eq!(monthly.product.title, "Premium für einen Monat");
+    let monthly_en = monthly.summary.as_ref().unwrap().en.text();
+    for (text, unit) in [
+        (&monthly.text, "Monat"),
+        (&monthly_en, "month"),
+        (&yearly.text, "Jahr"),
+        (&summary.en.text(), "year"),
+    ] {
+        assert_eq!(text.matches(unit).count(), 1, "{text}");
+    }
     assert_eq!(
         lines(&summary.de)[4],
         (
@@ -794,12 +826,19 @@ fn confirmation_mail_names_the_provider_in_front_of_a_short_offer() {
         agreed_offer(&offer("backend", true)),
         "Anbieter: bootstrap academy GmbH.\nKurz"
     );
+    // The order summary of a PayPal offer names PayPal; the mail only adds that the
+    // balance is not charged.
     assert_eq!(
         agreed_offer(&offer("paypal", true)),
-        "Anbieter: bootstrap academy GmbH.\nKurz\nZahlungsweg: PayPal; keine Abbuchung vorhandener MorphCoins."
+        "Anbieter: bootstrap academy GmbH.\nKurz\nKeine Abbuchung vorhandener Morphcoins."
     );
-    // An offer with its own full text keeps it as it is.
+    // An offer with its own full text keeps it as it is; an older PayPal text does not
+    // name PayPal, so the mail adds the way of payment.
     assert_eq!(agreed_offer(&offer("skills", false)), "Kurz");
+    assert_eq!(
+        agreed_offer(&offer("paypal", false)),
+        "Kurz\nZahlungsweg: PayPal; keine Abbuchung vorhandener MorphCoins."
+    );
 }
 
 #[test]
@@ -1213,7 +1252,7 @@ async fn premium_offer_names_a_separately_ordered_renewal_in_its_term_line_and_m
         (accepted.body.clone().unwrap(), accepted.calls.clone())
     };
     assert!(body.contains(
-        "Dein vereinbartes Angebot:\nAnbieter: bootstrap academy GmbH.\nPremium für einen Monat\nUnbegrenzte Herzen.\nLaufzeit: 1 Monat. Danach läuft deine monatliche Verlängerung weiter (1.000 Morphcoins je Monat).\nPremium startet direkt nach der Bestätigungsmail"
+        "Dein vereinbartes Angebot:\nAnbieter: bootstrap academy GmbH.\nPremium\nUnbegrenzte Herzen.\nLaufzeit: 1 Monat. Danach läuft deine monatliche Verlängerung weiter (1.000 Morphcoins je Monat).\nPremium startet direkt nach der Bestätigungsmail"
     ));
     assert!(body.contains(DECLARATION));
     assert!(calls.contains(&"record_debit"));
@@ -1255,9 +1294,118 @@ async fn an_offer_of_the_previous_revision_is_rejected_without_a_charge() {
         status.review_reason.as_deref(),
         Some("Offer expired or changed; no charge")
     );
+    // Clients read why without matching the sentence: a new offer can be asked for.
+    assert_eq!(status.refusal, Some(PurchaseRefusal::OfferChanged));
     let saved = saved.lock().unwrap();
     assert!(saved.body.is_none());
     assert!(!saved.calls.contains(&"accept") && !saved.calls.contains(&"record_debit"));
+}
+
+#[tokio::test]
+async fn a_heart_refill_is_accepted_only_while_it_ends_at_the_promised_count() {
+    // Quoted at 3 of 10 half hearts: "Du bekommst 3,5 Herzen dazu und hast dann 5 von 5."
+    let record = issued_kind_with_window("hearts", 600).await;
+    assert_eq!(record.status.offer.product.facts["refill_units"], json!(7));
+    assert!(record.status.offer.text.contains("und hast dann 5 von 5."));
+    // Unchanged: accepted once, with one debit.
+    let (status, saved) = accept_with(record.clone(), None, true, Some(3)).await;
+    assert_eq!(status.state, "paid");
+    assert_eq!(status.refusal, None);
+    {
+        let saved = saved.lock().unwrap();
+        assert!(saved.body.is_some());
+        assert_eq!(
+            saved
+                .calls
+                .iter()
+                .filter(|call| **call == "record_debit")
+                .count(),
+            1
+        );
+    }
+    // Hearts lost or regained while the dialog was open: the quantity no longer leads to
+    // 5 of 5, so the offer is refused as changed, without a charge.
+    for hearts in [0, 2, 4, 9] {
+        let (status, saved) = accept_with(record.clone(), None, false, Some(hearts)).await;
+        assert_eq!(status.state, "failed", "{hearts}");
+        assert_eq!(status.review_reason.as_deref(), Some(OFFER_CHANGED_REASON));
+        assert_eq!(status.refusal, Some(PurchaseRefusal::OfferChanged));
+        let saved = saved.lock().unwrap();
+        assert!(saved.body.is_none());
+        assert!(!saved.calls.contains(&"accept") && !saved.calls.contains(&"record_debit"));
+    }
+    // Already full: nothing to refill, and no new offer to ask for.
+    let (status, saved) = accept_with(record, None, false, Some(10)).await;
+    assert_eq!(status.state, "failed");
+    assert_eq!(
+        status.review_reason.as_deref(),
+        Some("No refill necessary; no charge")
+    );
+    assert_eq!(status.refusal, None);
+    assert!(!saved.lock().unwrap().calls.contains(&"record_debit"));
+}
+
+#[tokio::test]
+async fn a_premium_offer_of_stage_one_is_accepted_with_its_own_text() {
+    // Before the product line became "Premium", it named the term as well. Every promise
+    // of such an offer is the same as today's, so it keeps the revision, is accepted once,
+    // and the mail confirms it with its own stored text.
+    let mut record = premium_offer("premium_monthly", None).await;
+    let offer = &mut record.status.offer;
+    let summary = offer.summary.as_mut().unwrap();
+    summary.de.lines[0].text = "Premium für einen Monat".into();
+    summary.en.lines[0].text = "Premium for one month".into();
+    offer.text = summary.de.text();
+    offer.hash.clear();
+    offer.hash = format!("{:x}", Sha256::digest(serde_json::to_vec(&*offer).unwrap()));
+    assert!(offer.product.revision.starts_with("purchase-2026-10-s1:"));
+    let (status, saved) = accept_record(record, None, true).await;
+    assert_eq!(status.state, "paid");
+    let saved = saved.lock().unwrap();
+    let body = saved.body.as_deref().unwrap();
+    assert!(
+        body.contains("\nPremium für einen Monat\nUnbegrenzte Herzen.\n"),
+        "{body}"
+    );
+    assert!(body.contains("für deine Bestellung „Premium für einen Monat“."));
+    assert_eq!(
+        saved
+            .calls
+            .iter()
+            .filter(|call| **call == "record_debit")
+            .count(),
+        1
+    );
+}
+
+#[tokio::test]
+async fn the_confirmation_mail_names_the_term_of_premium_once() {
+    // The first sentence names the product line of the summary; the term stands in the
+    // term line only. The mail is German.
+    for (kind, unit) in [("premium_monthly", "Monat"), ("premium_yearly", "Jahr")] {
+        let record = premium_offer(kind, None).await;
+        assert_ne!(record.status.offer.product.title, "Premium");
+        let (status, saved) = accept_record(record, None, true).await;
+        assert_eq!(status.state, "paid", "{kind}");
+        let saved = saved.lock().unwrap();
+        let body = saved.body.as_deref().unwrap();
+        assert!(
+            body.contains("hier ist die Vertragsbestätigung für deine Bestellung „Premium“."),
+            "{body}"
+        );
+        assert!(body.contains(&format!(
+            "\nPremium\nUnbegrenzte Herzen.\nLaufzeit: 1 {unit},"
+        )));
+        assert_eq!(body.matches(unit).count(), 1, "{body}");
+    }
+    // A heart refill names its product line, which is its title, as before; an offer with
+    // its own full text names its title.
+    let mut hearts = live_offer("hearts", 4).await;
+    assert_eq!(hearts.product.title, "Herzen auffüllen");
+    assert_eq!(order_name(&hearts), "Herzen auffüllen");
+    hearts.summary = None;
+    hearts.product.title = "Synthetischer Kurs".into();
+    assert_eq!(order_name(&hearts), "Synthetischer Kurs");
 }
 
 #[tokio::test]

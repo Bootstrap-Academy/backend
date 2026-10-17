@@ -704,6 +704,12 @@ fn reset_password_docs(op: TransformOperation) -> TransformOperation {
 }
 
 error_code! {
+    // challenges-ms deletes the data of a user only when
+    // GET /auth/_internal/users/{user_id} answers 404 with exactly this body,
+    // {"detail":"User not found"}. With another text its nightly sweep counts
+    // every deleted account as a failed lookup and stops removing their data.
+    // Pinned by routes/internal/heart_operation_tests.rs and
+    // nix/tests/internal.py.
     /// The user does not exist.
     pub UserNotFoundError(NOT_FOUND, "User not found");
     /// The user account has been disabled.

@@ -45,10 +45,14 @@ impl InternalService for Feature {
     }
     async fn get_user(
         &self,
-        _: &InternalToken,
+        token: &InternalToken,
         _: UserId,
     ) -> Result<UserComposite, InternalGetUserError> {
-        panic!("unexpected route")
+        assert_eq!(token.as_str(), "synthetic-internal-token");
+        match self.failure {
+            Some("missing") => Err(InternalGetUserError::NotFound),
+            _ => panic!("unexpected route"),
+        }
     }
     async fn get_user_by_email(
         &self,
@@ -237,4 +241,29 @@ async fn learning_policy_wire_preserves_error_states_and_declares_new_route() {
                 .contains_key("/shop/_internal/learning-policy/{user_id}")
         );
     }
+}
+
+/// challenges-ms deletes the data of a user only on exactly this answer, see
+/// the comment at `UserNotFoundError`.
+#[tokio::test]
+async fn unknown_user_answers_the_body_challenges_ms_relies_on() {
+    let service = Arc::new(Feature {
+        failure: Some("missing"),
+        ..Default::default()
+    });
+    let response = router(service)
+        .finish_api(&mut Default::default())
+        .oneshot(
+            Request::builder()
+                .uri(format!("/auth/_internal/users/{USER}"))
+                .header("authorization", "synthetic-internal-token")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    let body: Value =
+        serde_json::from_slice(&to_bytes(response.into_body(), 4096).await.unwrap()).unwrap();
+    assert_eq!(body, json!({"detail":"User not found"}));
 }

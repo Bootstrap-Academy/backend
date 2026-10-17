@@ -51,11 +51,7 @@ where
     EmailS: EmailService,
 {
     fn offer(&self) -> PremiumRenewalOffer {
-        build_offer(
-            self.config.monthly_price,
-            &PurchaseDocuments::legacy(),
-            false,
-        )
+        build_offer(self.config.monthly_price, &self.standard_documents(), false)
     }
 
     async fn offer_for(
@@ -142,7 +138,7 @@ where
                 .clone()
                 .ok_or(PremiumUpdateSubscriptionError::RenewalConsentRequired)?
         } else {
-            PurchaseDocuments::legacy()
+            self.standard_documents()
         };
         let offer = build_offer(
             self.config.monthly_price,
@@ -242,8 +238,18 @@ impl<Db, Auth, Time, UserRepo, PremiumRepo, EmailS>
     PremiumRenewalServiceImpl<Db, Auth, Time, UserRepo, PremiumRepo, EmailS>
 where
     Db: Database,
+    Time: TimeService,
     UserRepo: UserRepository<Db::Transaction>,
 {
+    /// The documents a renewal ordered now binds outside the Daily cohort: those of stage 2
+    /// from its start (AGB 2026-10 apply to every order from then on), the legacy ones before.
+    fn standard_documents(&self) -> PurchaseDocuments {
+        match &self.config.stage2 {
+            Some(stage2) if stage2.applies_at(self.time.now()) => stage2.documents.clone(),
+            _ => PurchaseDocuments::legacy(),
+        }
+    }
+
     async fn offer_and_documents(
         &self,
         user_id: UserId,
@@ -261,7 +267,7 @@ where
                 .clone()
                 .ok_or(PremiumUpdateSubscriptionError::RenewalConsentRequired)?
         } else {
-            PurchaseDocuments::legacy()
+            self.standard_documents()
         };
         Ok((
             build_offer(
@@ -948,5 +954,120 @@ mod tests {
         let v3_id = format!("{:x}", hash.finalize());
         assert_eq!(v3.lines().count(), offer.text.lines().count());
         assert_ne!(offer.id, v3_id);
+    }
+
+    fn stage2() -> crate::documents::PurchaseStage2 {
+        crate::documents::PurchaseStage2 {
+            effective_from: Utc.with_ymd_and_hms(2026, 12, 8, 23, 0, 0).unwrap(),
+            documents: PurchaseDocuments {
+                terms_version: "2026-10".into(),
+                terms_pdf: b"%PDF-1.7 synthetic terms 2026-10".to_vec(),
+                withdrawal_pdf: b"%PDF-1.7 synthetic withdrawal 2026-10".to_vec(),
+            },
+        }
+    }
+
+    fn at(time: chrono::DateTime<Utc>) -> MockTimeService {
+        let mut mock = MockTimeService::new();
+        mock.expect_now().return_const(time);
+        mock
+    }
+
+    /// AGB 2026-10 apply to every order from their start, the renewal included (AGB 8.4: a
+    /// separate order). Before it, the renewal binds r4 as before.
+    #[tokio::test]
+    async fn a_renewal_ordered_from_the_start_of_stage_two_binds_its_documents() {
+        let start = stage2().effective_from;
+        for (time, expected) in [
+            (
+                start - chrono::TimeDelta::nanoseconds(1),
+                PurchaseDocuments::legacy(),
+            ),
+            (start, stage2().documents),
+        ] {
+            let config = PremiumFeatureConfig {
+                stage2: Some(stage2()),
+                ..Default::default()
+            };
+            let sut = Sut {
+                time: at(time),
+                config: config.clone(),
+                ..Sut::default()
+            };
+            let offer = sut.offer();
+            assert_eq!(offer, build_offer(1000, &expected, false));
+            assert!(offer.text.contains(&format!(
+                "den AGB {} für diese Vereinbarung",
+                expected.terms_version
+            )));
+            for (kind, bytes) in [
+                (RenewalDocumentKind::Terms, &expected.terms_pdf),
+                (RenewalDocumentKind::Withdrawal, &expected.withdrawal_pdf),
+            ] {
+                let sut = Sut {
+                    db: MockDatabase::build(false),
+                    time: at(time),
+                    user_repo: MockUserRepository::new()
+                        .with_get_internal_composite(FOO.user.id, Some(FOO.clone())),
+                    config: config.clone(),
+                    ..Sut::default()
+                };
+                assert_eq!(
+                    &sut.document_for(FOO.user.id, &offer.id, kind)
+                        .await
+                        .unwrap(),
+                    bytes
+                );
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn a_renewal_confirmed_after_the_start_records_the_documents_of_stage_two() {
+        let documents = stage2().documents;
+        let expected = documents.clone();
+        let mut db = MockDatabase::new();
+        db.expect_begin_transaction().times(2).returning(|| {
+            let mut txn = MockTransaction::new();
+            txn.expect_commit()
+                .once()
+                .return_once(|| Box::pin(async { Ok(()) }));
+            Box::pin(async { Ok(txn) })
+        });
+        let mut repo =
+            MockPremiumRepository::new().with_get_latest_by_user_id(FOO.user.id, Some(paid()));
+        repo.expect_get_renewal_agreement()
+            .once()
+            .return_once(|_, _| Box::pin(async { Ok(None) }));
+        repo.expect_create_renewal()
+            .once()
+            .withf(move |_, agreement| {
+                agreement.terms_pdf == expected.terms_pdf
+                    && agreement.withdrawal_pdf == expected.withdrawal_pdf
+                    && agreement
+                        .document
+                        .contains("den AGB 2026-10 für diese Vereinbarung")
+            })
+            .return_once(|_, _| Box::pin(async { Ok(()) }));
+        repo.expect_pending_renewal_confirmations()
+            .once()
+            .return_once(|_| Box::pin(async { Ok(vec![]) }));
+        let sut = Sut {
+            db,
+            auth: MockAuthService::new()
+                .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone()))),
+            time: at(stage2().effective_from + chrono::TimeDelta::days(1)),
+            user_repo: MockUserRepository::new().with_get_composite(FOO.user.id, Some(FOO.clone())),
+            premium_repo: repo,
+            config: PremiumFeatureConfig {
+                stage2: Some(stage2()),
+                ..Default::default()
+            },
+            ..Sut::default()
+        };
+        assert_eq!(sut.offer(), build_offer(1000, &documents, false));
+        sut.enable(&"token".into(), FOO.user.id, consent(&sut))
+            .await
+            .unwrap();
     }
 }

@@ -1,12 +1,13 @@
 # Native backend safety regressions
 
-These 16 scenarios exercise the ordinary HTTP router, PostgreSQL transactions and
+These 17 scenarios exercise the ordinary HTTP router, PostgreSQL transactions and
 Valkey-backed sessions using synthetic accounts. They cover hearts/reset/refill,
 coin idempotence and ledger rollback, Premium purchase/confirmed renewal/expiry,
 the reconciled renewal a Premium offer names, public and internal learning policy,
 refresh/logout/MFA, export, the limit of the emails with a verification or password
 reset code (including that other accounts and variants of an address cannot lock its
-owner out), and deletion retry.
+owner out), deletion retry, and stage 2 of the order dialog from its pinned manifest
+(start, offers before and after it, a manifest that does not match its checksum).
 
 Build the ordinary backend and run as an unprivileged user with PostgreSQL 18 and
 Valkey available. The runner starts its own loopback services, config and disposable
@@ -30,8 +31,9 @@ Registration and purchases use the normal APIs; fixture SQL sets starting balanc
 marks synthetic addresses verified and moves paid periods into the past. The renewal
 check uses the ordinary opt-in with an SMTP sink that saves no message contents. The
 unconfirmed case removes delivery confirmation only inside the owned fixture. The
-Daily policy check uses synthetic PDF bytes only to enable an explicit isolated test
-cohort; it makes no assertion about document validity or delivery.
+Daily policy check and the stage 2 check use synthetic PDF bytes only to enable an
+explicit isolated configuration; they make no assertion about document validity or
+delivery.
 
 The external microservices return synthetic export data and selected failures. These
 checks assert the backend's partial-export and durable-deletion contract; existing

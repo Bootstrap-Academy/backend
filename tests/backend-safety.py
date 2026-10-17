@@ -185,6 +185,7 @@ yearly_price = 1000
 hearts = 86400
 premium_monthly = 86400
 premium_yearly = 86400
+{getattr(self, 'purchase_extra', '')}
 [microservices]
 skills_url = "http://127.0.0.1:{peer}/skills/"
 challenges_url = "http://127.0.0.1:{peer}/challenges/"
@@ -937,6 +938,118 @@ def code_emails_of_others_do_not_lock_the_owner(f):
     sent(f, request_code(f, victim), mails + 6)
 
 
+def stage_two_manifest(f, day, sha256=None):
+    """`[purchase.stage2]` pinning a manifest of synthetic PDFs that starts at 00:00 in Berlin on
+    `day`. The PDFs exist only for this fixture and make no claim about the legal texts."""
+    import datetime
+    import zoneinfo
+
+    folder = f.base / "stage2"
+    folder.mkdir(exist_ok=True)
+    pdfs = {
+        "agb-2026-10.pdf": b"%PDF-1.4 synthetic stage-2 terms fixture\n",
+        "widerrufsbelehrung-2026-10.pdf": b"%PDF-1.4 synthetic stage-2 withdrawal fixture\n",
+    }
+    for name, data in pdfs.items():
+        (folder / name).write_bytes(data)
+    start = datetime.datetime.combine(day, datetime.time(), zoneinfo.ZoneInfo("Europe/Berlin")).isoformat()
+    manifest = json.dumps(
+        {
+            "release": "2026-10",
+            "effective_from": start,
+            "frontend_commit": "synthetic-fixture",
+            "bundle": {
+                "terms_version": "2026-10",
+                "terms_pdf": "agb-2026-10.pdf",
+                "terms_sha256": hashlib.sha256(pdfs["agb-2026-10.pdf"]).hexdigest(),
+                "withdrawal_pdf": "widerrufsbelehrung-2026-10.pdf",
+                "withdrawal_sha256": hashlib.sha256(pdfs["widerrufsbelehrung-2026-10.pdf"]).hexdigest(),
+            },
+        }
+    ).encode()
+    path = folder / f"manifest-{start[:10]}.json"
+    path.write_bytes(manifest)
+    hash_of_documents = hashlib.sha256()
+    for data in pdfs.values():
+        hash_of_documents.update(len(data).to_bytes(8, "big"))
+        hash_of_documents.update(data)
+    pinned = sha256 or hashlib.sha256(manifest).hexdigest()
+    config = f'[purchase.stage2]\nmanifest_path = "{path}"\nmanifest_sha256 = "{pinned}"'
+    return config, start, hash_of_documents.hexdigest()
+
+
+def check_config(f):
+    """`academy check-config` with the fixture's current configuration."""
+    f.write_config()
+    run = subprocess.run([str(f.args.binary), "check-config"], cwd=REPO, env=f.env, capture_output=True, text=True)
+    return run.returncode, run.stdout + run.stderr
+
+
+def stage_two_switches_on_at_the_start_in_its_manifest(f):
+    """Stage 2 of the order dialog from a pinned manifest: offers before its start keep stage 1
+    and their rules, offers from it are accepted with the button alone and bind the documents of
+    2026-10, and a manifest that is not the pinned one stops both check-config and the start."""
+    import datetime
+    import zoneinfo
+
+    today = datetime.datetime.now(zoneinfo.ZoneInfo("Europe/Berlin")).date()
+    user = f.account(coins=100)
+    f.heart_seed(user, 2)
+    try:
+        # A start still ahead: stage 1.
+        f.purchase_extra, start, _ = stage_two_manifest(f, today + datetime.timedelta(days=1))
+        code, said = check_config(f)
+        assert code == 0, said
+        f.restart()
+        before = f.quote(user, "hearts")["offer"]
+        assert "acceptance" not in before and "terms_version" not in before, (start, before)
+        assert before["declaration"], "stage 1 keeps its declaration"
+        renewal = f.request("/shop/premium/renewal-offer")["terms_version"]
+        assert renewal == "2026-09-r4", renewal
+        # The start has passed: the offer issued before keeps stage 1 and its declaration.
+        f.purchase_extra, start, documents = stage_two_manifest(f, today)
+        f.restart()
+        f.accept(user, {"offer": before})
+        assert f.balance(user) == 83, f.balance(user)
+        # The monthly renewal ordered from now on binds the documents of 2026-10.
+        renewal = f.request("/shop/premium/renewal-offer")["terms_version"]
+        assert renewal == "2026-10", renewal
+        # A new offer is one of stage 2 and is accepted without the declaration.
+        f.heart_seed(user, 2)
+        after = f.quote(user, "hearts")["offer"]
+        assert after.get("acceptance") == "button" and after.get("terms_version") == "2026-10", (start, after)
+        assert after["declaration"] == "" and after["document_hash"] == documents, after
+        f.request(
+            "/shop/purchases/accept",
+            "POST",
+            {
+                "order_id": after["id"],
+                "offer_hash": after["hash"],
+                "accepted": True,
+                "early_performance_requested": False,
+            },
+            f.token(user),
+        )
+        assert f.balance(user) == 66, f.balance(user)
+        recorded = f.sql(
+            f"SELECT request->>'early_performance_requested' FROM purchase_submissions WHERE order_id='{after['id']}'"
+        )
+        assert recorded == "false", recorded
+        # A manifest that is not the pinned one: check-config fails and the backend does not start.
+        f.purchase_extra, _, _ = stage_two_manifest(f, today, sha256="0" * 64)
+        code, said = check_config(f)
+        assert code != 0 and "does not match the approved SHA-256" in said, said
+        try:
+            f.restart()
+        except RuntimeError:
+            pass
+        else:
+            raise AssertionError("the backend started with a manifest that is not the pinned one")
+    finally:
+        f.purchase_extra = ""
+        f.restart()
+
+
 def deletion_revokes_all_sessions_and_keeps_durable_work(f):
     user = f.account()
     another = f.login(user["name"], user["password"])
@@ -1004,6 +1117,7 @@ CASES = [
     premium_confirmed_renewal_only,
     premium_unconfirmed_and_unfunded_renewal,
     premium_offer_reads_reconciled_renewal,
+    stage_two_switches_on_at_the_start_in_its_manifest,
     policy_auth_and_read_only,
     policy_cohorts_preserve_legacy_and_daily_is_free,
     refresh_logout_and_owner_boundaries,

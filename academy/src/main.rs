@@ -36,6 +36,10 @@ async fn main() -> anyhow::Result<()> {
         Command::Email { command } => command.invoke(config).await?,
         Command::Task { command } => command.invoke(config).await?,
         Command::CheckConfig { verbose } => {
+            // Everything `serve` reads before it starts, the pinned document bundles included,
+            // so that a wrong path or checksum shows before a restart.
+            academy::environment::ConfigProvider::new(&config)
+                .context("Failed to load the configured files")?;
             verbose.then(|| println!("{config:#?}"));
         }
     }

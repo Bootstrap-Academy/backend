@@ -229,24 +229,29 @@ where
                 .is_some_and(|stage2| stage2.applies_at(at))
     }
 
-    /// Whether a Premium period ordered at `now` begins within the withdrawal period: at once,
-    /// or after a paid period that ends no later than the period (AGB 2026-10, 11.1). The
+    /// Whether a Premium period ordered by `latest` begins within the withdrawal period: at
+    /// once, or after a paid period that ends no later than the period (AGB 2026-10, 11.1). The
     /// period ends with the Berlin calendar day 14 days after the order, moved past following
     /// weekends and nationwide holidays (`withdrawal_period_end`). A period that ends exactly
     /// then counts as early: asking for the declaration once too often does no harm. Only then
     /// does a stage-2 offer carry the declaration on the early start.
+    ///
+    /// `latest` is the last moment the offer can be accepted, its `expires_at`. The end of the
+    /// period only moves forward with the moment of the order, so an order at any time before
+    /// `latest` that begins within its withdrawal period is early here too. Offer and acceptance
+    /// both decide with this one moment, so a Berlin midnight between them changes nothing.
     async fn premium_starts_early(
         &self,
         txn: &mut Db::Transaction,
         user: UserId,
-        now: DateTime<Utc>,
+        latest: DateTime<Utc>,
     ) -> Result<bool, PurchaseError> {
         let paid_until = self
             .premium_repo
             .get_latest_by_user_id(txn, user)
             .await?
             .map(|premium| premium.until);
-        Ok(paid_until.is_none_or(|until| until <= withdrawal_period_end(now)))
+        Ok(paid_until.is_none_or(|until| until <= withdrawal_period_end(latest)))
     }
 
     /// The monthly renewal the account ordered separately, as a Premium offer states it:
@@ -641,14 +646,6 @@ where
                 if units == 2 { "Herz" } else { "Herzen" },
             );
         }
-        if product.kind.starts_with("premium_") {
-            product.facts["renewal"] = self.renewal_fact(&mut txn, user).await?;
-            if stage2 {
-                product.facts["early_start"] =
-                    json!(self.premium_starts_early(&mut txn, user, now).await?);
-            }
-        }
-        let declaration = Self::declaration_for(stage2, &product);
         let expires_at = product
             .service_starts_at
             .map_or(now + TimeDelta::minutes(20), |at| {
@@ -657,6 +654,16 @@ where
         if expires_at <= now {
             return Err(PurchaseError::Unavailable);
         }
+        if product.kind.starts_with("premium_") {
+            product.facts["renewal"] = self.renewal_fact(&mut txn, user).await?;
+            if stage2 {
+                product.facts["early_start"] = json!(
+                    self.premium_starts_early(&mut txn, user, expires_at)
+                        .await?
+                );
+            }
+        }
+        let declaration = Self::declaration_for(stage2, &product);
         // Coins, Premium and hearts get the short summary; the offers of the other services
         // keep the full text they always had.
         let summary = if matches!(source, "backend" | "paypal") {
@@ -849,9 +856,11 @@ where
             // The renewal the offer named must still be the account's renewal.
             expected.facts["renewal"] = self.renewal_fact(&mut txn, user).await?;
             // Whether the period begins within the withdrawal period decided the declaration.
+            // It is decided again for the same moment the offer used, its expiry, so only a
+            // changed paid period changes it.
             if stage2 {
                 expected.facts["early_start"] = json!(
-                    self.premium_starts_early(&mut txn, user, Utc::now())
+                    self.premium_starts_early(&mut txn, user, o.expires_at)
                         .await?
                 );
             }

@@ -144,7 +144,8 @@ async fn invoice_identity_forward_controls() {
                 "2026-10-03-140000_profile_publications",
                 "2026-10-04-070000_durable_totp_steps",
                 "2026-10-04-175659_session_origin",
-                "2026-10-05-180000_operator_audit"
+                "2026-10-05-180000_operator_audit",
+                "2026-10-17-120000_stage2_purchase_authority"
             ]
         );
     }
@@ -556,7 +557,8 @@ async fn pending_invoice_rich_export_controls() {
                 "2026-10-03-140000_profile_publications",
                 "2026-10-04-070000_durable_totp_steps",
                 "2026-10-04-175659_session_origin",
-                "2026-10-05-180000_operator_audit"
+                "2026-10-05-180000_operator_audit",
+                "2026-10-17-120000_stage2_purchase_authority"
             ]
         );
     }
@@ -711,7 +713,8 @@ async fn erased_owner_identity_conflict_controls() {
                 "2026-10-03-140000_profile_publications",
                 "2026-10-04-070000_durable_totp_steps",
                 "2026-10-04-175659_session_origin",
-                "2026-10-05-180000_operator_audit"
+                "2026-10-05-180000_operator_audit",
+                "2026-10-17-120000_stage2_purchase_authority"
             ]
         );
     }

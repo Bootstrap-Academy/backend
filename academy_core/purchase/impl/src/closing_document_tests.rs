@@ -1820,9 +1820,10 @@ async fn premium_of_stage_two_asks_for_the_early_start_only_when_it_begins_withi
  {
     let stage2 = stage2_from(Utc::now() - TimeDelta::seconds(1));
     // The period ends with the Berlin day 14 days after the order, moved past weekends and
-    // holidays; a paid period that ends exactly then still counts as early.
-    let end = withdrawal_period_end(Utc::now());
-    for (paid_until, early) in [
+    // holidays; a paid period that ends exactly then still counts as early. The offer decides
+    // for its last moment of acceptance, 20 minutes after it is issued.
+    let end = withdrawal_period_end(Utc::now() + TimeDelta::minutes(20));
+    for (paid_until, table) in [
         (None, true),
         (Some(Utc::now() - TimeDelta::days(1)), true),
         (Some(Utc::now() + TimeDelta::days(13)), true),
@@ -1832,6 +1833,13 @@ async fn premium_of_stage_two_asks_for_the_early_start_only_when_it_begins_withi
     ] {
         let record = issued_in("premium_monthly", None, paid_until, Some(stage2.clone())).await;
         let offer = &record.status.offer;
+        // Should a Berlin midnight fall between `end` and the issue, the offer's own moment
+        // decides; the table holds whenever both give the same end.
+        let own_end = withdrawal_period_end(offer.expires_at);
+        let early = paid_until.is_none_or(|until| until <= own_end);
+        if own_end == end {
+            assert_eq!(early, table, "{paid_until:?}");
+        }
         assert_eq!(
             offer.product.facts["early_start"],
             json!(early),
@@ -1886,6 +1894,51 @@ async fn premium_of_stage_two_asks_for_the_early_start_only_when_it_begins_withi
             );
         }
     }
+}
+
+/// The acceptance decides the early start for the moment the offer decided it, its expiry,
+/// never for the clock at the acceptance. An offer whose expiry lies past a Berlin midnight
+/// that moves the end of the withdrawal period, accepted before that midnight, keeps its
+/// declaration; with the clock of the acceptance it would be refused as changed.
+#[tokio::test]
+async fn the_early_start_is_decided_for_the_expiry_of_the_offer_not_the_clock() {
+    let stage2 = stage2_from(Utc::now() - TimeDelta::seconds(1));
+    let now_end = withdrawal_period_end(Utc::now());
+    // The first day ahead whose end of the withdrawal period lies after today's; weekends and
+    // holidays can keep it the same for a few days.
+    let expiry = (1..=10)
+        .map(|days| Utc::now() + TimeDelta::days(days))
+        .find(|at| withdrawal_period_end(*at) > now_end)
+        .unwrap();
+    let paid_until = withdrawal_period_end(expiry);
+    assert!(paid_until > now_end, "early for the expiry, not for now");
+    let mut record = issued_in("premium_monthly", None, None, Some(stage2.clone())).await;
+    assert_eq!(
+        record.status.offer.product.facts["early_start"],
+        json!(true)
+    );
+    record.status.offer.expires_at = expiry;
+    let (status, saved) = accept_in(
+        record,
+        At {
+            debit: true,
+            paid_until: Some(paid_until),
+            stage2: Some(stage2),
+            early: Some(true),
+            ..At::default()
+        },
+    )
+    .await;
+    assert_eq!(status.unwrap().state, "paid");
+    assert!(
+        saved
+            .lock()
+            .unwrap()
+            .body
+            .as_deref()
+            .unwrap()
+            .contains(DECLARATION_PREMIUM)
+    );
 }
 
 #[tokio::test]

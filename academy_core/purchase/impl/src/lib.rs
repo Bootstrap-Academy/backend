@@ -44,9 +44,11 @@ pub struct PurchaseFeatureConfig {
 const DECLARATION: &str = "Ich verlange ausdrücklich, dass mit der bestellten Leistung vor Ablauf der Widerrufsfrist begonnen wird. Meine gesetzlichen Widerrufs- und Mängelrechte bleiben unberührt.";
 /// `DECLARATION` for the English interface. The German wording is the one agreed.
 const DECLARATION_EN: &str = "I expressly request that the ordered service begins before the withdrawal period ends. My statutory withdrawal and warranty rights remain unaffected.";
-/// Wording revision of the short order summary, part of every builtin product revision.
-/// `s2`: the product line of Premium leaves the term to the term line.
-const SUMMARY_REVISION: &str = "purchase-2026-10-s2";
+/// Revision of the short order summary, part of every builtin product revision. It rises
+/// when an offer issued before would promise something other than today's product, so that
+/// accepting it fails without a charge. A change of the wording that keeps every promise
+/// keeps the revision: such an offer is confirmed with its own stored text.
+const SUMMARY_REVISION: &str = "purchase-2026-10-s1";
 /// All courses are free for everyone (owner, 16.10.2026), so Premium promises unlimited hearts.
 const PREMIUM_BENEFIT: &str = "Unbegrenzte Herzen.";
 const PREMIUM_BENEFIT_DAILY: &str = "Du kannst jeden Tag beliebig viele neue Lektionen anfangen.";
@@ -813,7 +815,7 @@ where
             .or(o.product.service_starts_at);
         let body = format!(
             "Hallo,\n\nhier ist die Vertragsbestätigung für deine Bestellung „{}“. Den Stand findest du unter https://bootstrap.academy/orders.\n\nDein vereinbartes Angebot:\n{}\n\nDeine Erklärung zum vorzeitigen Beginn:\n{}\n\nDie vereinbarten AGB und Widerrufsinformationen findest du als PDF im Anhang.\n\nViele Grüße\nDein Bootstrap Academy Team\n\nBestellnummer: {}\nEmpfänger: {}\nBestellt am: {}",
-            o.product.title,
+            order_name(o),
             agreed_offer(o),
             if a.early_performance_requested {
                 &o.declaration
@@ -1591,6 +1593,22 @@ where
         }
         Ok(())
     }
+}
+
+/// What the first sentence of the confirmation mail calls the order: the product line of the
+/// order summary, or the product title of an offer without one. The term of Premium stands
+/// in the term line of the summary, so the mail names it once; the order list keeps the title.
+fn order_name(o: &PurchaseOffer) -> &str {
+    o.summary
+        .as_ref()
+        .and_then(|summary| {
+            summary
+                .de
+                .lines
+                .iter()
+                .find(|line| line.role == OfferLineRole::Product)
+        })
+        .map_or(o.product.title.as_str(), |line| line.text.as_str())
 }
 
 /// The offer as the confirmation mail reproduces it. An offer with an order summary gets

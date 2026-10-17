@@ -1259,36 +1259,88 @@ async fn premium_offer_names_a_separately_ordered_renewal_in_its_term_line_and_m
 #[tokio::test]
 async fn an_offer_of_the_previous_revision_is_rejected_without_a_charge() {
     // A heart refill quoted before the switch differs from a current one only in its
-    // revision: the description and the quantity are taken from the offer itself. A
-    // Premium offer of stage 1 also named the term in its product line.
-    let hearts = issued_kind_with_window("hearts", 600).await;
-    let premium = premium_offer("premium_monthly", None).await;
-    for (mut record, product_line) in [(hearts, None), (premium, Some("Premium für einen Monat"))]
-    {
-        let offer = &mut record.status.offer;
-        assert!(offer.product.revision.starts_with("purchase-2026-10-s2:"));
-        offer.product.revision = offer
-            .product
-            .revision
-            .replace("purchase-2026-10-s2", "purchase-2026-10-s1");
-        if let Some(old) = product_line {
-            let summary = offer.summary.as_mut().unwrap();
-            summary.de.lines[0].text = old.into();
-            offer.text = summary.de.text();
-            assert!(offer.text.starts_with("Premium für einen Monat\n"));
-        }
-        offer.hash.clear();
-        offer.hash = format!("{:x}", Sha256::digest(serde_json::to_vec(&*offer).unwrap()));
-        let (status, saved) = accept_record(record, None, false).await;
-        assert_eq!(status.state, "failed");
-        assert_eq!(
-            status.review_reason.as_deref(),
-            Some("Offer expired or changed; no charge")
-        );
+    // revision: the description and the quantity are taken from the offer itself.
+    let mut record = issued_kind_with_window("hearts", 600).await;
+    let offer = &mut record.status.offer;
+    assert!(offer.product.revision.starts_with("purchase-2026-10-s1:"));
+    offer.product.revision = offer
+        .product
+        .revision
+        .replace("purchase-2026-10-s1", "purchase-2026-09-v1");
+    offer.hash.clear();
+    offer.hash = format!("{:x}", Sha256::digest(serde_json::to_vec(&*offer).unwrap()));
+    let (status, saved) = accept_record(record, None, false).await;
+    assert_eq!(status.state, "failed");
+    assert_eq!(
+        status.review_reason.as_deref(),
+        Some("Offer expired or changed; no charge")
+    );
+    let saved = saved.lock().unwrap();
+    assert!(saved.body.is_none());
+    assert!(!saved.calls.contains(&"accept") && !saved.calls.contains(&"record_debit"));
+}
+
+#[tokio::test]
+async fn a_premium_offer_of_stage_one_is_accepted_with_its_own_text() {
+    // Before the product line became "Premium", it named the term as well. Every promise
+    // of such an offer is the same as today's, so it keeps the revision, is accepted once,
+    // and the mail confirms it with its own stored text.
+    let mut record = premium_offer("premium_monthly", None).await;
+    let offer = &mut record.status.offer;
+    let summary = offer.summary.as_mut().unwrap();
+    summary.de.lines[0].text = "Premium für einen Monat".into();
+    summary.en.lines[0].text = "Premium for one month".into();
+    offer.text = summary.de.text();
+    offer.hash.clear();
+    offer.hash = format!("{:x}", Sha256::digest(serde_json::to_vec(&*offer).unwrap()));
+    assert!(offer.product.revision.starts_with("purchase-2026-10-s1:"));
+    let (status, saved) = accept_record(record, None, true).await;
+    assert_eq!(status.state, "paid");
+    let saved = saved.lock().unwrap();
+    let body = saved.body.as_deref().unwrap();
+    assert!(
+        body.contains("\nPremium für einen Monat\nUnbegrenzte Herzen.\n"),
+        "{body}"
+    );
+    assert!(body.contains("für deine Bestellung „Premium für einen Monat“."));
+    assert_eq!(
+        saved
+            .calls
+            .iter()
+            .filter(|call| **call == "record_debit")
+            .count(),
+        1
+    );
+}
+
+#[tokio::test]
+async fn the_confirmation_mail_names_the_term_of_premium_once() {
+    // The first sentence names the product line of the summary; the term stands in the
+    // term line only. The mail is German.
+    for (kind, unit) in [("premium_monthly", "Monat"), ("premium_yearly", "Jahr")] {
+        let record = premium_offer(kind, None).await;
+        assert_ne!(record.status.offer.product.title, "Premium");
+        let (status, saved) = accept_record(record, None, true).await;
+        assert_eq!(status.state, "paid", "{kind}");
         let saved = saved.lock().unwrap();
-        assert!(saved.body.is_none());
-        assert!(!saved.calls.contains(&"accept") && !saved.calls.contains(&"record_debit"));
+        let body = saved.body.as_deref().unwrap();
+        assert!(
+            body.contains("hier ist die Vertragsbestätigung für deine Bestellung „Premium“."),
+            "{body}"
+        );
+        assert!(body.contains(&format!(
+            "\nPremium\nUnbegrenzte Herzen.\nLaufzeit: 1 {unit},"
+        )));
+        assert_eq!(body.matches(unit).count(), 1, "{body}");
     }
+    // A heart refill names its product line, which is its title, as before; an offer with
+    // its own full text names its title.
+    let mut hearts = live_offer("hearts", 4).await;
+    assert_eq!(hearts.product.title, "Herzen auffüllen");
+    assert_eq!(order_name(&hearts), "Herzen auffüllen");
+    hearts.summary = None;
+    hearts.product.title = "Synthetischer Kurs".into();
+    assert_eq!(order_name(&hearts), "Synthetischer Kurs");
 }
 
 #[tokio::test]

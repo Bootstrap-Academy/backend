@@ -54,8 +54,12 @@ in the texts and the moment of the switch are the same day.
    ```
 
    `terms_version` in `[user]` stays `2026-09-r4`. Run `academy check-config` with the new
-   configuration before the restart: it loads the manifest and both PDFs, checks every SHA-256
-   and compares the two starts, as `serve` does. Build the frontend with the same
+   configuration before the restart, as the service user `academy`: the `academy` command the
+   NixOS module installs switches to that user by itself (via `sudo -u academy`); any other
+   binary needs `sudo -u academy` in front. The service reads the directory as that user under
+   `ProtectSystem=strict`, so a file it may not read fails here and not at the restart.
+   `check-config` loads the manifest and both PDFs, checks every SHA-256 and compares the two
+   starts, as `serve` does. Build the frontend with the same
    `NUXT_PUBLIC_TERMS_2026_10_FROM`. Deploy manually as usual. Until the start, users see only
    the two announced pages.
 5. **At the start** nothing has to be done.

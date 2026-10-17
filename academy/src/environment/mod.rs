@@ -326,6 +326,7 @@ impl ConfigProvider {
         // Loaded once: offers and the monthly renewal bind the same documents of stage 2.
         let stage2 = PurchaseDocuments::load_stage2(config.purchase.stage2.as_ref())
             .context("Failed to load the documents of purchase stage 2")?;
+        check_terms_start(&config.user, stage2.as_ref())?;
         let premium_feature_config = PremiumFeatureConfig {
             monthly_price: config.premium.monthly_price,
             yearly_price: config.premium.yearly_price,
@@ -379,6 +380,48 @@ impl ConfigProvider {
     }
 }
 
+/// Offers (`[purchase.stage2]`, start and version from its manifest) and account creation
+/// (`[user] registration_terms_from` and `registration_terms_version`) switch to terms 2026-10
+/// together. They are configured in two places, so they have to name the same start and the
+/// same version; otherwise the backend does not start, instead of the mismatch showing at
+/// midnight of the start.
+fn check_terms_start(
+    user: &academy_config::UserConfig,
+    stage2: Option<&academy_core_purchase_impl::PurchaseStage2>,
+) -> anyhow::Result<()> {
+    match (stage2, user.registration_terms_from) {
+        (None, None) => Ok(()),
+        (Some(stage2), Some(from)) => {
+            anyhow::ensure!(
+                from == stage2.effective_from,
+                "user.registration_terms_from ({from}) and the start of purchase stage 2 in its \
+                 manifest ({}) differ",
+                stage2.effective_from
+            );
+            let version = user
+                .registration_terms_version
+                .as_ref()
+                .map(|version| version.to_string());
+            anyhow::ensure!(
+                version.as_deref() == Some(stage2.documents.terms_version.as_str()),
+                "user.registration_terms_version ({}) differs from the terms version of purchase \
+                 stage 2 ({})",
+                version.as_deref().unwrap_or("unset"),
+                stage2.documents.terms_version
+            );
+            Ok(())
+        }
+        (Some(_), None) => anyhow::bail!(
+            "purchase stage 2 is configured without user.registration_terms_from; account \
+             creation would keep the previous terms after the start"
+        ),
+        (None, Some(_)) => anyhow::bail!(
+            "user.registration_terms_from is set without purchase stage 2; offers would keep the \
+             previous terms after the start"
+        ),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use academy_cache_valkey::ValkeyCache;
@@ -388,6 +431,35 @@ mod tests {
     use types::RestServer;
 
     use super::*;
+
+    #[test]
+    fn stage_two_and_registration_switch_at_one_start_with_one_version() {
+        let mut config = academy_config::load_dev_config().unwrap();
+        let start: chrono::DateTime<chrono::Utc> = "2026-12-08T23:00:00Z".parse().unwrap();
+        let stage2 = academy_core_purchase_impl::PurchaseStage2 {
+            effective_from: start,
+            documents: PurchaseDocuments {
+                terms_pdf: b"%PDF-synthetic".to_vec(),
+                terms_version: "2026-10".into(),
+                withdrawal_pdf: b"%PDF-synthetic".to_vec(),
+            },
+        };
+        // Neither: nothing switches.
+        check_terms_start(&config.user, None).unwrap();
+        // Only one of them.
+        assert!(check_terms_start(&config.user, Some(&stage2)).is_err());
+        config.user.registration_terms_version = Some("2026-10".try_into().unwrap());
+        config.user.registration_terms_from = Some(start);
+        assert!(check_terms_start(&config.user, None).is_err());
+        // Both, at the same start with the same version.
+        check_terms_start(&config.user, Some(&stage2)).unwrap();
+        // Another start, another version.
+        config.user.registration_terms_from = Some(start + chrono::TimeDelta::days(1));
+        assert!(check_terms_start(&config.user, Some(&stage2)).is_err());
+        config.user.registration_terms_from = Some(start);
+        config.user.registration_terms_version = Some("2026-11".try_into().unwrap());
+        assert!(check_terms_start(&config.user, Some(&stage2)).is_err());
+    }
 
     #[tokio::test]
     async fn provide_rest_server() {

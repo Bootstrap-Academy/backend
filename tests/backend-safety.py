@@ -940,7 +940,9 @@ def code_emails_of_others_do_not_lock_the_owner(f):
 
 def stage_two_manifest(f, day, sha256=None):
     """`[purchase.stage2]` pinning a manifest of synthetic PDFs that starts at 00:00 in Berlin on
-    `day`. The PDFs exist only for this fixture and make no claim about the legal texts."""
+    `day`, and the registration terms with the same start in `[user]`, which the backend requires
+    together with it. The PDFs exist only for this fixture and make no claim about the legal
+    texts."""
     import datetime
     import zoneinfo
 
@@ -975,6 +977,7 @@ def stage_two_manifest(f, day, sha256=None):
         hash_of_documents.update(data)
     pinned = sha256 or hashlib.sha256(manifest).hexdigest()
     config = f'[purchase.stage2]\nmanifest_path = "{path}"\nmanifest_sha256 = "{pinned}"'
+    f.user_extra = f'registration_terms_version = "2026-10"\nregistration_terms_from = "{start}"'
     return config, start, hash_of_documents.hexdigest()
 
 
@@ -1047,7 +1050,7 @@ def stage_two_switches_on_at_the_start_in_its_manifest(f):
             raise AssertionError("the backend started with a manifest that is not the pinned one")
     finally:
         f.purchase_extra = ""
-        f.restart()
+        f.restart(user="")
 
 
 def deletion_revokes_all_sessions_and_keeps_durable_work(f):
@@ -1080,7 +1083,13 @@ def deletion_revokes_all_sessions_and_keeps_durable_work(f):
 
 
 def registration_terms_switch_at_their_moment(f):
-    """Account creation asks for the registration version only from its configured moment."""
+    """Account creation asks for the registration version only from its configured moment, which
+    is the start of purchase stage 2: 00:00 in Berlin, the same moment and version in both places,
+    or the backend does not start."""
+    import datetime
+    import zoneinfo
+
+    today = datetime.datetime.now(zoneinfo.ZoneInfo("Europe/Berlin")).date()
 
     def register(version):
         name = "safety" + uuid4().hex[:12]
@@ -1094,17 +1103,35 @@ def registration_terms_switch_at_their_moment(f):
         }
         return f.request("/auth/users", "POST", body, expected=None)
 
-    def moment(offset):
-        return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() + offset))
+    def switch(day, registration_day=None):
+        f.purchase_extra, start, _ = stage_two_manifest(f, day)
+        if registration_day is not None:
+            _, start, _ = stage_two_manifest(f, registration_day)
+        f.user_extra = f'registration_terms_version = "2026-10"\nregistration_terms_from = "{start}"'
 
     try:
-        for offset, asked, other in ((3600, "safety-test-terms", "2026-10"), (-3600, "2026-10", "safety-test-terms")):
-            f.restart(user=f'registration_terms_version = "2026-10"\nregistration_terms_from = "{moment(offset)}"')
+        for day, asked, other in (
+            (today + datetime.timedelta(days=1), "safety-test-terms", "2026-10"),
+            (today, "2026-10", "safety-test-terms"),
+        ):
+            switch(day)
+            f.restart()
             status, _ = register(other)
-            assert status == 422, f"{other} with the moment {offset:+d}s away: {status}"
+            assert status == 422, f"{other} with the start on {day}: {status}"
             status, login = register(asked)
-            assert status == 200 and login["user"]["terms_version"] == asked, (offset, status, login)
+            assert status == 200 and login["user"]["terms_version"] == asked, (day, status, login)
+        # Two different starts: check-config and the start refuse the configuration.
+        switch(today, today + datetime.timedelta(days=1))
+        code, said = check_config(f)
+        assert code != 0 and "differ" in said, said
+        try:
+            f.restart()
+        except RuntimeError:
+            pass
+        else:
+            raise AssertionError("the backend started with two different starts")
     finally:
+        f.purchase_extra = ""
         f.restart(user="")
 
 

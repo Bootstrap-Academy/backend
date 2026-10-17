@@ -116,6 +116,13 @@ fn validate(config: &Config) -> anyhow::Result<()> {
         "user.registration_terms_from is set without user.registration_terms_version; \
          the date would switch account creation to a version that is not configured"
     );
+    if let Some(from) = config.user.registration_terms_from {
+        anyhow::ensure!(
+            academy_models::legal_time::starts_a_berlin_day(from),
+            "user.registration_terms_from is {from}, which is not 00:00 in Europe/Berlin; terms \
+             take effect at the start of a day, as the texts name it"
+        );
+    }
     for (kind, seconds) in &config.purchase.provision_window_seconds {
         anyhow::ensure!(
             matches!(
@@ -244,7 +251,10 @@ pub struct HealthConfig {
     pub email_cache_ttl: Duration,
 }
 
+/// An unknown key is refused: a typo such as `registration_terms_form` would otherwise leave
+/// account creation on the wrong version without a word.
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct UserConfig {
     /// Version of the terms and conditions that is currently in force.
     pub terms_version: TermsVersion,
@@ -676,6 +686,50 @@ mod tests {
             err.to_string().contains("user.registration_terms_from"),
             "{err:#}"
         );
+        // 00:00 UTC is 01:00 in Berlin: refused, as frontend and render script refuse it.
+        let off = MINIMAL_OVERRIDES
+            .into_iter()
+            .chain([
+                "user.registration_terms_version='2026-10'",
+                "user.registration_terms_from='2026-12-09T00:00:00Z'",
+            ])
+            .collect::<Vec<_>>();
+        let err = super::load_paths(&[] as &[&str], &off).unwrap_err();
+        assert!(err.to_string().contains("Europe/Berlin"), "{err:#}");
+        let summer = MINIMAL_OVERRIDES
+            .into_iter()
+            .chain([
+                "user.registration_terms_version='2026-10'",
+                "user.registration_terms_from='2027-06-01T00:00:00+02:00'",
+            ])
+            .collect::<Vec<_>>();
+        assert!(super::load_paths(&[] as &[&str], &summer).is_ok());
+    }
+
+    /// A typo in a key of `[user]` would switch account creation silently.
+    #[test]
+    fn unknown_user_keys_are_refused() {
+        for extra in [
+            "user.registration_terms_form='2026-12-09T00:00:00+01:00'",
+            "user.registration_terms='2026-10'",
+        ] {
+            let overrides = MINIMAL_OVERRIDES
+                .into_iter()
+                .chain([extra])
+                .collect::<Vec<_>>();
+            assert!(
+                super::load_paths(&[] as &[&str], &overrides).is_err(),
+                "{extra}"
+            );
+        }
+        // The keys Test sets in `[user]` today (read from the generated file on the host,
+        // 17.10.2026); Prod sets none.
+        let today = "[user]\nname_change_rate_limit='30d'\npassword_reset_redirect_url='https://test.bootstrap.academy/auth/reset-password'\nverification_redirect_url='https://test.bootstrap.academy/auth/verify-account'";
+        let overrides = MINIMAL_OVERRIDES
+            .into_iter()
+            .chain([today])
+            .collect::<Vec<_>>();
+        assert!(super::load_paths(&[] as &[&str], &overrides).is_ok());
     }
 
     #[test]

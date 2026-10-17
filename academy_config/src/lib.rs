@@ -9,7 +9,7 @@ use academy_models::{
     email_address::EmailAddressWithName, mfa::TotpSecretLength, url::Url, user::TermsVersion,
 };
 use anyhow::Context;
-use chrono::NaiveTime;
+use chrono::{DateTime, NaiveTime, Utc};
 use config::{File, FileFormat};
 use duration::Duration;
 use regex::bytes::RegexSet;
@@ -109,6 +109,12 @@ fn validate(config: &Config) -> anyhow::Result<()> {
          account alone cannot use up the shared budget of a mailbox",
         config.user.code_emails_per_mailbox,
         per_account_and_mailbox.saturating_mul(2)
+    );
+    anyhow::ensure!(
+        config.user.registration_terms_from.is_none()
+            || config.user.registration_terms_version.is_some(),
+        "user.registration_terms_from is set without user.registration_terms_version; \
+         the date would switch account creation to a version that is not configured"
     );
     for (kind, seconds) in &config.purchase.provision_window_seconds {
         anyhow::ensure!(
@@ -246,6 +252,12 @@ pub struct UserConfig {
     /// Existing-account acceptance keeps using `terms_version`.
     #[serde(default)]
     pub registration_terms_version: Option<TermsVersion>,
+    /// Moment from which account creation asks for
+    /// `registration_terms_version`. Before it, account creation keeps asking
+    /// for `terms_version`. Unset means the registration version applies at
+    /// once. Requires `registration_terms_version`.
+    #[serde(default)]
+    pub registration_terms_from: Option<DateTime<Utc>>,
     pub name_change_rate_limit: Duration,
     pub export_rate_limit: Duration,
     pub verification_code_ttl: Duration,
@@ -630,6 +642,32 @@ mod tests {
                 .unwrap()
                 .to_string(),
             "reviewed-signup-only"
+        );
+    }
+
+    #[test]
+    fn registration_terms_from_is_unset_by_default_and_needs_a_registration_version() {
+        let default = super::load_paths(&[] as &[&str], &MINIMAL_OVERRIDES).unwrap();
+        assert!(default.user.registration_terms_from.is_none());
+        let from = "user.registration_terms_from='2026-11-15T23:00:00Z'";
+        let dated = MINIMAL_OVERRIDES
+            .into_iter()
+            .chain(["user.registration_terms_version='2026-10'", from])
+            .collect::<Vec<_>>();
+        let dated = super::load_paths(&[] as &[&str], &dated).unwrap();
+        assert_eq!(
+            dated.user.registration_terms_from.unwrap().to_rfc3339(),
+            "2026-11-15T23:00:00+00:00"
+        );
+        assert_eq!(dated.user.terms_version, default.user.terms_version);
+        let alone = MINIMAL_OVERRIDES
+            .into_iter()
+            .chain([from])
+            .collect::<Vec<_>>();
+        let err = super::load_paths(&[] as &[&str], &alone).unwrap_err();
+        assert!(
+            err.to_string().contains("user.registration_terms_from"),
+            "{err:#}"
         );
     }
 

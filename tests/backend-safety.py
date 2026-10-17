@@ -117,6 +117,7 @@ class Fixture:
         self.env["RUST_LOG"] = "error"
         self.env["ACADEMY_CONFIG"] = f"{self.base}/fixture.toml:{REPO}/config.dev.toml"
         self.policy = 'mode = "legacy"'
+        self.user_extra = ""
 
     def command(self, *args, label=None):
         result = subprocess.run(
@@ -169,6 +170,7 @@ auth = "isolated-auth-secret"
 [user]
 terms_version = "safety-test-terms"
 export_rate_limit = "1h"
+{self.user_extra}
 [session]
 login_fails_before_lock = 100
 login_fails_per_ip = 1000
@@ -285,11 +287,13 @@ final_statements_archive = "{self.base}/statements"
         self.backend = self.spawn("backend", [self.args.binary, "serve"])
         self.wait_port("api", self.backend)
 
-    def restart(self, policy=None):
+    def restart(self, policy=None, user=None):
         self.backend.terminate()
         self.backend.wait(timeout=15)
         if policy is not None:
             self.policy = policy
+        if user is not None:
+            self.user_extra = user
         self.write_config()
         self.start_backend()
 
@@ -962,6 +966,35 @@ def deletion_revokes_all_sessions_and_keeps_durable_work(f):
     assert pending == "0", "deletion delivery did not recover after restart"
 
 
+def registration_terms_switch_at_their_moment(f):
+    """Account creation asks for the registration version only from its configured moment."""
+
+    def register(version):
+        name = "safety" + uuid4().hex[:12]
+        body = {
+            "name": name,
+            "display_name": name,
+            "email": f"{name}@example.com",
+            "password": "synthetic test password",
+            "terms_version": version,
+            "age_confirmed": True,
+        }
+        return f.request("/auth/users", "POST", body, expected=None)
+
+    def moment(offset):
+        return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() + offset))
+
+    try:
+        for offset, asked, other in ((3600, "safety-test-terms", "2026-10"), (-3600, "2026-10", "safety-test-terms")):
+            f.restart(user=f'registration_terms_version = "2026-10"\nregistration_terms_from = "{moment(offset)}"')
+            status, _ = register(other)
+            assert status == 422, f"{other} with the moment {offset:+d}s away: {status}"
+            status, login = register(asked)
+            assert status == 200 and login["user"]["terms_version"] == asked, (offset, status, login)
+    finally:
+        f.restart(user="")
+
+
 CASES = [
     hearts_replay_and_last_heart,
     heart_reset_and_refill,
@@ -979,6 +1012,7 @@ CASES = [
     code_emails_limited_per_address_and_account,
     code_emails_of_others_do_not_lock_the_owner,
     deletion_revokes_all_sessions_and_keeps_durable_work,
+    registration_terms_switch_at_their_moment,
 ]
 
 

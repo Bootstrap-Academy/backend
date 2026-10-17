@@ -57,6 +57,11 @@ enabled = false
 # Version of the terms and conditions that is currently in force. Only this
 # version can be accepted, and it is the value that is recorded.
 terms_version = "2026-09-r4"
+# New accounts can be created with another version. With a moment set, account
+# creation asks for terms_version before it and for the registration version
+# from it on. Existing accounts keep accepting terms_version.
+# registration_terms_version = "2026-10"
+# registration_terms_from = "2026-11-15T23:00:00Z"
 name_change_rate_limit = "30d"
 export_rate_limit = "10m"
 verification_code_ttl = "4h"

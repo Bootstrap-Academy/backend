@@ -9,7 +9,7 @@ use academy_models::{
     email_address::EmailAddressWithName, mfa::TotpSecretLength, url::Url, user::TermsVersion,
 };
 use anyhow::Context;
-use chrono::NaiveTime;
+use chrono::{DateTime, NaiveTime, Utc};
 use config::{File, FileFormat};
 use duration::Duration;
 use regex::bytes::RegexSet;
@@ -110,6 +110,19 @@ fn validate(config: &Config) -> anyhow::Result<()> {
         config.user.code_emails_per_mailbox,
         per_account_and_mailbox.saturating_mul(2)
     );
+    anyhow::ensure!(
+        config.user.registration_terms_from.is_none()
+            || config.user.registration_terms_version.is_some(),
+        "user.registration_terms_from is set without user.registration_terms_version; \
+         the date would switch account creation to a version that is not configured"
+    );
+    if let Some(from) = config.user.registration_terms_from {
+        anyhow::ensure!(
+            academy_models::legal_time::starts_a_berlin_day(from),
+            "user.registration_terms_from is {from}, which is not 00:00 in Europe/Berlin; terms \
+             take effect at the start of a day, as the texts name it"
+        );
+    }
     for (kind, seconds) in &config.purchase.provision_window_seconds {
         anyhow::ensure!(
             matches!(
@@ -238,7 +251,10 @@ pub struct HealthConfig {
     pub email_cache_ttl: Duration,
 }
 
+/// An unknown key is refused: a typo such as `registration_terms_form` would otherwise leave
+/// account creation on the wrong version without a word.
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct UserConfig {
     /// Version of the terms and conditions that is currently in force.
     pub terms_version: TermsVersion,
@@ -246,6 +262,12 @@ pub struct UserConfig {
     /// Existing-account acceptance keeps using `terms_version`.
     #[serde(default)]
     pub registration_terms_version: Option<TermsVersion>,
+    /// Moment from which account creation asks for
+    /// `registration_terms_version`. Before it, account creation keeps asking
+    /// for `terms_version`. Unset means the registration version applies at
+    /// once. Requires `registration_terms_version`.
+    #[serde(default)]
+    pub registration_terms_from: Option<DateTime<Utc>>,
     pub name_change_rate_limit: Duration,
     pub export_rate_limit: Duration,
     pub verification_code_ttl: Duration,
@@ -638,6 +660,76 @@ mod tests {
                 .to_string(),
             "reviewed-signup-only"
         );
+    }
+
+    #[test]
+    fn registration_terms_from_is_unset_by_default_and_needs_a_registration_version() {
+        let default = super::load_paths(&[] as &[&str], &MINIMAL_OVERRIDES).unwrap();
+        assert!(default.user.registration_terms_from.is_none());
+        let from = "user.registration_terms_from='2026-11-15T23:00:00Z'";
+        let dated = MINIMAL_OVERRIDES
+            .into_iter()
+            .chain(["user.registration_terms_version='2026-10'", from])
+            .collect::<Vec<_>>();
+        let dated = super::load_paths(&[] as &[&str], &dated).unwrap();
+        assert_eq!(
+            dated.user.registration_terms_from.unwrap().to_rfc3339(),
+            "2026-11-15T23:00:00+00:00"
+        );
+        assert_eq!(dated.user.terms_version, default.user.terms_version);
+        let alone = MINIMAL_OVERRIDES
+            .into_iter()
+            .chain([from])
+            .collect::<Vec<_>>();
+        let err = super::load_paths(&[] as &[&str], &alone).unwrap_err();
+        assert!(
+            err.to_string().contains("user.registration_terms_from"),
+            "{err:#}"
+        );
+        // 00:00 UTC is 01:00 in Berlin: refused, as frontend and render script refuse it.
+        let off = MINIMAL_OVERRIDES
+            .into_iter()
+            .chain([
+                "user.registration_terms_version='2026-10'",
+                "user.registration_terms_from='2026-12-09T00:00:00Z'",
+            ])
+            .collect::<Vec<_>>();
+        let err = super::load_paths(&[] as &[&str], &off).unwrap_err();
+        assert!(err.to_string().contains("Europe/Berlin"), "{err:#}");
+        let summer = MINIMAL_OVERRIDES
+            .into_iter()
+            .chain([
+                "user.registration_terms_version='2026-10'",
+                "user.registration_terms_from='2027-06-01T00:00:00+02:00'",
+            ])
+            .collect::<Vec<_>>();
+        assert!(super::load_paths(&[] as &[&str], &summer).is_ok());
+    }
+
+    /// A typo in a key of `[user]` would switch account creation silently.
+    #[test]
+    fn unknown_user_keys_are_refused() {
+        for extra in [
+            "user.registration_terms_form='2026-12-09T00:00:00+01:00'",
+            "user.registration_terms='2026-10'",
+        ] {
+            let overrides = MINIMAL_OVERRIDES
+                .into_iter()
+                .chain([extra])
+                .collect::<Vec<_>>();
+            assert!(
+                super::load_paths(&[] as &[&str], &overrides).is_err(),
+                "{extra}"
+            );
+        }
+        // The keys Test sets in `[user]` today (read from the generated file on the host,
+        // 17.10.2026); Prod sets none.
+        let today = "[user]\nname_change_rate_limit='30d'\npassword_reset_redirect_url='https://test.bootstrap.academy/auth/reset-password'\nverification_redirect_url='https://test.bootstrap.academy/auth/verify-account'";
+        let overrides = MINIMAL_OVERRIDES
+            .into_iter()
+            .chain([today])
+            .collect::<Vec<_>>();
+        assert!(super::load_paths(&[] as &[&str], &overrides).is_ok());
     }
 
     #[test]

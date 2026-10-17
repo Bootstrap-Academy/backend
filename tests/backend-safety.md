@@ -1,13 +1,15 @@
 # Native backend safety regressions
 
-These 17 scenarios exercise the ordinary HTTP router, PostgreSQL transactions and
+These 18 scenarios exercise the ordinary HTTP router, PostgreSQL transactions and
 Valkey-backed sessions using synthetic accounts. They cover hearts/reset/refill,
 coin idempotence and ledger rollback, Premium purchase/confirmed renewal/expiry,
 the reconciled renewal a Premium offer names, public and internal learning policy,
 refresh/logout/MFA, export, the limit of the emails with a verification or password
 reset code (including that other accounts and variants of an address cannot lock its
-owner out), deletion retry, and stage 2 of the order dialog from its pinned manifest
-(start, offers before and after it, a manifest that does not match its checksum).
+owner out), deletion retry, stage 2 of the order dialog from its pinned manifest
+(start, offers before and after it, a manifest that does not match its checksum), and
+the terms account creation asks for before and from that start (two different starts
+stop check-config and the start).
 
 Build the ordinary backend and run as an unprivileged user with PostgreSQL 18 and
 Valkey available. The runner starts its own loopback services, config and disposable

@@ -372,6 +372,10 @@ pub struct PurchaseConfig {
     /// disable new offers, while already accepted obligations keep recovering.
     #[serde(default)]
     pub provision_window_seconds: HashMap<String, u64>,
+    /// Stage 2 of the order dialog with terms 2026-10, from a fixed time on. Unset: every
+    /// offer keeps stage 1.
+    #[serde(default)]
+    pub stage2: Option<academy_models::purchase::PurchaseStage2Config>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -660,6 +664,30 @@ mod tests {
             config.user.terms_version,
             config.learning_policy.terms_version.unwrap()
         );
+    }
+
+    #[test]
+    fn purchase_stage_two_is_unset_by_default_and_reads_its_date_and_documents() {
+        let config = super::load_paths(&[] as &[&str], &MINIMAL_OVERRIDES).unwrap();
+        assert!(config.purchase.stage2.is_none());
+        let extra = "[purchase.stage2]\neffective_from='2026-12-08T23:00:00Z'\n[purchase.stage2.documents]\nterms_version='2026-10'\nterms_pdf_path='/synthetic/agb-2026-10.pdf'\nterms_sha256='a'\nwithdrawal_pdf_path='/synthetic/widerrufsbelehrung-2026-10.pdf'\nwithdrawal_sha256='b'";
+        let overrides = MINIMAL_OVERRIDES
+            .into_iter()
+            .chain([extra])
+            .collect::<Vec<_>>();
+        let config = super::load_paths(&[] as &[&str], &overrides).unwrap();
+        let stage2 = config.purchase.stage2.unwrap();
+        assert_eq!(
+            stage2.effective_from.to_rfc3339(),
+            "2026-12-08T23:00:00+00:00"
+        );
+        assert_eq!(stage2.documents.terms_version.to_string(), "2026-10");
+        // An unknown key is a typo that would leave stage 2 off unnoticed.
+        let overrides = MINIMAL_OVERRIDES
+            .into_iter()
+            .chain(["[purchase.stage2]\neffective='2026-12-08T23:00:00Z'"])
+            .collect::<Vec<_>>();
+        assert!(super::load_paths(&[] as &[&str], &overrides).is_err());
     }
 
     #[test]

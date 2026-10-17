@@ -40,6 +40,7 @@ fn accepted() -> PurchaseStatus {
             declaration: "Original explicit request".into(),
             provision_window_seconds: None,
             summary: None,
+            acceptance: None,
         },
         state: "awaiting_payment".into(),
         accepted_at: Some(now),
@@ -156,10 +157,25 @@ async fn amount_from_another_offer_cannot_create_or_replay_payment() {
 }
 #[tokio::test]
 async fn accepted_offer_creates_snapshot_from_original_tax_recipient_and_declaration_time() {
-    let status = accepted();
+    creates_order(accepted(), true).await;
+}
+
+#[tokio::test]
+async fn a_coin_offer_of_stage_two_records_no_request_for_an_early_start() {
+    // Terms 2026-10: the order button accepts, and a coin purchase asks for no early start.
+    let mut status = accepted();
+    status.offer.acceptance = Some(academy_models::purchase::OfferAcceptance::Button);
+    status.offer.declaration = String::new();
+    creates_order(status, false).await;
+}
+
+/// Creates the provider order of the accepted `status`; `consent` says whether the order
+/// records the request for an early start of its declaration.
+async fn creates_order(status: PurchaseStatus, consent: bool) {
     let a = request(&status);
     let id = status.offer.id;
     let at = status.accepted_at;
+    let declaration = status.offer.declaration.clone();
     let mut repo = MockPaypalRepository::new();
     repo.expect_lock_contract_order()
         .once()
@@ -170,7 +186,11 @@ async fn accepted_offer_creates_snapshot_from_original_tax_recipient_and_declara
     repo.expect_create_coin_order()
         .once()
         .return_once(move |_, o| {
-            assert_eq!(o.withdrawal_consent_at, at);
+            assert_eq!(o.withdrawal_consent_at, at.filter(|_| consent));
+            assert_eq!(
+                o.withdrawal_text_version.as_ref().map(|v| v.to_string()),
+                consent.then(|| "L1-request-2026-09".to_owned())
+            );
             assert_eq!(o.invoice_number, 42);
             assert_eq!(o.coins, 1337);
             Box::pin(std::future::ready(Ok(())))
@@ -182,6 +202,7 @@ async fn accepted_offer_creates_snapshot_from_original_tax_recipient_and_declara
             assert_eq!(p.snapshot.customer_details, vec!["Original customer"]);
             assert_eq!(p.snapshot.gross_total, dec!(13.37));
             assert_eq!(p.snapshot.vat_percent, dec!(19));
+            assert_eq!(p.snapshot.consent_text, declaration);
             assert_eq!(
                 p.snapshot.recipient.0.to_string(),
                 "Original <original@example.invalid>"

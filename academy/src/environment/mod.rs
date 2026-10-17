@@ -11,7 +11,7 @@ use academy_core_heart_impl::HeartFeatureConfig;
 use academy_core_oauth2_impl::OAuth2FeatureConfig;
 use academy_core_paypal_impl::PaypalFeatureConfig;
 use academy_core_premium_impl::PremiumFeatureConfig;
-use academy_core_purchase_impl::{PurchaseDocuments, PurchaseFeatureConfig};
+use academy_core_purchase_impl::{PurchaseDocuments, PurchaseFeatureConfig, PurchaseStage2};
 use academy_core_session_impl::{SessionFeatureConfig, login_throttle::SessionLoginThrottleConfig};
 use academy_core_user_impl::UserFeatureConfig;
 use academy_di::provider;
@@ -330,6 +330,12 @@ impl ConfigProvider {
         let purchase_feature_config = PurchaseFeatureConfig {
             provision_window_seconds: config.purchase.provision_window_seconds.clone(),
             vat_percent: config.finance.vat_percent.normalize().to_string(),
+            stage2: PurchaseDocuments::load_stage2(config.purchase.stage2.as_ref())?.map(
+                |(effective_from, documents)| PurchaseStage2 {
+                    effective_from,
+                    documents,
+                },
+            ),
         };
 
         Ok(Self {

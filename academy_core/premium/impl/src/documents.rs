@@ -1,6 +1,10 @@
 //! Immutable, explicitly approved purchase and renewal document bundle.
 use academy_assets::email::{AGB_2026_09_R4_PDF, WIDERRUFSBELEHRUNG_2026_09_R1_PDF};
-use academy_models::learning_policy::{LearningMode, LearningPolicyConfig};
+use academy_models::{
+    learning_policy::{LearningDocumentBundleConfig, LearningMode, LearningPolicyConfig},
+    purchase::PurchaseStage2Config,
+};
+use chrono::{DateTime, Utc};
 use sha2::{Digest, Sha256};
 
 #[derive(Debug, Clone)]
@@ -31,6 +35,37 @@ impl PurchaseDocuments {
             config.terms_version.as_ref() == Some(&bundle.terms_version),
             "daily purchase document version must match the learning policy terms"
         );
+        let documents = Self::load_bundle(bundle)?;
+        anyhow::ensure!(
+            documents.terms_pdf != AGB_2026_09_R4_PDF,
+            "daily learning must not bind the legacy r4 terms"
+        );
+        Ok(Some(documents))
+    }
+
+    /// The documents of stage 2 of the order dialog (terms 2026-10) and the time from which
+    /// new offers bind them; `None` while stage 2 is not configured.
+    pub fn load_stage2(
+        config: Option<&PurchaseStage2Config>,
+    ) -> anyhow::Result<Option<(DateTime<Utc>, Self)>> {
+        let Some(config) = config else {
+            return Ok(None);
+        };
+        anyhow::ensure!(
+            config.documents.terms_version.to_string() != "2026-09-r4",
+            "purchase stage 2 needs a terms version after 2026-09-r4"
+        );
+        let documents = Self::load_bundle(&config.documents)?;
+        anyhow::ensure!(
+            documents.terms_pdf != AGB_2026_09_R4_PDF
+                && documents.withdrawal_pdf != WIDERRUFSBELEHRUNG_2026_09_R1_PDF,
+            "purchase stage 2 must not bind the documents of stage 1"
+        );
+        Ok(Some((config.effective_from, documents)))
+    }
+
+    /// A bundle of approved PDFs, read from absolute paths and checked against their SHA-256.
+    fn load_bundle(bundle: &LearningDocumentBundleConfig) -> anyhow::Result<Self> {
         let read = |path: &std::path::Path, expected: &str| -> anyhow::Result<Vec<u8>> {
             anyhow::ensure!(
                 path.is_absolute(),
@@ -52,16 +87,11 @@ impl PurchaseDocuments {
             );
             Ok(bytes)
         };
-        let terms_pdf = read(&bundle.terms_pdf_path, &bundle.terms_sha256)?;
-        anyhow::ensure!(
-            terms_pdf != AGB_2026_09_R4_PDF,
-            "daily learning must not bind the legacy r4 terms"
-        );
-        Ok(Some(Self {
-            terms_pdf,
+        Ok(Self {
+            terms_pdf: read(&bundle.terms_pdf_path, &bundle.terms_sha256)?,
             terms_version: bundle.terms_version.to_string(),
             withdrawal_pdf: read(&bundle.withdrawal_pdf_path, &bundle.withdrawal_sha256)?,
-        }))
+        })
     }
 
     pub fn hash(&self) -> String {

@@ -60,6 +60,41 @@ pub struct PurchaseOffer {
     /// offers and the offers of other services have none and keep their own `text`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub summary: Option<OfferSummary>,
+    /// How the offer is accepted. Absent for every offer before stage 2 of the order dialog:
+    /// those keep their acceptance box and declaration.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub acceptance: Option<OfferAcceptance>,
+}
+
+/// How an offer is accepted (stage 2 of the order dialog, terms 2026-10).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum OfferAcceptance {
+    /// The order button alone accepts the offer with its terms and withdrawal policy (AGB
+    /// 2026-10, 11.1). A checkbox remains only for a `declaration` the offer carries: the
+    /// early start of a Premium period that begins within the withdrawal period. An offer
+    /// with an empty declaration needs none, and none is recorded for it.
+    Button,
+}
+
+impl PurchaseOffer {
+    /// Whether accepting this offer needs the declaration on the early start.
+    pub fn requires_early_performance(&self) -> bool {
+        match self.acceptance {
+            Some(OfferAcceptance::Button) => !self.declaration.is_empty(),
+            None => self.product.coins > 0,
+        }
+    }
+}
+
+/// Stage 2 of the order dialog: from `effective_from` on, the backend issues its own offers
+/// under the configured terms version and documents (terms 2026-10). Offers issued before
+/// keep their own documents and rules.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PurchaseStage2Config {
+    pub effective_from: DateTime<Utc>,
+    pub documents: crate::learning_policy::LearningDocumentBundleConfig,
 }
 
 /// An offer's order summary in German and in English.

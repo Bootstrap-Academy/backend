@@ -27,7 +27,7 @@ use academy_persistence_contracts::{
     user::UserRepository,
 };
 use anyhow::Context;
-use chrono::{TimeDelta, Utc};
+use chrono::{DateTime, TimeDelta, Utc};
 use serde_json::json;
 use sha2::{Digest, Sha256};
 use uuid::Uuid;
@@ -37,6 +37,18 @@ pub struct PurchaseFeatureConfig {
     pub provision_window_seconds: std::collections::HashMap<String, u64>,
     /// The VAT rate the order summary names, as configured (`finance.vat_percent`), e.g. `19`.
     pub vat_percent: String,
+    /// Stage 2 of the order dialog with terms 2026-10; `None` until it is configured.
+    pub stage2: Option<PurchaseStage2>,
+}
+
+/// From `effective_from` on, the backend issues its own offers of stage 2 (terms 2026-10):
+/// they bind `documents`, are accepted with the order button, and carry a declaration only
+/// for a Premium period that begins within the withdrawal period. Offers issued before keep
+/// their own documents and rules.
+#[derive(Debug, Clone)]
+pub struct PurchaseStage2 {
+    pub effective_from: DateTime<Utc>,
+    pub documents: PurchaseDocuments,
 }
 
 // An early-performance request is recorded; this release does not assert that
@@ -44,6 +56,11 @@ pub struct PurchaseFeatureConfig {
 const DECLARATION: &str = "Ich verlange ausdrücklich, dass mit der bestellten Leistung vor Ablauf der Widerrufsfrist begonnen wird. Meine gesetzlichen Widerrufs- und Mängelrechte bleiben unberührt.";
 /// `DECLARATION` for the English interface. The German wording is the one agreed.
 const DECLARATION_EN: &str = "I expressly request that the ordered service begins before the withdrawal period ends. My statutory withdrawal and warranty rights remain unaffected.";
+/// Stage 2 (Widerrufsbelehrung 2026-10, "Erklärungen bei der Bestellung"): the only
+/// declaration left, for a Premium period that begins within the withdrawal period.
+const DECLARATION_PREMIUM: &str = "Ich verlange ausdrücklich, dass das bestellte Premium schon vor Ablauf der Widerrufsfrist von 14 Tagen startet. Widerrufe ich, zahle ich nur den Anteil des Preises für die Tage, an denen dieses Premium bis zu meinem Widerruf schon lief.";
+/// `DECLARATION_PREMIUM` for the English interface. The German wording is the one agreed.
+const DECLARATION_PREMIUM_EN: &str = "I expressly request that the Premium I ordered starts before the 14-day withdrawal period ends. If I withdraw, I only pay the share of the price for the days on which this Premium had already run until my withdrawal.";
 /// Revision of the short order summary, part of every builtin product revision. It rises
 /// when an offer issued before would promise something other than today's product, so that
 /// accepting it fails without a charge. A change of the wording that keeps every promise
@@ -185,7 +202,12 @@ where
             service_starts_at: None,
         })
     }
-    fn documents_for(&self, mode: LearningMode) -> Result<PurchaseDocuments, PurchaseError> {
+    /// The documents an offer binds: those of the Daily cohort, of stage 2, or the legacy ones.
+    fn documents_for(
+        &self,
+        mode: LearningMode,
+        stage2: bool,
+    ) -> Result<PurchaseDocuments, PurchaseError> {
         if mode == LearningMode::Daily {
             return self
                 .premium_config
@@ -193,7 +215,43 @@ where
                 .clone()
                 .ok_or(PurchaseError::Unavailable);
         }
+        if stage2 {
+            return self
+                .purchase_config
+                .stage2
+                .as_ref()
+                .map(|stage2| stage2.documents.clone())
+                .ok_or(PurchaseError::Unavailable);
+        }
         Ok(PurchaseDocuments::legacy())
+    }
+
+    /// Whether an offer of the backend issued at `at` belongs to stage 2. The Daily cohort
+    /// keeps its own documents.
+    fn stage2_at(&self, mode: LearningMode, at: DateTime<Utc>) -> bool {
+        mode != LearningMode::Daily
+            && self
+                .purchase_config
+                .stage2
+                .as_ref()
+                .is_some_and(|stage2| at >= stage2.effective_from)
+    }
+
+    /// Whether a Premium period ordered at `now` begins within the withdrawal period of 14
+    /// days: at once, or after a paid period that ends sooner (AGB 2026-10, 11.1). Only then
+    /// does a stage-2 offer carry the declaration on the early start.
+    async fn premium_starts_early(
+        &self,
+        txn: &mut Db::Transaction,
+        user: UserId,
+        now: DateTime<Utc>,
+    ) -> Result<bool, PurchaseError> {
+        let paid_until = self
+            .premium_repo
+            .get_latest_by_user_id(txn, user)
+            .await?
+            .map(|premium| premium.until);
+        Ok(paid_until.is_none_or(|until| until < now + TimeDelta::days(14)))
     }
 
     /// The monthly renewal the account ordered separately, as a Premium offer states it:
@@ -236,11 +294,15 @@ where
     /// the total price with VAT and how it is paid. Each fact is stated once; the terms,
     /// the withdrawal policy and the confirmation mail carry the rest (AGB 6.2, 8.2, 9,
     /// 11). The German lines become the offer text.
+    /// `stage2` and `declaration` (German, English) follow the offer: stage 2 carries the
+    /// declaration of an early Premium start or none at all.
     fn summary(
         &self,
         product: &PurchaseProduct,
         window: Option<u64>,
         mode: LearningMode,
+        stage2: bool,
+        declaration: (&str, &str),
     ) -> Result<OfferSummary, PurchaseError> {
         use OfferLineRole::*;
         let line = |role, text: String| OfferLine { role, text };
@@ -335,6 +397,19 @@ where
                     ("Monat", "month")
                 };
                 let (term_de, term_en) = match product.facts["renewal"]["monthly_price"].as_u64() {
+                    // Stage 2 names the Euro amount of the renewal too (AGB 6.5).
+                    Some(monthly) if stage2 => (
+                        format!(
+                            "Laufzeit: 1 {unit_de}. Danach läuft deine monatliche Verlängerung weiter ({} Morphcoins = {} inkl. {vat_de}\u{a0}% MwSt. je Monat).",
+                            group_digits(monthly, '.'),
+                            euros_de(monthly)
+                        ),
+                        format!(
+                            "Term: 1 {unit_en}. After that, your monthly renewal continues ({} Morphcoins = {} incl. {vat_en}% VAT per month).",
+                            group_digits(monthly, ','),
+                            euros_en(monthly)
+                        ),
+                    ),
                     Some(monthly) => (
                         format!(
                             "Laufzeit: 1 {unit_de}. Danach läuft deine monatliche Verlängerung weiter ({} Morphcoins je Monat).",
@@ -433,13 +508,26 @@ where
         Ok(OfferSummary {
             de: OfferWording {
                 lines: de,
-                declaration: DECLARATION.into(),
+                declaration: declaration.0.into(),
             },
             en: OfferWording {
                 lines: en,
-                declaration: DECLARATION_EN.into(),
+                declaration: declaration.1.into(),
             },
         })
+    }
+
+    /// The declaration of an offer (German, English): stage 1 asks every paid order for the
+    /// early start; stage 2 only a Premium period that begins within the withdrawal period.
+    fn declaration_for(stage2: bool, product: &PurchaseProduct) -> (&'static str, &'static str) {
+        if !stage2 {
+            return (DECLARATION, DECLARATION_EN);
+        }
+        if product.kind.starts_with("premium_") && product.facts["early_start"] == json!(true) {
+            (DECLARATION_PREMIUM, DECLARATION_PREMIUM_EN)
+        } else {
+            ("", "")
+        }
     }
 
     async fn unresolved(
@@ -510,7 +598,11 @@ where
         self.ensure_new_product_allowed(&mut txn, user, &product.kind)
             .await?;
         let mode = self.mode_for(&mut txn, user).await?;
-        let documents = self.documents_for(mode)?;
+        let now = Utc::now();
+        // Coins, Premium and hearts issued from the effective date of terms 2026-10 on are
+        // offers of stage 2; the offers of other services keep stage 1.
+        let stage2 = matches!(source, "backend" | "paypal") && self.stage2_at(mode, now);
+        let documents = self.documents_for(mode, stage2)?;
         self.adapt_premium_product(&mut product, mode);
         let provision_window_seconds = if product.service_starts_at.is_none() {
             Some(
@@ -556,8 +648,12 @@ where
         }
         if product.kind.starts_with("premium_") {
             product.facts["renewal"] = self.renewal_fact(&mut txn, user).await?;
+            if stage2 {
+                product.facts["early_start"] =
+                    json!(self.premium_starts_early(&mut txn, user, now).await?);
+            }
         }
-        let now = Utc::now();
+        let declaration = Self::declaration_for(stage2, &product);
         let expires_at = product
             .service_starts_at
             .map_or(now + TimeDelta::minutes(20), |at| {
@@ -569,7 +665,13 @@ where
         // Coins, Premium and hearts get the short summary; the offers of the other services
         // keep the full text they always had.
         let summary = if matches!(source, "backend" | "paypal") {
-            Some(self.summary(&product, provision_window_seconds, mode)?)
+            Some(self.summary(
+                &product,
+                provision_window_seconds,
+                mode,
+                stage2,
+                declaration,
+            )?)
         } else {
             None
         };
@@ -603,9 +705,10 @@ where
             document_hash: documents.hash(),
             hash: String::new(),
             text,
-            declaration: DECLARATION.into(),
+            declaration: declaration.0.into(),
             provision_window_seconds,
             summary,
+            acceptance: stage2.then_some(OfferAcceptance::Button),
         };
         offer.hash = format!(
             "{:x}",
@@ -673,10 +776,16 @@ where
         }
         if o.hash != a.offer_hash
             || !a.accepted
-            || (o.product.coins > 0 && !a.early_performance_requested)
+            || (o.requires_early_performance() && !a.early_performance_requested)
         {
             return Err(PurchaseError::OfferRequired);
         }
+        // A stage-2 offer without a declaration showed none, so none is recorded for it.
+        let a = PurchaseAcceptance {
+            early_performance_requested: a.early_performance_requested
+                && (o.acceptance.is_none() || !o.declaration.is_empty()),
+            ..a
+        };
         if record.submission.as_ref().is_some_and(|old| old != &a) {
             return Err(PurchaseError::OfferRequired);
         }
@@ -724,7 +833,14 @@ where
             return Ok(self.owned(user, o.id).await?.status);
         }
         let mode = self.mode_for(&mut txn, user).await?;
-        let documents = self.documents_for(mode)?;
+        // An offer is held to the documents and rules it was issued with, whenever it is
+        // accepted. If stage 2 is no longer configured, its offers are refused as changed.
+        let stage2 = o.acceptance == Some(OfferAcceptance::Button);
+        let documents = if stage2 && self.purchase_config.stage2.is_none() {
+            None
+        } else {
+            Some(self.documents_for(mode, stage2)?)
+        };
         let mut expected = if source == "backend" {
             Some(self.builtin(&o.product.kind)?)
         } else {
@@ -736,6 +852,13 @@ where
             self.adapt_premium_product(expected, mode);
             // The renewal the offer named must still be the account's renewal.
             expected.facts["renewal"] = self.renewal_fact(&mut txn, user).await?;
+            // Whether the period begins within the withdrawal period decided the declaration.
+            if stage2 {
+                expected.facts["early_start"] = json!(
+                    self.premium_starts_early(&mut txn, user, Utc::now())
+                        .await?
+                );
+            }
         }
         if let Some(ref mut expected) = expected
             && o.product.kind == "hearts"
@@ -744,7 +867,7 @@ where
             expected.description = o.product.description.clone();
         }
         if o.expires_at <= Utc::now()
-            || o.document_hash != documents.hash()
+            || documents.is_none_or(|documents| o.document_hash != documents.hash())
             || expected.is_some_and(|v| v != o.product)
         {
             self.purchase_repo
@@ -809,15 +932,20 @@ where
             .provision_window_seconds
             .and_then(|s| accepted_at.checked_add_signed(TimeDelta::seconds(s as i64)))
             .or(o.product.service_starts_at);
+        // The declaration as given; a stage-2 order without one says so in one sentence.
+        let declaration = if a.early_performance_requested {
+            format!("Deine Erklärung zum vorzeitigen Beginn:\n{}", o.declaration)
+        } else if stage2 {
+            "Eine Erklärung zum vorzeitigen Beginn hast du bei dieser Bestellung nicht abgegeben."
+                .to_owned()
+        } else {
+            "Deine Erklärung zum vorzeitigen Beginn:\nFür diese kostenlose Bestellung hast du keinen vorzeitigen Beginn angefordert.".to_owned()
+        };
         let body = format!(
-            "Hallo,\n\nhier ist die Vertragsbestätigung für deine Bestellung „{}“. Den Stand findest du unter https://bootstrap.academy/orders.\n\nDein vereinbartes Angebot:\n{}\n\nDeine Erklärung zum vorzeitigen Beginn:\n{}\n\nDie vereinbarten AGB und Widerrufsinformationen findest du als PDF im Anhang.\n\nViele Grüße\nDein Bootstrap Academy Team\n\nBestellnummer: {}\nEmpfänger: {}\nBestellt am: {}",
+            "Hallo,\n\nhier ist die Vertragsbestätigung für deine Bestellung „{}“. Den Stand findest du unter https://bootstrap.academy/orders.\n\nDein vereinbartes Angebot:\n{}\n\n{}\n\nDie vereinbarten AGB und Widerrufsinformationen findest du als PDF im Anhang.\n\nViele Grüße\nDein Bootstrap Academy Team\n\nBestellnummer: {}\nEmpfänger: {}\nBestellt am: {}",
             order_name(o),
             agreed_offer(o),
-            if a.early_performance_requested {
-                &o.declaration
-            } else {
-                "Für diese kostenlose Bestellung hast du keinen vorzeitigen Beginn angefordert."
-            },
+            declaration,
             o.id,
             o.recipient,
             accepted_at.format("%d.%m.%Y um %H:%M Uhr (UTC)"),

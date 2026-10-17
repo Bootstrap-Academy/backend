@@ -366,13 +366,16 @@ pub struct PremiumConfig {
     pub yearly_price: u64,
 }
 
+/// An unknown key is refused: a typo such as `[purchase.stage_2]` would otherwise leave
+/// stage 2 off without a word.
 #[derive(Debug, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct PurchaseConfig {
     /// No commercial duration is inferred. Missing immediate-product entries
     /// disable new offers, while already accepted obligations keep recovering.
     #[serde(default)]
     pub provision_window_seconds: HashMap<String, u64>,
-    /// Stage 2 of the order dialog with terms 2026-10, from a fixed time on. Unset: every
+    /// Stage 2 of the order dialog with terms 2026-10, from their start on. Unset: every
     /// offer keeps stage 1.
     #[serde(default)]
     pub stage2: Option<academy_models::purchase::PurchaseStage2Config>,
@@ -667,10 +670,10 @@ mod tests {
     }
 
     #[test]
-    fn purchase_stage_two_is_unset_by_default_and_reads_its_date_and_documents() {
+    fn purchase_stage_two_is_unset_by_default_and_reads_its_manifest() {
         let config = super::load_paths(&[] as &[&str], &MINIMAL_OVERRIDES).unwrap();
         assert!(config.purchase.stage2.is_none());
-        let extra = "[purchase.stage2]\neffective_from='2026-12-08T23:00:00Z'\n[purchase.stage2.documents]\nterms_version='2026-10'\nterms_pdf_path='/synthetic/agb-2026-10.pdf'\nterms_sha256='a'\nwithdrawal_pdf_path='/synthetic/widerrufsbelehrung-2026-10.pdf'\nwithdrawal_sha256='b'";
+        let extra = "[purchase.stage2]\nmanifest_path='/synthetic/purchase-document-manifest-2026-10.json'\nmanifest_sha256='a'";
         let overrides = MINIMAL_OVERRIDES
             .into_iter()
             .chain([extra])
@@ -678,16 +681,39 @@ mod tests {
         let config = super::load_paths(&[] as &[&str], &overrides).unwrap();
         let stage2 = config.purchase.stage2.unwrap();
         assert_eq!(
-            stage2.effective_from.to_rfc3339(),
-            "2026-12-08T23:00:00+00:00"
+            stage2.manifest_path.to_str(),
+            Some("/synthetic/purchase-document-manifest-2026-10.json")
         );
-        assert_eq!(stage2.documents.terms_version.to_string(), "2026-10");
-        // An unknown key is a typo that would leave stage 2 off unnoticed.
+        assert_eq!(stage2.manifest_sha256, "a");
+    }
+
+    /// A typo in a key of `[purchase]` or its tables would leave stage 2 off without a word.
+    #[test]
+    fn unknown_purchase_keys_are_refused() {
+        for extra in [
+            "[purchase.stage_2]\nmanifest_path='/m.json'\nmanifest_sha256='a'",
+            "[purchase]\nstage_2={manifest_path='/m.json',manifest_sha256='a'}",
+            "[purchase.stage2]\nmanifest='/m.json'\nmanifest_sha256='a'",
+            "[purchase.stage2]\nmanifest_path='/m.json'\nmanifest_sha256='a'\neffective_from='2026-12-09T00:00:00+01:00'",
+        ] {
+            let overrides = MINIMAL_OVERRIDES
+                .into_iter()
+                .chain([extra])
+                .collect::<Vec<_>>();
+            assert!(
+                super::load_paths(&[] as &[&str], &overrides).is_err(),
+                "{extra}"
+            );
+        }
+        // The settings Test and Prod use today still load (read from the generated files on
+        // both hosts, 17.10.2026): the provision windows and nothing else in `[purchase]`.
+        let today = "[purchase.provision_window_seconds]\ncoins=86400\ncourse=86400\nhearts=86400\npremium_monthly=86400\npremium_yearly=86400";
         let overrides = MINIMAL_OVERRIDES
             .into_iter()
-            .chain(["[purchase.stage2]\neffective='2026-12-08T23:00:00Z'"])
+            .chain([today])
             .collect::<Vec<_>>();
-        assert!(super::load_paths(&[] as &[&str], &overrides).is_err());
+        let config = super::load_paths(&[] as &[&str], &overrides).unwrap();
+        assert_eq!(config.purchase.provision_window_seconds.len(), 5);
     }
 
     #[test]

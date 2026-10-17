@@ -60,6 +60,8 @@ pub struct PremiumFeatureConfig {
     pub monthly_price: u64,
     pub yearly_price: u64,
     pub daily_documents: Option<documents::PurchaseDocuments>,
+    /// Stage 2 of the order dialog: from its start, the monthly renewal binds its documents.
+    pub stage2: Option<documents::PurchaseStage2>,
 }
 
 impl<

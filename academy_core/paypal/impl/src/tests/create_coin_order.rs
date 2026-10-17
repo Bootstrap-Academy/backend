@@ -41,6 +41,7 @@ fn accepted() -> PurchaseStatus {
             provision_window_seconds: None,
             summary: None,
             acceptance: None,
+            terms_version: None,
         },
         state: "awaiting_payment".into(),
         accepted_at: Some(now),

@@ -64,6 +64,10 @@ pub struct PurchaseOffer {
     /// those keep their acceptance box and declaration.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub acceptance: Option<OfferAcceptance>,
+    /// The version of the terms the offer binds, for offers of stage 2 on (`2026-10`), so a
+    /// client can name and link exactly that version. Absent for offers before.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub terms_version: Option<String>,
 }
 
 /// How an offer is accepted (stage 2 of the order dialog, terms 2026-10).
@@ -87,14 +91,49 @@ impl PurchaseOffer {
     }
 }
 
-/// Stage 2 of the order dialog: from `effective_from` on, the backend issues its own offers
-/// under the configured terms version and documents (terms 2026-10). Offers issued before
-/// keep their own documents and rules.
+/// Stage 2 of the order dialog: from the start of terms 2026-10 on, the backend issues its own
+/// offers under their documents. Offers issued before keep their own documents and rules.
+///
+/// Everything comes from the manifest that `scripts/render-purchase-documents.py --release
+/// 2026-10` writes next to the two PDFs: the start, the terms version, the file names and their
+/// SHA-256. The date printed in the PDFs and the moment of the switch therefore come from one
+/// value.
 #[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct PurchaseStage2Config {
-    pub effective_from: DateTime<Utc>,
-    pub documents: crate::learning_policy::LearningDocumentBundleConfig,
+    /// Absolute path of `purchase-document-manifest-2026-10.json`; the PDFs lie next to it.
+    pub manifest_path: std::path::PathBuf,
+    /// SHA-256 of the manifest, as the render script printed it.
+    pub manifest_sha256: String,
+}
+
+/// The manifest of rendered purchase documents (`scripts/render-purchase-documents.py`). Only
+/// the values the backend binds are read; the rest documents the rendering.
+#[derive(Debug, Clone, Deserialize)]
+pub struct PurchaseDocumentManifest {
+    pub release: String,
+    /// The start of the terms, an ISO timestamp with an offset.
+    pub effective_from: DateTime<chrono::FixedOffset>,
+    /// The frontend commit the texts were rendered from; `-dirty` marks a checkout with changes.
+    pub frontend_commit: String,
+    pub bundle: PurchaseDocumentManifestBundle,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct PurchaseDocumentManifestBundle {
+    pub terms_version: String,
+    /// File name of the terms PDF next to the manifest.
+    pub terms_pdf: String,
+    pub terms_sha256: String,
+    /// File name of the withdrawal instructions PDF next to the manifest.
+    pub withdrawal_pdf: String,
+    pub withdrawal_sha256: String,
+}
+
+impl PurchaseDocumentManifest {
+    pub fn parse(bytes: &[u8]) -> anyhow::Result<Self> {
+        Ok(serde_json::from_slice(bytes)?)
+    }
 }
 
 /// An offer's order summary in German and in English.

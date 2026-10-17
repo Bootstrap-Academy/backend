@@ -3,7 +3,7 @@ use academy_assets::email::{AGB_2026_09_R4_PDF, WIDERRUFSBELEHRUNG_2026_09_R1_PD
 use academy_auth_contracts::{AuthResultExt, AuthService, internal::AuthInternalService};
 use academy_core_heart_contracts::heart::HeartService;
 use academy_core_heart_impl::HeartFeatureConfig;
-pub use academy_core_premium_impl::documents::PurchaseDocuments;
+pub use academy_core_premium_impl::documents::{PurchaseDocuments, PurchaseStage2};
 use academy_core_premium_impl::{PremiumFeatureConfig, period::add_months};
 use academy_core_purchase_contracts::{PurchaseError, PurchaseFeatureService};
 use academy_di::Build;
@@ -14,6 +14,7 @@ use academy_models::{
     auth::{AccessToken, InternalToken},
     coin::Transaction as CoinTransaction,
     learning_policy::{LearningMode, LearningPolicy, LearningPolicyConfig},
+    legal_time::withdrawal_period_end,
     premium::Premium,
     purchase::*,
     user::UserId,
@@ -41,16 +42,6 @@ pub struct PurchaseFeatureConfig {
     pub stage2: Option<PurchaseStage2>,
 }
 
-/// From `effective_from` on, the backend issues its own offers of stage 2 (terms 2026-10):
-/// they bind `documents`, are accepted with the order button, and carry a declaration only
-/// for a Premium period that begins within the withdrawal period. Offers issued before keep
-/// their own documents and rules.
-#[derive(Debug, Clone)]
-pub struct PurchaseStage2 {
-    pub effective_from: DateTime<Utc>,
-    pub documents: PurchaseDocuments,
-}
-
 // An early-performance request is recorded; this release does not assert that
 // unresolved product classification or a checkbox extinguishes withdrawal rights.
 const DECLARATION: &str = "Ich verlange ausdrücklich, dass mit der bestellten Leistung vor Ablauf der Widerrufsfrist begonnen wird. Meine gesetzlichen Widerrufs- und Mängelrechte bleiben unberührt.";
@@ -59,8 +50,9 @@ const DECLARATION_EN: &str = "I expressly request that the ordered service begin
 /// Stage 2 (Widerrufsbelehrung 2026-10, "Erklärungen bei der Bestellung"): the only
 /// declaration left, for a Premium period that begins within the withdrawal period.
 const DECLARATION_PREMIUM: &str = "Ich verlange ausdrücklich, dass das bestellte Premium schon vor Ablauf der Widerrufsfrist von 14 Tagen startet. Widerrufe ich, zahle ich nur den Anteil des Preises für die Tage, an denen dieses Premium bis zu meinem Widerruf schon lief.";
-/// `DECLARATION_PREMIUM` for the English interface. The German wording is the one agreed.
-const DECLARATION_PREMIUM_EN: &str = "I expressly request that the Premium I ordered starts before the 14-day withdrawal period ends. If I withdraw, I only pay the share of the price for the days on which this Premium had already run until my withdrawal.";
+/// `DECLARATION_PREMIUM` for the English interface, word for word as the English translation
+/// of the Widerrufsbelehrung 2026-10 quotes it. The German wording is the one agreed.
+const DECLARATION_PREMIUM_EN: &str = "I expressly request that the Premium I have ordered starts before the 14-day withdrawal period ends. If I withdraw, I pay only the share of the price for the days on which this Premium had already been running up to my withdrawal.";
 /// Revision of the short order summary, part of every builtin product revision. It rises
 /// when an offer issued before would promise something other than today's product, so that
 /// accepting it fails without a charge. A change of the wording that keeps every promise
@@ -234,11 +226,14 @@ where
                 .purchase_config
                 .stage2
                 .as_ref()
-                .is_some_and(|stage2| at >= stage2.effective_from)
+                .is_some_and(|stage2| stage2.applies_at(at))
     }
 
-    /// Whether a Premium period ordered at `now` begins within the withdrawal period of 14
-    /// days: at once, or after a paid period that ends sooner (AGB 2026-10, 11.1). Only then
+    /// Whether a Premium period ordered at `now` begins within the withdrawal period: at once,
+    /// or after a paid period that ends no later than the period (AGB 2026-10, 11.1). The
+    /// period ends with the Berlin calendar day 14 days after the order, moved past following
+    /// weekends and nationwide holidays (`withdrawal_period_end`). A period that ends exactly
+    /// then counts as early: asking for the declaration once too often does no harm. Only then
     /// does a stage-2 offer carry the declaration on the early start.
     async fn premium_starts_early(
         &self,
@@ -251,7 +246,7 @@ where
             .get_latest_by_user_id(txn, user)
             .await?
             .map(|premium| premium.until);
-        Ok(paid_until.is_none_or(|until| until < now + TimeDelta::days(14)))
+        Ok(paid_until.is_none_or(|until| until <= withdrawal_period_end(now)))
     }
 
     /// The monthly renewal the account ordered separately, as a Premium offer states it:
@@ -709,6 +704,7 @@ where
             provision_window_seconds,
             summary,
             acceptance: stage2.then_some(OfferAcceptance::Button),
+            terms_version: stage2.then(|| documents.terms_version.clone()),
         };
         offer.hash = format!(
             "{:x}",

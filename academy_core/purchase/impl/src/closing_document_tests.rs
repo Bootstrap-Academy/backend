@@ -439,6 +439,7 @@ fn sut_with_database(
             monthly_price: 1000,
             yearly_price: 10000,
             daily_documents: None,
+            stage2: None,
         },
         heart_config: HeartFeatureConfig {
             hearts_max: 10,
@@ -1214,49 +1215,159 @@ fn daily_document_bundle_requires_matching_version_exact_hashes_and_new_terms() 
     std::fs::remove_dir_all(&dir).unwrap();
 }
 
+/// A rendered bundle of stage 2 in its own directory: two PDFs and the manifest of
+/// `scripts/render-purchase-documents.py --release 2026-10` next to them.
+struct Stage2Bundle {
+    dir: std::path::PathBuf,
+}
+
+impl Stage2Bundle {
+    fn new() -> Self {
+        let dir = std::env::temp_dir().join(format!("academy-stage2-bundle-{}", Uuid::new_v4()));
+        std::fs::create_dir(&dir).unwrap();
+        std::fs::write(dir.join("agb-2026-10.pdf"), STAGE2_TERMS).unwrap();
+        std::fs::write(
+            dir.join("widerrufsbelehrung-2026-10.pdf"),
+            STAGE2_WITHDRAWAL,
+        )
+        .unwrap();
+        Self { dir }
+    }
+
+    /// Writes a manifest with `edit` applied to its JSON and returns the config pinning it.
+    fn manifest(
+        &self,
+        edit: impl FnOnce(&mut serde_json::Value),
+    ) -> academy_models::purchase::PurchaseStage2Config {
+        let mut manifest = json!({
+            "release": "2026-10",
+            "rendering": "local static HTML, A4",
+            "effective_from": "2026-12-09T00:00:00+01:00",
+            "effective_date_de": "9. Dezember 2026",
+            "effective_date_en": "9 December 2026",
+            "frontend_commit": "0123456789abcdef0123456789abcdef01234567",
+            "documents": [],
+            "bundle": {
+                "terms_version": "2026-10",
+                "terms_pdf": "agb-2026-10.pdf",
+                "terms_sha256": format!("{:x}", Sha256::digest(STAGE2_TERMS)),
+                "withdrawal_pdf": "widerrufsbelehrung-2026-10.pdf",
+                "withdrawal_sha256": format!("{:x}", Sha256::digest(STAGE2_WITHDRAWAL)),
+            },
+        });
+        edit(&mut manifest);
+        let bytes = serde_json::to_vec_pretty(&manifest).unwrap();
+        let path = self
+            .dir
+            .join(format!("manifest-{}.json", Uuid::new_v4().simple()));
+        std::fs::write(&path, &bytes).unwrap();
+        academy_models::purchase::PurchaseStage2Config {
+            manifest_path: path,
+            manifest_sha256: format!("{:x}", Sha256::digest(&bytes)),
+        }
+    }
+}
+
+impl Drop for Stage2Bundle {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.dir);
+    }
+}
+
+const STAGE2_TERMS: &[u8] = b"%PDF-1.7 synthetic terms 2026-10";
+const STAGE2_WITHDRAWAL: &[u8] = b"%PDF-1.7 synthetic withdrawal 2026-10";
+
 #[test]
-fn stage_two_documents_need_exact_hashes_and_documents_of_their_own() {
-    use academy_models::{
-        learning_policy::LearningDocumentBundleConfig, purchase::PurchaseStage2Config,
-    };
+fn stage_two_takes_start_version_and_documents_from_its_pinned_manifest() {
     assert!(PurchaseDocuments::load_stage2(None).unwrap().is_none());
-    let dir = std::env::temp_dir().join(format!("academy-stage2-bundle-{}", Uuid::new_v4()));
-    std::fs::create_dir(&dir).unwrap();
-    let terms = b"%PDF-1.7 synthetic terms 2026-10";
-    let withdrawal = b"%PDF-1.7 synthetic withdrawal 2026-10";
-    let (terms_path, withdrawal_path) = (dir.join("terms.pdf"), dir.join("withdrawal.pdf"));
-    std::fs::write(&terms_path, terms).unwrap();
-    std::fs::write(&withdrawal_path, withdrawal).unwrap();
-    let from = Utc::now();
-    let mut config = PurchaseStage2Config {
-        effective_from: from,
-        documents: LearningDocumentBundleConfig {
-            terms_version: "2026-10".try_into().unwrap(),
-            terms_pdf_path: terms_path.clone(),
-            terms_sha256: format!("{:x}", Sha256::digest(terms)),
-            withdrawal_pdf_path: withdrawal_path.clone(),
-            withdrawal_sha256: format!("{:x}", Sha256::digest(withdrawal)),
-        },
-    };
-    let (effective_from, documents) = PurchaseDocuments::load_stage2(Some(&config))
+    let bundle = Stage2Bundle::new();
+    let stage2 = PurchaseDocuments::load_stage2(Some(&bundle.manifest(|_| {})))
         .unwrap()
         .unwrap();
-    assert_eq!(effective_from, from);
-    assert_eq!(documents.terms_version, "2026-10");
-    assert_eq!(documents.hash(), document_hash(terms, withdrawal));
-    // A PDF that is not the approved one.
-    config.documents.withdrawal_sha256 = "0".repeat(64);
-    assert!(PurchaseDocuments::load_stage2(Some(&config)).is_err());
-    config.documents.withdrawal_sha256 = format!("{:x}", Sha256::digest(withdrawal));
-    // The version or the documents of stage 1.
-    config.documents.terms_version = "2026-09-r4".try_into().unwrap();
-    assert!(PurchaseDocuments::load_stage2(Some(&config)).is_err());
-    config.documents.terms_version = "2026-10".try_into().unwrap();
-    std::fs::write(&withdrawal_path, WIDERRUFSBELEHRUNG_2026_09_R1_PDF).unwrap();
-    config.documents.withdrawal_sha256 =
-        format!("{:x}", Sha256::digest(WIDERRUFSBELEHRUNG_2026_09_R1_PDF));
-    assert!(PurchaseDocuments::load_stage2(Some(&config)).is_err());
-    std::fs::remove_dir_all(&dir).unwrap();
+    assert_eq!(
+        stage2.effective_from,
+        "2026-12-08T23:00:00Z".parse::<DateTime<Utc>>().unwrap()
+    );
+    assert_eq!(stage2.documents.terms_version, "2026-10");
+    assert_eq!(
+        stage2.documents.hash(),
+        document_hash(STAGE2_TERMS, STAGE2_WITHDRAWAL)
+    );
+    // A start in summer time works the same way.
+    let summer = bundle.manifest(|m| m["effective_from"] = json!("2027-06-01T00:00:00+02:00"));
+    assert_eq!(
+        PurchaseDocuments::load_stage2(Some(&summer))
+            .unwrap()
+            .unwrap()
+            .effective_from,
+        "2027-05-31T22:00:00Z".parse::<DateTime<Utc>>().unwrap()
+    );
+}
+
+#[test]
+fn stage_two_refuses_a_manifest_that_does_not_fit() {
+    let bundle = Stage2Bundle::new();
+    let refused = |config: academy_models::purchase::PurchaseStage2Config, what: &str| {
+        assert!(
+            PurchaseDocuments::load_stage2(Some(&config)).is_err(),
+            "{what}"
+        );
+    };
+    // The manifest itself is not the pinned one, or not where it should be.
+    let mut config = bundle.manifest(|_| {});
+    config.manifest_sha256 = "0".repeat(64);
+    refused(config, "manifest checksum");
+    let mut config = bundle.manifest(|_| {});
+    config.manifest_path = std::path::PathBuf::from("relative/manifest.json");
+    refused(config, "relative path");
+    // A start that is not 00:00 in Berlin, the version or release of stage 1, a dirty render.
+    for (what, edit) in [
+        (
+            "start at 00:00 UTC",
+            json!({"effective_from": "2026-12-09T00:00:00Z"}),
+        ),
+        (
+            "start without offset",
+            json!({"effective_from": "2026-12-09T00:00:00"}),
+        ),
+        ("release r4", json!({"release": "2026-09-r4"})),
+        (
+            "rendered from changes",
+            json!({"frontend_commit": "0123456789abcdef-dirty"}),
+        ),
+    ] {
+        refused(
+            bundle.manifest(|m| {
+                for (key, value) in edit.as_object().unwrap() {
+                    m[key] = value.clone();
+                }
+            }),
+            what,
+        );
+    }
+    for (what, key, value) in [
+        ("terms version r3", "terms_version", json!("2026-09-r3")),
+        ("PDF checksum", "withdrawal_sha256", json!("0".repeat(64))),
+        ("PDF outside", "terms_pdf", json!("../agb-2026-10.pdf")),
+        ("missing PDF", "terms_pdf", json!("agb-2026-11.pdf")),
+    ] {
+        refused(bundle.manifest(|m| m["bundle"][key] = value), what);
+    }
+    // The documents of stage 1.
+    std::fs::write(
+        bundle.dir.join("widerrufsbelehrung-2026-10.pdf"),
+        WIDERRUFSBELEHRUNG_2026_09_R1_PDF,
+    )
+    .unwrap();
+    refused(
+        bundle.manifest(|m| {
+            m["bundle"]["withdrawal_sha256"] = json!(format!(
+                "{:x}",
+                Sha256::digest(WIDERRUFSBELEHRUNG_2026_09_R1_PDF)
+            ))
+        }),
+        "withdrawal of stage 1",
+    );
 }
 
 #[tokio::test]
@@ -1595,17 +1706,19 @@ async fn stage_two_begins_exactly_at_its_effective_date() {
             .status
             .offer;
         assert_eq!(offer.acceptance, None);
+        assert_eq!(offer.terms_version, None);
         assert_eq!(offer.declaration, DECLARATION);
         assert_eq!(offer.document_hash, legacy);
         assert!(offer.requires_early_performance());
     }
     // From the effective date on: the order button accepts, the documents are those of
-    // stage 2, and a heart refill carries no declaration.
+    // stage 2, the offer names their version, and a heart refill carries no declaration.
     let offer = issued_in("hearts", None, None, Some(stage2.clone()))
         .await
         .status
         .offer;
     assert_eq!(offer.acceptance, Some(OfferAcceptance::Button));
+    assert_eq!(offer.terms_version.as_deref(), Some("2026-10"));
     assert_eq!(offer.document_hash, stage2.documents.hash());
     assert_eq!(offer.declaration, "");
     let summary = offer.summary.as_ref().unwrap();
@@ -1619,6 +1732,52 @@ async fn stage_two_begins_exactly_at_its_effective_date() {
     assert!(!offer.requires_early_performance());
     // The lines of a heart refill are those of stage 1.
     assert!(offer.text.contains("und hast dann 5 von 5."));
+}
+
+/// The switch happens at the configured moment itself, and never for the Daily cohort.
+#[test]
+fn stage_two_applies_from_its_start_inclusive() {
+    let start: DateTime<Utc> = "2026-12-08T23:00:00Z".parse().unwrap();
+    let mut s = sut_with_database(
+        Arc::new(Mutex::new(Saved::default())),
+        false,
+        true,
+        database_any(),
+    );
+    assert!(!s.stage2_at(LearningMode::Legacy, start));
+    s.purchase_config.stage2 = Some(stage2_from(start));
+    assert!(s.stage2_at(LearningMode::Legacy, start));
+    assert!(s.stage2_at(LearningMode::Shadow, start));
+    assert!(!s.stage2_at(LearningMode::Legacy, start - TimeDelta::nanoseconds(1)));
+    assert!(!s.stage2_at(LearningMode::Daily, start + TimeDelta::days(1)));
+}
+
+/// The declarations of stage 2 are the sentences the Widerrufsbelehrung 2026-10 and its
+/// English translation quote under "Erklärungen bei der Bestellung" / "Declarations when you
+/// order". The fixtures are copies of the reviewed drafts without their internal header
+/// comment (`legal/agb-fassung-2026-10-16/entwurf-v2/`, SHA-256 of the drafts `999c3bc7…`
+/// and `99803313…`); the frontend tests pin the same copies.
+#[test]
+fn the_premium_declaration_is_the_sentence_of_the_withdrawal_instructions() {
+    for (fixture, sha256, quoted) in [
+        (
+            include_str!("../tests/fixtures/legal-2026-10/widerrufsbelehrung-2026-10.md"),
+            "b99f539e738234b918526aada586eba2a142c4fa958a08a167882611f9250687",
+            format!("„{DECLARATION_PREMIUM}“"),
+        ),
+        (
+            include_str!("../tests/fixtures/legal-2026-10/widerrufsbelehrung-2026-10-en.md"),
+            "d9d646bad4ac30175b8a764a1ee32dfa09664a232334128551371e60734712de",
+            format!("In English: \"{DECLARATION_PREMIUM_EN}\""),
+        ),
+    ] {
+        assert_eq!(format!("{:x}", Sha256::digest(fixture)), sha256);
+        assert_eq!(
+            fixture.lines().filter(|line| *line == quoted).count(),
+            1,
+            "{quoted}"
+        );
+    }
 }
 
 #[tokio::test]
@@ -1657,12 +1816,18 @@ async fn a_heart_refill_of_stage_two_is_accepted_without_a_declaration() {
 }
 
 #[tokio::test]
-async fn premium_of_stage_two_asks_for_the_early_start_only_when_it_begins_within_14_days() {
+async fn premium_of_stage_two_asks_for_the_early_start_only_when_it_begins_within_the_withdrawal_period()
+ {
     let stage2 = stage2_from(Utc::now() - TimeDelta::seconds(1));
+    // The period ends with the Berlin day 14 days after the order, moved past weekends and
+    // holidays; a paid period that ends exactly then still counts as early.
+    let end = withdrawal_period_end(Utc::now());
     for (paid_until, early) in [
         (None, true),
         (Some(Utc::now() - TimeDelta::days(1)), true),
         (Some(Utc::now() + TimeDelta::days(13)), true),
+        (Some(end), true),
+        (Some(end + TimeDelta::seconds(1)), false),
         (Some(Utc::now() + TimeDelta::days(30)), false),
     ] {
         let record = issued_in("premium_monthly", None, paid_until, Some(stage2.clone())).await;

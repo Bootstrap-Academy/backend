@@ -168,20 +168,18 @@ monthly_price = 1000
 yearly_price = 10000
 
 # Stage 2 of the order dialog with terms 2026-10. Unset, as here, every offer keeps
-# stage 1. From `effective_from` on (the effective date of the terms), the backend's own
-# offers for coins, Premium and hearts bind the configured documents and are accepted with
-# the order button alone; only a Premium period that begins within the withdrawal period
-# still needs the declaration on the early start. Offers issued before keep their own
-# documents and rules. The PDFs are rendered with the effective date and pinned here:
+# stage 1. From the start of the terms on, the backend's own offers for coins, Premium and
+# hearts and the monthly Premium renewal bind the documents of 2026-10, and offers are
+# accepted with the order button alone; only a Premium period that begins within the
+# withdrawal period still needs the declaration on the early start. Offers issued before
+# keep their own documents and rules. Start, terms version, PDFs and their SHA-256 come
+# from the manifest of `scripts/render-purchase-documents.py --release 2026-10`, which lies
+# next to the two PDFs (docs/legal-documents-2026-10.md); the start in it is 00:00 in
+# Europe/Berlin, for example 2026-12-09T00:00:00+01:00:
 #
 # [purchase.stage2]
-# effective_from = "2026-12-08T23:00:00Z"
-# [purchase.stage2.documents]
-# terms_version = "2026-10"
-# terms_pdf_path = "/path/to/agb-2026-10.pdf"
-# terms_sha256 = "..."
-# withdrawal_pdf_path = "/path/to/widerrufsbelehrung-2026-10.pdf"
-# withdrawal_sha256 = "..."
+# manifest_path = "/path/to/purchase-document-manifest-2026-10.json"
+# manifest_sha256 = "..."
 
 [render]
 # daemon_url = ""

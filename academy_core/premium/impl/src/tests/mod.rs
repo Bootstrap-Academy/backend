@@ -32,6 +32,7 @@ impl Default for PremiumFeatureConfig {
             monthly_price: 1000,
             yearly_price: 10000,
             daily_documents: None,
+            stage2: None,
         }
     }
 }

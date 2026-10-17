@@ -205,9 +205,12 @@ where
         // Unapproved remote creation may be retried after a lost response; no ID
         // is exposed until its original accepted offer and payment snapshot commit.
         let facts = &accepted.offer.product.facts;
-        let withdrawal_text_version = "L1-request-2026-09"
-            .try_into()
-            .context("Request revision")?;
+        // A coin purchase of stage 2 (terms 2026-10) asks for no early start, so the order
+        // records no such request.
+        let early_start_requested = accepted.offer.requires_early_performance();
+        let withdrawal_text_version = early_start_requested
+            .then(|| "L1-request-2026-09".try_into().context("Request revision"))
+            .transpose()?;
         let order_id = self
             .paypal_api
             .create_order(coins)
@@ -224,8 +227,8 @@ where
             captured_at: None,
             coins,
             invoice_number: self.paypal_repo.get_next_invoice_number(&mut txn).await?,
-            withdrawal_consent_at: accepted.accepted_at,
-            withdrawal_text_version: Some(withdrawal_text_version),
+            withdrawal_consent_at: accepted.accepted_at.filter(|_| early_start_requested),
+            withdrawal_text_version,
         };
         self.paypal_repo.create_coin_order(&mut txn, &order).await?;
 

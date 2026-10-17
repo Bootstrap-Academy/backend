@@ -14,6 +14,7 @@ pub mod email_address;
 pub mod finance;
 pub mod heart;
 pub mod learning_policy;
+pub mod legal_time;
 mod macros;
 pub mod mfa;
 pub mod oauth2;

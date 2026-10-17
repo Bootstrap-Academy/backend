@@ -322,14 +322,20 @@ impl ConfigProvider {
             auto_refill_time: config.heart.auto_refill_time,
         };
 
+        // Loaded once: offers and the monthly renewal bind the same documents of stage 2.
+        let stage2 = PurchaseDocuments::load_stage2(config.purchase.stage2.as_ref())
+            .context("Failed to load the documents of purchase stage 2")?;
         let premium_feature_config = PremiumFeatureConfig {
             monthly_price: config.premium.monthly_price,
             yearly_price: config.premium.yearly_price,
-            daily_documents: PurchaseDocuments::load_daily(&config.learning_policy)?,
+            daily_documents: PurchaseDocuments::load_daily(&config.learning_policy)
+                .context("Failed to load the documents of the Daily cohort")?,
+            stage2: stage2.clone(),
         };
         let purchase_feature_config = PurchaseFeatureConfig {
             provision_window_seconds: config.purchase.provision_window_seconds.clone(),
             vat_percent: config.finance.vat_percent.normalize().to_string(),
+            stage2,
         };
 
         Ok(Self {

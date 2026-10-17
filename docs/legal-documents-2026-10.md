@@ -73,7 +73,9 @@ in the texts and the moment of the switch are the same day.
    offer names `"terms_version": "2026-10"`, and the PDFs attached to a new order have the
    SHA-256 values of the manifest.
 
-Existing accounts are never asked to accept 2026-10, and from the start the gate for older
-accounts ends: an account that had not accepted 2026-09-r4 keeps the terms it agreed to (AGB
-20.3), and every order binds the version its offer names. The Daily cohort keeps its own
+Existing accounts are never asked to accept 2026-10. The frontend has not mounted the gate for
+older accounts since 11 September 2026 (frontend commit `3a01f90e`, `docs/CONSUMER_UI.md`), so
+nobody is asked for 2026-09-r4 either; its retained code also ends at the start. An account
+that had not accepted 2026-09-r4 keeps the terms it agreed to (AGB 20.3), and every order
+binds the version its offer names. The Daily cohort keeps its own
 document bundle; switching Daily on after the start needs its own decision.

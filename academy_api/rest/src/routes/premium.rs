@@ -3,7 +3,10 @@ use std::{collections::HashMap, sync::Arc};
 use academy_core_premium_contracts::{
     PremiumFeatureService, PremiumGetStatusError, PremiumUpdateSubscriptionError,
 };
-use academy_models::premium::PremiumRenewalConsent;
+use academy_models::{
+    premium::{PremiumRenewalConsent, PremiumRenewalOffer},
+    purchase::OfferLanguage,
+};
 use aide::{
     axum::{ApiRouter, routing},
     transform::TransformOperation,
@@ -75,19 +78,28 @@ struct RenewalOfferResponse {
     id: String,
     monthly_price: u64,
     terms_version: String,
+    /// The offer with its declarations in the agreed German wording.
     text: String,
+    /// `text` for the English interface; the German wording is binding. Part of the offer `id`.
+    text_en: String,
+}
+
+impl From<PremiumRenewalOffer> for RenewalOfferResponse {
+    fn from(offer: PremiumRenewalOffer) -> Self {
+        Self {
+            id: offer.id,
+            monthly_price: offer.monthly_price,
+            terms_version: offer.terms_version,
+            text: offer.text,
+            text_en: offer.text_en,
+        }
+    }
 }
 
 async fn get_renewal_offer(
     service: State<Arc<impl PremiumFeatureService>>,
 ) -> Json<RenewalOfferResponse> {
-    let offer = service.get_renewal_offer();
-    Json(RenewalOfferResponse {
-        id: offer.id,
-        monthly_price: offer.monthly_price,
-        terms_version: offer.terms_version,
-        text: offer.text,
-    })
+    Json(service.get_renewal_offer().into())
 }
 
 async fn get_plans(service: State<Arc<impl PremiumFeatureService>>) -> Response {
@@ -144,6 +156,10 @@ struct RenewalConsentRequest {
     offer_id: String,
     accepted: bool,
     withdrawal_consent: bool,
+    /// The language in which the offer and its declarations were shown and ticked; absent means
+    /// German. The confirmation repeats them in it, next to the binding German wording.
+    #[serde(default)]
+    language: Option<OfferLanguage>,
 }
 
 async fn update_subscription(
@@ -160,6 +176,7 @@ async fn update_subscription(
                 offer_id: c.offer_id,
                 accepted: c.accepted,
                 withdrawal_consent: c.withdrawal_consent,
+                language: c.language,
             }),
         )
         .await
@@ -198,13 +215,7 @@ async fn get_renewal_offer_for(
     token: ApiToken,
 ) -> Response {
     match service.get_renewal_offer_for(&token.0).await {
-        Ok(offer) => Json(RenewalOfferResponse {
-            id: offer.id,
-            monthly_price: offer.monthly_price,
-            terms_version: offer.terms_version,
-            text: offer.text,
-        })
-        .into_response(),
+        Ok(offer) => Json(RenewalOfferResponse::from(offer)).into_response(),
         Err(PremiumUpdateSubscriptionError::NoPremium) => NoPremiumError.into_response(),
         Err(PremiumUpdateSubscriptionError::RenewalConsentRequired) => {
             RenewalConsentRequiredError.into_response()

@@ -1958,7 +1958,6 @@ async fn the_early_start_is_decided_for_the_expiry_of_the_offer_not_the_clock() 
 /// date it is accepted with its own documents.
 #[tokio::test]
 async fn an_offer_issued_before_the_effective_date_is_refused_from_it_on() {
-    let stage2 = stage2_from(Utc::now() - TimeDelta::seconds(1));
     for kind in ["premium_monthly", "premium_yearly", "hearts", "coins"] {
         let before = if kind == "coins" {
             issued_kind_with_window("coins", 600).await
@@ -1966,11 +1965,14 @@ async fn an_offer_issued_before_the_effective_date_is_refused_from_it_on() {
             issued_in(kind, None, None, None).await
         };
         assert_eq!(before.status.offer.acceptance, None, "{kind}");
+        // The effective date falls between the issue and the acceptance.
+        let stage2 = stage2_from(Utc::now());
+        assert!(before.status.offer.created_at < stage2.effective_from);
         let (status, saved) = accept_in(
             before,
             At {
                 hearts: Some(3),
-                stage2: Some(stage2.clone()),
+                stage2: Some(stage2),
                 source: (kind == "coins").then_some("paypal"),
                 ..At::default()
             },

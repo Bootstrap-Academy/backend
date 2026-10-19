@@ -989,9 +989,10 @@ def check_config(f):
 
 
 def stage_two_switches_on_at_the_start_in_its_manifest(f):
-    """Stage 2 of the order dialog from a pinned manifest: offers before its start keep stage 1
-    and their rules, offers from it are accepted with the button alone and bind the documents of
-    2026-10, and a manifest that is not the pinned one stops both check-config and the start."""
+    """Stage 2 of the order dialog from a pinned manifest: offers before its start are those of
+    stage 1 and are refused as changed, without a charge, once it has begun; offers from it are
+    accepted with the button alone and bind the documents of 2026-10, and a manifest that is not
+    the pinned one stops both check-config and the start."""
     import datetime
     import zoneinfo
 
@@ -1009,16 +1010,17 @@ def stage_two_switches_on_at_the_start_in_its_manifest(f):
         assert before["declaration"], "stage 1 keeps its declaration"
         renewal = f.request("/shop/premium/renewal-offer")["terms_version"]
         assert renewal == "2026-09-r4", renewal
-        # The start has passed: the offer issued before keeps stage 1 and its declaration.
+        # The start has passed: terms 2026-10 apply to every order from now on, so the offer
+        # issued before is refused as changed and nothing is charged.
         f.purchase_extra, start, documents = stage_two_manifest(f, today)
         f.restart()
-        f.accept(user, {"offer": before})
-        assert f.balance(user) == 83, f.balance(user)
+        refused = f.accept(user, {"offer": before})
+        assert refused["state"] == "failed" and refused.get("refusal") == "offer_changed", refused
+        assert f.balance(user) == 100, f.balance(user)
         # The monthly renewal ordered from now on binds the documents of 2026-10.
         renewal = f.request("/shop/premium/renewal-offer")["terms_version"]
         assert renewal == "2026-10", renewal
         # A new offer is one of stage 2 and is accepted without the declaration.
-        f.heart_seed(user, 2)
         after = f.quote(user, "hearts")["offer"]
         assert after.get("acceptance") == "button" and after.get("terms_version") == "2026-10", (start, after)
         assert after["declaration"] == "" and after["document_hash"] == documents, after
@@ -1033,7 +1035,7 @@ def stage_two_switches_on_at_the_start_in_its_manifest(f):
             },
             f.token(user),
         )
-        assert f.balance(user) == 66, f.balance(user)
+        assert f.balance(user) == 83, f.balance(user)
         recorded = f.sql(
             f"SELECT request->>'early_performance_requested' FROM purchase_submissions WHERE order_id='{after['id']}'"
         )

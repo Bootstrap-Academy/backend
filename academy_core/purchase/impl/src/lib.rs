@@ -836,8 +836,9 @@ where
             return Ok(self.owned(user, o.id).await?.status);
         }
         let mode = self.mode_for(&mut txn, user).await?;
-        // An offer is held to the documents and rules it was issued with, whenever it is
-        // accepted. If stage 2 is no longer configured, its offers are refused as changed.
+        // An offer is held to the documents and rules it was issued with. If stage 2 is no
+        // longer configured, its offers are refused as changed; an offer of stage 1 is refused
+        // once stage 2 applies (below).
         let stage2 = o.acceptance == Some(OfferAcceptance::Button);
         let documents = if stage2 && self.purchase_config.stage2.is_none() {
             None
@@ -871,7 +872,17 @@ where
             expected.facts["refill_units"] = o.product.facts["refill_units"].clone();
             expected.description = o.product.description.clone();
         }
-        if o.expires_at <= Utc::now()
+        // The moment the order is received decides its expiry and the terms it falls under,
+        // and the confirmation names it.
+        let accepted_at = self.purchase_repo.timestamp(&mut txn).await?;
+        // Terms 2026-10 apply to every order of coins, Premium and hearts from their effective
+        // date on, the moment `issue` switches to stage 2. An offer issued before binds the
+        // earlier terms, so from then on its acceptance is refused as changed, without a
+        // charge, and the dialog shows a new offer in its place.
+        let superseded =
+            !stage2 && matches!(source, "backend" | "paypal") && self.stage2_at(mode, accepted_at);
+        if o.expires_at <= accepted_at
+            || superseded
             || documents.is_none_or(|documents| o.document_hash != documents.hash())
             || expected.is_some_and(|v| v != o.product)
         {
@@ -932,7 +943,6 @@ where
         } else {
             None
         };
-        let accepted_at = self.purchase_repo.timestamp(&mut txn).await?;
         let deadline = o
             .provision_window_seconds
             .and_then(|s| accepted_at.checked_add_signed(TimeDelta::seconds(s as i64)))

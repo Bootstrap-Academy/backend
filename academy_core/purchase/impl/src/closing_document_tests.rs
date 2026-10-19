@@ -306,6 +306,8 @@ struct At {
     stage2: Option<PurchaseStage2>,
     /// The early start as the request states it; `None` sends it as stage 1 always does.
     early: Option<bool>,
+    /// The source the acceptance comes through; `None` is the backend's own dialog.
+    source: Option<&'static str>,
 }
 /// Accepts the saved `record` as `accept_with` does, with everything `at` sets.
 async fn accept_in(
@@ -319,6 +321,7 @@ async fn accept_in(
         paid_until,
         stage2,
         early,
+        source,
     } = at;
     let acceptance = PurchaseAcceptance {
         order_id: record.status.offer.id,
@@ -366,7 +369,9 @@ async fn accept_in(
             .once()
             .returning(|_, _| Box::pin(std::future::ready(Ok(()))));
     }
-    let status = s.accept_for(subject(), "backend", acceptance, None).await;
+    let status = s
+        .accept_for(subject(), source.unwrap_or("backend"), acceptance, None)
+        .await;
     (status, saved)
 }
 /// Stage 2 in force from `from` on, with documents of its own.
@@ -1941,16 +1946,50 @@ async fn the_early_start_is_decided_for_the_expiry_of_the_offer_not_the_clock() 
     );
 }
 
+/// Terms 2026-10 apply to every order from their effective date on (mail and notice: "für jede
+/// Bestellung ab dem [Datum]"). An offer of stage 1 accepted from then on is refused as
+/// changed, without a charge, so the dialog replaces it with an offer of stage 2. Before the
+/// date it is accepted with its own documents.
 #[tokio::test]
-async fn an_offer_keeps_the_documents_and_rules_it_was_issued_with() {
+async fn an_offer_issued_before_the_effective_date_is_refused_from_it_on() {
     let stage2 = stage2_from(Utc::now() - TimeDelta::seconds(1));
-    // Issued before the effective date, accepted after it: stage 1 with its own documents.
-    let before = issued_in("premium_monthly", None, None, None).await;
+    for kind in ["premium_monthly", "premium_yearly", "hearts", "coins"] {
+        let before = if kind == "coins" {
+            issued_kind_with_window("coins", 600).await
+        } else {
+            issued_in(kind, None, None, None).await
+        };
+        assert_eq!(before.status.offer.acceptance, None, "{kind}");
+        let (status, saved) = accept_in(
+            before,
+            At {
+                hearts: Some(3),
+                stage2: Some(stage2.clone()),
+                source: (kind == "coins").then_some("paypal"),
+                ..At::default()
+            },
+        )
+        .await;
+        let status = status.unwrap();
+        assert_eq!(status.state, "failed", "{kind}");
+        assert_eq!(
+            status.refusal,
+            Some(PurchaseRefusal::OfferChanged),
+            "{kind}"
+        );
+        let saved = saved.lock().unwrap();
+        assert!(!saved.calls.contains(&"record_debit"), "{kind}");
+        assert!(saved.body.is_none(), "{kind}");
+    }
+    // The effective date still ahead: stage 1 with its own documents and declaration.
+    let ahead = stage2_from(Utc::now() + TimeDelta::hours(1));
+    let before = issued_in("premium_monthly", None, None, Some(ahead.clone())).await;
+    assert_eq!(before.status.offer.acceptance, None);
     let (status, saved) = accept_in(
         before,
         At {
             debit: true,
-            stage2: Some(stage2.clone()),
+            stage2: Some(ahead),
             ..At::default()
         },
     )
@@ -1965,6 +2004,11 @@ async fn an_offer_keeps_the_documents_and_rules_it_was_issued_with() {
             .unwrap()
             .contains(DECLARATION)
     );
+}
+
+#[tokio::test]
+async fn an_offer_keeps_the_documents_and_rules_it_was_issued_with() {
+    let stage2 = stage2_from(Utc::now() - TimeDelta::seconds(1));
     // Stage 2 switched off again: its offers are refused as changed, nothing is charged.
     let after = issued_in("hearts", None, None, Some(stage2.clone())).await;
     let (status, saved) = accept_in(

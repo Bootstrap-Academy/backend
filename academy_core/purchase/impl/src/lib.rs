@@ -232,9 +232,9 @@ where
     /// Whether a Premium period ordered by `latest` begins within the withdrawal period: at
     /// once, or after a paid period that ends no later than the period (AGB 2026-10, 11.1). The
     /// period ends with the Berlin calendar day 14 days after the order, moved past following
-    /// weekends and nationwide holidays (`withdrawal_period_end`). A period that ends exactly
-    /// then counts as early: asking for the declaration once too often does no harm. Only then
-    /// does a stage-2 offer carry the declaration on the early start.
+    /// weekends and the holidays of every German state (`withdrawal_period_end`). A period that
+    /// ends exactly then counts as early: asking for the declaration once too often does no
+    /// harm. Only then does a stage-2 offer carry the declaration on the early start.
     ///
     /// `latest` is the last moment the offer can be accepted, its `expires_at`. The end of the
     /// period only moves forward with the moment of the order, so an order at any time before

@@ -1819,9 +1819,9 @@ async fn a_heart_refill_of_stage_two_is_accepted_without_a_declaration() {
 async fn premium_of_stage_two_asks_for_the_early_start_only_when_it_begins_within_the_withdrawal_period()
  {
     let stage2 = stage2_from(Utc::now() - TimeDelta::seconds(1));
-    // The period ends with the Berlin day 14 days after the order, moved past weekends and
-    // holidays; a paid period that ends exactly then still counts as early. The offer decides
-    // for its last moment of acceptance, 20 minutes after it is issued.
+    // The period ends with the Berlin day 14 days after the order, moved past weekends and the
+    // holidays of any state; a paid period that ends exactly then still counts as early. The
+    // offer decides for its last moment of acceptance, 20 minutes after it is issued.
     let end = withdrawal_period_end(Utc::now() + TimeDelta::minutes(20));
     for (paid_until, table) in [
         (None, true),

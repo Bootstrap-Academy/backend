@@ -308,6 +308,8 @@ struct At {
     early: Option<bool>,
     /// The source the acceptance comes through; `None` is the backend's own dialog.
     source: Option<&'static str>,
+    /// The language the request says the declaration was shown in.
+    language: Option<OfferLanguage>,
 }
 /// Accepts the saved `record` as `accept_with` does, with everything `at` sets.
 async fn accept_in(
@@ -322,12 +324,14 @@ async fn accept_in(
         stage2,
         early,
         source,
+        language,
     } = at;
     let acceptance = PurchaseAcceptance {
         order_id: record.status.offer.id,
         offer_hash: record.status.offer.hash.clone(),
         accepted: true,
         early_performance_requested: early.unwrap_or(true),
+        declaration_language: language,
     };
     let coins = record.status.offer.product.coins as i64;
     let saved = Arc::new(Mutex::new(Saved {
@@ -980,6 +984,7 @@ async fn historical() -> PurchaseRecord {
         offer_hash: r.status.offer.hash.clone(),
         accepted: true,
         early_performance_requested: true,
+        declaration_language: None,
     });
     r
 }
@@ -1093,6 +1098,7 @@ async fn daily_rejects_stale_unaccepted_heart_and_course_offers_before_submissio
             offer_hash: old.status.offer.hash.clone(),
             accepted: true,
             early_performance_requested: true,
+            declaration_language: None,
         };
         let saved = Arc::new(Mutex::new(Saved {
             record: Some(old.clone()),
@@ -2075,4 +2081,105 @@ async fn the_renewal_in_a_stage_two_offer_names_its_euro_amount() {
     assert!(before.text.contains(
         "\nLaufzeit: 1 Monat. Danach läuft deine monatliche Verlängerung weiter (1.000 Morphcoins je Monat).\n"
     ));
+}
+
+/// The declaration on the early start is confirmed in the language in which the dialog showed it
+/// and it was ticked; in English the binding German wording stands next to it (Widerrufsbelehrung
+/// 2026-10, "Erklärungen bei der Bestellung"; AGB 1.4). The confirmation is stored with the order;
+/// the recorded submission keeps its four fields.
+#[tokio::test]
+async fn the_declaration_is_confirmed_in_the_language_it_was_ticked_in() {
+    use OfferLanguage::*;
+    let stage2 = stage2_from(Utc::now() - TimeDelta::seconds(1));
+    let record = issued_in("premium_monthly", None, None, Some(stage2.clone())).await;
+    assert_eq!(record.status.offer.declaration, DECLARATION_PREMIUM);
+    let german = format!("\n\nDeine Erklärung zum vorzeitigen Beginn:\n{DECLARATION_PREMIUM}\n\n");
+    let english = format!(
+        "\n\nDeine Erklärung zum vorzeitigen Beginn, wie du sie auf Englisch angezeigt bekommen und angehakt hast:\n{DECLARATION_PREMIUM_EN}\nMaßgeblich ist der deutsche Wortlaut:\n{DECLARATION_PREMIUM}\n\n"
+    );
+    for (language, expected) in [(None, &german), (Some(De), &german), (Some(En), &english)] {
+        let (status, saved) = accept_in(
+            record.clone(),
+            At {
+                debit: true,
+                stage2: Some(stage2.clone()),
+                early: Some(true),
+                language,
+                ..At::default()
+            },
+        )
+        .await;
+        assert_eq!(status.unwrap().state, "paid", "{language:?}");
+        let saved = saved.lock().unwrap();
+        let body = saved.body.as_deref().unwrap();
+        assert!(body.contains(expected.as_str()), "{language:?}: {body}");
+        assert_eq!(
+            body.contains(DECLARATION_PREMIUM_EN),
+            language == Some(En),
+            "{body}"
+        );
+        assert_eq!(saved.submitted.as_ref().unwrap().declaration_language, None);
+    }
+    // An order without a declaration names none, whatever language the request names.
+    let late = Utc::now() + TimeDelta::days(30);
+    let record = issued_in("premium_monthly", None, Some(late), Some(stage2.clone())).await;
+    assert_eq!(record.status.offer.declaration, "");
+    let (status, saved) = accept_in(
+        record,
+        At {
+            debit: true,
+            paid_until: Some(late),
+            stage2: Some(stage2),
+            early: Some(false),
+            language: Some(En),
+            ..At::default()
+        },
+    )
+    .await;
+    assert_eq!(status.unwrap().state, "paid");
+    let body = saved.lock().unwrap().body.clone().unwrap();
+    assert!(
+        body.contains(&format!("\n\n{NO_DECLARATION}\n\n")),
+        "{body}"
+    );
+    assert!(!body.contains("Englisch"), "{body}");
+    // Stage 1 keeps its German confirmation.
+    let before = issued_in("premium_monthly", None, None, None).await;
+    let (status, saved) = accept_in(
+        before,
+        At {
+            debit: true,
+            language: Some(En),
+            ..At::default()
+        },
+    )
+    .await;
+    assert_eq!(status.unwrap().state, "paid");
+    let body = saved.lock().unwrap().body.clone().unwrap();
+    assert!(
+        body.contains(&format!(
+            "\n\nDeine Erklärung zum vorzeitigen Beginn:\n{DECLARATION}\n\n"
+        )),
+        "{body}"
+    );
+    assert!(!body.contains(DECLARATION_EN), "{body}");
+}
+
+/// The request names the language of the declaration as `declaration_language`; a request
+/// without it reads as before, and the field is written only when it is set.
+#[test]
+fn the_language_of_the_declaration_is_an_optional_field_of_the_acceptance() {
+    let id = Uuid::nil();
+    let old =
+        json!({"order_id":id,"offer_hash":"h","accepted":true,"early_performance_requested":true});
+    let read: PurchaseAcceptance = serde_json::from_value(old.clone()).unwrap();
+    assert_eq!(read.declaration_language, None);
+    assert_eq!(serde_json::to_value(&read).unwrap(), old);
+    let mut english = old.clone();
+    english["declaration_language"] = json!("en");
+    let read: PurchaseAcceptance = serde_json::from_value(english.clone()).unwrap();
+    assert_eq!(read.declaration_language, Some(OfferLanguage::En));
+    assert_eq!(serde_json::to_value(&read).unwrap(), english);
+    english["declaration_language"] = json!("fr");
+    assert!(serde_json::from_value::<PurchaseAcceptance>(english).is_err());
 }

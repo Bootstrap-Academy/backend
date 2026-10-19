@@ -783,10 +783,14 @@ where
         {
             return Err(PurchaseError::OfferRequired);
         }
-        // A stage-2 offer without a declaration showed none, so none is recorded for it.
+        // A stage-2 offer without a declaration showed none, so none is recorded for it. The
+        // language the declaration was shown in goes into the confirmation; the recorded
+        // submission keeps the four fields the authorization of retained learning compares.
+        let language = a.declaration_language;
         let a = PurchaseAcceptance {
             early_performance_requested: a.early_performance_requested
                 && (o.acceptance.is_none() || !o.declaration.is_empty()),
+            declaration_language: None,
             ..a
         };
         if record.submission.as_ref().is_some_and(|old| old != &a) {
@@ -947,8 +951,23 @@ where
             .provision_window_seconds
             .and_then(|s| accepted_at.checked_add_signed(TimeDelta::seconds(s as i64)))
             .or(o.product.service_starts_at);
-        // The declaration as given; a stage-2 order without one says so in one sentence.
-        let declaration = if a.early_performance_requested {
+        // The declaration as given; a stage-2 order without one says so in one sentence. One
+        // shown and ticked in English is repeated in English, with the binding German wording
+        // (Widerrufsbelehrung 2026-10, "Erklärungen bei der Bestellung"; AGB 1.4).
+        let english = o
+            .summary
+            .as_ref()
+            .filter(|_| stage2 && language == Some(OfferLanguage::En))
+            .map(|summary| summary.en.declaration.as_str())
+            .filter(|en| !en.is_empty());
+        let declaration = if a.early_performance_requested
+            && let Some(english) = english
+        {
+            format!(
+                "Deine Erklärung zum vorzeitigen Beginn, wie du sie auf Englisch angezeigt bekommen und angehakt hast:\n{english}\nMaßgeblich ist der deutsche Wortlaut:\n{}",
+                o.declaration
+            )
+        } else if a.early_performance_requested {
             format!("Deine Erklärung zum vorzeitigen Beginn:\n{}", o.declaration)
         } else if stage2 {
             "Eine Erklärung zum vorzeitigen Beginn hast du bei dieser Bestellung nicht abgegeben."

@@ -232,9 +232,9 @@ where
     /// Whether a Premium period ordered by `latest` begins within the withdrawal period: at
     /// once, or after a paid period that ends no later than the period (AGB 2026-10, 11.1). The
     /// period ends with the Berlin calendar day 14 days after the order, moved past following
-    /// weekends and nationwide holidays (`withdrawal_period_end`). A period that ends exactly
-    /// then counts as early: asking for the declaration once too often does no harm. Only then
-    /// does a stage-2 offer carry the declaration on the early start.
+    /// weekends and the holidays of every German state (`withdrawal_period_end`). A period that
+    /// ends exactly then counts as early: asking for the declaration once too often does no
+    /// harm. Only then does a stage-2 offer carry the declaration on the early start.
     ///
     /// `latest` is the last moment the offer can be accepted, its `expires_at`. The end of the
     /// period only moves forward with the moment of the order, so an order at any time before
@@ -783,10 +783,14 @@ where
         {
             return Err(PurchaseError::OfferRequired);
         }
-        // A stage-2 offer without a declaration showed none, so none is recorded for it.
+        // A stage-2 offer without a declaration showed none, so none is recorded for it. The
+        // language the declaration was shown in goes into the confirmation; the recorded
+        // submission keeps the four fields the authorization of retained learning compares.
+        let language = a.declaration_language;
         let a = PurchaseAcceptance {
             early_performance_requested: a.early_performance_requested
                 && (o.acceptance.is_none() || !o.declaration.is_empty()),
+            declaration_language: None,
             ..a
         };
         if record.submission.as_ref().is_some_and(|old| old != &a) {
@@ -836,8 +840,9 @@ where
             return Ok(self.owned(user, o.id).await?.status);
         }
         let mode = self.mode_for(&mut txn, user).await?;
-        // An offer is held to the documents and rules it was issued with, whenever it is
-        // accepted. If stage 2 is no longer configured, its offers are refused as changed.
+        // An offer is held to the documents and rules it was issued with. If stage 2 is no
+        // longer configured, its offers are refused as changed; an offer of stage 1 is refused
+        // once stage 2 applies (below).
         let stage2 = o.acceptance == Some(OfferAcceptance::Button);
         let documents = if stage2 && self.purchase_config.stage2.is_none() {
             None
@@ -871,7 +876,17 @@ where
             expected.facts["refill_units"] = o.product.facts["refill_units"].clone();
             expected.description = o.product.description.clone();
         }
-        if o.expires_at <= Utc::now()
+        // The moment the order is received decides its expiry and the terms it falls under,
+        // and the confirmation names it.
+        let accepted_at = self.purchase_repo.timestamp(&mut txn).await?;
+        // Terms 2026-10 apply to every order of coins, Premium and hearts from their effective
+        // date on, the moment `issue` switches to stage 2. An offer issued before binds the
+        // earlier terms, so from then on its acceptance is refused as changed, without a
+        // charge, and the dialog shows a new offer in its place.
+        let superseded =
+            !stage2 && matches!(source, "backend" | "paypal") && self.stage2_at(mode, accepted_at);
+        if o.expires_at <= accepted_at
+            || superseded
             || documents.is_none_or(|documents| o.document_hash != documents.hash())
             || expected.is_some_and(|v| v != o.product)
         {
@@ -932,13 +947,27 @@ where
         } else {
             None
         };
-        let accepted_at = self.purchase_repo.timestamp(&mut txn).await?;
         let deadline = o
             .provision_window_seconds
             .and_then(|s| accepted_at.checked_add_signed(TimeDelta::seconds(s as i64)))
             .or(o.product.service_starts_at);
-        // The declaration as given; a stage-2 order without one says so in one sentence.
-        let declaration = if a.early_performance_requested {
+        // The declaration as given; a stage-2 order without one says so in one sentence. One
+        // shown and ticked in English is repeated in English, with the binding German wording
+        // (Widerrufsbelehrung 2026-10, "Erklärungen bei der Bestellung"; AGB 1.4).
+        let english = o
+            .summary
+            .as_ref()
+            .filter(|_| stage2 && language == Some(OfferLanguage::En))
+            .map(|summary| summary.en.declaration.as_str())
+            .filter(|en| !en.is_empty());
+        let declaration = if a.early_performance_requested
+            && let Some(english) = english
+        {
+            format!(
+                "Deine Erklärung zum vorzeitigen Beginn, wie du sie auf Englisch angezeigt bekommen und angehakt hast:\n{english}\nMaßgeblich ist der deutsche Wortlaut:\n{}",
+                o.declaration
+            )
+        } else if a.early_performance_requested {
             format!("Deine Erklärung zum vorzeitigen Beginn:\n{}", o.declaration)
         } else if stage2 {
             "Eine Erklärung zum vorzeitigen Beginn hast du bei dieser Bestellung nicht abgegeben."

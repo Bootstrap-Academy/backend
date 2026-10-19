@@ -195,6 +195,21 @@ pub struct PurchaseAcceptance {
     pub offer_hash: String,
     pub accepted: bool,
     pub early_performance_requested: bool,
+    /// The language in which the order dialog showed the declaration on the early start that
+    /// was ticked; absent means German. For an offer of stage 2 the confirmation repeats the
+    /// declaration in this language, next to the binding German wording, and stores it so with
+    /// the order. The recorded submission leaves the field out: the authorization of a
+    /// retained-learning purchase compares its four fields exactly.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub declaration_language: Option<OfferLanguage>,
+}
+
+/// A language in which the order dialog shows an offer (`OfferSummary`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum OfferLanguage {
+    De,
+    En,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

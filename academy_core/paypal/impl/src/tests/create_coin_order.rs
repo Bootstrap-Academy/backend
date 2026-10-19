@@ -61,6 +61,7 @@ fn request(s: &PurchaseStatus) -> PurchaseAcceptance {
         offer_hash: s.offer.hash.clone(),
         accepted: true,
         early_performance_requested: true,
+        declaration_language: None,
     }
 }
 fn purchase(status: &PurchaseStatus) -> MockPurchaseFeatureService {

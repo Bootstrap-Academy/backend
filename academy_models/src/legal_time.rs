@@ -12,11 +12,14 @@ pub fn starts_a_berlin_day(at: DateTime<Utc>) -> bool {
 
 /// The end of the withdrawal period of a contract concluded at `concluded_at`: the end of the
 /// calendar day in Berlin 14 days after the conclusion (§ 187 Abs. 1, § 188 Abs. 2 BGB). If
-/// that day is a Saturday, a Sunday or a public holiday in all of Germany, the period ends with
-/// the next working day (§ 193 BGB). The result is the first moment after the period.
+/// that day is a Saturday, a Sunday or a statutory holiday in any German state, the period ends
+/// with the next working day (§ 193 BGB). The result is the first moment after the period.
 ///
-/// Where the date cannot be computed, the end lies as far in the future as possible, so that a
-/// declaration that depends on it is asked for rather than left out.
+/// § 193 BGB counts the holidays at the customer's place, which the platform does not know, so
+/// a holiday of any state moves the end. The result is never earlier than the legal end
+/// anywhere in Germany, and a declaration that depends on it is asked for whenever it could be
+/// needed. Where the date cannot be computed, the end lies as far in the future as possible for
+/// the same reason.
 pub fn withdrawal_period_end(concluded_at: DateTime<Utc>) -> DateTime<Utc> {
     let end = || {
         let mut last = concluded_at
@@ -38,20 +41,51 @@ pub fn withdrawal_period_end(concluded_at: DateTime<Utc>) -> DateTime<Utc> {
 }
 
 fn is_working_day(day: NaiveDate) -> bool {
-    !matches!(day.weekday(), Weekday::Sat | Weekday::Sun) && !is_nationwide_holiday(day)
+    !matches!(day.weekday(), Weekday::Sat | Weekday::Sun) && !is_holiday_in_any_state(day)
 }
 
-/// The public holidays of every German state: New Year, Good Friday, Easter Monday, 1 May,
-/// Ascension Day, Whit Monday, the Day of German Unity and both days of Christmas.
-fn is_nationwide_holiday(day: NaiveDate) -> bool {
+/// Whether `day` is a statutory holiday in at least one German state, in the whole state or in
+/// a part of it.
+///
+/// - Everywhere: New Year, Good Friday, Easter Monday, 1 May, Ascension Day, Whit Monday, the
+///   Day of German Unity and both days of Christmas.
+/// - Epiphany, 6 January (Baden-Württemberg, Bavaria, Saxony-Anhalt).
+/// - International Women's Day, 8 March (Berlin, Mecklenburg-Western Pomerania).
+/// - Corpus Christi, 60 days after Easter (Baden-Württemberg, Bavaria, Hesse, North
+///   Rhine-Westphalia, Rhineland-Palatinate, Saarland, parts of Saxony and Thuringia).
+/// - Peace Festival of Augsburg, 8 August (the city of Augsburg, Bavaria).
+/// - Assumption Day, 15 August (Saarland, parts of Bavaria).
+/// - World Children's Day, 20 September (Thuringia).
+/// - Reformation Day, 31 October (Brandenburg, Bremen, Hamburg, Mecklenburg-Western
+///   Pomerania, Lower Saxony, Saxony, Saxony-Anhalt, Schleswig-Holstein, Thuringia).
+/// - All Saints' Day, 1 November (Baden-Württemberg, Bavaria, North Rhine-Westphalia,
+///   Rhineland-Palatinate, Saarland).
+/// - Day of Repentance and Prayer, the Wednesday before 23 November (Saxony).
+///
+/// Easter Sunday and Whit Sunday (Brandenburg) are Sundays and move the end anyway.
+fn is_holiday_in_any_state(day: NaiveDate) -> bool {
     if matches!(
         (day.month(), day.day()),
-        (1, 1) | (5, 1) | (10, 3) | (12, 25) | (12, 26)
+        (1, 1)
+            | (1, 6)
+            | (3, 8)
+            | (5, 1)
+            | (8, 8)
+            | (8, 15)
+            | (9, 20)
+            | (10, 3)
+            | (10, 31)
+            | (11, 1)
+            | (12, 25)
+            | (12, 26)
     ) {
         return true;
     }
+    if day.month() == 11 && (16..=22).contains(&day.day()) && day.weekday() == Weekday::Wed {
+        return true;
+    }
     easter_sunday(day.year()).is_some_and(|easter| {
-        [-2, 1, 39, 50].into_iter().any(|offset: i64| {
+        [-2, 1, 39, 50, 60].into_iter().any(|offset: i64| {
             easter.checked_add_signed(chrono::TimeDelta::days(offset)) == Some(day)
         })
     })
@@ -181,6 +215,55 @@ mod tests {
         assert_eq!(
             withdrawal_period_end(berlin(2026, 11, 11, 8, 0)),
             berlin(2026, 11, 26, 0, 0)
+        );
+    }
+
+    #[test]
+    fn a_holiday_of_any_single_state_moves_the_end_too() {
+        // The 14th day after the order is the holiday, a working day otherwise; the period then
+        // runs to the end of the next working day. Last: Reformation Day on Tuesday 31 October
+        // 2028 and All Saints' Day on the Wednesday.
+        for (concluded, end, holiday) in [
+            ("2026-12-23", "2027-01-08", "Epiphany, Wed 6 Jan 2027"),
+            ("2027-02-22", "2027-03-10", "Women's Day, Mon 8 Mar 2027"),
+            ("2027-05-13", "2027-05-29", "Corpus Christi, Thu 27 May"),
+            ("2028-07-25", "2028-08-10", "Augsburg, Tue 8 Aug 2028"),
+            ("2028-08-01", "2028-08-17", "Assumption, Tue 15 Aug 2028"),
+            ("2027-09-06", "2027-09-22", "Children's Day, Mon 20 Sep"),
+            ("2027-10-18", "2027-11-03", "All Saints, Mon 1 Nov 2027"),
+            ("2026-11-04", "2026-11-20", "Repentance, Wed 18 Nov 2026"),
+            ("2027-11-03", "2027-11-19", "Repentance, Wed 17 Nov 2027"),
+            ("2028-10-17", "2028-11-03", "Reformation, All Saints"),
+        ] {
+            let day = |date: &str| NaiveDate::parse_from_str(date, "%Y-%m-%d").unwrap();
+            let (from, end) = (day(concluded), day(end));
+            assert_eq!(
+                withdrawal_period_end(berlin(from.year(), from.month(), from.day(), 12, 0)),
+                berlin(end.year(), end.month(), end.day(), 0, 0),
+                "{holiday}"
+            );
+        }
+    }
+
+    #[test]
+    fn the_day_of_repentance_is_the_wednesday_before_23_november_only() {
+        // 23 November 2033 is a Wednesday itself; the holiday is the Wednesday before.
+        assert!(is_holiday_in_any_state(
+            NaiveDate::from_ymd_opt(2033, 11, 16).unwrap()
+        ));
+        assert!(!is_holiday_in_any_state(
+            NaiveDate::from_ymd_opt(2033, 11, 23).unwrap()
+        ));
+        assert!(is_holiday_in_any_state(
+            NaiveDate::from_ymd_opt(2028, 11, 22).unwrap()
+        ));
+        // Another Wednesday in November is a working day: 24 November 2027.
+        assert!(!is_holiday_in_any_state(
+            NaiveDate::from_ymd_opt(2027, 11, 24).unwrap()
+        ));
+        assert_eq!(
+            withdrawal_period_end(berlin(2027, 11, 10, 12, 0)),
+            berlin(2027, 11, 25, 0, 0)
         );
     }
 }

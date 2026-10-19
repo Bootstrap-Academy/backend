@@ -13,6 +13,7 @@ use academy_models::{
     auth::AccessToken,
     learning_policy::{LearningMode, LearningPolicyConfig},
     premium::{PremiumRenewalAgreement, PremiumRenewalConsent, PremiumRenewalOffer},
+    purchase::OfferLanguage,
     user::UserId,
 };
 use academy_persistence_contracts::{
@@ -154,14 +155,28 @@ where
             .with_name(user.name.to_string())
             .0
             .to_string();
+        // The offer and its declarations as they were shown and ticked: in English with the
+        // binding German wording next to it (Widerrufsbelehrung 2026-10: the declarations
+        // actually made are confirmed; AGB 1.4).
+        let agreed = if consent.language == Some(OfferLanguage::En) {
+            format!(
+                "Dein vereinbartes Angebot und deine Erklärungen, wie du sie auf Englisch angezeigt bekommen und angehakt hast:\n{}\n\n\
+                 Maßgeblich ist der deutsche Wortlaut:\n{}",
+                offer.text_en, offer.text
+            )
+        } else {
+            format!(
+                "Dein vereinbartes Angebot und deine Erklärungen:\n{}",
+                offer.text
+            )
+        };
         let document = format!(
             "Hallo,\n\nhier ist die Vertragsbestätigung für deine monatliche Premium-Verlängerung. Bei der Einrichtung wurde kein Guthaben abgebucht.\n\n\
-             Dein vereinbartes Angebot und deine Erklärungen:\n{}\n\n\
+             {agreed}\n\n\
              Die vereinbarten AGB und die Widerrufsbelehrung findest du im Anhang.\n\n\
              Viele Grüße\nDein Bootstrap Academy Team\nbootstrap academy GmbH\n\n\
              Empfänger: {recipient}\nAbo-Nummer: {}\nBestellt am: {}\n\
              Bereits bezahlter Premium-Zeitraum und Frist für diese Bestätigung: {}.",
-            offer.text,
             *consent.request_id,
             now.format("%d.%m.%Y um %H:%M Uhr (UTC)"),
             paid.until.format("%d.%m.%Y um %H:%M Uhr (UTC)"),
@@ -308,20 +323,49 @@ fn build_offer(price: u64, documents: &PurchaseDocuments, daily: bool) -> Premiu
              Mir ist bekannt, dass mein Widerrufsrecht mit vollständiger Erbringung der Dienstleistung erlischt.\n\n\
              Vertrags- und Erklärungssprache: Deutsch. Erklärungsversion: {text_version}."
     );
+    // The same offer for the English interface, sentence by sentence; the German one is
+    // binding (AGB 1.4).
+    let mut text_en = format!(
+        "Premium: Unlimited hearts.\n\n\
+             Monthly automatic renewal for {price} MorphCoins ({euros:.2} EUR including VAT) per calendar month. \
+             The renewal runs for an indefinite period. You pay only from your existing MorphCoin balance. \
+             The coin price stays fixed for this renewal. There is no automatic payment via PayPal. You do not have to buy more coins.\n\n\
+             The first debit takes place after your already paid Premium period has ended and after this contract confirmation has been sent, \
+             at the latest on the following day or when you next use the platform. Your new calendar month begins with the debit. \
+             If you buy additional Premium, that period runs out first. Your automatic renewal stays in place. \
+             The contract confirmation must have been sent before the end of the Premium period you had already paid for when you ordered. \
+             An additional Premium purchase does not extend this deadline. If it is missed, the automatic renewal ends. Nothing is debited for it later either; for that, you would have to order the renewal again. \
+             If your balance is not sufficient, Premium ends without further costs and the automatic renewal is switched off.\n\n\
+             You can cancel at any time effective at the end of your paid term, and after an automatic renewal effective at the end of the current month: \
+             by switching it off on the Subscription page, at https://bootstrap.academy/vertrag-kuendigen or by email to hallo@bootstrap.academy. \
+             Only one month is renewed at a time, never a whole year. Your statutory rights of withdrawal and warranty remain in place.\n\n\
+             I expressly agree to this monthly paid renewal and to the terms and conditions {terms_version} for this agreement. \
+             My other existing contracts are not changed by this.\n\n\
+             I expressly request and agree that you begin providing the service before the withdrawal period ends.\n\
+             I am aware that my right of withdrawal expires once the service has been provided in full.\n\n\
+             Contract and declaration language: German. Declaration version: {text_version}."
+    );
     if daily {
         text = text.replacen(
             "Premium: Unbegrenzte Herzen.",
             "Premium: Du kannst jeden Tag beliebig viele neue Lektionen anfangen.",
             1,
         );
+        text_en = text_en.replacen(
+            "Premium: Unlimited hearts.",
+            "Premium: You can start as many new lessons as you like every day.",
+            1,
+        );
     }
-    // The client acknowledges the exact offer, including document bytes;
-    // changing price or an attachment invalidates outstanding confirmations.
+    // The client acknowledges the exact offer, including document bytes and the English
+    // wording it may have shown; changing price, a text or an attachment invalidates
+    // outstanding confirmations.
     let mut hash = Sha256::new();
     for bytes in [
         text.as_bytes(),
         &documents.terms_pdf,
         &documents.withdrawal_pdf,
+        text_en.as_bytes(),
     ] {
         hash.update(bytes);
     }
@@ -330,6 +374,7 @@ fn build_offer(price: u64, documents: &PurchaseDocuments, daily: bool) -> Premiu
         monthly_price: price,
         terms_version: terms_version.clone(),
         text,
+        text_en,
     }
 }
 
@@ -370,6 +415,7 @@ mod tests {
             offer_id: sut.offer().id,
             accepted: true,
             withdrawal_consent: true,
+            language: None,
         }
     }
 
@@ -1069,5 +1115,114 @@ mod tests {
         sut.enable(&"token".into(), FOO.user.id, consent(&sut))
             .await
             .unwrap();
+    }
+
+    /// The English interface shows the offer in English (AGB 1.4): the same paragraphs and
+    /// lines, the same price, terms version and declaration version.
+    #[test]
+    fn the_renewal_offer_has_an_english_wording_of_the_same_shape() {
+        let documents = PurchaseDocuments::legacy();
+        for daily in [false, true] {
+            let offer = build_offer(1000, &documents, daily);
+            let shape = |text: &str| text.split('\n').map(str::is_empty).collect::<Vec<_>>();
+            assert_eq!(shape(&offer.text), shape(&offer.text_en), "{daily}");
+            let en = &offer.text_en;
+            assert!(en.starts_with(if daily {
+                "Premium: You can start as many new lessons as you like every day.\n\n"
+            } else {
+                "Premium: Unlimited hearts.\n\n"
+            }));
+            assert!(
+                en.contains("for 1000 MorphCoins (10.00 EUR including VAT) per calendar month.")
+            );
+            assert!(en.contains("the terms and conditions 2026-09-r4 for this agreement."));
+            assert!(en.contains(
+                "\n\nI expressly request and agree that you begin providing the service before the withdrawal period ends.\nI am aware that my right of withdrawal expires once the service has been provided in full.\n\n"
+            ));
+            assert!(en.ends_with(&format!(
+                "Declaration version: {}.",
+                if daily {
+                    "premium-renewal-daily-2026-10-v2"
+                } else {
+                    RENEWAL_TEXT_VERSION
+                }
+            )));
+            assert!(!en.contains("Herzen") && !en.contains("Lektionen"), "{en}");
+        }
+        // The English wording is part of the identity: a client that showed another one
+        // cannot confirm this offer.
+        let offer = build_offer(1000, &documents, false);
+        let mut hash = Sha256::new();
+        for bytes in [
+            offer.text.as_bytes(),
+            &documents.terms_pdf,
+            &documents.withdrawal_pdf,
+        ] {
+            hash.update(bytes);
+        }
+        assert_ne!(offer.id, format!("{:x}", hash.finalize()));
+    }
+
+    /// The confirmation repeats the offer and its declarations as they were shown and ticked:
+    /// in English with the binding German wording next to it, otherwise in German only.
+    #[tokio::test]
+    async fn a_renewal_ticked_in_english_is_confirmed_in_english_and_german() {
+        for language in [None, Some(OfferLanguage::De), Some(OfferLanguage::En)] {
+            let offer = build_offer(1000, &PurchaseDocuments::legacy(), false);
+            let mut db = MockDatabase::new();
+            db.expect_begin_transaction().times(2).returning(|| {
+                let mut txn = MockTransaction::new();
+                txn.expect_commit()
+                    .once()
+                    .return_once(|| Box::pin(async { Ok(()) }));
+                Box::pin(async { Ok(txn) })
+            });
+            let mut repo =
+                MockPremiumRepository::new().with_get_latest_by_user_id(FOO.user.id, Some(paid()));
+            repo.expect_get_renewal_agreement()
+                .once()
+                .return_once(|_, _| Box::pin(async { Ok(None) }));
+            let english = format!(
+                "Dein vereinbartes Angebot und deine Erklärungen, wie du sie auf Englisch angezeigt bekommen und angehakt hast:\n{}\n\nMaßgeblich ist der deutsche Wortlaut:\n{}\n\n",
+                offer.text_en, offer.text
+            );
+            let german = format!(
+                "Dein vereinbartes Angebot und deine Erklärungen:\n{}\n\n",
+                offer.text
+            );
+            let in_english = language == Some(OfferLanguage::En);
+            repo.expect_create_renewal()
+                .once()
+                .withf(move |_, agreement| {
+                    agreement
+                        .document
+                        .contains(if in_english { &english } else { &german })
+                        && agreement.document.contains("I expressly request") == in_english
+                })
+                .return_once(|_, _| Box::pin(async { Ok(()) }));
+            repo.expect_pending_renewal_confirmations()
+                .once()
+                .return_once(|_| Box::pin(async { Ok(vec![]) }));
+            let sut = Sut {
+                db,
+                auth: MockAuthService::new()
+                    .with_authenticate_in_transaction(Some((FOO.user.clone(), FOO_1.clone()))),
+                time: MockTimeService::new().with_now(paid().since),
+                user_repo: MockUserRepository::new()
+                    .with_get_composite(FOO.user.id, Some(FOO.clone())),
+                premium_repo: repo,
+                ..Sut::default()
+            };
+            sut.enable(
+                &"token".into(),
+                FOO.user.id,
+                PremiumRenewalConsent {
+                    language,
+                    ..consent(&sut)
+                },
+            )
+            .await
+            .unwrap();
+        }
     }
 }

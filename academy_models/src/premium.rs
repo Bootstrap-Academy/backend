@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 
-use crate::{macros::id, user::UserId};
+use crate::{macros::id, purchase::OfferLanguage, user::UserId};
 
 id!(PremiumId);
 id!(PremiumRenewalId);
@@ -10,7 +10,10 @@ pub struct PremiumRenewalOffer {
     pub id: String,
     pub monthly_price: u64,
     pub terms_version: String,
+    /// The offer with its declarations, in the agreed German wording.
     pub text: String,
+    /// `text` for the English interface, sentence by sentence; the German one is binding.
+    pub text_en: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -19,6 +22,9 @@ pub struct PremiumRenewalConsent {
     pub offer_id: String,
     pub accepted: bool,
     pub withdrawal_consent: bool,
+    /// The language in which the dialog showed the offer and its declarations when they were
+    /// ticked; `None` means German.
+    pub language: Option<OfferLanguage>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

@@ -60,6 +60,7 @@ async fn every_staff_mutation_rechecks_session_admin_and_mfa_after_lock_waits() 
         "determine",
         "review",
         "minimize_contact",
+        "forfeit",
         "release_document",
         "release_record",
         "statement_review",

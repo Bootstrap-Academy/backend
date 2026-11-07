@@ -745,6 +745,7 @@ where
                     | "determination_status"
                     | "review"
                     | "minimize_contact"
+                    | "forfeit"
                     | "release_document"
                     | "release_record"
             ),

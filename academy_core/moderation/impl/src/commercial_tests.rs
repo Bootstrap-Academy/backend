@@ -1846,6 +1846,7 @@ async fn commercial_close_supported_staff_dispatch_keeps_literal_path_and_origin
         "archive_review",
         "review",
         "minimize_contact",
+        "forfeit",
         "release_document",
         "release_record",
     ] {

@@ -67,7 +67,7 @@ pub trait ContractFeatureService: Send + Sync + 'static {
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct ContractDeclarationProcessingUpdate {
     pub identity_verified: bool,
-    /// Explicit operational action after identity and contract verification.
+    /// Explicit operational action; closing without a contract requires no identity claim.
     pub action: ContractProcessingAction,
     pub verified_user_id: Option<academy_models::user::UserId>,
     /// Fences changes against a replaced renewal agreement.
@@ -150,6 +150,10 @@ pub enum ContractListError {
 pub enum ContractSetProcessedError {
     #[error("A verified identity, action, date and resolution note are required")]
     Invalid,
+    #[error(
+        "Am Konto ist ein Vertrag belegt oder die Kontozuordnung fehlt. Prüfe die Belege und wähle eine andere Aktion."
+    )]
+    ContractObserved,
     #[error("The identified agreement has changed or cannot be scheduled")]
     Conflict,
     #[error("The declaration does not exist.")]
@@ -168,4 +172,6 @@ pub enum ContractProcessingAction {
     RecordExternalResolution,
     /// Apply the declared ordinary date to a verified current Premium agreement.
     SchedulePremiumCancellation,
+    /// Close an observed account with no contract evidence, without communication or an end date.
+    CloseWithoutContract,
 }

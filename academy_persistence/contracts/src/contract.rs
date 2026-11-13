@@ -108,6 +108,17 @@ pub trait ContractRepository<Txn: Send + Sync + 'static>: Send + Sync + 'static 
         external_resolution: bool,
     ) -> impl Future<Output = anyhow::Result<Option<ContractDeclaration>>> + Send;
 
+    /// Under the processing locks, close only if the receipt and its observed
+    /// account have no contract evidence. Returns None when the guard fails.
+    /// Does not change the account or create delivery records.
+    fn close_without_contract(
+        &self,
+        txn: &mut Txn,
+        id: ContractDeclarationId,
+        processed_at: DateTime<Utc>,
+        note: ContractProcessingNote,
+    ) -> impl Future<Output = anyhow::Result<Option<ContractDeclaration>>> + Send;
+
     /// Return a paginated list of all contract declarations, most recent first.
     fn list(
         &self,

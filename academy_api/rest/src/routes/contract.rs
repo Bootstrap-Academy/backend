@@ -345,6 +345,9 @@ async fn set_declaration_processed(
     {
         Ok(declaration) => Json(ApiAdminContractDeclaration::from(declaration)).into_response(),
         Err(ContractSetProcessedError::Invalid) => DeclarationInvalidError.into_response(),
+        Err(ContractSetProcessedError::ContractObserved) => {
+            DeclarationContractObservedError.into_response()
+        }
         Err(ContractSetProcessedError::Conflict) => DeclarationConflictError.into_response(),
         Err(ContractSetProcessedError::NotFound) => DeclarationNotFoundError.into_response(),
         Err(ContractSetProcessedError::Auth(err)) => auth_error(err),
@@ -355,7 +358,10 @@ async fn set_declaration_processed(
 fn set_declaration_processed_docs(op: TransformOperation) -> TransformOperation {
     op.summary("Record that a contract declaration has been processed.")
         .description(
-            "Requires MFA admin privileges, independently verified identity and a resolution note. \
+            "Requires MFA admin privileges and a resolution note. CLOSE_WITHOUT_CONTRACT requires \
+             an observed account with no contract evidence at receipt or processing, no end date, \
+             verified user or renewal agreement; it makes no identity claim, sends no email and \
+             changes no account state. The other actions require independently verified identity. \
              Either record an already implemented external resolution and communication (a cancellation \
              requires its established end), or schedule the original identified current Premium agreement \
              using the declaration's original receipt and requested date. Processing time never changes \
@@ -366,13 +372,17 @@ fn set_declaration_processed_docs(op: TransformOperation) -> TransformOperation 
             "The declaration has been updated.",
         )
         .add_error::<DeclarationNotFoundError>()
+        .add_error::<DeclarationInvalidError>()
+        .add_error::<DeclarationContractObservedError>()
+        .add_error::<DeclarationConflictError>()
         .with(auth_error_docs)
         .with(internal_server_error_docs)
 }
 
 error_code! {
     DeclarationConflictError(CONFLICT, "Declaration request conflicts with stored state");
-    DeclarationInvalidError(BAD_REQUEST, "Verified action, identity, date and resolution note required");
+    DeclarationInvalidError(BAD_REQUEST, "Prüfe die Angaben für diese Aktion und ergänze eine Notiz.");
+    DeclarationContractObservedError(BAD_REQUEST, "Am Konto ist ein Vertrag belegt oder die Kontozuordnung fehlt. Prüfe die Belege und wähle eine andere Aktion.");
     /// Too many requests.
     pub TooManyRequestsError(TOO_MANY_REQUESTS, "Too many requests");
     /// The contract declaration does not exist.

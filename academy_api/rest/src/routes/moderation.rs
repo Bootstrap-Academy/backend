@@ -139,6 +139,8 @@ async fn admin(
 }
 #[derive(Deserialize, JsonSchema)]
 struct PasswordRequest {
+    #[serde(deserialize_with = "crate::models::user::deserialize_login_identifier")]
+    #[schemars(with = "UserNameOrEmailAddress")]
     name_or_email: UserNameOrEmailAddress,
     password: UserPassword,
     #[serde(default)]
@@ -642,5 +644,55 @@ mod ordinary_cancellation_tests {
         let body: Value =
             serde_json::from_slice(&to_bytes(response.into_body(), 16_384).await.unwrap()).unwrap();
         assert_eq!(body["detail"], pending);
+    }
+}
+
+#[cfg(test)]
+mod password_request_tests {
+    use super::*;
+
+    #[test]
+    fn login_identifier_trims_only_outer_whitespace() {
+        for input in ["Learner_1", "learner@example.invalid"] {
+            let request: PasswordRequest = serde_json::from_value(serde_json::json!({
+                "name_or_email": format!(" \t{input} \u{a0}"),
+                "password": " password with spaces ",
+                "mfa_code": "123456",
+            }))
+            .unwrap();
+            let expected: UserNameOrEmailAddress =
+                serde_json::from_value(serde_json::json!(input)).unwrap();
+            assert_eq!(request.name_or_email, expected);
+            assert_eq!(request.password.as_str(), " password with spaces ");
+            assert_eq!(
+                Option::<TotpCode>::from(request.mfa_code),
+                Some("123456".try_into().unwrap())
+            );
+        }
+
+        for input in [
+            "",
+            " \t ",
+            "learner name",
+            "Müller",
+            "learner name@example.invalid",
+        ] {
+            assert!(
+                serde_json::from_value::<PasswordRequest>(serde_json::json!({
+                    "name_or_email": input,
+                    "password": "password",
+                }))
+                .is_err()
+            );
+        }
+        for input in [serde_json::Value::Null, serde_json::json!(42)] {
+            assert!(
+                serde_json::from_value::<PasswordRequest>(serde_json::json!({
+                    "name_or_email": input,
+                    "password": "password",
+                }))
+                .is_err()
+            );
+        }
     }
 }

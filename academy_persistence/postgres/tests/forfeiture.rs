@@ -294,7 +294,11 @@ async fn revert_keeps_lapsed_value_and_removes_only_the_operation() {
     let b = forfeit_body(&s, &c, "1");
     op(&db, "forfeit", &b).await.unwrap();
     let lapsed = state(&db).await;
-    assert_eq!(db.revert_migrations(Some(1)).await.unwrap(), vec![NAME]);
+    const CLOSE: &str = "2026-11-13-220000_close_without_contract";
+    assert_eq!(
+        db.revert_migrations(Some(2)).await.unwrap(),
+        vec![CLOSE, NAME]
+    );
     assert_eq!(state(&db).await, lapsed);
     let remaining = "SELECT commercial_remaining($1)::text";
     assert_eq!(scalar(&db, remaining, c.obligation_id).await, "0");
@@ -304,6 +308,6 @@ async fn revert_keeps_lapsed_value_and_removes_only_the_operation() {
             .unwrap_err()
             .contains("Unsupported commercial operation")
     );
-    assert_eq!(db.run_migrations(None).await.unwrap(), vec![NAME]);
+    assert_eq!(db.run_migrations(None).await.unwrap(), vec![NAME, CLOSE]);
     assert_eq!(op(&db, "forfeit", &b).await.unwrap()["status"], "rejected");
 }

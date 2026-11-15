@@ -317,3 +317,102 @@ async fn processing_rechecks_session_and_admin_mfa_after_request_and_account_wai
         }
     }
 }
+
+fn close_update() -> ContractDeclarationProcessingUpdate {
+    ContractDeclarationProcessingUpdate {
+        action: academy_core_contract_contracts::ContractProcessingAction::CloseWithoutContract,
+        note: Some("Kein Vertrag am Konto".try_into().unwrap()),
+        ..Default::default()
+    }
+}
+
+#[tokio::test]
+async fn close_without_contract_rejects_inapplicable_fields_and_missing_note() {
+    for field in 0..4 {
+        let mut update = close_update();
+        match field {
+            0 => update.note = None,
+            1 => update.effective_end = Some(confirmed_end()),
+            2 => update.verified_user_id = Some(FOO.user.id),
+            _ => update.renewal_agreement_id = Some(UUID1.into()),
+        }
+        let sut = Sut {
+            auth: MockAuthService::new()
+                .with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone()))),
+            ..Sut::default()
+        };
+        assert_matches!(
+            sut.set_declaration_processed(&"token".into(), make_declaration().id, update)
+                .await,
+            Err(ContractSetProcessedError::Invalid)
+        );
+    }
+}
+
+#[tokio::test]
+async fn close_without_contract_checks_guard_and_conflict_for_both_kinds() {
+    for kind in [
+        ContractDeclarationKind::Cancellation,
+        ContractDeclarationKind::Withdrawal,
+    ] {
+        for outcome in 0..3 {
+            let mut declaration = make_declaration();
+            declaration.kind = kind;
+            if outcome == 2 {
+                declaration.processed_at = Some(now());
+            }
+            let expected = ContractDeclaration {
+                processed_at: Some(now()),
+                processing_note: close_update().note,
+                ..declaration.clone()
+            };
+            let mut repo =
+                MockContractRepository::new().with_get(declaration.id, Some(declaration));
+            repo.expect_lock_request()
+                .once()
+                .return_once(|_, _| Box::pin(async { Ok(()) }));
+            repo.expect_lock_session_processing()
+                .once()
+                .return_once(|_, _, _, _| Box::pin(async { Ok(()) }));
+            repo.expect_lock_processing()
+                .once()
+                .return_once(|_, _| Box::pin(async { Ok(()) }));
+            if outcome != 2 {
+                let result = if outcome == 0 {
+                    Some(expected.clone())
+                } else {
+                    None
+                };
+                repo.expect_close_without_contract()
+                    .once()
+                    .withf(|_, id, at, note| {
+                        *id == make_declaration().id
+                            && *at == now()
+                            && *note == close_update().note.unwrap()
+                    })
+                    .return_once(move |_, _, _, _| Box::pin(async { Ok(result) }));
+            }
+            let sut = Sut {
+                auth: MockAuthService::new()
+                    .with_authenticate(Some((ADMIN.user.clone(), ADMIN_1.clone())))
+                    .with_authenticate_in_transaction(Some((ADMIN.user.clone(), ADMIN_1.clone()))),
+                db: MockDatabase::build(outcome == 0),
+                time: if outcome != 2 {
+                    MockTimeService::new().with_now(now())
+                } else {
+                    MockTimeService::new()
+                },
+                contract_repo: repo,
+                ..Sut::default()
+            };
+            let result = sut
+                .set_declaration_processed(&"token".into(), expected.id, close_update())
+                .await;
+            match outcome {
+                0 => assert_eq!(result.unwrap(), expected),
+                1 => assert_matches!(result, Err(ContractSetProcessedError::ContractObserved)),
+                _ => assert_matches!(result, Err(ContractSetProcessedError::Conflict)),
+            }
+        }
+    }
+}

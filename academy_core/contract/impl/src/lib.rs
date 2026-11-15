@@ -190,7 +190,17 @@ where
     ) -> Result<ContractDeclaration, ContractSetProcessedError> {
         let auth = self.auth.authenticate(token).await.map_auth_err()?;
         auth.ensure_admin().map_auth_err()?;
-        if update.note.is_none() || !update.identity_verified {
+        let close_without_contract =
+            update.action == ContractProcessingAction::CloseWithoutContract;
+        if update.note.is_none()
+            || if close_without_contract {
+                update.effective_end.is_some()
+                    || update.verified_user_id.is_some()
+                    || update.renewal_agreement_id.is_some()
+            } else {
+                !update.identity_verified
+            }
+        {
             return Err(ContractSetProcessedError::Invalid);
         }
         let mut txn = self.db.begin_transaction().await?;
@@ -212,6 +222,21 @@ where
             .ok_or(ContractSetProcessedError::NotFound)?;
         if declaration.processed_at.is_some() {
             return Err(ContractSetProcessedError::Conflict);
+        }
+        if close_without_contract {
+            let note = match declaration.processing_note {
+                Some(old) => format!("{}\n{}", *old, *update.note.unwrap())
+                    .try_into()
+                    .map_err(|_| ContractSetProcessedError::Invalid)?,
+                None => update.note.unwrap(),
+            };
+            let declaration = self
+                .contract_repo
+                .close_without_contract(&mut txn, id, self.time.now(), note)
+                .await?
+                .ok_or(ContractSetProcessedError::ContractObserved)?;
+            txn.commit().await?;
+            return Ok(declaration);
         }
         if update.action == ContractProcessingAction::SchedulePremiumCancellation {
             if declaration.contract != ContractKind::Premium

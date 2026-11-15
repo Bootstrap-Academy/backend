@@ -23,3 +23,28 @@ Account, schedule and declaration locking serialize staff decisions with automat
 Old `processed_at` records do not identify which processing action was chosen. Migration labels those `legacy_unknown`, preserves their current outcome, and holds old unaccepted automatic resolution retries/schedules for explicit review. It does not guess external agreement terms or replay legacy messages. Inventory and case-specific forward repair are required for such rows; existing API completion conflicts remain in force. Monitor both these held legacy cases and new overlapping purchases promptly, including any already-sent contradictory legacy confirmation.
 
 Focused local reproduction uses `tests/contract-review-races.py` (including the deferred-COMMIT/request-lock gap) and `tests/contract-commit-observations.py` (missing/late witnesses, failure/death, two queued purchases, guards, history, creation/renewal and conservative clock scope) with inspected `T12_STATE` and `T12_EVIDENCE_DIR`; it resets only the synthetic `t12backend` database, local cache and localhost SMTP. The separate repository tests cover a committed claim superseded before send, continued verified future scheduling, evidence erasure and forward-migration refusal. No production database, customer/payment provider or external SMTP is used.
+
+
+## Closing a declaration without a contract
+
+`PATCH /contracts/declarations/{declaration_id}` accepts the administrative action
+`CLOSE_WITHOUT_CONTRACT` with a required `note`. It does not require
+`identity_verified`. Do not supply `effective_end`, `verified_user_id` or
+`renewal_agreement_id`.
+
+After locking the request, session actor, observed account and declaration, and
+rechecking the MFA administrator session in the transaction, this action requires
+an original account observation without an agreement, no purchase, period,
+Premium operation or cancellation schedule observation, and an existing observed
+account with no Premium period (including expired periods), renewal agreement,
+subscription or financial document (including historical documents). A missing
+account observation or erased account is rejected. Existing contract end dates
+are also rejected. These checks and the recorded completion share one transaction.
+
+Completion sets `processed_at`, preserves the note and records the separate
+`close_without_contract` processing action. The end date stays empty. It neither
+changes account state nor creates delivery records, sends mail, or records
+verified external communication. The pending-review warning counts only
+unprocessed declarations, so a completed declaration leaves that warning.
+Repeated completion returns Conflict. The immutable processing action appears
+in the existing administrative evidence and account data export.

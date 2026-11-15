@@ -327,6 +327,48 @@ impl ContractRepository<PostgresTransaction> for PostgresContractRepository {
         }
     }
 
+    #[trace_instrument(skip(self, txn, note))]
+    async fn close_without_contract(
+        &self,
+        txn: &mut PostgresTransaction,
+        id: ContractDeclarationId,
+        processed_at: DateTime<Utc>,
+        note: ContractProcessingNote,
+    ) -> anyhow::Result<Option<ContractDeclaration>> {
+        self.lock_processing(txn, id).await?;
+        let eligible: bool = txn
+            .txn()
+            .query_one(include_str!("close_without_contract.sql"), &[&*id])
+            .await?
+            .get(0);
+        if !eligible {
+            return Ok(None);
+        }
+        let note = note.to_string();
+        txn.txn().execute(
+            "INSERT INTO contract_processing_actions(declaration_id,action,recorded_at,note) VALUES($1,'close_without_contract',$2,$3)",
+            &[&*id, &processed_at, &note],
+        ).await?;
+        let declaration = queries::contract::set_processed()
+            .params(
+                txn.txn(),
+                &SetProcessedParams {
+                    id: *id,
+                    processed_at: processed_at.into(),
+                    effective_end: None,
+                    processing_note: Some(note),
+                },
+            )
+            .opt()
+            .await?
+            .map(decode_declaration)
+            .transpose()?;
+        match declaration {
+            Some(d) => Ok(Some(with_delivery(txn, d).await?)),
+            None => Ok(None),
+        }
+    }
+
     #[trace_instrument(skip(self, txn))]
     async fn list(
         &self,

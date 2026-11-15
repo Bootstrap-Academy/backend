@@ -146,7 +146,8 @@ async fn invoice_identity_forward_controls() {
                 "2026-10-04-175659_session_origin",
                 "2026-10-05-180000_operator_audit",
                 "2026-10-17-120000_stage2_purchase_authority",
-                "2026-11-07-120000_forfeit_unpaid_wallet_remainder"
+                "2026-11-07-120000_forfeit_unpaid_wallet_remainder",
+                "2026-11-13-220000_close_without_contract"
             ]
         );
     }
@@ -560,7 +561,8 @@ async fn pending_invoice_rich_export_controls() {
                 "2026-10-04-175659_session_origin",
                 "2026-10-05-180000_operator_audit",
                 "2026-10-17-120000_stage2_purchase_authority",
-                "2026-11-07-120000_forfeit_unpaid_wallet_remainder"
+                "2026-11-07-120000_forfeit_unpaid_wallet_remainder",
+                "2026-11-13-220000_close_without_contract"
             ]
         );
     }
@@ -717,7 +719,8 @@ async fn erased_owner_identity_conflict_controls() {
                 "2026-10-04-175659_session_origin",
                 "2026-10-05-180000_operator_audit",
                 "2026-10-17-120000_stage2_purchase_authority",
-                "2026-11-07-120000_forfeit_unpaid_wallet_remainder"
+                "2026-11-07-120000_forfeit_unpaid_wallet_remainder",
+                "2026-11-13-220000_close_without_contract"
             ]
         );
     }

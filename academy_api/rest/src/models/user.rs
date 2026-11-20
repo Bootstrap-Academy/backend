@@ -6,14 +6,28 @@ use academy_models::{
     url::Url,
     user::{
         TermsVersion, UserBio, UserCity, UserComposite, UserCountry, UserDisplayName, UserFilter,
-        UserFirstName, UserId, UserIdOrSelf, UserLastName, UserName, UserPassword, UserStreet,
-        UserTags, UserVatId, UserZipCode,
+        UserFirstName, UserId, UserIdOrSelf, UserLastName, UserName, UserNameOrEmailAddress,
+        UserPassword, UserStreet, UserTags, UserVatId, UserZipCode,
     },
 };
 use schemars::{JsonSchema, Schema, SchemaGenerator, json_schema};
 use serde::{Deserialize, Serialize};
 
 use crate::const_schema;
+
+/// Normalize a login identifier before choosing its username or email variant.
+/// Kept at the login boundary so stored names and other user input stay strict.
+pub(crate) fn deserialize_login_identifier<'de, D>(
+    deserializer: D,
+) -> Result<UserNameOrEmailAddress, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let input = String::deserialize(deserializer)?;
+    UserNameOrEmailAddress::deserialize(serde::de::value::StrDeserializer::<D::Error>::new(
+        input.trim(),
+    ))
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct ApiUser {
